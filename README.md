@@ -1,5 +1,7 @@
 # Verdant Atelier
 
+[Open the live 3D planner](https://piotrnowakowski.github.io/verdant-atelier/)
+
 Verdant Atelier is a WebMCP-native 3D workspace for early home, plot, garage,
 and garden planning. A person can edit the model directly, while a browser
 agent such as ChatGPT or Codex can inspect the same live project and propose
