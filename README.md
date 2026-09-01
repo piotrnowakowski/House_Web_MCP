@@ -1,8 +1,8 @@
-# Verdant Atelier
+# House_Web_MCP
 
-[Open the live 3D planner](https://piotrnowakowski.github.io/verdant-atelier/)
+[Open the live 3D planner](https://piotrnowakowski.github.io/House_Web_MCP/)
 
-Verdant Atelier is a WebMCP-native 3D workspace for early home, plot, garage,
+House_Web_MCP is a WebMCP-native 3D workspace for early home, plot, garage,
 and garden planning. A person can edit the model directly, while a browser
 agent such as ChatGPT or Codex can inspect the same live project and propose
 reversible 3D variants through semantic tools.
@@ -48,7 +48,7 @@ npm run preview
 ```
 
 The repository includes both `vercel.json` for Vercel and a tested GitHub
-Pages workflow. The Pages build sets `/verdant-atelier/` as Vite's base path;
+Pages workflow. The Pages build sets `/House_Web_MCP/` as Vite's base path;
 local and Vercel builds remain rooted at `/`.
 
 ## Recommended agent demo

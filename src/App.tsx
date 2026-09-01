@@ -51,10 +51,10 @@ export function App() {
       if (event.key === '[') setMonth(useStudioStore.getState().month - 1)
       if (event.key === ']') setMonth(useStudioStore.getState().month + 1)
     }
-    window.addEventListener('verdant:import', openImport)
+    window.addEventListener('house-web-mcp:import', openImport)
     window.addEventListener('keydown', keyboard)
     return () => {
-      window.removeEventListener('verdant:import', openImport)
+      window.removeEventListener('house-web-mcp:import', openImport)
       window.removeEventListener('keydown', keyboard)
     }
   }, [setMonth, setTransformMode, setViewMode, setToast, undo])
@@ -66,7 +66,7 @@ export function App() {
     finally { if (inputRef.current) inputRef.current.value = '' }
   }
 
-  return <main aria-label="Verdant Atelier 3D planning workspace">
+  return <main aria-label="House_Web_MCP 3D planning workspace">
     <Canvas
       shadows
       dpr={[1, 1.75]}

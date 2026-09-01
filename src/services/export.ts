@@ -19,19 +19,19 @@ const download = (blob: Blob, filename: string) => {
 }
 
 export const exportProjectJson = (project: ProjectV1) => {
-  download(new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' }), 'verdant-atelier-project.json')
+  download(new Blob([JSON.stringify(project, null, 2)], { type: 'application/json' }), 'House_Web_MCP-project.json')
 }
 
 export const exportSceneGlb = async () => {
   if (!sceneRoot) throw new Error('The 3D scene is not ready for export.')
   const exporter = new GLTFExporter()
   const result = await exporter.parseAsync(sceneRoot, { binary: true, onlyVisible: true })
-  download(new Blob([result as ArrayBuffer], { type: 'model/gltf-binary' }), 'verdant-atelier.glb')
+  download(new Blob([result as ArrayBuffer], { type: 'model/gltf-binary' }), 'House_Web_MCP.glb')
 }
 
 export const exportScenePng = () => {
   if (!renderCanvas) throw new Error('The render surface is not ready for export.')
-  renderCanvas.toBlob((blob) => { if (blob) download(blob, 'verdant-atelier.png') }, 'image/png')
+  renderCanvas.toBlob((blob) => { if (blob) download(blob, 'House_Web_MCP.png') }, 'image/png')
 }
 
 export const importProjectFile = async (file: File): Promise<ProjectV1> => parseProject(JSON.parse(await file.text()))

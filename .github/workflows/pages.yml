@@ -27,7 +27,7 @@ jobs:
       - run: npm test
       - run: npm run build
         env:
-          BASE_PATH: /verdant-atelier/
+          BASE_PATH: /House_Web_MCP/
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

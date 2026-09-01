@@ -1,7 +1,7 @@
 import { parseProject } from '../domain/schema'
 import type { ProjectV1 } from '../domain/types'
 
-const DB_NAME = 'verdant-atelier'
+const DB_NAME = 'house-web-mcp'
 const STORE_NAME = 'projects'
 const ACTIVE_KEY = 'active-project'
 

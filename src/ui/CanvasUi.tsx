@@ -146,7 +146,7 @@ function StudioHudContent() {
     <OrthographicCamera makeDefault manual position={[0, 0, 100]} left={-width / 2} right={width / 2} top={height / 2} bottom={-height / 2} near={0.1} far={200} />
 
     <Panel x={0} y={top} width={width - 28} height={52} opacity={0.91}>
-      <group position={[-width / 2 + 132, 0, 3]}><TextSprite text="VERDANT ATELIER" width={218} height={29} color="#dff5cf" fontSize={82} align="left" /></group>
+      <group position={[-width / 2 + 132, 0, 3]}><TextSprite text="House_Web_MCP" width={218} height={29} color="#dff5cf" fontSize={82} align="left" /></group>
       <group position={[-width / 2 + 326, -1, 3]}><TextSprite text={`R${project.revision}  /  ${metrics.homeAreaM2} m²`} width={150} height={24} color="#8fa398" fontSize={72} align="left" /></group>
       <CanvasButton label="TECHNICAL" x={-92} y={0} width={106} active={viewMode === 'technical'} onClick={() => setViewMode('technical')} />
       <CanvasButton label="REALISTIC" x={24} y={0} width={106} active={viewMode === 'realistic'} onClick={() => setViewMode('realistic')} />
@@ -198,7 +198,7 @@ function StudioHudContent() {
       <CanvasButton label="JSON" x={-90} y={12} width={76} onClick={() => safe(() => { exportProjectJson(project) })} />
       <CanvasButton label="GLB" x={0} y={12} width={76} onClick={() => safe(exportSceneGlb)} />
       <CanvasButton label="PNG" x={90} y={12} width={76} onClick={() => safe(() => { exportScenePng() })} />
-      <CanvasButton label="IMPORT PROJECT" x={0} y={-27} width={256} height={28} onClick={() => window.dispatchEvent(new Event('verdant:import'))} />
+      <CanvasButton label="IMPORT PROJECT" x={0} y={-27} width={256} height={28} onClick={() => window.dispatchEvent(new Event('house-web-mcp:import'))} />
     </Panel>
 
     {toast && <Panel x={0} y={top - 74} width={Math.min(700, width - 430)} height={34} opacity={0.86}>
