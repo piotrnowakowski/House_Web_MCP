@@ -23,7 +23,7 @@ import {
   Vector3,
 } from 'three'
 import { sunPositionForMonth } from '../domain/seasonal'
-import type { BuildingModel, GardenZone, PlantModel, PlotParcelModel, ProjectV1, RoomModel, VariantModel, ViewMode } from '../domain/types'
+import type { ArchitecturalStyle, BuildingModel, GardenZone, PlantModel, PlotParcelModel, ProjectV1, RoomModel, VariantModel, ViewMode } from '../domain/types'
 import { setExportSceneRoot, setRenderCanvas } from '../services/export'
 import { useStudioStore } from '../state/store'
 import { TextSprite } from '../ui/CanvasUi'
@@ -86,6 +86,12 @@ function RealisticTerrainMaterial({ month }: { month: number }) {
 
 const roomPalette: Record<string, string> = {
   living: '#e4dacb', kitchen: '#d8ddd2', work: '#d4dce0', utility: '#d3d0c9', sleeping: '#ddd4d8', garage: '#c3c9c5', flex: '#dbd4c9',
+}
+
+const architecturalPalette: Record<ArchitecturalStyle, { wall: string; roof: string; trim: string; accent: string; glass: string; edge: string; roughness: number; metalness: number }> = {
+  classic: { wall: '#e7e2d9', roof: '#485159', trim: '#f4f0e8', accent: '#8b5937', glass: '#7ca9ad', edge: '#756d61', roughness: 0.84, metalness: 0.02 },
+  futuristic: { wall: '#dfe6e3', roof: '#20282c', trim: '#f4f7f4', accent: '#262f33', glass: '#72b9c3', edge: '#5b7479', roughness: 0.46, metalness: 0.14 },
+  barn: { wall: '#242a29', roof: '#2d3233', trim: '#a9784f', accent: '#151a1b', glass: '#6ea4aa', edge: '#111616', roughness: 0.72, metalness: 0.08 },
 }
 
 const elevationAt = (project: ProjectV1, x: number, z: number) => {
@@ -305,16 +311,17 @@ function BoreholeMarkers({ project, mode }: { project: ProjectV1; mode: ViewMode
   </group>
 }
 
-function Opening({ opening, room, mode }: { opening: RoomModel['openings'][number]; room: RoomModel; mode: ViewMode }) {
+function Opening({ opening, room, mode, architecturalStyle }: { opening: RoomModel['openings'][number]; room: RoomModel; mode: ViewMode; architecturalStyle: ArchitecturalStyle }) {
   const onX = opening.wall === 'east' || opening.wall === 'west'
   const x = opening.wall === 'east' ? room.widthM / 2 + 0.012 : opening.wall === 'west' ? -room.widthM / 2 - 0.012 : opening.offsetM
   const z = opening.wall === 'north' ? -room.depthM / 2 - 0.012 : opening.wall === 'south' ? room.depthM / 2 + 0.012 : opening.offsetM
   const isWindow = opening.kind === 'window'
+  const palette = architecturalPalette[architecturalStyle]
   return <group position={[x, opening.heightM / 2 + 0.18, z]} rotation={[0, onX ? Math.PI / 2 : 0, 0]}>
     <mesh>
       <planeGeometry args={[opening.widthM, opening.heightM]} />
       <meshPhysicalMaterial
-        color={isWindow ? (mode === 'technical' ? '#9fd6d1' : '#77aab2') : '#765038'}
+        color={isWindow ? (mode === 'technical' ? '#9fd6d1' : palette.glass) : architecturalStyle === 'futuristic' ? palette.accent : '#765038'}
         roughness={isWindow ? 0.08 : 0.78}
         metalness={isWindow ? 0.08 : 0}
         transmission={isWindow && mode === 'realistic' ? 0.52 : 0}
@@ -322,17 +329,20 @@ function Opening({ opening, room, mode }: { opening: RoomModel['openings'][numbe
         opacity={isWindow ? 0.78 : 1}
         side={DoubleSide}
       />
-      <Edges color={isWindow ? '#d7eeea' : '#422d20'} lineWidth={1.1} />
+      <Edges color={isWindow ? (architecturalStyle === 'barn' ? palette.trim : '#d7eeea') : '#422d20'} lineWidth={1.1} />
     </mesh>
     {isWindow && <mesh position={[0, 0, 0.008]}>
       <boxGeometry args={[0.035, opening.heightM, 0.015]} />
-      <meshStandardMaterial color="#e7e5dc" roughness={0.5} />
+      <meshStandardMaterial color={architecturalStyle === 'classic' ? '#eeeae2' : palette.accent} roughness={0.5} metalness={architecturalStyle === 'futuristic' ? 0.25 : 0} />
     </mesh>}
   </group>
 }
 
-function RoomBody({ room, mode, selected, hovered, ghost = false }: { room: RoomModel; mode: ViewMode; selected: boolean; hovered: boolean; ghost?: boolean }) {
-  const color = ghost ? '#c7f36e' : mode === 'technical' ? (selected ? '#9cc4ae' : hovered ? '#89b39f' : '#76a18e') : roomPalette[room.usage] ?? '#ded8cc'
+function RoomBody({ room, mode, selected, hovered, architecturalStyle, ghost = false }: { room: RoomModel; mode: ViewMode; selected: boolean; hovered: boolean; architecturalStyle: ArchitecturalStyle; ghost?: boolean }) {
+  const palette = architecturalPalette[architecturalStyle]
+  const classicWall = roomPalette[room.usage] ?? palette.wall
+  const realisticWall = architecturalStyle === 'classic' ? classicWall : palette.wall
+  const color = ghost ? '#c7f36e' : mode === 'technical' ? (selected ? '#9cc4ae' : hovered ? '#89b39f' : '#76a18e') : realisticWall
   return <>
     <mesh castShadow receiveShadow>
       <boxGeometry args={[room.widthM, room.heightM, room.depthM]} />
@@ -342,18 +352,18 @@ function RoomBody({ room, mode, selected, hovered, ghost = false }: { room: Room
         emissiveIntensity={selected && !ghost ? 0.14 : hovered && !ghost ? 0.08 : 0}
         transparent
         opacity={ghost ? 0.18 : mode === 'technical' ? 0.2 : 0.96}
-        roughness={mode === 'technical' ? 0.55 : 0.88}
-        metalness={0}
+        roughness={mode === 'technical' ? 0.55 : palette.roughness}
+        metalness={mode === 'technical' ? 0 : palette.metalness}
         transmission={ghost ? 0.1 : mode === 'technical' ? 0.08 : 0}
         depthWrite={!ghost}
       />
       <Edges
-        color={ghost ? '#d8ff8e' : selected ? '#b9e45e' : hovered ? '#a8d8c1' : mode === 'technical' ? '#8ab4a1' : '#807a6d'}
+        color={ghost ? '#d8ff8e' : selected ? '#b9e45e' : hovered ? '#a8d8c1' : mode === 'technical' ? '#8ab4a1' : palette.edge}
         threshold={15}
         lineWidth={ghost || selected ? 1.8 : 0.65}
       />
     </mesh>
-    {!ghost && room.openings.map((opening) => <Opening key={opening.ref} opening={opening} room={room} mode={mode} />)}
+    {!ghost && room.openings.map((opening) => <Opening key={opening.ref} opening={opening} room={room} mode={mode} architecturalStyle={architecturalStyle} />)}
     {room.mezzanines.map((mezzanine) => <mesh key={mezzanine.ref} position={[mezzanine.position.x, mezzanine.elevationM - room.heightM / 2, mezzanine.position.z]} castShadow>
       <boxGeometry args={[mezzanine.widthM, mezzanine.thicknessM, mezzanine.depthM]} />
       <meshStandardMaterial color={ghost ? '#c7f36e' : '#aa7b52'} roughness={0.72} transparent opacity={ghost ? 0.32 : 1} />
@@ -391,7 +401,7 @@ function EditableRoom({ room, building, floorY, mode, ghost = false }: { room: R
       document.body.style.cursor = 'default'
     }}
   >
-    <RoomBody room={room} mode={mode} selected={selected} hovered={hovered} ghost={ghost} />
+    <RoomBody room={room} mode={mode} selected={selected} hovered={hovered} architecturalStyle={building.architecturalStyle} ghost={ghost} />
   </group>
   if (!selected || room.locked || ghost) return body
   const finishTransform = () => {
@@ -433,22 +443,23 @@ function Roof({ building, mode, ghost, explodeOffset }: { building: BuildingMode
   const highestFloor = building.floors.reduce((highest, floor) => floor.elevationM + floor.defaultHeightM > highest.elevationM + highest.defaultHeightM ? floor : highest, building.floors[0])
   if (!highestFloor) return null
   const top = highestFloor.elevationM + highestFloor.defaultHeightM + explodeOffset
+  const palette = architecturalPalette[building.architecturalStyle]
   const material = <meshStandardMaterial
-    color={ghost ? '#c7f36e' : mode === 'technical' ? '#6f9182' : '#594238'}
-    roughness={mode === 'technical' ? 0.55 : 0.82}
-    metalness={mode === 'realistic' ? 0.03 : 0}
+    color={ghost ? '#c7f36e' : mode === 'technical' ? '#6f9182' : palette.roof}
+    roughness={mode === 'technical' ? 0.55 : building.architecturalStyle === 'futuristic' ? 0.42 : 0.8}
+    metalness={mode === 'realistic' ? palette.metalness : 0}
     transparent
     opacity={ghost ? 0.16 : mode === 'technical' ? 0.2 : 1}
     depthWrite={!ghost}
     side={DoubleSide}
   />
   if (building.roof.type === 'flat') return <mesh position={[centerX, top + 0.12, centerZ]} castShadow receiveShadow>
-    <boxGeometry args={[width, 0.22, depth]} />{material}<Edges color={ghost ? '#d8ff8e' : mode === 'technical' ? '#9fc3b2' : '#392a24'} lineWidth={0.8} />
+    <boxGeometry args={[width, building.architecturalStyle === 'futuristic' ? 0.3 : 0.22, depth]} />{material}<Edges color={ghost ? '#d8ff8e' : mode === 'technical' ? '#9fc3b2' : palette.edge} lineWidth={0.8} />
   </mesh>
   if (building.roof.type === 'hip') {
     const rise = Math.tan(MathUtils.degToRad(building.roof.pitchDegrees)) * Math.min(width, depth) / 2
     return <mesh position={[centerX, top + rise / 2, centerZ]} rotation={[0, Math.PI / 4, 0]} scale={[width / Math.max(width, depth), 1, depth / Math.max(width, depth)]} castShadow>
-      <coneGeometry args={[Math.max(width, depth) / Math.sqrt(2), rise, 4]} />{material}<Edges color={ghost ? '#d8ff8e' : mode === 'technical' ? '#9fc3b2' : '#392a24'} lineWidth={0.8} />
+      <coneGeometry args={[Math.max(width, depth) / Math.sqrt(2), rise, 4]} />{material}<Edges color={ghost ? '#d8ff8e' : mode === 'technical' ? '#9fc3b2' : palette.edge} lineWidth={0.8} />
     </mesh>
   }
   const pitch = MathUtils.degToRad(building.roof.pitchDegrees)
@@ -460,9 +471,135 @@ function Roof({ building, mode, ghost, explodeOffset }: { building: BuildingMode
     <mesh position={[width / 4, rise / 2, 0]} rotation={[0, 0, -pitch]} castShadow receiveShadow><boxGeometry args={[panel, 0.18, depth]} />{material}</mesh>
     <mesh position={[0, rise + 0.06, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
       <cylinderGeometry args={[0.09, 0.09, depth + 0.12, 8]} />
-      <meshStandardMaterial color={ghost ? '#c7f36e' : mode === 'technical' ? '#91b7a5' : '#3d2d27'} roughness={0.78} transparent opacity={ghost ? 0.2 : mode === 'technical' ? 0.45 : 1} />
+      <meshStandardMaterial color={ghost ? '#c7f36e' : mode === 'technical' ? '#91b7a5' : palette.edge} roughness={0.78} transparent opacity={ghost ? 0.2 : mode === 'technical' ? 0.45 : 1} />
     </mesh>
   </group>
+}
+
+function StyleReveal({ children }: { children: React.ReactNode }) {
+  const group = useRef<Group>(null)
+  const progress = useRef(prefersReducedMotion ? 1 : 0)
+  useFrame((_, delta) => {
+    if (!group.current || progress.current >= 1) return
+    progress.current = Math.min(1, progress.current + delta * 2.8)
+    const eased = 1 - Math.pow(1 - progress.current, 3)
+    group.current.scale.setScalar(0.96 + eased * 0.04)
+    group.current.position.y = -0.12 + eased * 0.12
+  })
+  return <group ref={group} scale={prefersReducedMotion ? 1 : 0.96} position-y={prefersReducedMotion ? 0 : -0.12}>{children}</group>
+}
+
+function FacadeBeam({ from, to, z, color, thickness = 0.18, depth = 0.14 }: { from: [number, number]; to: [number, number]; z: number; color: string; thickness?: number; depth?: number }) {
+  const dx = to[0] - from[0]
+  const dy = to[1] - from[1]
+  const length = Math.hypot(dx, dy)
+  return <mesh position={[(from[0] + to[0]) / 2, (from[1] + to[1]) / 2, z]} rotation={[0, 0, Math.atan2(dy, dx)]} castShadow>
+    <boxGeometry args={[length, thickness, depth]} />
+    <meshStandardMaterial color={color} roughness={0.7} />
+  </mesh>
+}
+
+function BarnGableGlass({ centerX, baseY, width, rise, z, palette }: { centerX: number; baseY: number; width: number; rise: number; z: number; palette: typeof architecturalPalette.barn }) {
+  const geometry = useMemo(() => {
+    const result = new BufferGeometry()
+    result.setAttribute('position', new Float32BufferAttribute([-width / 2, 0, 0, width / 2, 0, 0, 0, rise, 0], 3))
+    result.computeVertexNormals()
+    return result
+  }, [rise, width])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  return <mesh geometry={geometry} position={[centerX, baseY, z]}>
+    <meshPhysicalMaterial color={palette.glass} roughness={0.08} metalness={0.16} transmission={0.5} transparent opacity={0.78} side={DoubleSide} />
+  </mesh>
+}
+
+function ArchitecturalDetails({ building }: { building: BuildingModel }) {
+  const bounds = buildingBounds(building)
+  const width = bounds.maxX - bounds.minX
+  const depth = bounds.maxZ - bounds.minZ
+  const centerX = (bounds.minX + bounds.maxX) / 2
+  const centerZ = (bounds.minZ + bounds.maxZ) / 2
+  const base = Math.min(...building.floors.map((floor) => floor.elevationM))
+  const top = Math.max(...building.floors.map((floor) => floor.elevationM + floor.defaultHeightM))
+  const frontZ = bounds.maxZ + 0.035
+  const palette = architecturalPalette[building.architecturalStyle]
+
+  if (building.kind !== 'house') return null
+
+  if (building.architecturalStyle === 'classic') {
+    const accentHeight = Math.min(2.8, top - base - 0.2)
+    return <StyleReveal>
+      <mesh position={[centerX, base + 0.22, frontZ + 0.035]} castShadow>
+        <boxGeometry args={[width * 0.96, 0.44, 0.1]} />
+        <meshStandardMaterial color="#8a8175" roughness={0.94} />
+      </mesh>
+      <mesh position={[centerX, base + accentHeight / 2 + 0.1, frontZ + 0.055]} castShadow>
+        <boxGeometry args={[2.3, accentHeight, 0.12]} />
+        <meshStandardMaterial color={palette.accent} roughness={0.78} />
+      </mesh>
+      <mesh position={[centerX, top - 0.58, frontZ + 0.62]} castShadow receiveShadow>
+        <boxGeometry args={[3.5, 0.16, 1.35]} />
+        <meshStandardMaterial color={palette.trim} roughness={0.78} />
+      </mesh>
+      {[-1.45, 1.45].map((offset) => <mesh key={offset} position={[centerX + offset, base + 1.05, frontZ + 1.08]} castShadow>
+        <boxGeometry args={[0.16, 2.1, 0.16]} />
+        <meshStandardMaterial color={palette.accent} roughness={0.74} />
+      </mesh>)}
+      <mesh position={[bounds.maxX - 1.25, top + 0.95, centerZ - depth * 0.08]} castShadow>
+        <boxGeometry args={[0.82, 2.3, 0.82]} />
+        <meshStandardMaterial color="#e7e2d9" roughness={0.88} />
+      </mesh>
+    </StyleReveal>
+  }
+
+  if (building.architecturalStyle === 'futuristic') {
+    const glassWidth = width * 0.58
+    const glassHeight = Math.max(1.9, top - base - 0.65)
+    return <StyleReveal>
+      <mesh position={[centerX + width * 0.1, base + 0.28 + glassHeight / 2, frontZ + 0.055]}>
+        <boxGeometry args={[glassWidth, glassHeight, 0.1]} />
+        <meshPhysicalMaterial color={palette.glass} roughness={0.06} metalness={0.22} transmission={0.55} transparent opacity={0.76} />
+      </mesh>
+      {[-0.5, 0, 0.5].map((factor) => <mesh key={factor} position={[centerX + width * 0.1 + glassWidth * factor, base + 0.28 + glassHeight / 2, frontZ + 0.12]}>
+        <boxGeometry args={[0.08, glassHeight, 0.11]} />
+        <meshStandardMaterial color={palette.accent} metalness={0.3} roughness={0.38} />
+      </mesh>)}
+      <mesh position={[centerX + width * 0.08, top + 0.32, frontZ + 0.78]} castShadow receiveShadow>
+        <boxGeometry args={[width * 0.78, 0.2, 1.65]} />
+        <meshStandardMaterial color={palette.trim} roughness={0.38} metalness={0.14} />
+      </mesh>
+      <mesh position={[bounds.minX + 0.7, base + (top - base) / 2, frontZ + 0.16]} castShadow>
+        <boxGeometry args={[0.34, top - base + 0.8, 0.42]} />
+        <meshStandardMaterial color={palette.accent} roughness={0.42} metalness={0.18} />
+      </mesh>
+      <mesh position={[bounds.maxX - 0.8, base + 0.55, frontZ + 0.72]} castShadow>
+        <boxGeometry args={[1.9, 1.1, 1.45]} />
+        <meshStandardMaterial color={palette.accent} roughness={0.55} metalness={0.12} />
+      </mesh>
+    </StyleReveal>
+  }
+
+  const glassWidth = width * 0.72
+  const glassHeight = Math.max(2, top - base - 0.35)
+  const rise = Math.tan(MathUtils.degToRad(building.roof.pitchDegrees)) * glassWidth / 2
+  const frameZ = frontZ + 0.14
+  return <StyleReveal>
+    <mesh position={[centerX, base + glassHeight / 2 + 0.08, frontZ + 0.055]}>
+      <boxGeometry args={[glassWidth, glassHeight, 0.1]} />
+      <meshPhysicalMaterial color={palette.glass} roughness={0.07} metalness={0.14} transmission={0.5} transparent opacity={0.76} />
+    </mesh>
+    <BarnGableGlass centerX={centerX} baseY={top - 0.2} width={glassWidth} rise={rise * 0.92} z={frontZ + 0.06} palette={architecturalPalette.barn} />
+    <FacadeBeam from={[centerX - glassWidth / 2, base]} to={[centerX - glassWidth / 2, top - 0.08]} z={frameZ} color={palette.trim} />
+    <FacadeBeam from={[centerX + glassWidth / 2, base]} to={[centerX + glassWidth / 2, top - 0.08]} z={frameZ} color={palette.trim} />
+    <FacadeBeam from={[centerX - glassWidth / 2, top - 0.08]} to={[centerX, top + rise * 0.92]} z={frameZ} color={palette.trim} thickness={0.22} />
+    <FacadeBeam from={[centerX, top + rise * 0.92]} to={[centerX + glassWidth / 2, top - 0.08]} z={frameZ} color={palette.trim} thickness={0.22} />
+    <FacadeBeam from={[centerX, base]} to={[centerX, top + rise * 0.92]} z={frameZ + 0.02} color={palette.trim} thickness={0.16} />
+    <FacadeBeam from={[centerX - glassWidth / 2, top - 0.08]} to={[centerX + glassWidth / 2, top - 0.08]} z={frameZ} color={palette.trim} thickness={0.18} />
+    {[-0.25, 0.25].map((factor) => <FacadeBeam key={factor} from={[centerX + glassWidth * factor, base]} to={[centerX + glassWidth * factor, top - 0.08]} z={frameZ} color={palette.trim} thickness={0.1} />)}
+    <mesh position={[centerX, base + 0.02, frontZ + 1.35]} castShadow receiveShadow>
+      <boxGeometry args={[width * 0.9, 0.14, 2.8]} />
+      <meshStandardMaterial color="#9b704d" roughness={0.76} />
+    </mesh>
+  </StyleReveal>
 }
 
 function BuildingScene({ building, mode, explode, ghost = false }: { building: BuildingModel; mode: ViewMode; explode: boolean; ghost?: boolean }) {
@@ -474,6 +611,7 @@ function BuildingScene({ building, mode, explode, ghost = false }: { building: B
       </group>
     })}
     <Roof building={building} mode={mode} ghost={ghost} explodeOffset={explode ? Math.max(0, building.floors.length - 1) * 1.9 : 0} />
+    {!ghost && mode === 'realistic' && !explode && <ArchitecturalDetails key={building.architecturalStyle} building={building} />}
   </group>
 }
 

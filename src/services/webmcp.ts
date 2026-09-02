@@ -29,7 +29,8 @@ const plotSchema = z.object({
   elevationPoints: z.array(positionSchema.extend({ elevation: z.number() })).min(1).optional(),
 })
 const buildingSchema = z.object({
-  action: z.enum(['add', 'remove', 'set-roof', 'move']), buildingRef: refString, name: z.string().optional(), kind: z.enum(['house', 'garage']).optional(),
+  action: z.enum(['add', 'remove', 'set-roof', 'set-style', 'move']), buildingRef: refString, name: z.string().optional(), kind: z.enum(['house', 'garage']).optional(),
+  architecturalStyle: z.enum(['classic', 'futuristic', 'barn']).optional(),
   position: positionSchema.optional(), rotationDegrees: z.number().optional(), roofType: z.enum(['flat', 'gable', 'hip']).optional(),
   pitchDegrees: z.number().min(0).max(70).optional(), overhangM: z.number().min(0).max(3).optional(),
 })
@@ -201,7 +202,7 @@ export const webMcpTools: WebMcpTool[] = [
     return { status: 'ok', projectRevision: state.project.revision, summary: `Returned ${detail} project state.`, metrics, data }
   } }),
   define({ ...webMcpToolPrompts.propose_plot_update, input: plotSchema, handler: (input) => createVariant('Plot update', { type: 'plot.update', ...input }) }),
-  define({ ...webMcpToolPrompts.propose_building_update, input: buildingSchema, handler: (input) => createVariant('Building update', { type: 'building.update', action: input.action, buildingRef: input.buildingRef, name: input.name, kind: input.kind, position: input.position, rotationDegrees: input.rotationDegrees, roof: input.roofType ? { type: input.roofType, pitchDegrees: input.pitchDegrees ?? (input.roofType === 'flat' ? 0 : 28), overhangM: input.overhangM ?? 0.4 } : undefined }) }),
+  define({ ...webMcpToolPrompts.propose_building_update, input: buildingSchema, handler: (input) => createVariant('Building update', { type: 'building.update', action: input.action, buildingRef: input.buildingRef, name: input.name, kind: input.kind, architecturalStyle: input.architecturalStyle, position: input.position, rotationDegrees: input.rotationDegrees, roof: input.roofType ? { type: input.roofType, pitchDegrees: input.pitchDegrees ?? (input.roofType === 'flat' ? 0 : 28), overhangM: input.overhangM ?? 0.4 } : undefined }) }),
   define({ ...webMcpToolPrompts.propose_floor_update, input: floorSchema, handler: (input) => createVariant('Floor update', { type: 'floor.update', ...input }) }),
   define({ ...webMcpToolPrompts.propose_room_update, input: roomSchema, handler: (input) => createVariant('Room update', { type: 'room.update', ...input }) }),
   define({ ...webMcpToolPrompts.propose_mezzanine_update, input: mezzanineSchema, handler: (input) => createVariant('Mezzanine update', { type: 'mezzanine.update', ...input }) }),

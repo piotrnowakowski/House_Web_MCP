@@ -48,6 +48,7 @@ const FloorSchema = z.object({
 })
 const BuildingSchema = z.object({
   ref: z.string().min(1), name: z.string().min(1), kind: z.enum(['house', 'garage']),
+  architecturalStyle: z.enum(['classic', 'futuristic', 'barn']).default('classic'),
   garageMode: z.enum(['integrated', 'attached']).optional(), position: Vec2Schema, rotationDegrees: z.number().finite(),
   floors: z.array(FloorSchema), roof: z.object({ type: z.enum(['flat', 'gable', 'hip']), pitchDegrees: z.number().min(0).max(70), overhangM: z.number().min(0).max(3) }),
 })

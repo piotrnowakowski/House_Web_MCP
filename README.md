@@ -24,6 +24,8 @@ horticultural, or building regulations.
 - Parametric rooms, multiple floors, room-specific ceilings, mezzanines,
   attached or integrated garages, openings, and three roof families
 - Technical and realistic presentations of one shared 3D model
+- One-click Classic, Futuristic, and Barn house presets with distinct roofs,
+  facade materials, glazing, timber/metal details, and reversible history
 - Full visible UI rendered inside WebGL: tool rail, inspector, seasonal status,
   variants, confirmation, history, and export controls
 - Direct scene selection for rooms, garden zones, and plants, with a contextual

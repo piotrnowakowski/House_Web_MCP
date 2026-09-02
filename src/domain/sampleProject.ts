@@ -14,6 +14,7 @@ export const sampleProject: ProjectV1 = {
     ref: 'house/main',
     name: 'Main house',
     kind: 'house',
+    architecturalStyle: 'classic',
     position: { x: -1, z: -1 },
     rotationDegrees: 0,
     roof: { type: 'gable', pitchDegrees: 28, overhangM: 0.45 },

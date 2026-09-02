@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CanvasTexture, Group, LinearFilter, MathUtils, Shape, SRGBColorSpace } from 'three'
 import { calculateMetrics } from '../domain/commands'
 import { analyzeSeason } from '../domain/seasonal'
-import type { GardenZone, PlantModel, ProjectCommand, RoomModel } from '../domain/types'
+import type { ArchitecturalStyle, GardenZone, PlantModel, ProjectCommand, RoomModel } from '../domain/types'
 import { exportProjectJson, exportSceneGlb, exportScenePng } from '../services/export'
 import { resolveExportConfirmation, resolveVariantConfirmation } from '../services/webmcp'
 import { useStudioStore } from '../state/store'
@@ -187,6 +187,8 @@ function StudioHudContent() {
   const agriculturalArea = project.plot.parcels.filter((parcel) => parcel.landRole === 'agricultural').reduce((sum, parcel) => sum + parcel.officialAreaM2, 0)
   const season = useMemo(() => analyzeSeason(project, [month])[0], [project, month])
   const latestVariant = variants.at(-1)
+  const mainHouse = project.buildings.find((building) => building.kind === 'house')
+  const architecturalStyle = mainHouse?.architecturalStyle ?? 'classic'
 
   const safe = (action: () => unknown | Promise<unknown>) => Promise.resolve().then(action).catch((error) => setToast(error instanceof Error ? error.message : 'Action failed.'))
   const runExport = (kind: 'json' | 'glb' | 'png', action: () => unknown | Promise<unknown>) => {
@@ -194,6 +196,12 @@ function StudioHudContent() {
     setExporting(kind)
     safe(action).finally(() => setExporting(null))
   }
+  const applyArchitecturalStyle = (style: ArchitecturalStyle) => safe(() => {
+    if (!mainHouse || mainHouse.architecturalStyle === style) return
+    commitCommand({ type: 'building.update', action: 'set-style', buildingRef: mainHouse.ref, architecturalStyle: style })
+    setViewMode('realistic')
+    setToast(`${style[0].toUpperCase()}${style.slice(1)} house style applied. Use Undo to return.`)
+  })
   const roomCommand = (input: Partial<Extract<ProjectCommand, { type: 'room.update' }>>) => {
     if (!selected || selected.kind !== 'room') return
     safe(() => commitCommand({ type: 'room.update', action: 'resize', buildingRef: selected.buildingRef, floorRef: selected.floorRef, roomRef: selected.room.ref, ...input }))
@@ -236,6 +244,13 @@ function StudioHudContent() {
       <CanvasButton label="+ Garage" x={0} y={-73} width={72} height={44} onClick={() => createFeatureVariant('garage')} />
       <CanvasButton label="Garden" x={0} y={-123} width={72} height={44} onClick={() => createFeatureVariant('garden')} />
       <CanvasButton label="Undo" x={0} y={-175} width={72} height={44} disabled={!history.length} onClick={() => safe(() => { undo() })} />
+    </Panel>
+
+    <Panel x={left + 130} y={-height / 2 + 118} width={260} height={88} opacity={0.9} radius={16}>
+      <group position={[0, 22, 3]}><TextSprite text="HOUSE STYLE" width={224} height={17} color="#82958b" fontSize={66} /></group>
+      <CanvasButton label="Classic" x={-84} y={-17} width={76} height={34} active={architecturalStyle === 'classic'} onClick={() => applyArchitecturalStyle('classic')} />
+      <CanvasButton label="Future" x={0} y={-17} width={76} height={34} active={architecturalStyle === 'futuristic'} onClick={() => applyArchitecturalStyle('futuristic')} />
+      <CanvasButton label="Barn" x={84} y={-17} width={76} height={34} active={architecturalStyle === 'barn'} onClick={() => applyArchitecturalStyle('barn')} />
     </Panel>
 
     <Panel x={right - 146} y={18} width={292} height={420} opacity={0.88} radius={18}>

@@ -74,6 +74,19 @@ describe('native WebMCP surface', () => {
     expect(useStudioStore.getState().variants[0].project.buildings[0].floors).toHaveLength(2)
   })
 
+  it('proposes an architectural preset without changing the committed house', async () => {
+    const result = await tool('propose_building_update').execute({
+      action: 'set-style', buildingRef: 'house/main', architecturalStyle: 'barn',
+    })
+    const parsed = payload(result)
+
+    expect(parsed.status).toBe('variant_created')
+    expect(useStudioStore.getState().project.buildings[0].architecturalStyle).toBe('classic')
+    expect(useStudioStore.getState().variants[0].project.buildings[0]).toMatchObject({
+      architecturalStyle: 'barn', roof: { type: 'gable', pitchDegrees: 45 },
+    })
+  })
+
   it('waits for explicit human approval before applying a variant', async () => {
     await tool('propose_room_update').execute({ action: 'set-ceiling', buildingRef: 'house/main', floorRef: 'floor/ground', roomRef: 'room/living-room', heightM: 3.1, ceilingType: 'lowered' })
     const ref = useStudioStore.getState().variants[0].ref

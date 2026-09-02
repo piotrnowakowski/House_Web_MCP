@@ -4,6 +4,7 @@ export type ViewMode = 'technical' | 'realistic'
 export type TransformMode = 'translate' | 'scale' | 'rotate'
 export type RoofType = 'flat' | 'gable' | 'hip'
 export type BuildingKind = 'house' | 'garage'
+export type ArchitecturalStyle = 'classic' | 'futuristic' | 'barn'
 export type GardenZoneKind = 'lawn' | 'terrace' | 'path' | 'driveway' | 'bed' | 'rain-garden' | 'vegetable'
 export type PlantKind = 'tree' | 'hedge' | 'shrub' | 'perennial' | 'grass' | 'crop' | 'wetland'
 
@@ -181,6 +182,7 @@ export interface BuildingModel {
   ref: string
   name: string
   kind: BuildingKind
+  architecturalStyle: ArchitecturalStyle
   garageMode?: 'integrated' | 'attached'
   position: Vec2
   rotationDegrees: number
@@ -273,13 +275,14 @@ export type PlotUpdateCommand = {
 
 export type BuildingUpdateCommand = {
   type: 'building.update'
-  action: 'add' | 'remove' | 'set-roof' | 'move'
+  action: 'add' | 'remove' | 'set-roof' | 'set-style' | 'move'
   buildingRef: string
   name?: string
   kind?: BuildingKind
   position?: Vec2
   rotationDegrees?: number
   roof?: BuildingModel['roof']
+  architecturalStyle?: ArchitecturalStyle
 }
 
 export type FloorUpdateCommand = {

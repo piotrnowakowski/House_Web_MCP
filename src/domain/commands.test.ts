@@ -21,6 +21,19 @@ describe('ProjectV1 command bus', () => {
     expect(calculateMetrics(result).homeAreaM2).toBeGreaterThan(calculateMetrics(sampleProject).homeAreaM2)
   })
 
+  it('switches architectural style and its roof preset as one reversible command', () => {
+    const barn = applyCommand(sampleProject, {
+      type: 'building.update', action: 'set-style', buildingRef: 'house/main', architecturalStyle: 'barn',
+    })
+    const futuristic = applyCommand(sampleProject, {
+      type: 'building.update', action: 'set-style', buildingRef: 'house/main', architecturalStyle: 'futuristic',
+    })
+
+    expect(sampleProject.buildings[0].architecturalStyle).toBe('classic')
+    expect(barn.buildings[0]).toMatchObject({ architecturalStyle: 'barn', roof: { type: 'gable', pitchDegrees: 45 } })
+    expect(futuristic.buildings[0]).toMatchObject({ architecturalStyle: 'futuristic', roof: { type: 'flat', pitchDegrees: 0 } })
+  })
+
   it('prevents edits to locked rooms', () => {
     expect(() => applyCommand(sampleProject, {
       type: 'room.update', action: 'resize', buildingRef: 'house/main', floorRef: 'floor/ground', roomRef: 'room/kitchen', widthM: 5,

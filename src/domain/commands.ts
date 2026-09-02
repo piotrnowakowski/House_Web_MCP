@@ -51,13 +51,20 @@ const defaultRoom = (ref: string, name: string, usage: string, position = { x: 0
   ref, name, usage, position, widthM, depthM, heightM, rotationDegrees: 0, ceilingType: 'flat', locked: false, openings: [], mezzanines: [],
 })
 
+const styleRoof: Record<BuildingModel['architecturalStyle'], BuildingModel['roof']> = {
+  classic: { type: 'gable', pitchDegrees: 32, overhangM: 0.55 },
+  futuristic: { type: 'flat', pitchDegrees: 0, overhangM: 0.8 },
+  barn: { type: 'gable', pitchDegrees: 45, overhangM: 0.3 },
+}
+
 const applyBuilding = (project: ProjectV1, command: Extract<ProjectCommand, { type: 'building.update' }>) => {
   if (command.action === 'add') {
     if (project.buildings.some((item) => item.ref === command.buildingRef)) throw new Error(`Reference already exists: ${command.buildingRef}`)
     project.buildings.push({
       ref: command.buildingRef, name: command.name ?? 'New building', kind: command.kind ?? 'house', position: command.position ?? { x: 0, z: 0 },
+      architecturalStyle: command.architecturalStyle ?? 'classic',
       rotationDegrees: command.rotationDegrees ?? 0, floors: [defaultFloor(`${command.buildingRef}/ground`, 'Ground floor', 0, 0.4, 3)],
-      roof: command.roof ?? { type: 'flat', pitchDegrees: 0, overhangM: 0.3 },
+      roof: command.roof ?? styleRoof[command.architecturalStyle ?? 'classic'],
     })
     return
   }
@@ -67,6 +74,10 @@ const applyBuilding = (project: ProjectV1, command: Extract<ProjectCommand, { ty
   }
   const building = getBuilding(project, command.buildingRef)
   if (command.action === 'set-roof' && command.roof) building.roof = command.roof
+  if (command.action === 'set-style' && command.architecturalStyle) {
+    building.architecturalStyle = command.architecturalStyle
+    building.roof = styleRoof[command.architecturalStyle]
+  }
   if (command.action === 'move') {
     if (command.position) building.position = command.position
     if (command.rotationDegrees !== undefined) building.rotationDegrees = command.rotationDegrees
@@ -152,11 +163,12 @@ const applyGarage = (project: ProjectV1, command: Extract<ProjectCommand, { type
     const width = command.widthM ?? 6.2
     const depth = command.depthM ?? 6.8
     const height = command.heightM ?? 2.8
+    const architecturalStyle = project.buildings.find((building) => building.kind === 'house')?.architecturalStyle ?? 'classic'
     const floor = defaultFloor(`${command.garageRef}/ground`, 'Garage floor', 0, 0.35, height)
     floor.rooms.push(defaultRoom(`${command.garageRef}/parking`, 'Two-car garage', 'garage', { x: 0, z: 0 }, width, depth, height))
     project.buildings.push({
       ref: command.garageRef, name: 'Garage', kind: 'garage', garageMode: command.mode ?? 'attached', position: command.position ?? { x: 9, z: -2 },
-      rotationDegrees: 0, floors: [floor], roof: { type: 'flat', pitchDegrees: 0, overhangM: 0.35 },
+      architecturalStyle, rotationDegrees: 0, floors: [floor], roof: architecturalStyle === 'futuristic' ? styleRoof.futuristic : { ...styleRoof[architecturalStyle], pitchDegrees: Math.min(styleRoof[architecturalStyle].pitchDegrees, 28) },
     })
     return
   }
