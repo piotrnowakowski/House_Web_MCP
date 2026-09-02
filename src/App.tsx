@@ -1,5 +1,6 @@
 import { Canvas } from '@react-three/fiber'
 import { Suspense, useEffect, useRef } from 'react'
+import { ACESFilmicToneMapping, PCFSoftShadowMap, SRGBColorSpace } from 'three'
 import { StudioScene } from './scene/StudioScene'
 import { importProjectFile } from './services/export'
 import { loadProject, saveProject } from './services/persistence'
@@ -37,6 +38,12 @@ export function App() {
   useEffect(() => registerWebMcpTools(), [])
 
   useEffect(() => {
+    if (!toast) return
+    const timer = window.setTimeout(() => setToast(null), 4200)
+    return () => window.clearTimeout(timer)
+  }, [setToast, toast])
+
+  useEffect(() => {
     const openImport = () => inputRef.current?.click()
     const keyboard = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
@@ -69,10 +76,16 @@ export function App() {
   return <main aria-label="House_Web_MCP 3D planning workspace">
     <Canvas
       shadows
-      dpr={[1, 1.75]}
-      camera={{ position: [30, 25, 34], fov: 42, near: 0.1, far: 250 }}
+      dpr={[1, 2]}
+      camera={{ position: [29, 23, 32], fov: 38, near: 0.1, far: 250 }}
       gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' }}
-      onCreated={({ gl }) => { gl.domElement.setAttribute('aria-label', 'Interactive 3D home and garden scene') }}
+      onCreated={({ gl }) => {
+        gl.outputColorSpace = SRGBColorSpace
+        gl.toneMapping = ACESFilmicToneMapping
+        gl.toneMappingExposure = 1.08
+        gl.shadowMap.type = PCFSoftShadowMap
+        gl.domElement.setAttribute('aria-label', 'Interactive 3D home and garden scene')
+      }}
     >
       <Suspense fallback={null}>
         <StudioScene />

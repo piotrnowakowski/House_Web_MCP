@@ -1,7 +1,7 @@
 import { Hud, OrthographicCamera } from '@react-three/drei'
-import { useThree } from '@react-three/fiber'
-import { useEffect, useMemo, useState } from 'react'
-import { CanvasTexture, LinearFilter } from 'three'
+import { useFrame, useThree } from '@react-three/fiber'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { CanvasTexture, Group, LinearFilter, MathUtils, Shape, SRGBColorSpace } from 'three'
 import { calculateMetrics } from '../domain/commands'
 import { analyzeSeason } from '../domain/seasonal'
 import type { ProjectCommand, RoomModel } from '../domain/types'
@@ -19,34 +19,53 @@ interface TextSpriteProps {
   opacity?: number
 }
 
-const useLabelTexture = (text: string, color: string, fontSize: number, align: CanvasTextAlign) => {
+const useLabelTexture = (text: string, color: string, fontSize: number, align: CanvasTextAlign, width: number, height: number) => {
   const texture = useMemo(() => {
     const canvas = document.createElement('canvas')
-    canvas.width = 1024
     canvas.height = 256
+    canvas.width = Math.min(3072, Math.max(512, Math.round(canvas.height * width / Math.max(1, height))))
     const context = canvas.getContext('2d')!
     context.clearRect(0, 0, canvas.width, canvas.height)
     context.fillStyle = color
-    context.font = `600 ${fontSize}px Inter, Segoe UI, sans-serif`
+    context.font = `600 ${fontSize * 1.52}px "Segoe UI", Inter, sans-serif`
     context.textAlign = align
     context.textBaseline = 'middle'
-    context.fillText(text, align === 'left' ? 24 : align === 'right' ? 1000 : 512, 128, 980)
+    context.fillText(text, align === 'left' ? 24 : align === 'right' ? canvas.width - 24 : canvas.width / 2, canvas.height / 2, canvas.width - 48)
     const result = new CanvasTexture(canvas)
     result.minFilter = LinearFilter
+    result.magFilter = LinearFilter
     result.generateMipmaps = false
+    result.colorSpace = SRGBColorSpace
     result.needsUpdate = true
     return result
-  }, [text, color, fontSize, align])
+  }, [text, color, fontSize, align, width, height])
   useEffect(() => () => texture.dispose(), [texture])
   return texture
 }
 
 export function TextSprite({ text, width = 180, height = 34, color = '#edf5ef', fontSize = 92, align = 'center', opacity = 1 }: TextSpriteProps) {
-  const texture = useLabelTexture(text, color, fontSize, align)
+  const texture = useLabelTexture(text, color, fontSize, align, width, height)
   return <sprite scale={[width, height, 1]} renderOrder={1000}>
     <spriteMaterial map={texture} transparent opacity={opacity} depthTest={false} depthWrite={false} />
   </sprite>
 }
+
+const useRoundedShape = (width: number, height: number, radius: number) => useMemo(() => {
+  const halfW = width / 2
+  const halfH = height / 2
+  const r = Math.min(radius, halfW, halfH)
+  const shape = new Shape()
+  shape.moveTo(-halfW + r, -halfH)
+  shape.lineTo(halfW - r, -halfH)
+  shape.quadraticCurveTo(halfW, -halfH, halfW, -halfH + r)
+  shape.lineTo(halfW, halfH - r)
+  shape.quadraticCurveTo(halfW, halfH, halfW - r, halfH)
+  shape.lineTo(-halfW + r, halfH)
+  shape.quadraticCurveTo(-halfW, halfH, -halfW, halfH - r)
+  shape.lineTo(-halfW, -halfH + r)
+  shape.quadraticCurveTo(-halfW, -halfH, -halfW + r, -halfH)
+  return shape
+}, [height, radius, width])
 
 interface CanvasButtonProps {
   label: string
@@ -62,26 +81,40 @@ interface CanvasButtonProps {
 
 function CanvasButton({ label, x, y, width = 104, height = 34, active = false, danger = false, disabled = false, onClick }: CanvasButtonProps) {
   const [hovered, setHovered] = useState(false)
-  const fill = danger ? '#5f2d2b' : active ? '#b8ed89' : hovered ? '#314039' : '#202a26'
-  const text = active ? '#172017' : disabled ? '#728078' : '#edf5ef'
-  return <group position={[x, y, 2]}>
+  const group = useRef<Group>(null)
+  const shape = useRoundedShape(width, height, Math.min(10, height * 0.28))
+  const fill = danger ? (hovered ? '#874740' : '#6f3935') : active ? '#c6ed76' : hovered ? '#31453c' : '#1a2621'
+  const text = active ? '#172017' : disabled ? '#66766e' : '#edf3ee'
+  useFrame((_, delta) => {
+    if (!group.current) return
+    const target = hovered && !disabled ? 1.025 : 1
+    const scale = MathUtils.lerp(group.current.scale.x, target, 1 - Math.exp(-delta * 16))
+    group.current.scale.set(scale, scale, 1)
+  })
+  return <group ref={group} position={[x, y, 2]}>
     <mesh
       onPointerOver={(event) => { event.stopPropagation(); setHovered(true); document.body.style.cursor = disabled ? 'not-allowed' : 'pointer' }}
       onPointerOut={() => { setHovered(false); document.body.style.cursor = 'default' }}
       onClick={(event) => { event.stopPropagation(); if (!disabled) onClick() }}
     >
-      <planeGeometry args={[width, height]} />
-      <meshBasicMaterial color={fill} transparent opacity={disabled ? 0.55 : 0.96} depthTest={false} depthWrite={false} />
+      <shapeGeometry args={[shape]} />
+      <meshBasicMaterial color={fill} transparent opacity={disabled ? 0.46 : 0.96} depthTest={false} depthWrite={false} />
     </mesh>
-    <group position={[0, 0, 1]}><TextSprite text={label} width={width - 10} height={height * 0.66} color={text} fontSize={82} /></group>
+    <group position={[0, 0, 1]}><TextSprite text={label} width={width - 14} height={height * 0.62} color={text} fontSize={78} /></group>
   </group>
 }
 
-function Panel({ x, y, width, height, opacity = 0.94, children }: { x: number; y: number; width: number; height: number; opacity?: number; children?: React.ReactNode }) {
+function Panel({ x, y, width, height, opacity = 0.9, radius = 14, children }: { x: number; y: number; width: number; height: number; opacity?: number; radius?: number; children?: React.ReactNode }) {
+  const shape = useRoundedShape(width, height, radius)
+  const border = useRoundedShape(width + 2, height + 2, radius + 1)
   return <group position={[x, y, 0]}>
+    <mesh position={[0, 0, -0.12]}>
+      <shapeGeometry args={[border]} />
+      <meshBasicMaterial color="#6b7b72" transparent opacity={0.28} depthTest={false} depthWrite={false} />
+    </mesh>
     <mesh>
-      <planeGeometry args={[width, height]} />
-      <meshBasicMaterial color="#111816" transparent opacity={opacity} depthTest={false} depthWrite={false} />
+      <shapeGeometry args={[shape]} />
+      <meshBasicMaterial color="#101815" transparent opacity={opacity} depthTest={false} depthWrite={false} />
     </mesh>
     {children}
   </group>
@@ -137,55 +170,56 @@ function StudioHudContent() {
     if (kind === 'garden') createVariant('Low-water garden concept', [{ type: 'garden.plan', goals: ['low water', 'family lawn', 'year-round interest', 'vegetable garden'], preserveRefs: ['zone/terrace', 'plant/apple'], waterPreference: 'low' }])
   })
 
-  const top = height / 2 - 34
-  const left = -width / 2 + 22
-  const right = width / 2 - 22
-  const bottom = -height / 2 + 26
+  const top = height / 2 - 44
+  const left = -width / 2 + 20
+  const right = width / 2 - 20
+  const bottom = -height / 2 + 34
 
   return <>
     <OrthographicCamera makeDefault manual position={[0, 0, 100]} left={-width / 2} right={width / 2} top={height / 2} bottom={-height / 2} near={0.1} far={200} />
 
-    <Panel x={0} y={top} width={width - 28} height={52} opacity={0.91}>
-      <group position={[-width / 2 + 132, 0, 3]}><TextSprite text="House_Web_MCP" width={218} height={29} color="#dff5cf" fontSize={82} align="left" /></group>
-      <group position={[-width / 2 + 326, -1, 3]}><TextSprite text={`R${project.revision}  /  ${metrics.homeAreaM2} m²`} width={150} height={24} color="#8fa398" fontSize={72} align="left" /></group>
-      <CanvasButton label="TECHNICAL" x={-92} y={0} width={106} active={viewMode === 'technical'} onClick={() => setViewMode('technical')} />
-      <CanvasButton label="REALISTIC" x={24} y={0} width={106} active={viewMode === 'realistic'} onClick={() => setViewMode('realistic')} />
-      <CanvasButton label="PREV" x={143} y={0} width={54} onClick={() => setMonth(month - 1)} />
-      <group position={[211, 0, 3]}><TextSprite text={new Date(2026, month - 1, 1).toLocaleString('en', { month: 'long' }).toUpperCase()} width={82} height={25} color="#d8e3dc" fontSize={76} /></group>
-      <CanvasButton label="NEXT" x={279} y={0} width={54} onClick={() => setMonth(month + 1)} />
-      <CanvasButton label="EXPLODE" x={363} y={0} width={94} active={explodeFloors} onClick={() => setExplodeFloors(!explodeFloors)} />
-      <group position={[width / 2 - 118, 0, 3]}><TextSprite text={webMcpAvailable ? 'WEBMCP READY' : 'WEBMCP UNAVAILABLE'} width={180} height={24} color={webMcpAvailable ? '#b8ed89' : '#e7aa7d'} fontSize={66} align="right" /></group>
+    <Panel x={0} y={top} width={width - 40} height={64} opacity={0.88} radius={18}>
+      <group position={[-width / 2 + 128, 8, 3]}><TextSprite text="House_Web_MCP" width={196} height={27} color="#f1f5ef" fontSize={82} align="left" /></group>
+      <group position={[-width / 2 + 128, -15, 3]}><TextSprite text={`ZIELONKI  ·  R${project.revision}  ·  ${metrics.homeAreaM2} m²`} width={196} height={16} color="#8fa298" fontSize={65} align="left" /></group>
+      <CanvasButton label="Technical" x={-92} y={0} width={108} height={38} active={viewMode === 'technical'} onClick={() => setViewMode('technical')} />
+      <CanvasButton label="Realistic" x={26} y={0} width={108} height={38} active={viewMode === 'realistic'} onClick={() => setViewMode('realistic')} />
+      <CanvasButton label="‹" x={151} y={0} width={38} height={38} onClick={() => setMonth(month - 1)} />
+      <group position={[208, 0, 3]}><TextSprite text={new Date(2026, month - 1, 1).toLocaleString('en', { month: 'long' })} width={78} height={23} color="#dce7e0" fontSize={76} /></group>
+      <CanvasButton label="›" x={265} y={0} width={38} height={38} onClick={() => setMonth(month + 1)} />
+      <CanvasButton label="Floors" x={324} y={0} width={70} height={38} active={explodeFloors} onClick={() => setExplodeFloors(!explodeFloors)} />
+      <mesh position={[width / 2 - 204, 0, 4]}><circleGeometry args={[4, 24]} /><meshBasicMaterial color={webMcpAvailable ? '#c6ed76' : '#d78b65'} depthTest={false} /></mesh>
+      <group position={[width / 2 - 112, 0, 3]}><TextSprite text={webMcpAvailable ? 'WebMCP ready' : 'WebMCP unavailable'} width={164} height={22} color={webMcpAvailable ? '#dbeeb6' : '#e7aa7d'} fontSize={68} align="right" /></group>
     </Panel>
 
-    <Panel x={left + 50} y={30} width={100} height={350}>
-      <group position={[0, 150, 3]}><TextSprite text="TOOLS" width={74} height={22} color="#8fa398" fontSize={66} /></group>
-      <CanvasButton label="MOVE" x={0} y={108} width={76} active={transformMode === 'translate'} onClick={() => setTransformMode('translate')} />
-      <CanvasButton label="SCALE" x={0} y={68} width={76} active={transformMode === 'scale'} onClick={() => setTransformMode('scale')} />
-      <CanvasButton label="ROTATE" x={0} y={28} width={76} active={transformMode === 'rotate'} onClick={() => setTransformMode('rotate')} />
-      <CanvasButton label="+ FLOOR" x={0} y={-28} width={76} onClick={() => createFeatureVariant('floor')} />
-      <CanvasButton label="+ GARAGE" x={0} y={-68} width={76} onClick={() => createFeatureVariant('garage')} />
-      <CanvasButton label="GARDEN" x={0} y={-108} width={76} onClick={() => createFeatureVariant('garden')} />
-      <CanvasButton label="UNDO" x={0} y={-150} width={76} disabled={!history.length} onClick={() => safe(() => { undo() })} />
+    <Panel x={left + 45} y={18} width={90} height={374} opacity={0.86} radius={18}>
+      <group position={[0, 158, 3]}><TextSprite text="MODEL" width={64} height={19} color="#82958b" fontSize={68} /></group>
+      <CanvasButton label="Move" x={0} y={118} width={68} height={36} active={transformMode === 'translate'} onClick={() => setTransformMode('translate')} />
+      <CanvasButton label="Scale" x={0} y={76} width={68} height={36} active={transformMode === 'scale'} onClick={() => setTransformMode('scale')} />
+      <CanvasButton label="Rotate" x={0} y={34} width={68} height={36} active={transformMode === 'rotate'} onClick={() => setTransformMode('rotate')} />
+      <CanvasButton label="+ Floor" x={0} y={-20} width={68} height={36} onClick={() => createFeatureVariant('floor')} />
+      <CanvasButton label="+ Garage" x={0} y={-62} width={68} height={36} onClick={() => createFeatureVariant('garage')} />
+      <CanvasButton label="Garden" x={0} y={-104} width={68} height={36} onClick={() => createFeatureVariant('garden')} />
+      <CanvasButton label="Undo" x={0} y={-151} width={68} height={32} disabled={!history.length} onClick={() => safe(() => { undo() })} />
     </Panel>
 
-    <Panel x={right - 137} y={25} width={274} height={396}>
-      <group position={[0, 165, 3]}><TextSprite text="INSPECTOR" width={222} height={26} color="#8fa398" fontSize={70} align="left" /></group>
+    <Panel x={right - 146} y={18} width={292} height={420} opacity={0.88} radius={18}>
+      <group position={[0, 178, 3]}><TextSprite text="INSPECTOR" width={236} height={20} color="#82958b" fontSize={68} align="left" /></group>
       {selected ? <>
-        <group position={[0, 127, 3]}><TextSprite text={selected.room.name.toUpperCase()} width={222} height={31} color="#edf5ef" fontSize={86} align="left" /></group>
-        <group position={[0, 97, 3]}><TextSprite text={selected.room.ref} width={222} height={22} color="#9aada2" fontSize={78} align="left" /></group>
-        <group position={[0, 57, 3]}><TextSprite text={`${selected.room.widthM.toFixed(1)} × ${selected.room.depthM.toFixed(1)} × ${selected.room.heightM.toFixed(1)} m`} width={222} height={28} color="#c8d7ce" fontSize={74} align="left" /></group>
-        <group position={[0, 28, 3]}><TextSprite text={`${(selected.room.widthM * selected.room.depthM).toFixed(1)} m²  /  ${selected.room.ceilingType}`} width={222} height={24} color="#8fa398" fontSize={66} align="left" /></group>
-        <CanvasButton label="WIDTH +" x={-57} y={-20} width={104} onClick={() => roomCommand({ widthM: selected.room.widthM + 0.5 })} disabled={selected.room.locked} />
-        <CanvasButton label="WIDTH −" x={57} y={-20} width={104} onClick={() => roomCommand({ widthM: Math.max(1, selected.room.widthM - 0.5) })} disabled={selected.room.locked} />
-        <CanvasButton label="DEPTH +" x={-57} y={-62} width={104} onClick={() => roomCommand({ depthM: selected.room.depthM + 0.5 })} disabled={selected.room.locked} />
-        <CanvasButton label="DEPTH −" x={57} y={-62} width={104} onClick={() => roomCommand({ depthM: Math.max(1, selected.room.depthM - 0.5) })} disabled={selected.room.locked} />
-        <CanvasButton label="CEILING −" x={-57} y={-104} width={104} onClick={() => roomCommand({ action: 'set-ceiling', heightM: Math.max(2.2, selected.room.heightM - 0.25), ceilingType: 'lowered' })} disabled={selected.room.locked} />
-        <CanvasButton label="MEZZANINE" x={57} y={-104} width={104} onClick={() => safe(() => createVariant('Mezzanine concept', [{ type: 'mezzanine.update', action: 'add', buildingRef: selected.buildingRef, floorRef: selected.floorRef, roomRef: selected.room.ref, mezzanineRef: `${selected.room.ref}/mezzanine-${project.revision}` }]))} disabled={selected.room.locked || selected.room.mezzanines.length > 0} />
-        <group position={[0, -145, 3]}><TextSprite text={selected.room.locked ? 'LOCKED — agent and manual edits disabled' : 'Drag the gizmo or use exact controls'} width={222} height={22} color={selected.room.locked ? '#e7aa7d' : '#9aada2'} fontSize={76} align="left" /></group>
-      </> : <group position={[0, 60, 3]}><TextSprite text="SELECT A 3D ELEMENT" width={220} height={28} color="#8fa398" fontSize={72} /></group>}
+        <group position={[0, 138, 3]}><TextSprite text={selected.room.name} width={236} height={32} color="#f2f5f1" fontSize={90} align="left" /></group>
+        <group position={[0, 108, 3]}><TextSprite text={selected.room.ref} width={236} height={18} color="#81948a" fontSize={70} align="left" /></group>
+        <group position={[0, 67, 3]}><TextSprite text={`${selected.room.widthM.toFixed(1)} × ${selected.room.depthM.toFixed(1)} × ${selected.room.heightM.toFixed(1)} m`} width={236} height={27} color="#d3dfd8" fontSize={78} align="left" /></group>
+        <group position={[0, 38, 3]}><TextSprite text={`${(selected.room.widthM * selected.room.depthM).toFixed(1)} m²  ·  ${selected.room.ceilingType}`} width={236} height={20} color="#8fa298" fontSize={68} align="left" /></group>
+        <CanvasButton label="Width +" x={-61} y={-10} width={112} height={38} onClick={() => roomCommand({ widthM: selected.room.widthM + 0.5 })} disabled={selected.room.locked} />
+        <CanvasButton label="Width −" x={61} y={-10} width={112} height={38} onClick={() => roomCommand({ widthM: Math.max(1, selected.room.widthM - 0.5) })} disabled={selected.room.locked} />
+        <CanvasButton label="Depth +" x={-61} y={-54} width={112} height={38} onClick={() => roomCommand({ depthM: selected.room.depthM + 0.5 })} disabled={selected.room.locked} />
+        <CanvasButton label="Depth −" x={61} y={-54} width={112} height={38} onClick={() => roomCommand({ depthM: Math.max(1, selected.room.depthM - 0.5) })} disabled={selected.room.locked} />
+        <CanvasButton label="Lower ceiling" x={-61} y={-98} width={112} height={38} onClick={() => roomCommand({ action: 'set-ceiling', heightM: Math.max(2.2, selected.room.heightM - 0.25), ceilingType: 'lowered' })} disabled={selected.room.locked} />
+        <CanvasButton label="Mezzanine" x={61} y={-98} width={112} height={38} onClick={() => safe(() => createVariant('Mezzanine concept', [{ type: 'mezzanine.update', action: 'add', buildingRef: selected.buildingRef, floorRef: selected.floorRef, roomRef: selected.room.ref, mezzanineRef: `${selected.room.ref}/mezzanine-${project.revision}` }]))} disabled={selected.room.locked || selected.room.mezzanines.length > 0} />
+        <group position={[0, -151, 3]}><TextSprite text={selected.room.locked ? 'Locked — edits are disabled' : 'Drag the gizmo or use exact controls'} width={236} height={19} color={selected.room.locked ? '#e5a071' : '#81948a'} fontSize={70} align="left" /></group>
+      </> : <group position={[0, 60, 3]}><TextSprite text="Select a 3D element" width={232} height={26} color="#8fa298" fontSize={76} /></group>}
     </Panel>
 
-    <Panel x={-78} y={bottom} width={Math.min(width - 510, 790)} height={48} opacity={0.92}>
+    <Panel x={-78} y={bottom} width={Math.min(width - 530, 780)} height={52} opacity={0.88} radius={16}>
       <group position={[-Math.min(width - 510, 790) / 2 + 130, 0, 3]}><TextSprite text={`${new Date(2026, month - 1, 1).toLocaleString('en', { month: 'short' }).toUpperCase()}  ${season.representativeSunHours}h SUN  ${season.waterBalanceMm > 0 ? '+' : ''}${season.waterBalanceMm}mm WATER`} width={240} height={25} color="#9db1a6" fontSize={66} align="left" /></group>
       {latestVariant ? <>
         <group position={[-30, 0, 3]}><TextSprite text={`${latestVariant.label.toUpperCase()}  /  ${latestVariant.issues.length} ISSUES`} width={310} height={25} color="#c9f1a4" fontSize={66} /></group>
@@ -194,15 +228,15 @@ function StudioHudContent() {
       </> : <group position={[45, 0, 3]}><TextSprite text="NO ACTIVE VARIANT — ASK AN AGENT OR USE THE LEFT TOOLS" width={420} height={24} color="#73877c" fontSize={61} /></group>}
     </Panel>
 
-    <Panel x={right - 137} y={-height / 2 + 77} width={274} height={78} opacity={0.9}>
-      <CanvasButton label="JSON" x={-90} y={12} width={76} onClick={() => safe(() => { exportProjectJson(project) })} />
-      <CanvasButton label="GLB" x={0} y={12} width={76} onClick={() => safe(exportSceneGlb)} />
-      <CanvasButton label="PNG" x={90} y={12} width={76} onClick={() => safe(() => { exportScenePng() })} />
-      <CanvasButton label="IMPORT PROJECT" x={0} y={-27} width={256} height={28} onClick={() => window.dispatchEvent(new Event('house-web-mcp:import'))} />
+    <Panel x={right - 146} y={-height / 2 + 81} width={292} height={88} opacity={0.86} radius={16}>
+      <CanvasButton label="JSON" x={-94} y={14} width={82} height={34} onClick={() => safe(() => { exportProjectJson(project) })} />
+      <CanvasButton label="GLB" x={0} y={14} width={82} height={34} onClick={() => safe(exportSceneGlb)} />
+      <CanvasButton label="PNG" x={94} y={14} width={82} height={34} onClick={() => safe(() => { exportScenePng() })} />
+      <CanvasButton label="Import project" x={0} y={-26} width={270} height={30} onClick={() => window.dispatchEvent(new Event('house-web-mcp:import'))} />
     </Panel>
 
-    {toast && <Panel x={0} y={top - 74} width={Math.min(700, width - 430)} height={34} opacity={0.86}>
-      <group position={[0, 0, 8]}><TextSprite text={toast.toUpperCase()} width={Math.min(660, width - 470)} height={24} color="#e6f0e9" fontSize={84} /></group>
+    {toast && <Panel x={0} y={top - 58} width={Math.min(590, width - 470)} height={36} opacity={0.82} radius={18}>
+      <group position={[0, 0, 8]}><TextSprite text={toast} width={Math.min(550, width - 510)} height={21} color="#e7eee9" fontSize={76} /></group>
     </Panel>}
 
     {(confirmationVariantRef || pendingExport) && <Panel x={0} y={0} width={430} height={188} opacity={0.98}>
