@@ -25,15 +25,93 @@ export interface ClimateProfile {
   longitude: number
   timezone: string
   provenance: string
-  soil: { texture: 'sandy' | 'loam' | 'clay'; ph: number; drainage: 'fast' | 'balanced' | 'slow' }
+  soil: { texture: 'sandy' | 'loam' | 'clay'; ph: number | null; drainage: 'fast' | 'balanced' | 'slow' }
   irrigationMm: number
   months: ClimateMonth[]
+}
+
+export type ParcelLandRole = 'construction' | 'agricultural'
+export type GeometryConfidence = 'surveyed' | 'derived' | 'context-only'
+
+export interface PlotParcelModel {
+  ref: string
+  cadastralNumber: string
+  landRole: ParcelLandRole
+  officialAreaM2: number
+  boundary: Vec2[]
+  geometryConfidence: GeometryConfidence
 }
 
 export interface PlotModel {
   boundary: Vec2[]
   northDegrees: number
   elevationPoints: Array<Vec2 & { elevation: number }>
+  parcels: PlotParcelModel[]
+}
+
+export interface KnowledgeSource {
+  ref: string
+  title: string
+  date: string
+  kind: 'survey-map' | 'subdivision-map' | 'working-measurement' | 'geotechnical-report' | 'specialist-email' | 'user-direction'
+  authority: 'official' | 'professional' | 'working' | 'user-provided'
+  summary: string
+}
+
+export interface SiteMeasurement {
+  ref: string
+  label: string
+  value: number
+  unit: 'm' | 'm2' | 'percent'
+  sourceRef: string
+  confidence: 'official' | 'professional' | 'derived' | 'conceptual'
+}
+
+export interface SoilInterval {
+  fromM: number
+  toM: number
+  material: string
+  condition: string
+}
+
+export interface BoreholeKnowledge {
+  ref: string
+  label: string
+  position: Vec2
+  positionConfidence: 'map-derived' | 'surveyed'
+  depthM: number
+  groundwaterDepthM: number
+  intervals: SoilInterval[]
+}
+
+export interface SiteKnowledgeBase {
+  datasetVersion: string
+  locality: string
+  addressContext: string
+  cadastralDistrict: string
+  coordinateSystem: string
+  heightSystem: string
+  sourceCadOrigin: { easting: number; northing: number }
+  sources: KnowledgeSource[]
+  measurements: SiteMeasurement[]
+  terrain: {
+    datumElevationM: number
+    observedRangeM: [number, number]
+    fallDirection: string
+    conceptualGradientPercent: number
+  }
+  geotechnical: {
+    investigationDate: string
+    boreholes: BoreholeKnowledge[]
+    weakBearingToApproxM: number
+    groundwaterRangeM: [number, number]
+    foundationConcept: string
+    documentationNeed: string
+    reportClassification: string
+    constraints: string[]
+  }
+  designRules: Array<{ rule: string; basis: string; sourceRef: string }>
+  caveats: string[]
 }
 
 export interface OpeningModel {
@@ -130,6 +208,7 @@ export interface ProjectV1 {
   revision: number
   updatedAt: string
   plot: PlotModel
+  knowledgeBase: SiteKnowledgeBase
   buildings: BuildingModel[]
   garden: GardenModel
   climateProfile: ClimateProfile

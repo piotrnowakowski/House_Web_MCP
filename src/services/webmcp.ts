@@ -21,7 +21,7 @@ const schema = (value: z.ZodType) => z.toJSONSchema(value, { target: 'draft-7' }
 const positionSchema = z.object({ x: z.number().describe('East-west coordinate in meters.'), z: z.number().describe('North-south coordinate in meters.') })
 const refString = z.string().min(1).describe('Stable semantic reference such as room/living-room.')
 
-const getStateSchema = z.object({ detail: z.enum(['summary', 'structure', 'garden', 'full']).default('summary') })
+const getStateSchema = z.object({ detail: z.enum(['summary', 'site', 'structure', 'garden', 'full']).default('summary') })
 const plotSchema = z.object({
   northDegrees: z.number().optional(),
   boundary: z.array(positionSchema).min(3).optional(),
@@ -174,11 +174,27 @@ const define = <S extends z.ZodType>(definition: {
 })
 
 export const webMcpTools: WebMcpTool[] = [
-  define({ name: 'get_project_state', title: 'Inspect 3D project', description: 'Read the current plot, building, floor, room, garage, garden, climate, variant, and validation state. Call this before proposing changes.', input: getStateSchema, readOnly: true, handler: ({ detail }) => {
+  define({ name: 'get_project_state', title: 'Inspect Zielonki 3D project', description: 'Read the current Zielonki parcel, evidence, geotechnical, building, floor, room, garage, garden, climate, variant, and validation state. Use detail "site" for the concise sourced knowledge bank. Call this before proposing changes.', input: getStateSchema, readOnly: true, handler: ({ detail }) => {
     const state = useStudioStore.getState()
     const metrics = calculateMetrics(state.project)
-    const data = detail === 'summary' ? { name: state.project.name, revision: state.project.revision, metrics, variantRefs: state.variants.map((variant) => variant.ref) }
-      : detail === 'structure' ? { plot: state.project.plot, buildings: state.project.buildings }
+    const constructionParcels = state.project.plot.parcels.filter((parcel) => parcel.landRole === 'construction')
+    const agriculturalParcels = state.project.plot.parcels.filter((parcel) => parcel.landRole === 'agricultural')
+    const data = detail === 'summary' ? {
+      name: state.project.name,
+      revision: state.project.revision,
+      site: {
+        locality: state.project.knowledgeBase.locality,
+        constructionParcels: constructionParcels.map((parcel) => parcel.cadastralNumber),
+        constructionAreaM2: constructionParcels.reduce((sum, parcel) => sum + parcel.officialAreaM2, 0),
+        agriculturalParcels: agriculturalParcels.map((parcel) => parcel.cadastralNumber),
+        agriculturalAreaM2: agriculturalParcels.reduce((sum, parcel) => sum + parcel.officialAreaM2, 0),
+        foundationReviewRequired: true,
+      },
+      metrics,
+      variantRefs: state.variants.map((variant) => variant.ref),
+    }
+      : detail === 'site' ? { plot: state.project.plot, knowledgeBase: state.project.knowledgeBase }
+        : detail === 'structure' ? { plot: state.project.plot, buildings: state.project.buildings, designRules: state.project.knowledgeBase.designRules }
         : detail === 'garden' ? { garden: state.project.garden, climateProfile: state.project.climateProfile }
           : state.project
     return { status: 'ok', projectRevision: state.project.revision, summary: `Returned ${detail} project state.`, metrics, data }

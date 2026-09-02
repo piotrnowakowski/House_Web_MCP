@@ -183,6 +183,8 @@ function StudioHudContent() {
         : false
   const roomTransformUnavailable = (!!selected && selected.kind !== 'room') || selectedLocked
   const metrics = useMemo(() => calculateMetrics(project), [project])
+  const constructionArea = project.plot.parcels.filter((parcel) => parcel.landRole === 'construction').reduce((sum, parcel) => sum + parcel.officialAreaM2, 0)
+  const agriculturalArea = project.plot.parcels.filter((parcel) => parcel.landRole === 'agricultural').reduce((sum, parcel) => sum + parcel.officialAreaM2, 0)
   const season = useMemo(() => analyzeSeason(project, [month])[0], [project, month])
   const latestVariant = variants.at(-1)
 
@@ -213,7 +215,7 @@ function StudioHudContent() {
 
     <Panel x={0} y={top} width={width - 40} height={64} opacity={0.88} radius={18}>
       <group position={[-width / 2 + 128, 8, 3]}><TextSprite text="House_Web_MCP" width={196} height={27} color="#f1f5ef" fontSize={82} align="left" /></group>
-      <group position={[-width / 2 + 128, -15, 3]}><TextSprite text={`ZIELONKI  ·  R${project.revision}  ·  ${metrics.homeAreaM2} m²`} width={196} height={16} color="#8fa298" fontSize={65} align="left" /></group>
+      <group position={[-width / 2 + 128, -15, 3]}><TextSprite text={`ZIELONKI  ·  /3 BUILD ${constructionArea.toLocaleString('en')} m²  ·  R${project.revision}`} width={260} height={16} color="#8fa298" fontSize={65} align="left" /></group>
       <CanvasButton label="Technical" x={-92} y={0} width={108} height={44} active={viewMode === 'technical'} onClick={() => setViewMode('technical')} />
       <CanvasButton label="Realistic" x={26} y={0} width={108} height={44} active={viewMode === 'realistic'} onClick={() => setViewMode('realistic')} />
       <CanvasButton label="‹" x={151} y={0} width={44} height={44} onClick={() => setMonth(month - 1)} />
@@ -265,8 +267,15 @@ function StudioHudContent() {
         <CanvasButton label="Move  T" x={0} y={-24} width={236} height={44} active={!selected.plant.locked && transformMode === 'translate'} disabled={selected.plant.locked} onClick={() => setTransformMode('translate')} />
         <group position={[0, -79, 3]}><TextSprite text={selected.plant.locked ? 'Locked — this plant is preserved' : 'Drag on the site · snaps every 0.5 m'} width={236} height={21} color={selected.plant.locked ? '#e5a071' : '#8fa298'} fontSize={70} align="left" /></group>
       </> : <>
-        <group position={[0, 70, 3]}><TextSprite text="Select an element" width={232} height={28} color="#d3dfd8" fontSize={80} /></group>
-        <group position={[0, 34, 3]}><TextSprite text="Rooms, garden zones, and plants are editable" width={236} height={20} color="#8fa298" fontSize={66} /></group>
+        <group position={[0, 140, 3]}><TextSprite text="Zielonki survey site" width={236} height={30} color="#f2f5f1" fontSize={86} align="left" /></group>
+        <group position={[0, 105, 3]}><TextSprite text="54/3  ·  55/3  ·  58/3" width={236} height={22} color="#9ad8ca" fontSize={72} align="left" /></group>
+        <group position={[0, 70, 3]}><TextSprite text={`${constructionArea.toLocaleString('en')} m²  CONSTRUCTION`} width={236} height={24} color="#d3dfd8" fontSize={74} align="left" /></group>
+        <group position={[0, 40, 3]}><TextSprite text={`${agriculturalArea.toLocaleString('en')} m²  AGRICULTURAL /4`} width={236} height={21} color="#c5bd91" fontSize={68} align="left" /></group>
+        <group position={[0, -8, 3]}><TextSprite text="SOIL REVIEW REQUIRED" width={236} height={22} color="#f0a4c4" fontSize={72} align="left" /></group>
+        <group position={[0, -39, 3]}><TextSprite text="Weak-bearing ground to ~4.0 m" width={236} height={20} color="#d8c4cc" fontSize={66} align="left" /></group>
+        <group position={[0, -67, 3]}><TextSprite text="Groundwater 1.6–2.3 m below ground" width={236} height={20} color="#d8c4cc" fontSize={63} align="left" /></group>
+        <group position={[0, -95, 3]}><TextSprite text="Micropile concept: gravel at ≥5.5 m" width={236} height={20} color="#d8c4cc" fontSize={63} align="left" /></group>
+        <group position={[0, -139, 3]}><TextSprite text="Concept only · verify with project engineers" width={236} height={18} color="#81948a" fontSize={62} align="left" /></group>
       </>}
     </Panel>
 

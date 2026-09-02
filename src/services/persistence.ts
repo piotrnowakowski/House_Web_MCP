@@ -3,7 +3,7 @@ import type { ProjectV1 } from '../domain/types'
 
 const DB_NAME = 'house-web-mcp'
 const STORE_NAME = 'projects'
-const ACTIVE_KEY = 'active-project'
+const ACTIVE_KEY = 'zielonki-survey-active-project-v2'
 
 const openDatabase = () => new Promise<IDBDatabase>((resolve, reject) => {
   const request = indexedDB.open(DB_NAME, 1)

@@ -42,8 +42,8 @@ const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').
 
 export const useStudioStore = create<StudioState>((set, get) => ({
   project: structuredClone(sampleProject),
-  history: [], variants: [], selectedRef: 'room/living-room', viewMode: 'realistic', transformMode: 'translate', month: 7,
-  explodeFloors: false, webMcpAvailable: false, hydrated: false, confirmationVariantRef: null, pendingExport: null, toast: 'Select any room or ask an agent to create a variant.',
+  history: [], variants: [], selectedRef: null, viewMode: 'technical', transformMode: 'translate', month: 7,
+  explodeFloors: false, webMcpAvailable: false, hydrated: false, confirmationVariantRef: null, pendingExport: null, toast: 'Loaded surveyed Zielonki /3 construction site with /4 agricultural context.',
   helpOpen: false,
   setSelectedRef: (selectedRef) => set({ selectedRef }),
   setViewMode: (viewMode) => set({ viewMode }),

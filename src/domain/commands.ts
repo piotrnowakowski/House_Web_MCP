@@ -268,6 +268,12 @@ const boxesOverlap = (a: RoomModel, b: RoomModel) => Math.abs(a.position.x - b.p
 export const validateProject = (project: ProjectV1): ProjectIssue[] => {
   const issues: ProjectIssue[] = []
   if (project.plot.boundary.length < 3 || polygonArea(project.plot.boundary) < 20) issues.push({ severity: 'error', code: 'plot.invalid', message: 'Plot boundary must contain a usable polygon.', subjectRef: project.ref })
+  if (project.buildings.some((building) => building.kind === 'house')) issues.push({
+    severity: 'warning',
+    code: 'site.geotechnical-review',
+    message: `Zielonki ground review required: weak-bearing soils to about ${project.knowledgeBase.geotechnical.weakBearingToApproxM.toFixed(1)} m, groundwater at ${project.knowledgeBase.geotechnical.groundwaterRangeM[0].toFixed(1)}–${project.knowledgeBase.geotechnical.groundwaterRangeM[1].toFixed(1)} m, and an unverified micropile concept.`,
+    subjectRef: 'house/main',
+  })
   project.buildings.forEach((building) => {
     if (!building.floors.length) issues.push({ severity: 'warning', code: 'building.empty', message: `${building.name} has no floors.`, subjectRef: building.ref })
     building.floors.forEach((floor) => {

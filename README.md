@@ -7,6 +7,12 @@ and garden planning. A person can edit the model directly, while a browser
 agent such as ChatGPT or Codex can inspect the same live project and propose
 reversible 3D variants through semantic tools.
 
+The bundled demo opens on the real Zielonki site: surveyed construction
+parcels `54/3 + 55/3 + 58/3`, agricultural context parcels
+`54/4 + 55/4 + 58/4`, terrain levels, working site dimensions, and a concise
+ground-risk model. See the [Zielonki site knowledge bank](docs/ZIELONKI_KNOWLEDGE_BANK.md)
+for source hierarchy, extracted facts, confidence levels, and design constraints.
+
 This is a concept exploration tool. It does not produce construction
 documentation and does not claim compliance with planning, structural,
 horticultural, or building regulations.

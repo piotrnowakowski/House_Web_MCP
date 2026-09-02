@@ -23,7 +23,7 @@ import {
   Vector3,
 } from 'three'
 import { sunPositionForMonth } from '../domain/seasonal'
-import type { BuildingModel, GardenZone, PlantModel, ProjectV1, RoomModel, VariantModel, ViewMode } from '../domain/types'
+import type { BuildingModel, GardenZone, PlantModel, PlotParcelModel, ProjectV1, RoomModel, VariantModel, ViewMode } from '../domain/types'
 import { setExportSceneRoot, setRenderCanvas } from '../services/export'
 import { useStudioStore } from '../state/store'
 import { TextSprite } from '../ui/CanvasUi'
@@ -157,6 +157,151 @@ function Terrain({ project, mode, month }: { project: ProjectV1; mode: ViewMode;
       transparent
       opacity={mode === 'technical' ? 0.9 : 0.5}
     />
+  </group>
+}
+
+const parcelGeometry = (project: ProjectV1, parcel: PlotParcelModel) => {
+  const outline = parcel.boundary.map((point) => new Vector2(point.x, point.z))
+  const triangles = ShapeUtils.triangulateShape(outline, [])
+  const positions: number[] = []
+  const uvs: number[] = []
+  triangles.forEach((triangle) => triangle.forEach((index) => {
+    const point = parcel.boundary[index]
+    positions.push(point.x, elevationAt(project, point.x, point.z) + 0.055, point.z)
+    uvs.push(point.x / 3.2, point.z / 3.2)
+  }))
+  const geometry = new BufferGeometry()
+  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3))
+  geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2))
+  geometry.computeVertexNormals()
+  return geometry
+}
+
+function RealisticAgriculturalMaterial({ month }: { month: number }) {
+  const dormant = month <= 2 || month >= 11
+  const texture = useTiledTexture(dormant ? textureFiles.dormantGrass : textureFiles.ground, 1, 1, 0.12)
+  return <meshStandardMaterial
+    map={texture}
+    bumpMap={texture}
+    bumpScale={0.04}
+    color={dormant ? '#a99b72' : '#879b63'}
+    roughness={1}
+    metalness={0}
+    side={DoubleSide}
+  />
+}
+
+function ParcelScene({ parcel, project, mode, month }: { parcel: PlotParcelModel; project: ProjectV1; mode: ViewMode; month: number }) {
+  const geometry = useMemo(() => parcelGeometry(project, parcel), [parcel, project])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  const outline = useMemo(() => [...parcel.boundary, parcel.boundary[0]].map((point) => [
+    point.x, elevationAt(project, point.x, point.z) + 0.09, point.z,
+  ] as [number, number, number]), [parcel, project])
+  const labelPosition = useMemo(() => {
+    const points = parcel.landRole === 'agricultural' ? parcel.boundary.slice(0, 2) : parcel.boundary
+    const x = points.reduce((sum, point) => sum + point.x, 0) / points.length
+    const z = points.reduce((sum, point) => sum + point.z, 0) / points.length + (parcel.landRole === 'agricultural' ? 5.2 : 0)
+    return [x, elevationAt(project, x, z) + 0.45, z] as [number, number, number]
+  }, [parcel, project])
+  const construction = parcel.landRole === 'construction'
+  return <group>
+    {(mode === 'technical' || !construction) && <mesh geometry={geometry} receiveShadow>
+      {mode === 'technical'
+        ? <meshBasicMaterial
+          color={construction ? '#579f91' : '#9a8a52'}
+          transparent
+          opacity={construction ? 0.13 : 0.25}
+          depthWrite={false}
+          side={DoubleSide}
+        />
+        : <Suspense fallback={<meshStandardMaterial color="#879b63" roughness={1} side={DoubleSide} />}>
+          <RealisticAgriculturalMaterial month={month} />
+        </Suspense>}
+    </mesh>}
+    <Line
+      points={outline}
+      color={construction ? (mode === 'technical' ? '#7ee1cc' : '#e7efe5') : (mode === 'technical' ? '#d7c276' : '#a7b17b')}
+      lineWidth={construction ? 1.35 : 0.8}
+      transparent
+      opacity={mode === 'technical' ? 0.9 : construction ? 0.24 : 0.46}
+      dashed={parcel.geometryConfidence === 'context-only'}
+      dashSize={1.15}
+      gapSize={0.75}
+    />
+    {mode === 'technical' && <group position={labelPosition}>
+      <TextSprite
+        text={`${parcel.cadastralNumber}  ·  ${parcel.landRole === 'construction' ? 'BUILD' : 'AGRI'}  ·  ${parcel.officialAreaM2.toLocaleString('en')} m²${parcel.geometryConfidence === 'context-only' ? '  ~' : ''}`}
+        width={parcel.landRole === 'construction' ? 5.8 : 6.2}
+        height={0.72}
+        color={construction ? '#c8f4e5' : '#eadb9d'}
+        fontSize={64}
+      />
+    </group>}
+  </group>
+}
+
+function SiteDimensions({ project, mode }: { project: ProjectV1; mode: ViewMode }) {
+  if (mode !== 'technical') return null
+  const yAt = (x: number, z: number) => elevationAt(project, x, z) + 0.22
+  const sections = [
+    { a: [-19.78, -15.1] as const, b: [8.7, -16.63] as const, label: '28.5 m  ·  ROAD-SIDE' },
+    { a: [-16.6, 0] as const, b: [16.6, 0] as const, label: '33.2 m  ·  MID-SITE' },
+    { a: [-18.4, 15.88] as const, b: [19.48, 15.88] as const, label: '37.9 m  ·  AGRI EDGE' },
+  ]
+  return <group>
+    {sections.map((section) => {
+      const midX = (section.a[0] + section.b[0]) / 2
+      const midZ = (section.a[1] + section.b[1]) / 2
+      return <group key={section.label}>
+        <Line
+          points={[
+            [section.a[0], yAt(section.a[0], section.a[1]), section.a[1]],
+            [section.b[0], yAt(section.b[0], section.b[1]), section.b[1]],
+          ]}
+          color="#c6ed76"
+          lineWidth={1.15}
+          dashed
+          dashSize={0.55}
+          gapSize={0.35}
+        />
+        <group position={[midX, yAt(midX, midZ) + 0.55, midZ]}>
+          <TextSprite text={section.label} width={4.8} height={0.58} color="#ddf4b0" fontSize={62} />
+        </group>
+      </group>
+    })}
+    <Line
+      points={[[0, yAt(0, -16.1), -16.1], [0, yAt(0, 16.2), 16.2]]}
+      color="#9fdbd0"
+      lineWidth={0.95}
+      dashed
+      dashSize={0.5}
+      gapSize={0.4}
+    />
+    <group position={[1.3, yAt(0, 1) + 0.7, 1]}>
+      <TextSprite text="32.3 m  ·  AXIS" width={4.2} height={0.56} color="#bfe9df" fontSize={62} />
+    </group>
+  </group>
+}
+
+function BoreholeMarkers({ project, mode }: { project: ProjectV1; mode: ViewMode }) {
+  if (mode !== 'technical') return null
+  return <group>
+    {project.knowledgeBase.geotechnical.boreholes.map((borehole) => {
+      const surface = elevationAt(project, borehole.position.x, borehole.position.z)
+      return <group key={borehole.ref} position={[borehole.position.x, surface, borehole.position.z]}>
+        <mesh position={[0, 0.75, 0]} castShadow>
+          <cylinderGeometry args={[0.13, 0.2, 1.5, 16]} />
+          <meshStandardMaterial color="#e05c98" emissive="#7d1947" emissiveIntensity={0.28} roughness={0.55} />
+        </mesh>
+        <mesh position={[0, 1.55, 0]} rotation={[Math.PI / 2, 0, 0]}>
+          <circleGeometry args={[0.3, 24]} />
+          <meshBasicMaterial color="#ff8fbd" side={DoubleSide} />
+        </mesh>
+        <group position={[0, 2.15, 0]}>
+          <TextSprite text={`${borehole.label}  ·  GW ${borehole.groundwaterDepthM.toFixed(1)} m`} width={4.3} height={0.62} color="#ffc1dc" fontSize={62} />
+        </group>
+      </group>
+    })}
   </group>
 }
 
@@ -804,7 +949,12 @@ function PlantScene({ plant, project, month, mode, ghost = false }: { plant: Pla
 
 function ProjectScene({ project, mode, explode, month, ghost = false }: { project: ProjectV1; mode: ViewMode; explode: boolean; month: number; ghost?: boolean }) {
   return <group>
-    {!ghost && <Terrain project={project} mode={mode} month={month} />}
+    {!ghost && <>
+      <Terrain project={project} mode={mode} month={month} />
+      {project.plot.parcels.map((parcel) => <ParcelScene key={parcel.ref} parcel={parcel} project={project} mode={mode} month={month} />)}
+      <SiteDimensions project={project} mode={mode} />
+      <BoreholeMarkers project={project} mode={mode} />
+    </>}
     {project.garden.zones.map((zone) => <GardenZoneScene key={zone.ref} zone={zone} project={project} mode={mode} month={month} ghost={ghost} />)}
     {project.garden.plants.map((plant) => <PlantScene key={plant.ref} plant={plant} project={project} month={month} mode={mode} ghost={ghost} />)}
     {project.buildings.map((building) => <BuildingScene key={building.ref} building={building} mode={mode} explode={explode} ghost={ghost} />)}

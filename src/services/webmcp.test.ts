@@ -25,6 +25,20 @@ describe('native WebMCP surface', () => {
     expect(payload(result)).toMatchObject({ status: 'ok', projectRevision: 1, metrics: { roomCount: 4 } })
   })
 
+  it('serves the Zielonki evidence bank through the native read-only surface', async () => {
+    const result = await tool('get_project_state').execute({ detail: 'site' })
+    const parsed = payload(result)
+
+    expect(parsed.status).toBe('ok')
+    expect(parsed.data.plot.parcels.map((parcel: { cadastralNumber: string }) => parcel.cadastralNumber)).toEqual([
+      '54/3', '55/3', '58/3', '54/4', '55/4', '58/4',
+    ])
+    expect(parsed.data.knowledgeBase).toMatchObject({
+      locality: 'Zielonki, Małopolskie, Poland',
+      geotechnical: { weakBearingToApproxM: 4, groundwaterRangeM: [1.6, 2.3] },
+    })
+  })
+
   it('creates a reversible variant instead of committing a mutation', async () => {
     const result = await tool('propose_floor_update').execute({ action: 'add', buildingRef: 'house/main', floorRef: 'floor/upper-webmcp', name: 'Upper floor', heightM: 2.9 })
     const parsed = payload(result)
