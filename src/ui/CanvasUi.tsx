@@ -4,10 +4,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { CanvasTexture, Group, LinearFilter, MathUtils, Shape, SRGBColorSpace } from 'three'
 import { calculateMetrics } from '../domain/commands'
 import { analyzeSeason } from '../domain/seasonal'
-import type { ProjectCommand, RoomModel } from '../domain/types'
+import type { GardenZone, PlantModel, ProjectCommand, RoomModel } from '../domain/types'
 import { exportProjectJson, exportSceneGlb, exportScenePng } from '../services/export'
 import { resolveExportConfirmation, resolveVariantConfirmation } from '../services/webmcp'
 import { useStudioStore } from '../state/store'
+
+const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 interface TextSpriteProps {
   text: string
@@ -79,7 +81,7 @@ interface CanvasButtonProps {
   onClick: () => void
 }
 
-function CanvasButton({ label, x, y, width = 104, height = 34, active = false, danger = false, disabled = false, onClick }: CanvasButtonProps) {
+function CanvasButton({ label, x, y, width = 104, height = 44, active = false, danger = false, disabled = false, onClick }: CanvasButtonProps) {
   const [hovered, setHovered] = useState(false)
   const group = useRef<Group>(null)
   const shape = useRoundedShape(width, height, Math.min(10, height * 0.28))
@@ -88,7 +90,7 @@ function CanvasButton({ label, x, y, width = 104, height = 34, active = false, d
   useFrame((_, delta) => {
     if (!group.current) return
     const target = hovered && !disabled ? 1.025 : 1
-    const scale = MathUtils.lerp(group.current.scale.x, target, 1 - Math.exp(-delta * 16))
+    const scale = prefersReducedMotion ? target : MathUtils.lerp(group.current.scale.x, target, 1 - Math.exp(-delta * 16))
     group.current.scale.set(scale, scale, 1)
   })
   return <group ref={group} position={[x, y, 2]}>
@@ -112,7 +114,12 @@ function Panel({ x, y, width, height, opacity = 0.9, radius = 14, children }: { 
       <shapeGeometry args={[border]} />
       <meshBasicMaterial color="#6b7b72" transparent opacity={0.28} depthTest={false} depthWrite={false} />
     </mesh>
-    <mesh>
+    <mesh
+      onPointerDown={(event) => event.stopPropagation()}
+      onPointerUp={(event) => event.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}
+      onWheel={(event) => event.stopPropagation()}
+    >
       <shapeGeometry args={[shape]} />
       <meshBasicMaterial color="#101815" transparent opacity={opacity} depthTest={false} depthWrite={false} />
     </mesh>
@@ -120,18 +127,28 @@ function Panel({ x, y, width, height, opacity = 0.9, radius = 14, children }: { 
   </group>
 }
 
-const findSelectedRoom = (ref: string | null): { room: RoomModel; buildingRef: string; floorRef: string } | null => {
+type StudioSelection =
+  | { kind: 'room'; room: RoomModel; buildingRef: string; floorRef: string }
+  | { kind: 'zone'; zone: GardenZone }
+  | { kind: 'plant'; plant: PlantModel }
+
+const findSelection = (ref: string | null): StudioSelection | null => {
   if (!ref) return null
   const project = useStudioStore.getState().project
   for (const building of project.buildings) for (const floor of building.floors) {
     const room = floor.rooms.find((item) => item.ref === ref)
-    if (room) return { room, buildingRef: building.ref, floorRef: floor.ref }
+    if (room) return { kind: 'room', room, buildingRef: building.ref, floorRef: floor.ref }
   }
+  const zone = project.garden.zones.find((item) => item.ref === ref)
+  if (zone) return { kind: 'zone', zone }
+  const plant = project.garden.plants.find((item) => item.ref === ref)
+  if (plant) return { kind: 'plant', plant }
   return null
 }
 
 function StudioHudContent() {
   const { width, height } = useThree((state) => state.size)
+  const [exporting, setExporting] = useState<'json' | 'glb' | 'png' | null>(null)
   const project = useStudioStore((state) => state.project)
   const variants = useStudioStore((state) => state.variants)
   const selectedRef = useStudioStore((state) => state.selectedRef)
@@ -144,6 +161,7 @@ function StudioHudContent() {
   const pendingExport = useStudioStore((state) => state.pendingExport)
   const toast = useStudioStore((state) => state.toast)
   const history = useStudioStore((state) => state.history)
+  const helpOpen = useStudioStore((state) => state.helpOpen)
   const setViewMode = useStudioStore((state) => state.setViewMode)
   const setTransformMode = useStudioStore((state) => state.setTransformMode)
   const setMonth = useStudioStore((state) => state.setMonth)
@@ -154,14 +172,28 @@ function StudioHudContent() {
   const commitCommand = useStudioStore((state) => state.commitCommand)
   const undo = useStudioStore((state) => state.undo)
   const setToast = useStudioStore((state) => state.setToast)
-  const selected = findSelectedRoom(selectedRef)
+  const setHelpOpen = useStudioStore((state) => state.setHelpOpen)
+  const selected = findSelection(selectedRef)
+  const selectedLocked = selected?.kind === 'room'
+    ? selected.room.locked
+    : selected?.kind === 'zone'
+      ? selected.zone.locked
+      : selected?.kind === 'plant'
+        ? selected.plant.locked
+        : false
+  const roomTransformUnavailable = (!!selected && selected.kind !== 'room') || selectedLocked
   const metrics = useMemo(() => calculateMetrics(project), [project])
   const season = useMemo(() => analyzeSeason(project, [month])[0], [project, month])
   const latestVariant = variants.at(-1)
 
   const safe = (action: () => unknown | Promise<unknown>) => Promise.resolve().then(action).catch((error) => setToast(error instanceof Error ? error.message : 'Action failed.'))
+  const runExport = (kind: 'json' | 'glb' | 'png', action: () => unknown | Promise<unknown>) => {
+    if (exporting) return
+    setExporting(kind)
+    safe(action).finally(() => setExporting(null))
+  }
   const roomCommand = (input: Partial<Extract<ProjectCommand, { type: 'room.update' }>>) => {
-    if (!selected) return
+    if (!selected || selected.kind !== 'room') return
     safe(() => commitCommand({ type: 'room.update', action: 'resize', buildingRef: selected.buildingRef, floorRef: selected.floorRef, roomRef: selected.room.ref, ...input }))
   }
   const createFeatureVariant = (kind: 'floor' | 'garage' | 'garden') => safe(() => {
@@ -174,6 +206,7 @@ function StudioHudContent() {
   const left = -width / 2 + 20
   const right = width / 2 - 20
   const bottom = -height / 2 + 34
+  const compactHeader = width < 1180
 
   return <>
     <OrthographicCamera makeDefault manual position={[0, 0, 100]} left={-width / 2} right={width / 2} top={height / 2} bottom={-height / 2} near={0.1} far={200} />
@@ -181,42 +214,60 @@ function StudioHudContent() {
     <Panel x={0} y={top} width={width - 40} height={64} opacity={0.88} radius={18}>
       <group position={[-width / 2 + 128, 8, 3]}><TextSprite text="House_Web_MCP" width={196} height={27} color="#f1f5ef" fontSize={82} align="left" /></group>
       <group position={[-width / 2 + 128, -15, 3]}><TextSprite text={`ZIELONKI  ·  R${project.revision}  ·  ${metrics.homeAreaM2} m²`} width={196} height={16} color="#8fa298" fontSize={65} align="left" /></group>
-      <CanvasButton label="Technical" x={-92} y={0} width={108} height={38} active={viewMode === 'technical'} onClick={() => setViewMode('technical')} />
-      <CanvasButton label="Realistic" x={26} y={0} width={108} height={38} active={viewMode === 'realistic'} onClick={() => setViewMode('realistic')} />
-      <CanvasButton label="‹" x={151} y={0} width={38} height={38} onClick={() => setMonth(month - 1)} />
+      <CanvasButton label="Technical" x={-92} y={0} width={108} height={44} active={viewMode === 'technical'} onClick={() => setViewMode('technical')} />
+      <CanvasButton label="Realistic" x={26} y={0} width={108} height={44} active={viewMode === 'realistic'} onClick={() => setViewMode('realistic')} />
+      <CanvasButton label="‹" x={151} y={0} width={44} height={44} onClick={() => setMonth(month - 1)} />
       <group position={[208, 0, 3]}><TextSprite text={new Date(2026, month - 1, 1).toLocaleString('en', { month: 'long' })} width={78} height={23} color="#dce7e0" fontSize={76} /></group>
-      <CanvasButton label="›" x={265} y={0} width={38} height={38} onClick={() => setMonth(month + 1)} />
-      <CanvasButton label="Floors" x={324} y={0} width={70} height={38} active={explodeFloors} onClick={() => setExplodeFloors(!explodeFloors)} />
-      <mesh position={[width / 2 - 204, 0, 4]}><circleGeometry args={[4, 24]} /><meshBasicMaterial color={webMcpAvailable ? '#c6ed76' : '#d78b65'} depthTest={false} /></mesh>
-      <group position={[width / 2 - 112, 0, 3]}><TextSprite text={webMcpAvailable ? 'WebMCP ready' : 'WebMCP unavailable'} width={164} height={22} color={webMcpAvailable ? '#dbeeb6' : '#e7aa7d'} fontSize={68} align="right" /></group>
+      <CanvasButton label="›" x={265} y={0} width={44} height={44} onClick={() => setMonth(month + 1)} />
+      <CanvasButton label="Floors F" x={329} y={0} width={78} height={44} active={explodeFloors} onClick={() => setExplodeFloors(!explodeFloors)} />
+      <CanvasButton label="?" x={400} y={0} width={44} height={44} active={helpOpen} onClick={() => setHelpOpen(!helpOpen)} />
+      <mesh position={[compactHeader ? width / 2 - 45 : width / 2 - 190, 0, 4]}><circleGeometry args={[4, 24]} /><meshBasicMaterial color={webMcpAvailable ? '#c6ed76' : '#d78b65'} depthTest={false} /></mesh>
+      {!compactHeader && <group position={[width / 2 - 98, 0, 3]}><TextSprite text={webMcpAvailable ? 'WebMCP ready' : 'WebMCP unavailable'} width={164} height={22} color={webMcpAvailable ? '#dbeeb6' : '#e7aa7d'} fontSize={68} align="right" /></group>}
     </Panel>
 
-    <Panel x={left + 45} y={18} width={90} height={374} opacity={0.86} radius={18}>
-      <group position={[0, 158, 3]}><TextSprite text="MODEL" width={64} height={19} color="#82958b" fontSize={68} /></group>
-      <CanvasButton label="Move" x={0} y={118} width={68} height={36} active={transformMode === 'translate'} onClick={() => setTransformMode('translate')} />
-      <CanvasButton label="Scale" x={0} y={76} width={68} height={36} active={transformMode === 'scale'} onClick={() => setTransformMode('scale')} />
-      <CanvasButton label="Rotate" x={0} y={34} width={68} height={36} active={transformMode === 'rotate'} onClick={() => setTransformMode('rotate')} />
-      <CanvasButton label="+ Floor" x={0} y={-20} width={68} height={36} onClick={() => createFeatureVariant('floor')} />
-      <CanvasButton label="+ Garage" x={0} y={-62} width={68} height={36} onClick={() => createFeatureVariant('garage')} />
-      <CanvasButton label="Garden" x={0} y={-104} width={68} height={36} onClick={() => createFeatureVariant('garden')} />
-      <CanvasButton label="Undo" x={0} y={-151} width={68} height={32} disabled={!history.length} onClick={() => safe(() => { undo() })} />
+    <Panel x={left + 47} y={18} width={94} height={420} opacity={0.86} radius={18}>
+      <group position={[0, 181, 3]}><TextSprite text="MODEL" width={66} height={19} color="#82958b" fontSize={68} /></group>
+      <CanvasButton label="Move  T" x={0} y={137} width={72} height={44} active={!selectedLocked && transformMode === 'translate'} disabled={selectedLocked} onClick={() => setTransformMode('translate')} />
+      <CanvasButton label="Scale  S" x={0} y={87} width={72} height={44} active={!roomTransformUnavailable && transformMode === 'scale'} disabled={roomTransformUnavailable} onClick={() => setTransformMode('scale')} />
+      <CanvasButton label="Rotate  R" x={0} y={37} width={72} height={44} active={!roomTransformUnavailable && transformMode === 'rotate'} disabled={roomTransformUnavailable} onClick={() => setTransformMode('rotate')} />
+      <CanvasButton label="+ Floor" x={0} y={-23} width={72} height={44} onClick={() => createFeatureVariant('floor')} />
+      <CanvasButton label="+ Garage" x={0} y={-73} width={72} height={44} onClick={() => createFeatureVariant('garage')} />
+      <CanvasButton label="Garden" x={0} y={-123} width={72} height={44} onClick={() => createFeatureVariant('garden')} />
+      <CanvasButton label="Undo" x={0} y={-175} width={72} height={44} disabled={!history.length} onClick={() => safe(() => { undo() })} />
     </Panel>
 
     <Panel x={right - 146} y={18} width={292} height={420} opacity={0.88} radius={18}>
       <group position={[0, 178, 3]}><TextSprite text="INSPECTOR" width={236} height={20} color="#82958b" fontSize={68} align="left" /></group>
-      {selected ? <>
+      {selected?.kind === 'room' ? <>
         <group position={[0, 138, 3]}><TextSprite text={selected.room.name} width={236} height={32} color="#f2f5f1" fontSize={90} align="left" /></group>
         <group position={[0, 108, 3]}><TextSprite text={selected.room.ref} width={236} height={18} color="#81948a" fontSize={70} align="left" /></group>
         <group position={[0, 67, 3]}><TextSprite text={`${selected.room.widthM.toFixed(1)} × ${selected.room.depthM.toFixed(1)} × ${selected.room.heightM.toFixed(1)} m`} width={236} height={27} color="#d3dfd8" fontSize={78} align="left" /></group>
         <group position={[0, 38, 3]}><TextSprite text={`${(selected.room.widthM * selected.room.depthM).toFixed(1)} m²  ·  ${selected.room.ceilingType}`} width={236} height={20} color="#8fa298" fontSize={68} align="left" /></group>
-        <CanvasButton label="Width +" x={-61} y={-10} width={112} height={38} onClick={() => roomCommand({ widthM: selected.room.widthM + 0.5 })} disabled={selected.room.locked} />
-        <CanvasButton label="Width −" x={61} y={-10} width={112} height={38} onClick={() => roomCommand({ widthM: Math.max(1, selected.room.widthM - 0.5) })} disabled={selected.room.locked} />
-        <CanvasButton label="Depth +" x={-61} y={-54} width={112} height={38} onClick={() => roomCommand({ depthM: selected.room.depthM + 0.5 })} disabled={selected.room.locked} />
-        <CanvasButton label="Depth −" x={61} y={-54} width={112} height={38} onClick={() => roomCommand({ depthM: Math.max(1, selected.room.depthM - 0.5) })} disabled={selected.room.locked} />
-        <CanvasButton label="Lower ceiling" x={-61} y={-98} width={112} height={38} onClick={() => roomCommand({ action: 'set-ceiling', heightM: Math.max(2.2, selected.room.heightM - 0.25), ceilingType: 'lowered' })} disabled={selected.room.locked} />
-        <CanvasButton label="Mezzanine" x={61} y={-98} width={112} height={38} onClick={() => safe(() => createVariant('Mezzanine concept', [{ type: 'mezzanine.update', action: 'add', buildingRef: selected.buildingRef, floorRef: selected.floorRef, roomRef: selected.room.ref, mezzanineRef: `${selected.room.ref}/mezzanine-${project.revision}` }]))} disabled={selected.room.locked || selected.room.mezzanines.length > 0} />
+        <CanvasButton label="Width +" x={-61} y={-10} width={112} height={44} onClick={() => roomCommand({ widthM: selected.room.widthM + 0.5 })} disabled={selected.room.locked} />
+        <CanvasButton label="Width −" x={61} y={-10} width={112} height={44} onClick={() => roomCommand({ widthM: Math.max(1, selected.room.widthM - 0.5) })} disabled={selected.room.locked} />
+        <CanvasButton label="Depth +" x={-61} y={-60} width={112} height={44} onClick={() => roomCommand({ depthM: selected.room.depthM + 0.5 })} disabled={selected.room.locked} />
+        <CanvasButton label="Depth −" x={61} y={-60} width={112} height={44} onClick={() => roomCommand({ depthM: Math.max(1, selected.room.depthM - 0.5) })} disabled={selected.room.locked} />
+        <CanvasButton label="Lower ceiling" x={-61} y={-110} width={112} height={44} onClick={() => roomCommand({ action: 'set-ceiling', heightM: Math.max(2.2, selected.room.heightM - 0.25), ceilingType: 'lowered' })} disabled={selected.room.locked} />
+        <CanvasButton label="Mezzanine" x={61} y={-110} width={112} height={44} onClick={() => safe(() => createVariant('Mezzanine concept', [{ type: 'mezzanine.update', action: 'add', buildingRef: selected.buildingRef, floorRef: selected.floorRef, roomRef: selected.room.ref, mezzanineRef: `${selected.room.ref}/mezzanine-${project.revision}` }]))} disabled={selected.room.locked || selected.room.mezzanines.length > 0} />
         <group position={[0, -151, 3]}><TextSprite text={selected.room.locked ? 'Locked — edits are disabled' : 'Drag the gizmo or use exact controls'} width={236} height={19} color={selected.room.locked ? '#e5a071' : '#81948a'} fontSize={70} align="left" /></group>
-      </> : <group position={[0, 60, 3]}><TextSprite text="Select a 3D element" width={232} height={26} color="#8fa298" fontSize={76} /></group>}
+      </> : selected?.kind === 'zone' ? <>
+        <group position={[0, 138, 3]}><TextSprite text={selected.zone.name} width={236} height={32} color="#f2f5f1" fontSize={90} align="left" /></group>
+        <group position={[0, 108, 3]}><TextSprite text={selected.zone.ref} width={236} height={18} color="#81948a" fontSize={70} align="left" /></group>
+        <group position={[0, 66, 3]}><TextSprite text={`${selected.zone.kind.replace('-', ' ')}  ·  ${(selected.zone.widthM * selected.zone.depthM).toFixed(1)} m²`} width={236} height={26} color="#d3dfd8" fontSize={76} align="left" /></group>
+        <group position={[0, 34, 3]}><TextSprite text={`${selected.zone.widthM.toFixed(1)} × ${selected.zone.depthM.toFixed(1)} m`} width={236} height={21} color="#8fa298" fontSize={70} align="left" /></group>
+        <CanvasButton label="Move  T" x={0} y={-24} width={236} height={44} active={!selected.zone.locked && transformMode === 'translate'} disabled={selected.zone.locked} onClick={() => setTransformMode('translate')} />
+        <group position={[0, -79, 3]}><TextSprite text={selected.zone.locked ? 'Locked — this zone is preserved' : 'Drag on the site · snaps every 0.5 m'} width={236} height={21} color={selected.zone.locked ? '#e5a071' : '#8fa298'} fontSize={70} align="left" /></group>
+      </> : selected?.kind === 'plant' ? <>
+        <group position={[0, 138, 3]}><TextSprite text={selected.plant.name} width={236} height={32} color="#f2f5f1" fontSize={88} align="left" /></group>
+        <group position={[0, 108, 3]}><TextSprite text={selected.plant.species} width={236} height={19} color="#8fb9aa" fontSize={72} align="left" /></group>
+        <group position={[0, 67, 3]}><TextSprite text={`${selected.plant.kind}  ·  ${selected.plant.matureHeightM.toFixed(1)} m high`} width={236} height={25} color="#d3dfd8" fontSize={76} align="left" /></group>
+        <group position={[0, 36, 3]}><TextSprite text={`${selected.plant.canopyM.toFixed(1)} m canopy  ·  ${selected.plant.sunNeed} sun`} width={236} height={21} color="#8fa298" fontSize={70} align="left" /></group>
+        <CanvasButton label="Move  T" x={0} y={-24} width={236} height={44} active={!selected.plant.locked && transformMode === 'translate'} disabled={selected.plant.locked} onClick={() => setTransformMode('translate')} />
+        <group position={[0, -79, 3]}><TextSprite text={selected.plant.locked ? 'Locked — this plant is preserved' : 'Drag on the site · snaps every 0.5 m'} width={236} height={21} color={selected.plant.locked ? '#e5a071' : '#8fa298'} fontSize={70} align="left" /></group>
+      </> : <>
+        <group position={[0, 70, 3]}><TextSprite text="Select an element" width={232} height={28} color="#d3dfd8" fontSize={80} /></group>
+        <group position={[0, 34, 3]}><TextSprite text="Rooms, garden zones, and plants are editable" width={236} height={20} color="#8fa298" fontSize={66} /></group>
+      </>}
     </Panel>
 
     <Panel x={-78} y={bottom} width={Math.min(width - 530, 780)} height={52} opacity={0.88} radius={16}>
@@ -228,15 +279,26 @@ function StudioHudContent() {
       </> : <group position={[45, 0, 3]}><TextSprite text="NO ACTIVE VARIANT — ASK AN AGENT OR USE THE LEFT TOOLS" width={420} height={24} color="#73877c" fontSize={61} /></group>}
     </Panel>
 
-    <Panel x={right - 146} y={-height / 2 + 81} width={292} height={88} opacity={0.86} radius={16}>
-      <CanvasButton label="JSON" x={-94} y={14} width={82} height={34} onClick={() => safe(() => { exportProjectJson(project) })} />
-      <CanvasButton label="GLB" x={0} y={14} width={82} height={34} onClick={() => safe(exportSceneGlb)} />
-      <CanvasButton label="PNG" x={94} y={14} width={82} height={34} onClick={() => safe(() => { exportScenePng() })} />
-      <CanvasButton label="Import project" x={0} y={-26} width={270} height={30} onClick={() => window.dispatchEvent(new Event('house-web-mcp:import'))} />
+    <Panel x={right - 146} y={-height / 2 + 91} width={292} height={108} opacity={0.86} radius={16}>
+      <CanvasButton label={exporting === 'json' ? 'JSON…' : 'JSON'} x={-94} y={24} width={82} height={44} disabled={exporting !== null} onClick={() => runExport('json', () => { exportProjectJson(project) })} />
+      <CanvasButton label={exporting === 'glb' ? 'GLB…' : 'GLB'} x={0} y={24} width={82} height={44} disabled={exporting !== null} onClick={() => runExport('glb', exportSceneGlb)} />
+      <CanvasButton label={exporting === 'png' ? 'PNG…' : 'PNG'} x={94} y={24} width={82} height={44} disabled={exporting !== null} onClick={() => runExport('png', () => { exportScenePng() })} />
+      <CanvasButton label="Import project" x={0} y={-29} width={270} height={44} disabled={exporting !== null} onClick={() => window.dispatchEvent(new Event('house-web-mcp:import'))} />
     </Panel>
 
     {toast && <Panel x={0} y={top - 58} width={Math.min(590, width - 470)} height={36} opacity={0.82} radius={18}>
       <group position={[0, 0, 8]}><TextSprite text={toast} width={Math.min(550, width - 510)} height={21} color="#e7eee9" fontSize={76} /></group>
+    </Panel>}
+
+    {helpOpen && !confirmationVariantRef && !pendingExport && <Panel x={0} y={0} width={530} height={332} opacity={0.97} radius={22}>
+      <group position={[0, 128, 4]}><TextSprite text="Controls" width={458} height={34} color="#f2f5f1" fontSize={94} align="left" /></group>
+      <group position={[0, 92, 4]}><TextSprite text="Everything stays in the 3D workspace" width={458} height={20} color="#8fa298" fontSize={70} align="left" /></group>
+      <group position={[0, 47, 4]}><TextSprite text="NAVIGATE    drag orbit  ·  right-drag pan  ·  wheel zoom" width={458} height={22} color="#d3dfd8" fontSize={68} align="left" /></group>
+      <group position={[0, 14, 4]}><TextSprite text="EDIT             T move  ·  S scale  ·  R rotate  ·  Esc clear" width={458} height={22} color="#d3dfd8" fontSize={68} align="left" /></group>
+      <group position={[0, -19, 4]}><TextSprite text="VIEW             1 technical  ·  2 realistic  ·  F floors" width={458} height={22} color="#d3dfd8" fontSize={68} align="left" /></group>
+      <group position={[0, -52, 4]}><TextSprite text="SEASON        [ previous month  ·  ] next month" width={458} height={22} color="#d3dfd8" fontSize={68} align="left" /></group>
+      <group position={[0, -85, 4]}><TextSprite text="HISTORY        Ctrl / Cmd + Z undo" width={458} height={22} color="#d3dfd8" fontSize={68} align="left" /></group>
+      <CanvasButton label="Close" x={0} y={-132} width={132} height={44} active onClick={() => setHelpOpen(false)} />
     </Panel>}
 
     {(confirmationVariantRef || pendingExport) && <Panel x={0} y={0} width={430} height={188} opacity={0.98}>

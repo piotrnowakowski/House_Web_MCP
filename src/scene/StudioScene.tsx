@@ -1,6 +1,6 @@
 import { Edges, Environment, Grid, Lightformer, Line, OrbitControls, RoundedBox, TransformControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   AmbientLight,
   BackSide,
@@ -22,6 +22,8 @@ import type { BuildingModel, GardenZone, PlantModel, ProjectV1, RoomModel, Varia
 import { setExportSceneRoot, setRenderCanvas } from '../services/export'
 import { useStudioStore } from '../state/store'
 import { TextSprite } from '../ui/CanvasUi'
+
+const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
 const roomPalette: Record<string, string> = {
   living: '#e4dacb', kitchen: '#d8ddd2', work: '#d4dce0', utility: '#d3d0c9', sleeping: '#ddd4d8', garage: '#c3c9c5', flex: '#dbd4c9',
@@ -123,15 +125,15 @@ function Opening({ opening, room, mode }: { opening: RoomModel['openings'][numbe
   </group>
 }
 
-function RoomBody({ room, mode, selected, ghost = false }: { room: RoomModel; mode: ViewMode; selected: boolean; ghost?: boolean }) {
-  const color = ghost ? '#c7f36e' : mode === 'technical' ? (selected ? '#9cc4ae' : '#76a18e') : roomPalette[room.usage] ?? '#ded8cc'
+function RoomBody({ room, mode, selected, hovered, ghost = false }: { room: RoomModel; mode: ViewMode; selected: boolean; hovered: boolean; ghost?: boolean }) {
+  const color = ghost ? '#c7f36e' : mode === 'technical' ? (selected ? '#9cc4ae' : hovered ? '#89b39f' : '#76a18e') : roomPalette[room.usage] ?? '#ded8cc'
   return <>
     <mesh castShadow receiveShadow>
       <boxGeometry args={[room.widthM, room.heightM, room.depthM]} />
       <meshPhysicalMaterial
         color={color}
-        emissive={selected && !ghost ? '#6f8e49' : '#000000'}
-        emissiveIntensity={selected && !ghost ? 0.12 : 0}
+        emissive={(selected || hovered) && !ghost ? '#5d816f' : '#000000'}
+        emissiveIntensity={selected && !ghost ? 0.14 : hovered && !ghost ? 0.08 : 0}
         transparent
         opacity={ghost ? 0.18 : mode === 'technical' ? 0.2 : 0.96}
         roughness={mode === 'technical' ? 0.55 : 0.88}
@@ -140,7 +142,7 @@ function RoomBody({ room, mode, selected, ghost = false }: { room: RoomModel; mo
         depthWrite={!ghost}
       />
       <Edges
-        color={ghost ? '#d8ff8e' : selected ? '#b9e45e' : mode === 'technical' ? '#8ab4a1' : '#807a6d'}
+        color={ghost ? '#d8ff8e' : selected ? '#b9e45e' : hovered ? '#a8d8c1' : mode === 'technical' ? '#8ab4a1' : '#807a6d'}
         threshold={15}
         lineWidth={ghost || selected ? 1.8 : 0.65}
       />
@@ -163,15 +165,27 @@ function EditableRoom({ room, building, floorY, mode, ghost = false }: { room: R
   const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
   const commitCommand = useStudioStore((state) => state.commitCommand)
   const setToast = useStudioStore((state) => state.setToast)
-  const groupRef = useRef<Group>(null)
+  const groupRef = useRef<Group>(null!)
+  const [hovered, setHovered] = useState(false)
   const selected = !ghost && selectedRef === room.ref
   const body = <group
     ref={groupRef}
     position={[room.position.x, floorY + room.heightM / 2, room.position.z]}
     rotation={[0, MathUtils.degToRad(room.rotationDegrees), 0]}
     onClick={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(room.ref) }}
+    onPointerOver={(event) => {
+      event.stopPropagation()
+      if (!ghost) {
+        setHovered(true)
+        document.body.style.cursor = room.locked ? 'not-allowed' : 'pointer'
+      }
+    }}
+    onPointerOut={() => {
+      setHovered(false)
+      document.body.style.cursor = 'default'
+    }}
   >
-    <RoomBody room={room} mode={mode} selected={selected} ghost={ghost} />
+    <RoomBody room={room} mode={mode} selected={selected} hovered={hovered} ghost={ghost} />
   </group>
   if (!selected || room.locked || ghost) return body
   const finishTransform = () => {
@@ -184,11 +198,15 @@ function EditableRoom({ room, building, floorY, mode, ghost = false }: { room: R
       object.scale.set(1, 1, 1)
     } catch (error) { setToast(error instanceof Error ? error.message : 'Transform failed.') }
   }
-  return <TransformControls
-    mode={transformMode} translationSnap={0.5} rotationSnap={Math.PI / 12} scaleSnap={0.1}
-    showX={transformMode !== 'rotate'} showY={transformMode === 'rotate'} showZ={transformMode !== 'rotate'}
-    onMouseUp={finishTransform}
-  >{body}</TransformControls>
+  return <>
+    {body}
+    <TransformControls
+      object={groupRef}
+      mode={transformMode} translationSnap={0.5} rotationSnap={Math.PI / 12} scaleSnap={0.1}
+      showX={transformMode !== 'rotate'} showY={transformMode === 'rotate'} showZ={transformMode !== 'rotate'}
+      onMouseUp={finishTransform}
+    />
+  </>
 }
 
 const buildingBounds = (building: BuildingModel) => {
@@ -258,20 +276,62 @@ const zoneColor: Record<GardenZone['kind'], string> = {
 }
 
 function GardenZoneScene({ zone, project, mode, ghost = false }: { zone: GardenZone; project: ProjectV1; mode: ViewMode; ghost?: boolean }) {
+  const selectedRef = useStudioStore((state) => state.selectedRef)
+  const transformMode = useStudioStore((state) => state.transformMode)
+  const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  const setTransformMode = useStudioStore((state) => state.setTransformMode)
+  const commitCommand = useStudioStore((state) => state.commitCommand)
+  const setToast = useStudioStore((state) => state.setToast)
+  const groupRef = useRef<Group>(null!)
+  const [hovered, setHovered] = useState(false)
+  const selected = !ghost && selectedRef === zone.ref
   const y = elevationAt(project, zone.position.x, zone.position.z) + 0.08
-  return <group position={[zone.position.x, y, zone.position.z]} rotation={[0, MathUtils.degToRad(zone.rotationDegrees), 0]}>
+  const body = <group
+    ref={groupRef}
+    position={[zone.position.x, y, zone.position.z]}
+    rotation={[0, MathUtils.degToRad(zone.rotationDegrees), 0]}
+    onClick={(event) => {
+      event.stopPropagation()
+      if (!ghost) {
+        setSelectedRef(zone.ref)
+        setTransformMode('translate')
+      }
+    }}
+    onPointerOver={(event) => {
+      event.stopPropagation()
+      if (!ghost) {
+        setHovered(true)
+        document.body.style.cursor = zone.locked ? 'not-allowed' : 'pointer'
+      }
+    }}
+    onPointerOut={() => { setHovered(false); document.body.style.cursor = 'default' }}
+  >
     <RoundedBox args={[zone.widthM, zone.kind === 'rain-garden' ? 0.1 : 0.14, zone.depthM]} radius={0.08} smoothness={3} receiveShadow>
       <meshStandardMaterial
-        color={ghost ? '#c7f36e' : mode === 'technical' ? new Color(zoneColor[zone.kind]).multiplyScalar(0.58) : zoneColor[zone.kind]}
+        color={ghost ? '#c7f36e' : mode === 'technical' ? new Color(zoneColor[zone.kind]).multiplyScalar(selected ? 0.76 : hovered ? 0.67 : 0.58) : zoneColor[zone.kind]}
+        emissive={(selected || hovered) && !ghost ? '#26796d' : '#000000'}
+        emissiveIntensity={selected ? 0.19 : hovered ? 0.09 : 0}
         roughness={zone.kind === 'rain-garden' ? 0.65 : 0.95}
         transparent
         opacity={ghost ? 0.16 : mode === 'technical' ? 0.46 : 0.98}
         depthWrite={!ghost}
       />
-      {(ghost || mode === 'technical') && <Edges color={ghost ? '#d8ff8e' : '#82998d'} lineWidth={0.75} />}
+      {(ghost || mode === 'technical' || selected || hovered) && <Edges color={ghost ? '#d8ff8e' : selected ? '#c6ed76' : hovered ? '#8bd8c9' : '#82998d'} lineWidth={selected ? 1.5 : 0.75} />}
     </RoundedBox>
     {!ghost && mode === 'technical' && <group position={[0, 0.35, 0]}><TextSprite text={zone.name.toUpperCase()} width={Math.min(3.5, zone.widthM * 0.75)} height={0.38} color="#d3dfd8" fontSize={64} /></group>}
   </group>
+  if (!selected || zone.locked || ghost || transformMode !== 'translate') return body
+  const finishTransform = () => {
+    const object = groupRef.current
+    if (!object) return
+    try {
+      commitCommand({ type: 'garden.update', action: 'move-zone', subjectRef: zone.ref, position: { x: object.position.x, z: object.position.z } })
+    } catch (error) { setToast(error instanceof Error ? error.message : 'Garden transform failed.') }
+  }
+  return <>
+    {body}
+    <TransformControls object={groupRef} mode="translate" translationSnap={0.5} showY={false} onMouseUp={finishTransform} />
+  </>
 }
 
 const seasonalCanopy = (plant: PlantModel, month: number) => {
@@ -291,22 +351,54 @@ const bloomDots: Array<[number, number, number]> = [
 ]
 
 function PlantScene({ plant, project, month, mode, ghost = false }: { plant: PlantModel; project: ProjectV1; month: number; mode: ViewMode; ghost?: boolean }) {
+  const selectedRef = useStudioStore((state) => state.selectedRef)
+  const transformMode = useStudioStore((state) => state.transformMode)
+  const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  const setTransformMode = useStudioStore((state) => state.setTransformMode)
+  const commitCommand = useStudioStore((state) => state.commitCommand)
+  const setToast = useStudioStore((state) => state.setToast)
+  const groupRef = useRef<Group>(null!)
+  const [hovered, setHovered] = useState(false)
+  const selected = !ghost && selectedRef === plant.ref
   const ground = elevationAt(project, plant.position.x, plant.position.z)
   const canopy = seasonalCanopy(plant, month)
   const isTree = plant.kind === 'tree'
   const crownRadius = Math.max(0.28, plant.canopyM / 2)
   const crownHeight = Math.max(0.35, plant.matureHeightM * (isTree ? 0.48 : 0.68))
   const trunkHeight = isTree ? plant.matureHeightM - crownHeight * 0.52 : Math.max(0.25, plant.matureHeightM * 0.32)
-  const color = ghost ? '#c7f36e' : mode === 'technical' ? '#6f9c84' : canopy.color
+  const baseColor = ghost ? '#c7f36e' : mode === 'technical' ? '#6f9c84' : canopy.color
+  const color = selected ? new Color(baseColor).offsetHSL(0, 0.05, 0.09) : hovered ? new Color(baseColor).offsetHSL(0, 0.03, 0.045) : baseColor
   const isBlooming = plant.bloomMonths.includes(month) && canopy.visible && !ghost
-  return <group position={[plant.position.x, ground, plant.position.z]}>
+  const body = <group
+    ref={groupRef}
+    position={[plant.position.x, ground, plant.position.z]}
+    onClick={(event) => {
+      event.stopPropagation()
+      if (!ghost) {
+        setSelectedRef(plant.ref)
+        setTransformMode('translate')
+      }
+    }}
+    onPointerOver={(event) => {
+      event.stopPropagation()
+      if (!ghost) {
+        setHovered(true)
+        document.body.style.cursor = plant.locked ? 'not-allowed' : 'pointer'
+      }
+    }}
+    onPointerOut={() => { setHovered(false); document.body.style.cursor = 'default' }}
+  >
+    {!ghost && <mesh position={[0, Math.max(0.45, plant.matureHeightM * 0.42), 0]}>
+      <sphereGeometry args={[Math.max(0.7, plant.canopyM * 0.52), 10, 8]} />
+      <meshBasicMaterial transparent opacity={0.001} depthWrite={false} />
+    </mesh>}
     <mesh position={[0, Math.max(0.2, trunkHeight / 2), 0]} castShadow>
       <cylinderGeometry args={[isTree ? 0.13 : 0.05, isTree ? 0.24 : 0.11, Math.max(0.3, trunkHeight), 10]} />
       <meshStandardMaterial color={ghost ? '#c7f36e' : '#674631'} roughness={1} transparent opacity={ghost ? 0.22 : 1} />
     </mesh>
     {canopy.visible && plant.kind === 'hedge' && <RoundedBox args={[plant.canopyM, plant.matureHeightM, Math.min(1.15, plant.canopyM * 0.24)]} radius={0.38} smoothness={4} position={[0, plant.matureHeightM / 2, 0]} castShadow>
-      <meshStandardMaterial color={color} roughness={0.96} transparent opacity={ghost ? 0.18 : mode === 'technical' ? 0.68 : 1} />
-      {mode === 'technical' && <Edges color="#a3b9ac" lineWidth={0.7} />}
+      <meshStandardMaterial color={color} emissive={selected ? '#26796d' : '#000000'} emissiveIntensity={selected ? 0.16 : 0} roughness={0.96} transparent opacity={ghost ? 0.18 : mode === 'technical' ? 0.68 : 1} />
+      {(mode === 'technical' || selected || hovered) && <Edges color={selected ? '#c6ed76' : hovered ? '#8bd8c9' : '#a3b9ac'} lineWidth={selected ? 1.4 : 0.7} />}
     </RoundedBox>}
     {canopy.visible && plant.kind === 'wetland' && <group position={[0, 0.1, 0]}>
       {Array.from({ length: 11 }, (_, index) => {
@@ -330,12 +422,14 @@ function PlantScene({ plant, project, month, mode, ghost = false }: { plant: Pla
         <icosahedronGeometry args={[crownRadius * 0.68, mode === 'technical' ? 1 : 2]} />
         <meshStandardMaterial
           color={index % 2 && mode === 'realistic' ? new Color(color).offsetHSL(0.01, 0.02, -0.045) : color}
+          emissive={selected ? '#26796d' : '#000000'}
+          emissiveIntensity={selected ? 0.13 : 0}
           roughness={0.96}
           flatShading={mode === 'realistic'}
           transparent
           opacity={ghost ? 0.17 : mode === 'technical' ? 0.64 : 1}
         />
-        {mode === 'technical' && <Edges color="#9db5a7" lineWidth={0.55} />}
+        {(mode === 'technical' || selected || hovered) && <Edges color={selected ? '#c6ed76' : hovered ? '#8bd8c9' : '#9db5a7'} lineWidth={selected ? 1.2 : 0.55} />}
       </mesh>)}
       {isBlooming && bloomDots.map(([x, y, z], index) => <mesh key={`bloom-${index}`} position={[x * crownRadius, y * crownHeight, z * crownRadius]} castShadow>
         <sphereGeometry args={[Math.max(0.08, crownRadius * 0.075), 8, 6]} />
@@ -343,6 +437,18 @@ function PlantScene({ plant, project, month, mode, ghost = false }: { plant: Pla
       </mesh>)}
     </group>}
   </group>
+  if (!selected || plant.locked || ghost || transformMode !== 'translate') return body
+  const finishTransform = () => {
+    const object = groupRef.current
+    if (!object) return
+    try {
+      commitCommand({ type: 'garden.update', action: 'move-plant', subjectRef: plant.ref, position: { x: object.position.x, z: object.position.z } })
+    } catch (error) { setToast(error instanceof Error ? error.message : 'Plant transform failed.') }
+  }
+  return <>
+    {body}
+    <TransformControls object={groupRef} mode="translate" translationSnap={0.5} showY={false} onMouseUp={finishTransform} />
+  </>
 }
 
 function ProjectScene({ project, mode, explode, month, ghost = false }: { project: ProjectV1; mode: ViewMode; explode: boolean; month: number; ghost?: boolean }) {
@@ -368,7 +474,7 @@ function SceneLighting({ project, month, mode }: { project: ProjectV1; month: nu
   }), [mode])
   useEffect(() => { if (light.current && target.current) light.current.target = target.current }, [])
   useFrame((_, delta) => {
-    const blend = 1 - Math.exp(-delta * 3.2)
+    const blend = prefersReducedMotion ? 1 : 1 - Math.exp(-delta * 3.2)
     if (ambient.current) {
       ambient.current.intensity = MathUtils.lerp(ambient.current.intensity, mode === 'technical' ? 0.52 : 0.72, blend)
       ambient.current.color.lerp(colors.ambient, blend)
@@ -423,7 +529,7 @@ function Atmosphere({ mode }: { mode: ViewMode }) {
     floor: new Color(mode === 'technical' ? '#050908' : '#d9ddd5'),
   }), [mode])
   useFrame((_, delta) => {
-    const blend = 1 - Math.exp(-delta * 2.8)
+    const blend = prefersReducedMotion ? 1 : 1 - Math.exp(-delta * 2.8)
     uniforms.topColor.value.lerp(targets.top, blend)
     uniforms.horizonColor.value.lerp(targets.horizon, blend)
     uniforms.floorColor.value.lerp(targets.floor, blend)
@@ -497,7 +603,7 @@ export function StudioScene() {
       fadeStrength={1.3}
       infiniteGrid
     />}
-    <group ref={root} onPointerMissed={() => setSelectedRef(null)}>
+    <group ref={root} onPointerMissed={() => { setSelectedRef(null); document.body.style.cursor = 'default' }}>
       <ProjectScene project={project} mode={mode} explode={explode} month={month} />
       {latestVariant && <ProjectScene project={latestVariant.project} mode="technical" explode={explode} month={month} ghost />}
     </group>

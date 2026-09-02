@@ -32,6 +32,17 @@ canvas {
   outline: none;
 }
 
+canvas:focus-visible {
+  outline: 3px solid #0d9488;
+  outline-offset: -5px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+  }
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

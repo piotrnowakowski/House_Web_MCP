@@ -18,6 +18,10 @@ export function App() {
   const setViewMode = useStudioStore((state) => state.setViewMode)
   const setTransformMode = useStudioStore((state) => state.setTransformMode)
   const setMonth = useStudioStore((state) => state.setMonth)
+  const selectedRef = useStudioStore((state) => state.selectedRef)
+  const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  const setExplodeFloors = useStudioStore((state) => state.setExplodeFloors)
+  const setHelpOpen = useStudioStore((state) => state.setHelpOpen)
   const undo = useStudioStore((state) => state.undo)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -55,8 +59,14 @@ export function App() {
       if (event.key.toLowerCase() === 't') setTransformMode('translate')
       if (event.key.toLowerCase() === 's') setTransformMode('scale')
       if (event.key.toLowerCase() === 'r') setTransformMode('rotate')
+      if (event.key.toLowerCase() === 'f' && !event.repeat) setExplodeFloors(!useStudioStore.getState().explodeFloors)
       if (event.key === '[') setMonth(useStudioStore.getState().month - 1)
       if (event.key === ']') setMonth(useStudioStore.getState().month + 1)
+      if (event.key === '?' && !event.repeat) setHelpOpen(!useStudioStore.getState().helpOpen)
+      if (event.key === 'Escape') {
+        setHelpOpen(false)
+        setSelectedRef(null)
+      }
     }
     window.addEventListener('house-web-mcp:import', openImport)
     window.addEventListener('keydown', keyboard)
@@ -64,7 +74,7 @@ export function App() {
       window.removeEventListener('house-web-mcp:import', openImport)
       window.removeEventListener('keydown', keyboard)
     }
-  }, [setMonth, setTransformMode, setViewMode, setToast, undo])
+  }, [setExplodeFloors, setHelpOpen, setMonth, setSelectedRef, setTransformMode, setViewMode, setToast, undo])
 
   const handleImport = async (file?: File) => {
     if (!file) return
@@ -84,7 +94,10 @@ export function App() {
         gl.toneMapping = ACESFilmicToneMapping
         gl.toneMappingExposure = 1.08
         gl.shadowMap.type = PCFSoftShadowMap
-        gl.domElement.setAttribute('aria-label', 'Interactive 3D home and garden scene')
+        gl.domElement.setAttribute('role', 'application')
+        gl.domElement.setAttribute('tabindex', '0')
+        gl.domElement.setAttribute('aria-keyshortcuts', '1 2 T S R F [ ] Control+Z Escape ?')
+        gl.domElement.setAttribute('aria-label', 'Interactive 3D home and garden editor. Drag to orbit, right-drag to pan, scroll to zoom, and press question mark for keyboard shortcuts.')
       }}
     >
       <Suspense fallback={null}>
@@ -94,5 +107,6 @@ export function App() {
     </Canvas>
     <input ref={inputRef} className="sr-only" type="file" accept="application/json,.json" onChange={(event) => handleImport(event.target.files?.[0])} aria-label="Import versioned project JSON" />
     <div className="sr-only" aria-live="polite">{toast}</div>
+    <div className="sr-only" aria-live="polite">{selectedRef ? `Selected ${selectedRef}` : 'Selection cleared'}</div>
   </main>
 }

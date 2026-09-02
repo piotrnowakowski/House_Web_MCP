@@ -19,7 +19,10 @@ horticultural, or building regulations.
 - Technical and realistic presentations of one shared 3D model
 - Full visible UI rendered inside WebGL: tool rail, inspector, seasonal status,
   variants, confirmation, history, and export controls
-- Transform gizmos with translate, scale, and rotate snapping
+- Direct scene selection for rooms, garden zones, and plants, with a contextual
+  inspector and transform gizmos anchored to the selected object
+- Translate, scale, and rotate snapping, hover feedback, locked-object states,
+  keyboard control, and an in-canvas shortcut guide
 - Editable Zielonki climate preset, procedural vegetation, monthly sunlight,
   water-balance, frost, foliage, and bloom signals
 - Ghost variants, validation, human approval, discard, and undo
@@ -106,8 +109,11 @@ data.
 
 - `1` / `2`: technical / realistic
 - `T` / `S` / `R`: translate / scale / rotate
+- `F`: explode / assemble floors
 - `[` / `]`: previous / next month
 - `Ctrl+Z`: undo
+- `Esc`: close help and clear selection
+- `?`: open / close the in-canvas controls guide
 
 ## Climate and limitations
 

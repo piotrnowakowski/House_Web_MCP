@@ -17,6 +17,7 @@ interface StudioState {
   confirmationVariantRef: string | null
   pendingExport: 'json' | 'glb' | 'png' | null
   toast: string | null
+  helpOpen: boolean
   setSelectedRef: (ref: string | null) => void
   setViewMode: (mode: ViewMode) => void
   setTransformMode: (mode: TransformMode) => void
@@ -27,6 +28,7 @@ interface StudioState {
   setConfirmationVariantRef: (ref: string | null) => void
   setPendingExport: (format: StudioState['pendingExport']) => void
   setToast: (message: string | null) => void
+  setHelpOpen: (value: boolean) => void
   replaceProject: (project: ProjectV1) => void
   createVariant: (label: string, commands: ProjectCommand[]) => VariantModel
   applyVariant: (ref: string) => ProjectV1
@@ -42,6 +44,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   project: structuredClone(sampleProject),
   history: [], variants: [], selectedRef: 'room/living-room', viewMode: 'realistic', transformMode: 'translate', month: 7,
   explodeFloors: false, webMcpAvailable: false, hydrated: false, confirmationVariantRef: null, pendingExport: null, toast: 'Select any room or ask an agent to create a variant.',
+  helpOpen: false,
   setSelectedRef: (selectedRef) => set({ selectedRef }),
   setViewMode: (viewMode) => set({ viewMode }),
   setTransformMode: (transformMode) => set({ transformMode }),
@@ -52,6 +55,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   setConfirmationVariantRef: (confirmationVariantRef) => set({ confirmationVariantRef }),
   setPendingExport: (pendingExport) => set({ pendingExport }),
   setToast: (toast) => set({ toast }),
+  setHelpOpen: (helpOpen) => set({ helpOpen }),
   replaceProject: (project) => set({ project, variants: [], history: [], toast: `Loaded ${project.name}.` }),
   createVariant: (label, commands) => {
     const current = get().project
