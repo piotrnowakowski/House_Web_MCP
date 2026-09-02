@@ -1,6 +1,7 @@
 import type { ClimateMonth, ClimateProfile, PlotModel, SiteKnowledgeBase } from '../../src/domain/types'
+import { estimateDayPartTemperatures } from '../../src/domain/climate'
 
-const climateRows: Array<Omit<ClimateMonth, 'month'>> = [
+const climateRows: Array<Omit<ClimateMonth, 'month' | 'temperatureByDayPartC'>> = [
   { meanMinC: -4.2, meanMaxC: 2.1, precipitationMm: 38, sunshineHours: 49, et0Mm: 8, frostDays: 20, windKph: 12 },
   { meanMinC: -3.1, meanMaxC: 4.1, precipitationMm: 34, sunshineHours: 72, et0Mm: 14, frostDays: 17, windKph: 12 },
   { meanMinC: 0.5, meanMaxC: 9.4, precipitationMm: 41, sunshineHours: 113, et0Mm: 35, frostDays: 9, windKph: 13 },
@@ -24,7 +25,7 @@ export const zielonkiClimate: ClimateProfile = {
   provenance: 'Illustrative monthly normal prepared from ERA5/ERA5-Land variables exposed by Open-Meteo (CC BY 4.0). Edit before professional use.',
   soil: { texture: 'clay', ph: null, drainage: 'slow' },
   irrigationMm: 18,
-  months: climateRows.map((row, index) => ({ month: index + 1, ...row })),
+  months: climateRows.map((row, index) => ({ month: index + 1, ...row, temperatureByDayPartC: estimateDayPartTemperatures(row.meanMinC, row.meanMaxC) })),
 }
 
 export const zielonkiPlot: PlotModel = {
@@ -182,62 +183,142 @@ export const zielonkiKnowledgeBase: SiteKnowledgeBase = {
   planting: {
     strategy: [
       'Use moisture-tolerant planting as the default; reserve dry-climate plants for raised, engineered, freely drained beds.',
+      'Grow vegetables and orchard trees in sunny raised or mounded zones with verified topsoil, controlled drainage and access to irrigation.',
       'Keep large moisture-seeking trees and rain-garden storage away from foundations, drains, utilities and micropile design zones.',
       'Use layered native or climate-hardy hedges and shrubs for shelter, biodiversity and year-round structure.',
       'Treat every infiltration or retention location as provisional until groundwater and drainage are reviewed.',
     ],
+    soilAnalysis: {
+      summary: 'The documented ground profile is useful for foundation planning but is not a horticultural soil test. Native moist silty clay and shallow groundwater indicate slow drainage; productive crops and fruit trees should use improved, raised growing zones until chemistry and drainage are tested.',
+      findings: [
+        {
+          ref: 'soil-finding/topsoil', label: 'Surface layer', observed: 'Approximately 0.4 m of humus/topsoil was logged in both boreholes.',
+          plantingImplication: 'Potential growing material is present, but its structure, nutrient content and contamination status were not tested.', confidence: 'documented', sourceRefs: ['source/geotechnical-opinion'],
+        },
+        {
+          ref: 'soil-finding/subsoil', label: 'Subsoil texture', observed: 'Moist, plastic silty clay begins below the surface layer.',
+          plantingImplication: 'Expect slow drainage, compaction risk and reduced root aeration; avoid working it when wet.', confidence: 'documented', sourceRefs: ['source/geotechnical-opinion'],
+        },
+        {
+          ref: 'soil-finding/organic', label: 'Deep organic layers', observed: 'Peat and organic mud occur from roughly 1.6–1.9 m and continue below the 3.5 m boreholes.',
+          plantingImplication: 'Deep-rooting trees and permanent raised-bed structures require location-specific review because wet, compressible layers may settle.', confidence: 'documented', sourceRefs: ['source/geotechnical-opinion', 'source/geoanaliz-email'],
+        },
+        {
+          ref: 'soil-finding/water', label: 'Groundwater', observed: 'Groundwater was encountered 1.6–2.3 m below ground and may fluctuate seasonally.',
+          plantingImplication: 'Fruit-tree root zones and vegetable beds need positive surface drainage without directing water toward the house.', confidence: 'documented', sourceRefs: ['source/geotechnical-opinion'],
+        },
+        {
+          ref: 'soil-finding/ph', label: 'pH and fertility', observed: 'No pH, organic-matter, nutrient, salinity or contaminant analysis was found.',
+          plantingImplication: 'Do not prescribe lime or fertilizer rates until representative samples are tested.', confidence: 'unknown', sourceRefs: ['source/planting-guidance'],
+        },
+      ],
+      testsNeeded: [
+        { test: 'Composite topsoil laboratory test', reason: 'Measure pH, organic matter, available phosphorus, potassium and magnesium before amendment.' },
+        { test: 'Food-growing safety screen', reason: 'Check lead and other locally relevant contaminants before using native soil for edible crops.' },
+        { test: 'Infiltration and seasonal drainage check', reason: 'Confirm whether each proposed bed or orchard position drains after prolonged rain and spring wet periods.' },
+        { test: 'Imported topsoil certificate', reason: 'Verify texture, fertility and contaminant compliance for material used in raised productive beds.' },
+      ],
+      preparation: [
+        'Start vegetables in 30–45 cm raised beds using verified loam-rich topsoil blended with mature compost.',
+        'Plant fruit trees on broad raised mounds where water cannot collect around the root collar; select rootstock after drainage and space are confirmed.',
+        'Keep cultivation, drainage trenches and tree roots clear of utilities, foundations and the provisional micropile zone.',
+        'Apply lime, manure and mineral fertilizer only from crop-specific laboratory recommendations.',
+      ],
+    },
     recommendations: [
       {
-        ref: 'plant-guide/hornbeam', commonName: 'European hornbeam', botanicalName: 'Carpinus betulus', kind: 'hedge', priority: 'best-fit',
+        ref: 'plant-guide/hornbeam', commonName: 'European hornbeam', botanicalName: 'Carpinus betulus', kind: 'hedge', category: 'structure', priority: 'best-fit',
         preferredMoisture: 'moist', sunNeed: 'partial', minHardinessC: -28,
         placement: 'Boundary hedge or clipped internal screen outside utility corridors.',
         siteFit: 'Hardy structural hedge with better tolerance of heavier, periodically moist soils than dry Mediterranean species.',
         caution: 'Allow for mature root spread and confirm boundary offsets.', sourceRefs: ['source/climate-preset', 'source/planting-guidance'],
       },
       {
-        ref: 'plant-guide/guelder-rose', commonName: 'Guelder rose', botanicalName: 'Viburnum opulus', kind: 'shrub', priority: 'best-fit',
+        ref: 'plant-guide/guelder-rose', commonName: 'Guelder rose', botanicalName: 'Viburnum opulus', kind: 'shrub', category: 'ornamental', priority: 'best-fit',
         preferredMoisture: 'moist', sunNeed: 'partial', minHardinessC: -30,
         placement: 'Mixed hedge, swale shoulder or moist shrub border.',
         siteFit: 'Climate-hardy shrub suitable for a moist planting palette and useful for seasonal flower, fruit and structure.',
         caution: 'Do not place where standing water remains permanently.', sourceRefs: ['source/climate-preset', 'source/planting-guidance'],
       },
       {
-        ref: 'plant-guide/dogwood', commonName: 'Common dogwood', botanicalName: 'Cornus sanguinea', kind: 'shrub', priority: 'best-fit',
+        ref: 'plant-guide/dogwood', commonName: 'Common dogwood', botanicalName: 'Cornus sanguinea', kind: 'shrub', category: 'structure', priority: 'best-fit',
         preferredMoisture: 'moist', sunNeed: 'sun', minHardinessC: -28,
         placement: 'Naturalistic boundary groups and wider agricultural-edge planting.',
         siteFit: 'Robust mixed-shrub component for heavier ground with good winter stem and habitat value.',
         caution: 'Can spread; use where a naturalistic mass is acceptable.', sourceRefs: ['source/climate-preset', 'source/planting-guidance'],
       },
       {
-        ref: 'plant-guide/downy-birch', commonName: 'Downy birch', botanicalName: 'Betula pubescens', kind: 'tree', priority: 'best-fit',
+        ref: 'plant-guide/downy-birch', commonName: 'Downy birch', botanicalName: 'Betula pubescens', kind: 'tree', category: 'structure', priority: 'best-fit',
         preferredMoisture: 'moist', sunNeed: 'sun', minHardinessC: -30,
         placement: 'Open garden or agricultural-edge canopy, well away from the house and services.',
         siteFit: 'A birch choice better aligned with cool, periodically moist ground than silver birch.',
         caution: 'Large tree: verify mature clearance, roots, drains and utilities before placement.', sourceRefs: ['source/climate-preset', 'source/geotechnical-opinion', 'source/planting-guidance'],
       },
       {
-        ref: 'plant-guide/meadowsweet', commonName: 'Meadowsweet', botanicalName: 'Filipendula ulmaria', kind: 'perennial', priority: 'best-fit',
+        ref: 'plant-guide/meadowsweet', commonName: 'Meadowsweet', botanicalName: 'Filipendula ulmaria', kind: 'perennial', category: 'ornamental', priority: 'best-fit',
         preferredMoisture: 'wet', sunNeed: 'partial', minHardinessC: -28,
         placement: 'Rain-garden shoulder or moist meadow zone away from foundations.',
         siteFit: 'Moisture-loving perennial for seasonally wet naturalistic planting.',
         caution: 'Not for a dry raised border.', sourceRefs: ['source/climate-preset', 'source/geotechnical-opinion', 'source/planting-guidance'],
       },
       {
-        ref: 'plant-guide/sedge', commonName: 'Tufted sedge', botanicalName: 'Carex elata', kind: 'wetland', priority: 'best-fit',
+        ref: 'plant-guide/sedge', commonName: 'Tufted sedge', botanicalName: 'Carex elata', kind: 'wetland', category: 'ornamental', priority: 'best-fit',
         preferredMoisture: 'wet', sunNeed: 'sun', minHardinessC: -28,
         placement: 'Edges of a reviewed rain garden or wet swale.',
         siteFit: 'Durable matrix plant for periodically inundated or consistently moist ground.',
         caution: 'The water feature location still needs groundwater and drainage review.', sourceRefs: ['source/geotechnical-opinion', 'source/planting-guidance'],
       },
       {
-        ref: 'plant-guide/apple', commonName: 'Apple tree', botanicalName: 'Malus domestica', kind: 'tree', priority: 'conditional',
+        ref: 'plant-guide/apple', commonName: 'Apple tree', botanicalName: 'Malus domestica', kind: 'tree', category: 'fruit-tree', priority: 'conditional',
         preferredMoisture: 'balanced', sunNeed: 'sun', minHardinessC: -25,
         placement: 'Sunniest orchard area on a locally raised, improved and drained planting position.',
         siteFit: 'Matches the existing retained tree and productive-garden goal, but dislikes persistent waterlogging.',
-        caution: 'Confirm root-zone drainage; do not assume the native soil profile is suitable without improvement.', sourceRefs: ['source/climate-preset', 'source/geotechnical-opinion', 'source/planting-guidance'],
+        caution: 'Confirm root-zone drainage and choose rootstock/cultivars for the available space; do not assume the native soil is suitable.', plantingWindow: 'Oct–Nov or Mar', harvestWindow: 'Aug–Oct', sourceRefs: ['source/climate-preset', 'source/geotechnical-opinion', 'source/planting-guidance'],
       },
       {
-        ref: 'plant-guide/cranesbill', commonName: 'Bigroot cranesbill', botanicalName: 'Geranium macrorrhizum', kind: 'perennial', priority: 'conditional',
+        ref: 'plant-guide/sour-cherry', commonName: 'Sour cherry', botanicalName: 'Prunus cerasus', kind: 'tree', category: 'fruit-tree', priority: 'conditional',
+        preferredMoisture: 'balanced', sunNeed: 'sun', minHardinessC: -25,
+        placement: 'Sunny, sheltered orchard mound with free drainage and space away from buildings and services.',
+        siteFit: 'Cold-hardy fruit tree that can suit a small orchard when the root zone is kept above persistent wetness.',
+        caution: 'Waterlogging remains unsuitable; confirm cultivar pollination, mature size and rootstock with a local nursery.', plantingWindow: 'Oct–Nov or Mar', harvestWindow: 'Jul–Aug', sourceRefs: ['source/climate-preset', 'source/geotechnical-opinion', 'source/planting-guidance'],
+      },
+      {
+        ref: 'plant-guide/pear', commonName: 'European pear', botanicalName: 'Pyrus communis', kind: 'tree', category: 'fruit-tree', priority: 'conditional',
+        preferredMoisture: 'balanced', sunNeed: 'sun', minHardinessC: -25,
+        placement: 'Warm, sunny orchard edge on a broad improved mound with reliable surface drainage.',
+        siteFit: 'A productive tree for the local climate if a compatible rootstock and a non-waterlogged root zone are provided.',
+        caution: 'Confirm pollination partner, fire-blight suitability, rootstock and soil pH before purchase.', plantingWindow: 'Oct–Nov or Mar', harvestWindow: 'Aug–Oct', sourceRefs: ['source/climate-preset', 'source/geotechnical-opinion', 'source/planting-guidance'],
+      },
+      {
+        ref: 'plant-guide/plum', commonName: 'European plum', botanicalName: 'Prunus domestica', kind: 'tree', category: 'fruit-tree', priority: 'conditional',
+        preferredMoisture: 'balanced', sunNeed: 'sun', minHardinessC: -25,
+        placement: 'Sunny raised orchard position with an open canopy and no standing winter water.',
+        siteFit: 'Suitable for a mixed home orchard where drainage and cultivar hardiness are verified.',
+        caution: 'Check pollination needs and disease resistance; do not place over known drainage or foundation infrastructure.', plantingWindow: 'Oct–Nov or Mar', harvestWindow: 'Aug–Sep', sourceRefs: ['source/climate-preset', 'source/geotechnical-opinion', 'source/planting-guidance'],
+      },
+      {
+        ref: 'plant-guide/tomato', commonName: 'Tomato', botanicalName: 'Solanum lycopersicum', kind: 'crop', category: 'vegetable', priority: 'conditional',
+        preferredMoisture: 'balanced', sunNeed: 'sun', minHardinessC: 5,
+        placement: 'Warmest sheltered raised bed with at least six hours of sun, support and drip irrigation.',
+        siteFit: 'A normal seasonal crop if planted after frost into verified, fertile and freely drained bed soil.',
+        caution: 'Frost-sensitive; rotate away from potatoes and avoid wet foliage or saturated roots.', plantingWindow: 'Indoor sowing Mar; plant out mid-May', harvestWindow: 'Jul–Sep', sourceRefs: ['source/climate-preset', 'source/geotechnical-opinion', 'source/planting-guidance'],
+      },
+      {
+        ref: 'plant-guide/potato', commonName: 'Potato', botanicalName: 'Solanum tuberosum', kind: 'crop', category: 'vegetable', priority: 'conditional',
+        preferredMoisture: 'balanced', sunNeed: 'sun', minHardinessC: 0,
+        placement: 'Sunny raised bed or ridge with loose verified soil and a multi-year crop rotation.',
+        siteFit: 'Can perform well in the local growing season when tubers are kept out of compacted, waterlogged native clay.',
+        caution: 'Provide rotation and blight monitoring; never use green tubers for food.', plantingWindow: 'Apr–May', harvestWindow: 'Jun–Oct', sourceRefs: ['source/climate-preset', 'source/geotechnical-opinion', 'source/planting-guidance'],
+      },
+      {
+        ref: 'plant-guide/cucumber', commonName: 'Cucumber', botanicalName: 'Cucumis sativus', kind: 'crop', category: 'vegetable', priority: 'conditional',
+        preferredMoisture: 'moist', sunNeed: 'sun', minHardinessC: 8,
+        placement: 'Warm sheltered raised bed with trellis support, compost-rich soil and consistent irrigation.',
+        siteFit: 'Suitable as a summer crop where warmth, wind shelter and drainage are provided.',
+        caution: 'Cold- and frost-sensitive; keep moisture consistent without saturating the root zone.', plantingWindow: 'Indoor sowing Apr; plant out late May', harvestWindow: 'Jul–Sep', sourceRefs: ['source/climate-preset', 'source/geotechnical-opinion', 'source/planting-guidance'],
+      },
+      {
+        ref: 'plant-guide/cranesbill', commonName: 'Bigroot cranesbill', botanicalName: 'Geranium macrorrhizum', kind: 'perennial', category: 'ornamental', priority: 'conditional',
         preferredMoisture: 'balanced', sunNeed: 'partial', minHardinessC: -25,
         placement: 'Raised or moderately drained border, including light shade.',
         siteFit: 'Hardy groundcover with lower water demand once established.',

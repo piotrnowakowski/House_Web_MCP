@@ -1,0 +1,2510 @@
+{
+  "manifestVersion": 1,
+  "source": "runtime-zod-and-structured-prompts",
+  "toolCount": 23,
+  "tools": [
+    {
+      "name": "get_project_state",
+      "title": "Inspect ProjectV2",
+      "readOnly": true,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nRead the committed V2 site, terrain, buildings, shared slabs, wall graph, spaces, openings, landscape, climate, evidence-linked planting recommendations, soil analysis, metrics and variants.\n</task>\n\n<input>\n`detail` (enum): `summary`, `site`, `structure`, `landscape`, or `full`. `landscape` returns placed landscape, climate and the planting guide, including documented soil findings, unknowns, required tests, preparation principles, vegetables and fruit trees.\n</input>\n\n<tools>\nUse before proposing edits or requesting views. This is read-only. Treat conditional crop recommendations and unknown soil properties as constraints, not verified suitability.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output.\n</output>\n\n<example_output>\n{\"detail\":\"landscape\"}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Read the committed V2 site, terrain, buildings, shared slabs, wall graph, spaces, openings, landscape, climate, evidence-linked planting recommendations, soil analysis, metrics and variants.",
+        "input": "`detail` (enum): `summary`, `site`, `structure`, `landscape`, or `full`. `landscape` returns placed landscape, climate and the planting guide, including documented soil findings, unknowns, required tests, preparation principles, vegetables and fruit trees.",
+        "tools": "Use before proposing edits or requesting views. This is read-only. Treat conditional crop recommendations and unknown soil properties as constraints, not verified suitability.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output.",
+        "exampleOutput": "{\"detail\":\"landscape\"}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "detail": {
+            "default": "summary",
+            "type": "string",
+            "enum": [
+              "summary",
+              "site",
+              "structure",
+              "landscape",
+              "full"
+            ]
+          }
+        },
+        "required": [
+          "detail"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "detail": "landscape"
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "metrics",
+          "data"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "metrics": {
+            "type": "object"
+          },
+          "data": {
+            "description": "Requested ProjectV2 state slice."
+          }
+        }
+      }
+    },
+    {
+      "name": "list_garden_fixtures",
+      "title": "List ready garden fixtures",
+      "readOnly": true,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nRead the editor-owned fixture catalog for raised beds and standard crop rows, including semantic IDs and metre dimensions.\n</task>\n\n<input>\nInput is an empty JSON object.\n</input>\n\n<tools>\nUse before proposing garden fixtures. This is read-only. Use only returned catalog IDs; do not invent fixture types.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns data as an array of fixture definitions with id, name, category, description, widthM, depthM and heightM.\n</output>\n\n<example_output>\n{}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Read the editor-owned fixture catalog for raised beds and standard crop rows, including semantic IDs and metre dimensions.",
+        "input": "Input is an empty JSON object.",
+        "tools": "Use before proposing garden fixtures. This is read-only. Use only returned catalog IDs; do not invent fixture types.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns data as an array of fixture definitions with id, name, category, description, widthM, depthM and heightM.",
+        "exampleOutput": "{}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "exampleInput": {},
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "data"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "category",
+                "description",
+                "widthM",
+                "depthM",
+                "heightM"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_site_update",
+      "title": "Propose site update",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nChange the straight-edged site boundary or site-north direction.\n</task>\n\n<input>\n`boundary` is an optional polygon; `northDegrees` is optional.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"northDegrees\":-56.7}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Change the straight-edged site boundary or site-north direction.",
+        "input": "`boundary` is an optional polygon; `northDegrees` is optional.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"northDegrees\":-56.7}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "boundary": {
+            "minItems": 3,
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
+                },
+                "z": {
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
+                }
+              },
+              "required": [
+                "x",
+                "z"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "northDegrees": {
+            "type": "number"
+          }
+        },
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "northDegrees": -56.7
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_terrain_update",
+      "title": "Propose terrain update",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nReplace terrain elevation controls used for support and planting elevation.\n</task>\n\n<input>\n`elevationPoints` is a non-empty array of `{x,z,elevation}`.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"elevationPoints\":[{\"x\":0,\"z\":0,\"elevation\":242.1}]}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Replace terrain elevation controls used for support and planting elevation.",
+        "input": "`elevationPoints` is a non-empty array of `{x,z,elevation}`.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"elevationPoints\":[{\"x\":0,\"z\":0,\"elevation\":242.1}]}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "elevationPoints": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
+                },
+                "z": {
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
+                },
+                "elevation": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "x",
+                "z",
+                "elevation"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "elevationPoints"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "elevationPoints": [
+          {
+            "x": 0,
+            "z": 0,
+            "elevation": 242.1
+          }
+        ]
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_building_update",
+      "title": "Propose building update",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nAdd, remove, move, rotate or restyle a building.\n</task>\n\n<input>\n`action`, `buildingRef`; optional `name`, `kind`, `architecturalStyle`, `position`, `rotationDegrees`.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"action\":\"move\",\"buildingRef\":\"house/main\",\"position\":{\"x\":1,\"z\":-2}}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Add, remove, move, rotate or restyle a building.",
+        "input": "`action`, `buildingRef`; optional `name`, `kind`, `architecturalStyle`, `position`, `rotationDegrees`.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"action\":\"move\",\"buildingRef\":\"house/main\",\"position\":{\"x\":1,\"z\":-2}}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "add",
+              "remove",
+              "move",
+              "set-style"
+            ]
+          },
+          "buildingRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "house",
+              "garage"
+            ]
+          },
+          "architecturalStyle": {
+            "type": "string",
+            "enum": [
+              "classic",
+              "futuristic",
+              "barn"
+            ]
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
+              },
+              "z": {
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
+              }
+            },
+            "required": [
+              "x",
+              "z"
+            ],
+            "additionalProperties": false
+          },
+          "rotationDegrees": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "action",
+          "buildingRef"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "action": "move",
+        "buildingRef": "house/main",
+        "position": {
+          "x": 1,
+          "z": -2
+        }
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_storey_update",
+      "title": "Propose storey update",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nAdd/remove a storey or change its clear height. Adding creates one intermediate slab shared with the storey below.\n</task>\n\n<input>\n`action`, `buildingRef`, `storeyRef`; optional `name`, `clearHeightM`, polygon `footprint`.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"action\":\"add\",\"buildingRef\":\"house/main\",\"storeyRef\":\"storey/upper\",\"clearHeightM\":2.9}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Add/remove a storey or change its clear height. Adding creates one intermediate slab shared with the storey below.",
+        "input": "`action`, `buildingRef`, `storeyRef`; optional `name`, `clearHeightM`, polygon `footprint`.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"action\":\"add\",\"buildingRef\":\"house/main\",\"storeyRef\":\"storey/upper\",\"clearHeightM\":2.9}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "add",
+              "remove",
+              "set-height"
+            ]
+          },
+          "buildingRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "storeyRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "name": {
+            "type": "string"
+          },
+          "clearHeightM": {
+            "type": "number",
+            "minimum": 2,
+            "maximum": 8
+          },
+          "footprint": {
+            "minItems": 3,
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
+                },
+                "z": {
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
+                }
+              },
+              "required": [
+                "x",
+                "z"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "action",
+          "buildingRef",
+          "storeyRef"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "action": "add",
+        "buildingRef": "house/main",
+        "storeyRef": "storey/upper",
+        "clearHeightM": 2.9
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_slab_update",
+      "title": "Propose shared slab update",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nEdit a semantic slab once so it remains the upper floor and lower ceiling boundary.\n</task>\n\n<input>\n`action`, `buildingRef`, `slabRef`; optional `footprint`, `thicknessM`, `topElevationM`.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"action\":\"set-thickness\",\"buildingRef\":\"house/main\",\"slabRef\":\"storey/upper/base-slab\",\"thicknessM\":0.28}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Edit a semantic slab once so it remains the upper floor and lower ceiling boundary.",
+        "input": "`action`, `buildingRef`, `slabRef`; optional `footprint`, `thicknessM`, `topElevationM`.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"action\":\"set-thickness\",\"buildingRef\":\"house/main\",\"slabRef\":\"storey/upper/base-slab\",\"thicknessM\":0.28}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "set-footprint",
+              "set-thickness",
+              "set-elevation"
+            ]
+          },
+          "buildingRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "slabRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "footprint": {
+            "minItems": 3,
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
+                },
+                "z": {
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
+                }
+              },
+              "required": [
+                "x",
+                "z"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "thicknessM": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 2
+          },
+          "topElevationM": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "action",
+          "buildingRef",
+          "slabRef"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "action": "set-thickness",
+        "buildingRef": "house/main",
+        "slabRef": "storey/upper/base-slab",
+        "thicknessM": 0.28
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_space_update",
+      "title": "Propose polygonal space update",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nAdd/remove a polygonal space, edit its straight-edged footprint or usage, or add a linked lowered ceiling finish.\n</task>\n\n<input>\n`action`, `buildingRef`, `storeyRef`, `spaceRef`; action fields include `name`, `usage`, `footprint`, `ceilingElevationM`.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"action\":\"set-lowered-ceiling\",\"buildingRef\":\"house/main\",\"storeyRef\":\"storey/ground\",\"spaceRef\":\"space/living\",\"ceilingElevationM\":3.1}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Add/remove a polygonal space, edit its straight-edged footprint or usage, or add a linked lowered ceiling finish.",
+        "input": "`action`, `buildingRef`, `storeyRef`, `spaceRef`; action fields include `name`, `usage`, `footprint`, `ceilingElevationM`.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"action\":\"set-lowered-ceiling\",\"buildingRef\":\"house/main\",\"storeyRef\":\"storey/ground\",\"spaceRef\":\"space/living\",\"ceilingElevationM\":3.1}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "add",
+              "remove",
+              "set-footprint",
+              "set-usage",
+              "set-lowered-ceiling"
+            ]
+          },
+          "buildingRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "storeyRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "spaceRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "name": {
+            "type": "string"
+          },
+          "usage": {
+            "type": "string"
+          },
+          "footprint": {
+            "minItems": 3,
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
+                },
+                "z": {
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
+                }
+              },
+              "required": [
+                "x",
+                "z"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "ceilingElevationM": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "action",
+          "buildingRef",
+          "storeyRef",
+          "spaceRef"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "action": "set-lowered-ceiling",
+        "buildingRef": "house/main",
+        "storeyRef": "storey/ground",
+        "spaceRef": "space/living",
+        "ceilingElevationM": 3.1
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_wall_update",
+      "title": "Propose shared wall update",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nMove or resize one wall in the shared wall graph.\n</task>\n\n<input>\n`action`, `buildingRef`, `wallRef`; optional `start`, `end`, `thicknessM`, `heightM`.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"action\":\"set-thickness\",\"buildingRef\":\"house/main\",\"wallRef\":\"wall/partition\",\"thicknessM\":0.16}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Move or resize one wall in the shared wall graph.",
+        "input": "`action`, `buildingRef`, `wallRef`; optional `start`, `end`, `thicknessM`, `heightM`.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"action\":\"set-thickness\",\"buildingRef\":\"house/main\",\"wallRef\":\"wall/partition\",\"thicknessM\":0.16}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "move",
+              "set-thickness",
+              "set-height"
+            ]
+          },
+          "buildingRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "wallRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "start": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
+              },
+              "z": {
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
+              }
+            },
+            "required": [
+              "x",
+              "z"
+            ],
+            "additionalProperties": false
+          },
+          "end": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
+              },
+              "z": {
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
+              }
+            },
+            "required": [
+              "x",
+              "z"
+            ],
+            "additionalProperties": false
+          },
+          "thicknessM": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "maximum": 1
+          },
+          "heightM": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 12
+          }
+        },
+        "required": [
+          "action",
+          "buildingRef",
+          "wallRef"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "action": "set-thickness",
+        "buildingRef": "house/main",
+        "wallRef": "wall/partition",
+        "thicknessM": 0.16
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_opening_update",
+      "title": "Propose opening update",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nAdd, remove, move or resize a door/window void hosted by a wall.\n</task>\n\n<input>\n`action`, `buildingRef`, `wallRef`, `openingRef`; optional `kind`, `offsetM`, `widthM`, `heightM`, `sillM`.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"action\":\"add\",\"buildingRef\":\"house/main\",\"wallRef\":\"wall/west\",\"openingRef\":\"opening/west-window\",\"kind\":\"window\",\"offsetM\":3,\"widthM\":1.5,\"heightM\":1.4,\"sillM\":0.9}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Add, remove, move or resize a door/window void hosted by a wall.",
+        "input": "`action`, `buildingRef`, `wallRef`, `openingRef`; optional `kind`, `offsetM`, `widthM`, `heightM`, `sillM`.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"action\":\"add\",\"buildingRef\":\"house/main\",\"wallRef\":\"wall/west\",\"openingRef\":\"opening/west-window\",\"kind\":\"window\",\"offsetM\":3,\"widthM\":1.5,\"heightM\":1.4,\"sillM\":0.9}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "add",
+              "remove",
+              "resize",
+              "move"
+            ]
+          },
+          "buildingRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "wallRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "openingRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "door",
+              "window"
+            ]
+          },
+          "offsetM": {
+            "type": "number",
+            "minimum": 0
+          },
+          "widthM": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "heightM": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          },
+          "sillM": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "action",
+          "buildingRef",
+          "wallRef",
+          "openingRef"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "action": "add",
+        "buildingRef": "house/main",
+        "wallRef": "wall/west",
+        "openingRef": "opening/west-window",
+        "kind": "window",
+        "offsetM": 3,
+        "widthM": 1.5,
+        "heightM": 1.4,
+        "sillM": 0.9
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_roof_update",
+      "title": "Propose roof update",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nChange flat, gable or hip roof semantics.\n</task>\n\n<input>\n`buildingRef`; optional `roofType`, `pitchDegrees`, `overhangM`.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"buildingRef\":\"house/main\",\"roofType\":\"hip\",\"pitchDegrees\":28}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Change flat, gable or hip roof semantics.",
+        "input": "`buildingRef`; optional `roofType`, `pitchDegrees`, `overhangM`.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"buildingRef\":\"house/main\",\"roofType\":\"hip\",\"pitchDegrees\":28}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "buildingRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "roofType": {
+            "type": "string",
+            "enum": [
+              "flat",
+              "gable",
+              "hip"
+            ]
+          },
+          "pitchDegrees": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 70
+          },
+          "overhangM": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 3
+          }
+        },
+        "required": [
+          "buildingRef"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "buildingRef": "house/main",
+        "roofType": "hip",
+        "pitchDegrees": 28
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_platform_update",
+      "title": "Propose platform update",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nAdd/remove/resize a mezzanine platform attached to a space.\n</task>\n\n<input>\n`action`, `buildingRef`, `storeyRef`, `spaceRef`, `platformRef`; optional `footprint`, `elevationM`, `thicknessM`.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"action\":\"add\",\"buildingRef\":\"house/main\",\"storeyRef\":\"storey/ground\",\"spaceRef\":\"space/living\",\"platformRef\":\"platform/mezzanine\",\"footprint\":[{\"x\":0,\"z\":0},{\"x\":2,\"z\":0},{\"x\":2,\"z\":2},{\"x\":0,\"z\":2}],\"elevationM\":2.5}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Add/remove/resize a mezzanine platform attached to a space.",
+        "input": "`action`, `buildingRef`, `storeyRef`, `spaceRef`, `platformRef`; optional `footprint`, `elevationM`, `thicknessM`.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"action\":\"add\",\"buildingRef\":\"house/main\",\"storeyRef\":\"storey/ground\",\"spaceRef\":\"space/living\",\"platformRef\":\"platform/mezzanine\",\"footprint\":[{\"x\":0,\"z\":0},{\"x\":2,\"z\":0},{\"x\":2,\"z\":2},{\"x\":0,\"z\":2}],\"elevationM\":2.5}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "add",
+              "remove",
+              "resize"
+            ]
+          },
+          "buildingRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "storeyRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "spaceRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "platformRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "footprint": {
+            "minItems": 3,
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
+                },
+                "z": {
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
+                }
+              },
+              "required": [
+                "x",
+                "z"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "elevationM": {
+            "type": "number"
+          },
+          "thicknessM": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "required": [
+          "action",
+          "buildingRef",
+          "storeyRef",
+          "spaceRef",
+          "platformRef"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "action": "add",
+        "buildingRef": "house/main",
+        "storeyRef": "storey/ground",
+        "spaceRef": "space/living",
+        "platformRef": "platform/mezzanine",
+        "footprint": [
+          {
+            "x": 0,
+            "z": 0
+          },
+          {
+            "x": 2,
+            "z": 0
+          },
+          {
+            "x": 2,
+            "z": 2
+          },
+          {
+            "x": 0,
+            "z": 2
+          }
+        ],
+        "elevationM": 2.5
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_landscape_update",
+      "title": "Propose landscape polygon update",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nAdd/remove/move or reshape one straight-edged landscape zone.\n</task>\n\n<input>\n`action`, `zoneRef`; optional `name`, `kind`, polygon `footprint`, or move `delta`.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"action\":\"set-footprint\",\"zoneRef\":\"zone/lawn\",\"footprint\":[{\"x\":0,\"z\":8},{\"x\":12,\"z\":8},{\"x\":12,\"z\":16},{\"x\":0,\"z\":16}]}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Add/remove/move or reshape one straight-edged landscape zone.",
+        "input": "`action`, `zoneRef`; optional `name`, `kind`, polygon `footprint`, or move `delta`.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"action\":\"set-footprint\",\"zoneRef\":\"zone/lawn\",\"footprint\":[{\"x\":0,\"z\":8},{\"x\":12,\"z\":8},{\"x\":12,\"z\":16},{\"x\":0,\"z\":16}]}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "add",
+              "remove",
+              "set-footprint",
+              "move"
+            ]
+          },
+          "zoneRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "lawn",
+              "terrace",
+              "path",
+              "driveway",
+              "bed",
+              "rain-garden",
+              "vegetable"
+            ]
+          },
+          "footprint": {
+            "minItems": 3,
+            "maxItems": 64,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
+                },
+                "z": {
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
+                }
+              },
+              "required": [
+                "x",
+                "z"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "delta": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
+              },
+              "z": {
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
+              }
+            },
+            "required": [
+              "x",
+              "z"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "action",
+          "zoneRef"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "action": "set-footprint",
+        "zoneRef": "zone/lawn",
+        "footprint": [
+          {
+            "x": 0,
+            "z": 8
+          },
+          {
+            "x": 12,
+            "z": 8
+          },
+          {
+            "x": 12,
+            "z": 16
+          },
+          {
+            "x": 0,
+            "z": 16
+          }
+        ]
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_plant_update",
+      "title": "Propose terrain-supported plant update",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nAdd/remove/move a plant whose elevation is derived from terrain.\n</task>\n\n<input>\n`action`, `plantRef`; optional `name`, `species`, `kind`, `position`.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"action\":\"move\",\"plantRef\":\"plant/apple\",\"position\":{\"x\":10,\"z\":12}}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Add/remove/move a plant whose elevation is derived from terrain.",
+        "input": "`action`, `plantRef`; optional `name`, `species`, `kind`, `position`.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"action\":\"move\",\"plantRef\":\"plant/apple\",\"position\":{\"x\":10,\"z\":12}}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "add",
+              "remove",
+              "move"
+            ]
+          },
+          "plantRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "name": {
+            "type": "string"
+          },
+          "species": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "tree",
+              "hedge",
+              "shrub",
+              "perennial",
+              "grass",
+              "crop",
+              "wetland"
+            ]
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
+              },
+              "z": {
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
+              }
+            },
+            "required": [
+              "x",
+              "z"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "action",
+          "plantRef"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "action": "move",
+        "plantRef": "plant/apple",
+        "position": {
+          "x": 10,
+          "z": 12
+        }
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_garden_fixture_update",
+      "title": "Propose garden fixture update",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nAdd, remove, move or rotate one semantic garden fixture from the ready catalog.\n</task>\n\n<input>\n`action` (enum: `add`, `remove`, `move`, `rotate`) and `fixtureRef` (string) are required. For `add`, also pass `catalogId` and `position` `{x,z}`. Optional fields are `name` and `rotationDegrees`.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"action\":\"add\",\"fixtureRef\":\"fixture/bed-4\",\"catalogId\":\"raised-bed-2x1\",\"position\":{\"x\":8.4,\"z\":8.2},\"rotationDegrees\":0}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Add, remove, move or rotate one semantic garden fixture from the ready catalog.",
+        "input": "`action` (enum: `add`, `remove`, `move`, `rotate`) and `fixtureRef` (string) are required. For `add`, also pass `catalogId` and `position` `{x,z}`. Optional fields are `name` and `rotationDegrees`.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"action\":\"add\",\"fixtureRef\":\"fixture/bed-4\",\"catalogId\":\"raised-bed-2x1\",\"position\":{\"x\":8.4,\"z\":8.2},\"rotationDegrees\":0}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "add",
+              "remove",
+              "move",
+              "rotate"
+            ]
+          },
+          "fixtureRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "catalogId": {
+            "type": "string",
+            "enum": [
+              "raised-bed-2x1",
+              "tomato-row",
+              "potato-row",
+              "cucumber-trellis"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "position": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
+              },
+              "z": {
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
+              }
+            },
+            "required": [
+              "x",
+              "z"
+            ],
+            "additionalProperties": false
+          },
+          "rotationDegrees": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "action",
+          "fixtureRef"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "action": "add",
+        "fixtureRef": "fixture/bed-4",
+        "catalogId": "raised-bed-2x1",
+        "position": {
+          "x": 8.4,
+          "z": 8.2
+        },
+        "rotationDegrees": 0
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_garden_fixture_set",
+      "title": "Propose garden fixture set",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nBuild one coordinated garden set: the three-bed starter kitchen garden, or one raised bed already planted with tomatoes, potatoes or cucumbers. Use next-to-existing placement when the person says beside, alongside, next to or after the previous bed.\n</task>\n\n<input>\n`preset` is `starter-kitchen-garden`, `tomato-raised-bed`, `potato-raised-bed` or `cucumber-raised-bed`. `setRef` is a unique stable semantic prefix. To resolve phrases such as \"next to the previous bed\", pass `placement: \"next-to-existing\"` and omit `origin`; the tool places the set 3.1 m after the most recently placed raised bed. Otherwise pass `origin` as exact local `{x,z}` metres and optionally `placement: \"at-origin\"`. Optional `rotationDegrees` rotates the complete set.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"preset\":\"tomato-raised-bed\",\"setRef\":\"fixture-set/tomato-bed-2\",\"placement\":\"next-to-existing\",\"rotationDegrees\":0}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Build one coordinated garden set: the three-bed starter kitchen garden, or one raised bed already planted with tomatoes, potatoes or cucumbers. Use next-to-existing placement when the person says beside, alongside, next to or after the previous bed.",
+        "input": "`preset` is `starter-kitchen-garden`, `tomato-raised-bed`, `potato-raised-bed` or `cucumber-raised-bed`. `setRef` is a unique stable semantic prefix. To resolve phrases such as \"next to the previous bed\", pass `placement: \"next-to-existing\"` and omit `origin`; the tool places the set 3.1 m after the most recently placed raised bed. Otherwise pass `origin` as exact local `{x,z}` metres and optionally `placement: \"at-origin\"`. Optional `rotationDegrees` rotates the complete set.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"preset\":\"tomato-raised-bed\",\"setRef\":\"fixture-set/tomato-bed-2\",\"placement\":\"next-to-existing\",\"rotationDegrees\":0}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "preset": {
+            "type": "string",
+            "enum": [
+              "starter-kitchen-garden",
+              "tomato-raised-bed",
+              "potato-raised-bed",
+              "cucumber-raised-bed"
+            ]
+          },
+          "setRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "origin": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
+              },
+              "z": {
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
+              }
+            },
+            "required": [
+              "x",
+              "z"
+            ],
+            "additionalProperties": false
+          },
+          "placement": {
+            "type": "string",
+            "enum": [
+              "at-origin",
+              "next-to-existing"
+            ]
+          },
+          "rotationDegrees": {
+            "default": 0,
+            "type": "number"
+          }
+        },
+        "required": [
+          "preset",
+          "setRef",
+          "rotationDegrees"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "preset": "tomato-raised-bed",
+        "setRef": "fixture-set/tomato-bed-2",
+        "placement": "next-to-existing",
+        "rotationDegrees": 0
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "propose_climate_update",
+      "title": "Propose climate update",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nEdit one month used by seasonal analysis.\n</task>\n\n<input>\n`month` (integer 1–12); optional `meanMinC`, `meanMaxC`, `temperatureByDayPartC` with required numeric `night`, `morning`, `day`, and `evening` values in °C, plus optional precipitation, sunshine, ET0, frost and wind fields. Day parts use local time: night 00–06, morning 06–12, day 12–18, evening 18–24.\n</input>\n\n<tools>\nCall get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.\n</output>\n\n<example_output>\n{\"month\":7,\"temperatureByDayPartC\":{\"night\":15.2,\"morning\":19.0,\"day\":24.1,\"evening\":20.2},\"precipitationMm\":88}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Edit one month used by seasonal analysis.",
+        "input": "`month` (integer 1–12); optional `meanMinC`, `meanMaxC`, `temperatureByDayPartC` with required numeric `night`, `morning`, `day`, and `evening` values in °C, plus optional precipitation, sunshine, ET0, frost and wind fields. Day parts use local time: night 00–06, morning 06–12, day 12–18, evening 18–24.",
+        "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
+        "exampleOutput": "{\"month\":7,\"temperatureByDayPartC\":{\"night\":15.2,\"morning\":19.0,\"day\":24.1,\"evening\":20.2},\"precipitationMm\":88}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "meanMinC": {
+            "type": "number"
+          },
+          "meanMaxC": {
+            "type": "number"
+          },
+          "temperatureByDayPartC": {
+            "type": "object",
+            "properties": {
+              "night": {
+                "type": "number"
+              },
+              "morning": {
+                "type": "number"
+              },
+              "day": {
+                "type": "number"
+              },
+              "evening": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "night",
+              "morning",
+              "day",
+              "evening"
+            ],
+            "additionalProperties": false
+          },
+          "precipitationMm": {
+            "type": "number",
+            "minimum": 0
+          },
+          "sunshineHours": {
+            "type": "number",
+            "minimum": 0
+          },
+          "et0Mm": {
+            "type": "number",
+            "minimum": 0
+          },
+          "frostDays": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 31
+          },
+          "windKph": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "month"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "month": 7,
+        "temperatureByDayPartC": {
+          "night": 15.2,
+          "morning": 19,
+          "day": 24.1,
+          "evening": 20.2
+        },
+        "precipitationMm": 88
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "issues",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "show_structure_views",
+      "title": "Show architectural structure views",
+      "readOnly": true,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nOpen an ephemeral visible in-page architectural report with rendered images and return structured building placement numbers. Architectural-set expands to site plan, four site-north elevations, axonometric, selected storey plans and two centreline sections.\n</task>\n\n<input>\n`mode` defaults to `architectural-set`; optional `buildingRefs`, `variantRef`, custom `views`, and `includeAnnotations`. Maximum 12 expanded views.\n</input>\n\n<tools>\nUse get_project_state for refs. This is read-only. Images appear in the page; the JSON result contains no data URL, Blob URL or binary content.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns reportRef, views with presentation \"visible-in-page\", and selected building placement in local model metres.\n</output>\n\n<example_output>\n{\"mode\":\"architectural-set\",\"buildingRefs\":[\"house/main\"],\"includeAnnotations\":true}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Open an ephemeral visible in-page architectural report with rendered images and return structured building placement numbers. Architectural-set expands to site plan, four site-north elevations, axonometric, selected storey plans and two centreline sections.",
+        "input": "`mode` defaults to `architectural-set`; optional `buildingRefs`, `variantRef`, custom `views`, and `includeAnnotations`. Maximum 12 expanded views.",
+        "tools": "Use get_project_state for refs. This is read-only. Images appear in the page; the JSON result contains no data URL, Blob URL or binary content.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns reportRef, views with presentation \"visible-in-page\", and selected building placement in local model metres.",
+        "exampleOutput": "{\"mode\":\"architectural-set\",\"buildingRefs\":[\"house/main\"],\"includeAnnotations\":true}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "mode": {
+            "default": "architectural-set",
+            "type": "string",
+            "enum": [
+              "architectural-set",
+              "custom"
+            ]
+          },
+          "buildingRefs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+            }
+          },
+          "variantRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "views": {
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "site-plan"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "axonometric"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "north-elevation",
+                        "south-elevation",
+                        "east-elevation",
+                        "west-elevation"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "storey-plan"
+                    },
+                    "storeyRef": {
+                      "type": "string",
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "storeyRef"
+                  ],
+                  "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "section"
+                    },
+                    "axis": {
+                      "type": "string",
+                      "enum": [
+                        "longitudinal",
+                        "transverse"
+                      ]
+                    },
+                    "offsetM": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "axis"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            }
+          },
+          "includeAnnotations": {
+            "default": true,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "mode",
+          "includeAnnotations"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "mode": "architectural-set",
+        "buildingRefs": [
+          "house/main"
+        ],
+        "includeAnnotations": true
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "reportRef",
+          "views",
+          "buildings"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "reportRef": {
+            "type": "string"
+          },
+          "views": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "type",
+                "title",
+                "buildingRefs",
+                "presentation"
+              ],
+              "properties": {
+                "type": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "buildingRefs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "storeyRef": {
+                  "type": "string"
+                },
+                "presentation": {
+                  "const": "visible-in-page"
+                }
+              }
+            }
+          },
+          "buildings": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "run_seasonal_analysis",
+      "title": "Run seasonal analysis",
+      "readOnly": true,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nEstimate monthly night, morning, day and evening temperatures alongside daylight, water balance, frost, foliage and bloom from V2 climate and landscape state.\n</task>\n\n<input>\n`months` is an array of integers from 1–12 and defaults to `[1,4,7,10]`; optional string `variantRef`.\n</input>\n\n<tools>\nRead-only; do not present conceptual climate values as professional weather or horticultural advice.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Each month includes `temperatureByDayPartC` with numeric `night`, `morning`, `day`, and `evening` averages in °C for the local-time windows 00–06, 06–12, 12–18, and 18–24.\n</output>\n\n<example_output>\n{\"months\":[1,4,7,10]}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Estimate monthly night, morning, day and evening temperatures alongside daylight, water balance, frost, foliage and bloom from V2 climate and landscape state.",
+        "input": "`months` is an array of integers from 1–12 and defaults to `[1,4,7,10]`; optional string `variantRef`.",
+        "tools": "Read-only; do not present conceptual climate values as professional weather or horticultural advice.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Each month includes `temperatureByDayPartC` with numeric `night`, `morning`, `day`, and `evening` averages in °C for the local-time windows 00–06, 06–12, 12–18, and 18–24.",
+        "exampleOutput": "{\"months\":[1,4,7,10]}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "months": {
+            "default": [
+              1,
+              4,
+              7,
+              10
+            ],
+            "minItems": 1,
+            "maxItems": 12,
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            }
+          },
+          "variantRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          }
+        },
+        "required": [
+          "months"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "months": [
+          1,
+          4,
+          7,
+          10
+        ]
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "metrics",
+          "data"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "object"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "month": {
+                  "type": "integer"
+                },
+                "temperatureByDayPartC": {
+                  "type": "object",
+                  "required": [
+                    "night",
+                    "morning",
+                    "day",
+                    "evening"
+                  ],
+                  "properties": {
+                    "night": {
+                      "type": "number"
+                    },
+                    "morning": {
+                      "type": "number"
+                    },
+                    "day": {
+                      "type": "number"
+                    },
+                    "evening": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "daylightHours": {
+                  "type": "number"
+                },
+                "waterBalanceMm": {
+                  "type": "number"
+                },
+                "droughtRisk": {
+                  "type": "string"
+                },
+                "frostRisk": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "compare_variants",
+      "title": "Compare variants",
+      "readOnly": true,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nCompare metrics and validation issues for one to four ghost variants.\n</task>\n\n<input>\n`variantRefs` is an array of one to four refs.\n</input>\n\n<tools>\nRead-only. Apply separately with request_apply_variant.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output.\n</output>\n\n<example_output>\n{\"variantRefs\":[\"variant/a\",\"variant/b\"]}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Compare metrics and validation issues for one to four ghost variants.",
+        "input": "`variantRefs` is an array of one to four refs.",
+        "tools": "Read-only. Apply separately with request_apply_variant.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output.",
+        "exampleOutput": "{\"variantRefs\":[\"variant/a\",\"variant/b\"]}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "variantRefs": {
+            "minItems": 1,
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+            }
+          }
+        },
+        "required": [
+          "variantRefs"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "variantRefs": [
+          "variant/a",
+          "variant/b"
+        ]
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "data"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "request_apply_variant",
+      "title": "Request variant approval",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nShow a ghost variant and wait for the person to apply or reject it.\n</task>\n\n<input>\n`variantRef`.\n</input>\n\n<tools>\nNever approve for the person. Cancellation closes the pending confirmation.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Resolves with status \"applied\" or \"rejected\".\n</output>\n\n<example_output>\n{\"variantRef\":\"variant/example\"}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Show a ghost variant and wait for the person to apply or reject it.",
+        "input": "`variantRef`.",
+        "tools": "Never approve for the person. Cancellation closes the pending confirmation.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Resolves with status \"applied\" or \"rejected\".",
+        "exampleOutput": "{\"variantRef\":\"variant/example\"}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "variantRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          }
+        },
+        "required": [
+          "variantRef"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "variantRef": "variant/example"
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    {
+      "name": "discard_variant",
+      "title": "Discard variant",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nDiscard one uncommitted variant.\n</task>\n\n<input>\n`variantRef`.\n</input>\n\n<tools>\nUse undo_last_change for committed work.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output.\n</output>\n\n<example_output>\n{\"variantRef\":\"variant/example\"}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Discard one uncommitted variant.",
+        "input": "`variantRef`.",
+        "tools": "Use undo_last_change for committed work.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output.",
+        "exampleOutput": "{\"variantRef\":\"variant/example\"}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "variantRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          }
+        },
+        "required": [
+          "variantRef"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "variantRef": "variant/example"
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    {
+      "name": "undo_last_change",
+      "title": "Undo committed change",
+      "readOnly": false,
+      "description": "<role>\nYou are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.\n</role>\n\n<task>\nUndo the most recent committed ProjectV2 change.\n</task>\n\n<input>\nEmpty object.\n</input>\n\n<tools>\nUse only when the person requests the latest committed edit to be reversed.\n</tools>\n\n<output>\nCall this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output.\n</output>\n\n<example_output>\n{}\n</example_output>",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Undo the most recent committed ProjectV2 change.",
+        "input": "Empty object.",
+        "tools": "Use only when the person requests the latest committed edit to be reversed.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output.",
+        "exampleOutput": "{}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "exampleInput": {},
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "metrics"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "metrics": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  ]
+}

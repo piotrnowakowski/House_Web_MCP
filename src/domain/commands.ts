@@ -1,335 +1,282 @@
-import type {
-  BuildingModel, FloorModel, GardenZone, PlantModel, ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV1, RoomModel,
-} from './types'
+import { estimateDayPartTemperatures } from './climate'
+import { gardenFixtureById } from './gardenFixtures'
+import { buildingFootprintsWorld, pointInPolygon, polygonArea, polygonSelfIntersects, rectangle, spaceFootprint, wallLength } from './geometry'
+import type { BuildingModel, LandscapeZone, OpeningModel, Polygon2, ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, SpaceBoundaryUse, StoreyModel, Vec2, WallModel } from './types'
 
-const clone = <T,>(value: T): T => structuredClone(value)
-
-export const pointInPolygon = (point: { x: number; z: number }, polygon: Array<{ x: number; z: number }>) => {
-  let inside = false
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const a = polygon[i]
-    const b = polygon[j]
-    const intersects = ((a.z > point.z) !== (b.z > point.z))
-      && point.x < ((b.x - a.x) * (point.z - a.z)) / ((b.z - a.z) || 1e-9) + a.x
-    if (intersects) inside = !inside
-  }
-  return inside
-}
-
-export const polygonArea = (points: Array<{ x: number; z: number }>) => Math.abs(points.reduce((sum, point, index) => {
-  const next = points[(index + 1) % points.length]
-  return sum + point.x * next.z - next.x * point.z
-}, 0) / 2)
-
-const getBuilding = (project: ProjectV1, ref: string) => {
-  const building = project.buildings.find((item) => item.ref === ref)
-  if (!building) throw new Error(`Building not found: ${ref}`)
-  return building
-}
-
-const getFloor = (building: BuildingModel, ref: string) => {
-  const floor = building.floors.find((item) => item.ref === ref)
-  if (!floor) throw new Error(`Floor not found: ${ref}`)
-  return floor
-}
-
-const getRoom = (floor: FloorModel, ref: string) => {
-  const room = floor.rooms.find((item) => item.ref === ref)
-  if (!room) throw new Error(`Room not found: ${ref}`)
-  return room
-}
-
-const ensureEditable = (room: RoomModel) => {
-  if (room.locked) throw new Error(`${room.ref} is locked and cannot be changed`)
-}
-
-const defaultFloor = (ref: string, name: string, level: number, elevationM: number, heightM: number): FloorModel => ({
-  ref, name, level, elevationM, defaultHeightM: heightM, rooms: [],
-})
-
-const defaultRoom = (ref: string, name: string, usage: string, position = { x: 0, z: 0 }, widthM = 4, depthM = 4, heightM = 3): RoomModel => ({
-  ref, name, usage, position, widthM, depthM, heightM, rotationDegrees: 0, ceilingType: 'flat', locked: false, openings: [], mezzanines: [],
-})
-
-const styleRoof: Record<BuildingModel['architecturalStyle'], BuildingModel['roof']> = {
+export { polygonArea } from './geometry'
+const clone = <T>(value: T): T => structuredClone(value)
+const styleRoof: Record<BuildingModel['architecturalStyle'], Pick<BuildingModel['roof'], 'type' | 'pitchDegrees' | 'overhangM'>> = {
   classic: { type: 'gable', pitchDegrees: 32, overhangM: 0.55 },
   futuristic: { type: 'flat', pitchDegrees: 0, overhangM: 0.8 },
   barn: { type: 'gable', pitchDegrees: 45, overhangM: 0.3 },
 }
+const samePoint = (a: Vec2, b: Vec2) => Math.hypot(a.x - b.x, a.z - b.z) < 0.001
+const getBuilding = (project: ProjectV2, ref: string) => { const value = project.buildings.find((item) => item.ref === ref); if (!value) throw new Error(`Building not found: ${ref}`); return value }
+const getStorey = (building: BuildingModel, ref: string) => { const value = building.storeys.find((item) => item.ref === ref); if (!value) throw new Error(`Storey not found: ${ref}`); return value }
+const getWall = (building: BuildingModel, ref: string) => { const value = building.walls.find((item) => item.ref === ref); if (!value) throw new Error(`Wall not found: ${ref}`); return value }
 
-const applyBuilding = (project: ProjectV1, command: Extract<ProjectCommand, { type: 'building.update' }>) => {
+const findReusableWall = (building: BuildingModel, start: Vec2, end: Vec2, baseElevationM: number) => building.walls.find((wall) =>
+  Math.abs(wall.baseElevationM - baseElevationM) < 0.001
+  && ((samePoint(wall.start, start) && samePoint(wall.end, end)) || (samePoint(wall.start, end) && samePoint(wall.end, start))))
+
+const buildBoundary = (building: BuildingModel, storey: StoreyModel, spaceRef: string, footprint: Polygon2): SpaceBoundaryUse[] => footprint.map((start, index) => {
+  const end = footprint[(index + 1) % footprint.length]
+  const existing = findReusableWall(building, start, end, storey.elevationM)
+  if (existing) {
+    if (!storey.wallRefs.includes(existing.ref)) storey.wallRefs.push(existing.ref)
+    return { wallRef: existing.ref, direction: samePoint(existing.start, start) ? 1 : -1 }
+  }
+  const ref = `${spaceRef}/wall-${index + 1}`
+  const wall: WallModel = { ref, start: clone(start), end: clone(end), thicknessM: 0.22, baseElevationM: storey.elevationM, heightM: storey.clearHeightM, openings: [], locked: false }
+  building.walls.push(wall)
+  storey.wallRefs.push(ref)
+  return { wallRef: ref, direction: 1 }
+})
+
+const defaultBuilding = (ref: string, name: string, kind: BuildingModel['kind'], position: Vec2): BuildingModel => {
+  const footprint = rectangle({ x: 0, z: 0 }, kind === 'garage' ? 6 : 8, kind === 'garage' ? 6.5 : 8)
+  const slabRef = `${ref}/slab-ground`
+  const roofRef = `${ref}/roof`
+  const storey: StoreyModel = { ref: `${ref}/storey-ground`, name: 'Ground storey', level: 0, elevationM: 0.4, clearHeightM: 2.8, baseSlabRef: slabRef, topBoundaryRef: roofRef, wallRefs: [], spaceRefs: [`${ref}/space-main`], platformRefs: [], ceilingFinishRefs: [] }
+  const building: BuildingModel = {
+    ref, name, kind, architecturalStyle: 'classic', position, rotationDegrees: 0, storeys: [storey],
+    slabs: [{ ref: slabRef, footprint, topElevationM: 0.4, thicknessM: 0.3, locked: false }], walls: [], spaces: [], platforms: [], ceilingFinishes: [],
+    roof: { ref: roofRef, type: kind === 'garage' ? 'flat' : 'gable', baseElevationM: 3.2, pitchDegrees: kind === 'garage' ? 0 : 28, overhangM: 0.4 },
+  }
+  building.spaces.push({ ref: storey.spaceRefs[0], name: kind === 'garage' ? 'Parking' : 'Main space', usage: kind === 'garage' ? 'garage' : 'living', boundary: buildBoundary(building, storey, storey.spaceRefs[0], footprint), baseSlabRef: slabRef, topBoundaryRef: roofRef, locked: false })
+  return building
+}
+
+const applySite = (project: ProjectV2, command: Extract<ProjectCommand, { type: 'site.update' }>) => {
+  if (command.boundary) { project.site.boundary = clone(command.boundary); project.site.terrain.boundary = clone(command.boundary) }
+  if (command.northDegrees !== undefined) project.site.northDegrees = command.northDegrees
+}
+
+const applyBuilding = (project: ProjectV2, command: Extract<ProjectCommand, { type: 'building.update' }>) => {
   if (command.action === 'add') {
     if (project.buildings.some((item) => item.ref === command.buildingRef)) throw new Error(`Reference already exists: ${command.buildingRef}`)
-    project.buildings.push({
-      ref: command.buildingRef, name: command.name ?? 'New building', kind: command.kind ?? 'house', position: command.position ?? { x: 0, z: 0 },
-      architecturalStyle: command.architecturalStyle ?? 'classic',
-      rotationDegrees: command.rotationDegrees ?? 0, floors: [defaultFloor(`${command.buildingRef}/ground`, 'Ground floor', 0, 0.4, 3)],
-      roof: command.roof ?? styleRoof[command.architecturalStyle ?? 'classic'],
-    })
+    project.buildings.push(defaultBuilding(command.buildingRef, command.name ?? 'New building', command.kind ?? 'house', command.position ?? { x: 0, z: 0 }))
     return
   }
-  if (command.action === 'remove') {
-    project.buildings = project.buildings.filter((item) => item.ref !== command.buildingRef)
-    return
-  }
+  if (command.action === 'remove') { project.buildings = project.buildings.filter((item) => item.ref !== command.buildingRef); return }
   const building = getBuilding(project, command.buildingRef)
-  if (command.action === 'set-roof' && command.roof) building.roof = command.roof
-  if (command.action === 'set-style' && command.architecturalStyle) {
+  if (command.position) building.position = clone(command.position)
+  if (command.rotationDegrees !== undefined) building.rotationDegrees = command.rotationDegrees
+  if (command.architecturalStyle) {
     building.architecturalStyle = command.architecturalStyle
-    building.roof = styleRoof[command.architecturalStyle]
-  }
-  if (command.action === 'move') {
-    if (command.position) building.position = command.position
-    if (command.rotationDegrees !== undefined) building.rotationDegrees = command.rotationDegrees
+    Object.assign(building.roof, styleRoof[command.architecturalStyle])
   }
 }
 
-const applyFloor = (project: ProjectV1, command: Extract<ProjectCommand, { type: 'floor.update' }>) => {
+const applyStorey = (project: ProjectV2, command: Extract<ProjectCommand, { type: 'storey.update' }>) => {
   const building = getBuilding(project, command.buildingRef)
   if (command.action === 'add') {
-    if (building.floors.some((item) => item.ref === command.floorRef)) throw new Error(`Reference already exists: ${command.floorRef}`)
-    const highest = building.floors.reduce((best, floor) => floor.level > best.level ? floor : best, building.floors[0])
-    const level = highest ? highest.level + 1 : 0
-    const elevation = highest ? highest.elevationM + highest.defaultHeightM + 0.25 : 0.4
-    const floor = defaultFloor(command.floorRef, command.name ?? `Floor ${level}`, level, elevation, command.heightM ?? 2.9)
-    if (highest?.rooms.length) {
-      floor.rooms.push(...highest.rooms.slice(0, 2).map((room, index) => ({
-        ...clone(room), ref: `${command.floorRef}/room-${index + 1}`, name: index === 0 ? 'Upper lounge' : 'Bedroom', usage: index === 0 ? 'living' : 'sleeping',
-        heightM: command.heightM ?? 2.9, locked: false, openings: [], mezzanines: [],
-      })))
+    if (building.storeys.some((item) => item.ref === command.storeyRef)) throw new Error(`Reference already exists: ${command.storeyRef}`)
+    const previous = [...building.storeys].sort((a, b) => b.level - a.level)[0]
+    const previousSlab = building.slabs.find((item) => item.ref === previous.baseSlabRef)!
+    const footprint = clone(command.footprint ?? previousSlab.footprint)
+    const slabRef = `${command.storeyRef}/base-slab`
+    const elevationM = previous.elevationM + previous.clearHeightM
+    building.slabs.push({ ref: slabRef, footprint, topElevationM: elevationM, thicknessM: 0.26, locked: false })
+    previous.topBoundaryRef = slabRef
+    building.spaces.filter((space) => previous.spaceRefs.includes(space.ref)).forEach((space) => { space.topBoundaryRef = slabRef })
+    const storey: StoreyModel = { ref: command.storeyRef, name: command.name ?? `Storey ${previous.level + 1}`, level: previous.level + 1, elevationM, clearHeightM: command.clearHeightM ?? 2.9, baseSlabRef: slabRef, topBoundaryRef: building.roof.ref, wallRefs: [], spaceRefs: [`${command.storeyRef}/space-main`], platformRefs: [], ceilingFinishRefs: [] }
+    building.storeys.push(storey)
+    const spaceRef = storey.spaceRefs[0]
+    building.spaces.push({ ref: spaceRef, name: 'Upper space', usage: 'flex', boundary: buildBoundary(building, storey, spaceRef, footprint), baseSlabRef: slabRef, topBoundaryRef: building.roof.ref, locked: false })
+    building.roof.baseElevationM = elevationM + storey.clearHeightM
+    return
+  }
+  const storey = getStorey(building, command.storeyRef)
+  if (command.action === 'remove') {
+    const highest = Math.max(...building.storeys.map((item) => item.level))
+    if (storey.level !== highest || building.storeys.length === 1) throw new Error('Only the highest non-ground storey can be removed.')
+    const lower = building.storeys.find((item) => item.level === storey.level - 1)!
+    lower.topBoundaryRef = building.roof.ref
+    building.spaces.filter((space) => lower.spaceRefs.includes(space.ref)).forEach((space) => { space.topBoundaryRef = building.roof.ref })
+    building.storeys = building.storeys.filter((item) => item.ref !== storey.ref)
+    building.spaces = building.spaces.filter((item) => !storey.spaceRefs.includes(item.ref))
+    building.walls = building.walls.filter((item) => !storey.wallRefs.includes(item.ref))
+    building.slabs = building.slabs.filter((item) => item.ref !== storey.baseSlabRef)
+    building.roof.baseElevationM = lower.elevationM + lower.clearHeightM
+    return
+  }
+  if (command.clearHeightM !== undefined) {
+    const delta = command.clearHeightM - storey.clearHeightM
+    storey.clearHeightM = command.clearHeightM
+    building.walls.filter((wall) => storey.wallRefs.includes(wall.ref)).forEach((wall) => { wall.heightM = command.clearHeightM! })
+    building.storeys.filter((item) => item.level > storey.level).forEach((item) => { item.elevationM += delta })
+    building.slabs.filter((slab) => slab.topElevationM > storey.elevationM).forEach((slab) => { slab.topElevationM += delta })
+    building.walls.filter((wall) => wall.baseElevationM > storey.elevationM).forEach((wall) => { wall.baseElevationM += delta })
+    building.roof.baseElevationM += delta
+  }
+}
+
+const applySpace = (project: ProjectV2, command: Extract<ProjectCommand, { type: 'space.update' }>) => {
+  const building = getBuilding(project, command.buildingRef)
+  const storey = getStorey(building, command.storeyRef)
+  const index = building.spaces.findIndex((item) => item.ref === command.spaceRef)
+  if (command.action === 'add') {
+    if (index >= 0 || !command.footprint) throw new Error(index >= 0 ? `Reference already exists: ${command.spaceRef}` : 'A polygon footprint is required.')
+    building.spaces.push({ ref: command.spaceRef, name: command.name ?? 'New space', usage: command.usage ?? 'flex', boundary: buildBoundary(building, storey, command.spaceRef, command.footprint), baseSlabRef: storey.baseSlabRef, topBoundaryRef: storey.topBoundaryRef, locked: false })
+    storey.spaceRefs.push(command.spaceRef)
+    return
+  }
+  if (index < 0) throw new Error(`Space not found: ${command.spaceRef}`)
+  const space = building.spaces[index]
+  if (space.locked) throw new Error(`${space.name} is locked.`)
+  if (command.action === 'remove') { building.spaces.splice(index, 1); storey.spaceRefs = storey.spaceRefs.filter((ref) => ref !== space.ref); return }
+  if (command.action === 'set-footprint' && command.footprint) space.boundary = buildBoundary(building, storey, space.ref, command.footprint)
+  if (command.action === 'set-usage' && command.usage) space.usage = command.usage
+  if (command.action === 'set-lowered-ceiling') {
+    const ref = `${space.ref}/ceiling-finish`
+    const existing = building.ceilingFinishes.find((item) => item.ref === ref)
+    const elevationM = command.ceilingElevationM ?? storey.elevationM + storey.clearHeightM - 0.25
+    if (existing) existing.elevationM = elevationM
+    else { building.ceilingFinishes.push({ ref, spaceRef: space.ref, hostBoundaryRef: space.topBoundaryRef, elevationM, thicknessM: 0.08 }); storey.ceilingFinishRefs.push(ref) }
+  }
+}
+
+const applyCommandMutable = (project: ProjectV2, command: ProjectCommand) => {
+  if (command.type === 'site.update') applySite(project, command)
+  else if (command.type === 'terrain.update') project.site.terrain.elevationPoints = clone(command.elevationPoints)
+  else if (command.type === 'building.update') applyBuilding(project, command)
+  else if (command.type === 'storey.update') applyStorey(project, command)
+  else if (command.type === 'space.update') applySpace(project, command)
+  else if (command.type === 'slab.update') {
+    const building = getBuilding(project, command.buildingRef)
+    const slab = building.slabs.find((item) => item.ref === command.slabRef)
+    if (!slab) throw new Error(`Slab not found: ${command.slabRef}`)
+    if (command.footprint) slab.footprint = clone(command.footprint)
+    if (command.thicknessM !== undefined) slab.thicknessM = command.thicknessM
+    if (command.topElevationM !== undefined) {
+      const previousTop = slab.topElevationM; const delta = command.topElevationM - previousTop
+      const hostedStorey = building.storeys.find((storey) => storey.baseSlabRef === slab.ref)
+      const lowerStorey = building.storeys.find((storey) => storey.topBoundaryRef === slab.ref)
+      slab.topElevationM = command.topElevationM
+      if (lowerStorey) lowerStorey.clearHeightM = command.topElevationM - lowerStorey.elevationM
+      if (hostedStorey && Math.abs(delta) > 0.0001) {
+        const affected = building.storeys.filter((storey) => storey.level >= hostedStorey.level)
+        affected.forEach((storey) => { storey.elevationM += delta })
+        const wallRefs = new Set(affected.flatMap((storey) => storey.wallRefs)); building.walls.filter((wall) => wallRefs.has(wall.ref)).forEach((wall) => { wall.baseElevationM += delta })
+        building.slabs.filter((candidate) => candidate.ref !== slab.ref && candidate.topElevationM > previousTop).forEach((candidate) => { candidate.topElevationM += delta })
+        const spaceRefs = new Set(affected.flatMap((storey) => storey.spaceRefs)); building.platforms.filter((platform) => spaceRefs.has(platform.spaceRef)).forEach((platform) => { platform.elevationM += delta })
+        building.ceilingFinishes.filter((finish) => spaceRefs.has(finish.spaceRef)).forEach((finish) => { finish.elevationM += delta })
+        building.roof.baseElevationM += delta
+      }
     }
-    building.floors.push(floor)
-    return
-  }
-  if (command.action === 'remove') {
-    building.floors = building.floors.filter((item) => item.ref !== command.floorRef)
-    return
-  }
-  const floor = getFloor(building, command.floorRef)
-  if (command.heightM !== undefined) {
-    floor.defaultHeightM = command.heightM
-    floor.rooms.forEach((room) => { if (!room.locked) room.heightM = command.heightM! })
-  }
-}
-
-const applyRoom = (project: ProjectV1, command: Extract<ProjectCommand, { type: 'room.update' }>) => {
-  const floor = getFloor(getBuilding(project, command.buildingRef), command.floorRef)
-  if (command.action === 'add') {
-    if (floor.rooms.some((item) => item.ref === command.roomRef)) throw new Error(`Reference already exists: ${command.roomRef}`)
-    floor.rooms.push(defaultRoom(command.roomRef, command.name ?? 'New room', command.usage ?? 'flex', command.position, command.widthM, command.depthM, command.heightM ?? floor.defaultHeightM))
-    return
-  }
-  const room = getRoom(floor, command.roomRef)
-  ensureEditable(room)
-  if (command.action === 'remove') {
-    floor.rooms = floor.rooms.filter((item) => item.ref !== command.roomRef)
-    return
-  }
-  if (command.position) room.position = command.position
-  if (command.widthM !== undefined) room.widthM = command.widthM
-  if (command.depthM !== undefined) room.depthM = command.depthM
-  if (command.heightM !== undefined) room.heightM = command.heightM
-  if (command.rotationDegrees !== undefined) room.rotationDegrees = command.rotationDegrees
-  if (command.ceilingType) room.ceilingType = command.ceilingType
-}
-
-const applyMezzanine = (project: ProjectV1, command: Extract<ProjectCommand, { type: 'mezzanine.update' }>) => {
-  const room = getRoom(getFloor(getBuilding(project, command.buildingRef), command.floorRef), command.roomRef)
-  ensureEditable(room)
-  if (command.action === 'add') {
-    room.mezzanines.push({
-      ref: command.mezzanineRef, roomRef: room.ref, position: command.position ?? { x: 0, z: 0 },
-      widthM: command.widthM ?? room.widthM * 0.45, depthM: command.depthM ?? room.depthM * 0.8,
-      elevationM: command.elevationM ?? Math.max(2.2, room.heightM * 0.55), thicknessM: 0.2,
-    })
-    return
-  }
-  if (command.action === 'remove') {
-    room.mezzanines = room.mezzanines.filter((item) => item.ref !== command.mezzanineRef)
-    return
-  }
-  const mezzanine = room.mezzanines.find((item) => item.ref === command.mezzanineRef)
-  if (!mezzanine) throw new Error(`Mezzanine not found: ${command.mezzanineRef}`)
-  if (command.position) mezzanine.position = command.position
-  if (command.widthM !== undefined) mezzanine.widthM = command.widthM
-  if (command.depthM !== undefined) mezzanine.depthM = command.depthM
-  if (command.elevationM !== undefined) mezzanine.elevationM = command.elevationM
-}
-
-const applyGarage = (project: ProjectV1, command: Extract<ProjectCommand, { type: 'garage.update' }>) => {
-  const existing = project.buildings.find((item) => item.ref === command.garageRef)
-  if (command.action === 'add') {
-    if (existing) throw new Error(`Reference already exists: ${command.garageRef}`)
-    const width = command.widthM ?? 6.2
-    const depth = command.depthM ?? 6.8
-    const height = command.heightM ?? 2.8
-    const architecturalStyle = project.buildings.find((building) => building.kind === 'house')?.architecturalStyle ?? 'classic'
-    const floor = defaultFloor(`${command.garageRef}/ground`, 'Garage floor', 0, 0.35, height)
-    floor.rooms.push(defaultRoom(`${command.garageRef}/parking`, 'Two-car garage', 'garage', { x: 0, z: 0 }, width, depth, height))
-    project.buildings.push({
-      ref: command.garageRef, name: 'Garage', kind: 'garage', garageMode: command.mode ?? 'attached', position: command.position ?? { x: 9, z: -2 },
-      architecturalStyle, rotationDegrees: 0, floors: [floor], roof: architecturalStyle === 'futuristic' ? styleRoof.futuristic : { ...styleRoof[architecturalStyle], pitchDegrees: Math.min(styleRoof[architecturalStyle].pitchDegrees, 28) },
-    })
-    return
-  }
-  if (command.action === 'remove') {
-    project.buildings = project.buildings.filter((item) => item.ref !== command.garageRef)
-    return
-  }
-  if (!existing) throw new Error(`Garage not found: ${command.garageRef}`)
-  if (command.position) existing.position = command.position
-  const room = existing.floors[0]?.rooms[0]
-  if (room) {
-    if (command.widthM !== undefined) room.widthM = command.widthM
-    if (command.depthM !== undefined) room.depthM = command.depthM
-    if (command.heightM !== undefined) room.heightM = command.heightM
-  }
-}
-
-const upsertZone = (project: ProjectV1, zone: GardenZone) => {
-  const index = project.garden.zones.findIndex((item) => item.ref === zone.ref)
-  if (index >= 0) project.garden.zones[index] = zone
-  else project.garden.zones.push(zone)
-}
-
-const upsertPlant = (project: ProjectV1, plant: PlantModel) => {
-  const index = project.garden.plants.findIndex((item) => item.ref === plant.ref)
-  if (index >= 0) project.garden.plants[index] = plant
-  else project.garden.plants.push(plant)
-}
-
-const applyGardenPlan = (project: ProjectV1, command: Extract<ProjectCommand, { type: 'garden.plan' }>) => {
-  const keep = new Set(command.preserveRefs)
-  project.garden.zones = project.garden.zones.filter((zone) => zone.locked || keep.has(zone.ref) || zone.kind === 'terrace')
-  project.garden.plants = project.garden.plants.filter((plant) => plant.locked || keep.has(plant.ref))
-  upsertZone(project, { ref: 'zone/agent-lawn', name: 'Open play lawn', kind: 'lawn', position: { x: 5, z: 12 }, widthM: 12, depthM: 7, rotationDegrees: 0, locked: false })
-  upsertZone(project, { ref: 'zone/agent-rain', name: 'Rain garden', kind: 'rain-garden', position: { x: -9.5, z: 12 }, widthM: 5.5, depthM: 3.8, rotationDegrees: 10, locked: false })
-  upsertZone(project, { ref: 'zone/agent-bed', name: 'Four-season border', kind: 'bed', position: { x: 10, z: 3.8 }, widthM: 2.4, depthM: 8, rotationDegrees: 0, locked: false })
-  if (command.goals.some((goal) => goal.toLowerCase().includes('vegetable'))) {
-    upsertZone(project, { ref: 'zone/agent-vegetable', name: 'Kitchen garden', kind: 'vegetable', position: { x: -10, z: 5 }, widthM: 4.2, depthM: 4, rotationDegrees: 0, locked: false })
-  }
-  const waterFactor = command.waterPreference === 'low' ? 0.55 : command.waterPreference === 'lush' ? 1.2 : 0.8
-  upsertPlant(project, { ref: 'plant/agent-birch', name: 'Downy birch canopy', species: 'Betula pubescens', kind: 'tree', position: { x: 12, z: 16 }, matureHeightM: 9, canopyM: 5.5, sunNeed: 'sun', waterNeed: waterFactor, hardinessMinC: -30, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [4,5], locked: false })
-  upsertPlant(project, { ref: 'plant/agent-cranesbill', name: 'Bigroot cranesbill ribbon', species: 'Geranium macrorrhizum', kind: 'perennial', position: { x: 9.5, z: 4 }, matureHeightM: 0.5, canopyM: 4.5, sunNeed: 'partial', waterNeed: 0.5, hardinessMinC: -25, leafMonths: [3,4,5,6,7,8,9,10,11], bloomMonths: [5,6,7], locked: false })
-  upsertPlant(project, { ref: 'plant/agent-sedge', name: 'Tufted sedge rain garden', species: 'Carex elata', kind: 'wetland', position: { x: -9.5, z: 12 }, matureHeightM: 0.8, canopyM: 3.4, sunNeed: 'sun', waterNeed: 1.1, hardinessMinC: -28, leafMonths: [3,4,5,6,7,8,9,10,11], bloomMonths: [5,6], locked: false })
-}
-
-const applyGardenUpdate = (project: ProjectV1, command: Extract<ProjectCommand, { type: 'garden.update' }>) => {
-  if (command.action === 'remove-zone') {
-    const zone = project.garden.zones.find((item) => item.ref === command.subjectRef)
-    if (zone?.locked) throw new Error(`${zone.ref} is locked and cannot be changed`)
-    project.garden.zones = project.garden.zones.filter((item) => item.ref !== command.subjectRef)
-    return
-  }
-  if (command.action === 'remove-plant') {
-    const plant = project.garden.plants.find((item) => item.ref === command.subjectRef)
-    if (plant?.locked) throw new Error(`${plant.ref} is locked and cannot be changed`)
-    project.garden.plants = project.garden.plants.filter((item) => item.ref !== command.subjectRef)
-    return
-  }
-  if (command.action === 'add-zone') {
-    upsertZone(project, { ref: command.subjectRef, name: command.name ?? 'Garden zone', kind: (command.kind as GardenZone['kind']) ?? 'bed', position: command.position ?? { x: 0, z: 8 }, widthM: command.widthM ?? 4, depthM: command.depthM ?? 3, rotationDegrees: 0, locked: false })
-    return
-  }
-  if (command.action === 'add-plant') {
-    upsertPlant(project, { ref: command.subjectRef, name: command.name ?? 'Garden plant', species: command.species ?? 'Plant selection', kind: (command.kind as PlantModel['kind']) ?? 'shrub', position: command.position ?? { x: 0, z: 8 }, matureHeightM: 1.8, canopyM: command.widthM ?? 1.8, sunNeed: 'partial', waterNeed: 0.8, hardinessMinC: -22, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [6,7,8], locked: false })
-    return
-  }
-  const zone = project.garden.zones.find((item) => item.ref === command.subjectRef)
-  const plant = project.garden.plants.find((item) => item.ref === command.subjectRef)
-  if (zone) {
-    if (zone.locked) throw new Error(`${zone.ref} is locked and cannot be changed`)
-    if (command.position) zone.position = command.position
-  } else if (plant) {
-    if (plant.locked) throw new Error(`${plant.ref} is locked and cannot be changed`)
-    if (command.position) plant.position = command.position
-  } else throw new Error(`Garden subject not found: ${command.subjectRef}`)
-}
-
-export const applyCommand = (source: ProjectV1, command: ProjectCommand): ProjectV1 => {
-  const project = clone(source)
-  switch (command.type) {
-    case 'plot.update':
-      if (command.boundary) project.plot.boundary = command.boundary
-      if (command.northDegrees !== undefined) project.plot.northDegrees = command.northDegrees
-      if (command.elevationPoints) project.plot.elevationPoints = command.elevationPoints
-      break
-    case 'building.update': applyBuilding(project, command); break
-    case 'floor.update': applyFloor(project, command); break
-    case 'room.update': applyRoom(project, command); break
-    case 'mezzanine.update': applyMezzanine(project, command); break
-    case 'garage.update': applyGarage(project, command); break
-    case 'garden.plan': applyGardenPlan(project, command); break
-    case 'garden.update': applyGardenUpdate(project, command); break
-    case 'climate.update': {
-      const month = project.climateProfile.months.find((item) => item.month === command.month)
-      if (!month) throw new Error(`Climate month not found: ${command.month}`)
-      Object.assign(month, command.values)
-      break
+  } else if (command.type === 'wall.update') {
+    const wall = getWall(getBuilding(project, command.buildingRef), command.wallRef)
+    if (wall.locked) throw new Error(`Wall is locked: ${wall.ref}`)
+    if (command.start) wall.start = clone(command.start); if (command.end) wall.end = clone(command.end)
+    if (command.thicknessM !== undefined) wall.thicknessM = command.thicknessM
+    if (command.heightM !== undefined) wall.heightM = command.heightM
+  } else if (command.type === 'opening.update') {
+    const wall = getWall(getBuilding(project, command.buildingRef), command.wallRef)
+    const index = wall.openings.findIndex((item) => item.ref === command.openingRef)
+    if (command.action === 'add') {
+      if (index >= 0) throw new Error(`Reference already exists: ${command.openingRef}`)
+      wall.openings.push({ ref: command.openingRef, kind: command.kind ?? 'window', wallRef: wall.ref, offsetM: command.offsetM ?? wallLength(wall) / 2, widthM: command.widthM ?? 1.2, heightM: command.heightM ?? 1.2, sillM: command.sillM ?? 0.9 })
+    } else if (command.action === 'remove') wall.openings = wall.openings.filter((item) => item.ref !== command.openingRef)
+    else {
+      if (index < 0) throw new Error(`Opening not found: ${command.openingRef}`)
+      const opening = wall.openings[index]
+      if (command.offsetM !== undefined) opening.offsetM = command.offsetM; if (command.widthM !== undefined) opening.widthM = command.widthM
+      if (command.heightM !== undefined) opening.heightM = command.heightM; if (command.sillM !== undefined) opening.sillM = command.sillM
     }
+  } else if (command.type === 'roof.update') {
+    const roof = getBuilding(project, command.buildingRef).roof
+    if (command.roofType) roof.type = command.roofType; if (command.pitchDegrees !== undefined) roof.pitchDegrees = command.pitchDegrees; if (command.overhangM !== undefined) roof.overhangM = command.overhangM
+  } else if (command.type === 'platform.update') {
+    const building = getBuilding(project, command.buildingRef); const storey = getStorey(building, command.storeyRef)
+    if (command.action === 'add') { if (!command.footprint) throw new Error('Platform footprint is required.'); building.platforms.push({ ref: command.platformRef, spaceRef: command.spaceRef, footprint: clone(command.footprint), elevationM: command.elevationM ?? storey.elevationM + 2.2, thicknessM: command.thicknessM ?? 0.18 }); storey.platformRefs.push(command.platformRef) }
+    else if (command.action === 'remove') { building.platforms = building.platforms.filter((item) => item.ref !== command.platformRef); storey.platformRefs = storey.platformRefs.filter((ref) => ref !== command.platformRef) }
+    else { const platform = building.platforms.find((item) => item.ref === command.platformRef); if (!platform) throw new Error(`Platform not found: ${command.platformRef}`); if (command.footprint) platform.footprint = clone(command.footprint); if (command.elevationM !== undefined) platform.elevationM = command.elevationM }
+  } else if (command.type === 'landscape.update') {
+    const index = project.landscape.zones.findIndex((item) => item.ref === command.zoneRef)
+    if (command.action === 'add') { if (!command.footprint) throw new Error('Landscape polygon is required.'); project.landscape.zones.push({ ref: command.zoneRef, name: command.name ?? 'Landscape zone', kind: command.kind ?? 'lawn', footprint: clone(command.footprint), locked: false }) }
+    else if (command.action === 'remove') project.landscape.zones = project.landscape.zones.filter((item) => item.ref !== command.zoneRef)
+    else { if (index < 0) throw new Error(`Landscape zone not found: ${command.zoneRef}`); const zone = project.landscape.zones[index]; if (zone.locked) throw new Error(`${zone.name} is locked.`); if (command.footprint) zone.footprint = clone(command.footprint); if (command.delta) zone.footprint = zone.footprint.map((point) => ({ x: point.x + command.delta!.x, z: point.z + command.delta!.z })) }
+  } else if (command.type === 'plant.update') {
+    const index = project.landscape.plants.findIndex((item) => item.ref === command.plantRef)
+    if (command.action === 'add') { if (!command.position) throw new Error('Plant position is required.'); project.landscape.plants.push({ ref: command.plantRef, name: command.name ?? 'Plant', species: command.species ?? 'Unspecified', kind: command.kind ?? 'shrub', position: clone(command.position), matureHeightM: 1.5, canopyM: 1.2, sunNeed: 'sun', waterNeed: 0.7, hardinessMinC: -20, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [], locked: false }) }
+    else if (command.action === 'remove') project.landscape.plants = project.landscape.plants.filter((item) => item.ref !== command.plantRef)
+    else { if (index < 0 || !command.position) throw new Error(index < 0 ? `Plant not found: ${command.plantRef}` : 'Plant position is required.'); if (project.landscape.plants[index].locked) throw new Error(`${project.landscape.plants[index].name} is locked.`); project.landscape.plants[index].position = clone(command.position) }
+  } else if (command.type === 'garden-fixture.update') {
+    const index = project.landscape.fixtures.findIndex((item) => item.ref === command.fixtureRef)
+    if (command.action === 'add') {
+      if (index >= 0) throw new Error(`Reference already exists: ${command.fixtureRef}`)
+      if (!command.catalogId || !command.position) throw new Error('Fixture catalogId and position are required.')
+      const definition = gardenFixtureById(command.catalogId)
+      project.landscape.fixtures.push({ ref: command.fixtureRef, catalogId: command.catalogId, name: command.name ?? definition.name, position: clone(command.position), rotationDegrees: command.rotationDegrees ?? 0, locked: false })
+    } else {
+      if (index < 0) throw new Error(`Garden fixture not found: ${command.fixtureRef}`)
+      const fixture = project.landscape.fixtures[index]
+      if (fixture.locked) throw new Error(`${fixture.name} is locked.`)
+      if (command.action === 'remove') project.landscape.fixtures.splice(index, 1)
+      else if (command.action === 'move') { if (!command.position) throw new Error('Fixture position is required.'); fixture.position = clone(command.position) }
+      else { if (command.rotationDegrees === undefined) throw new Error('Fixture rotation is required.'); fixture.rotationDegrees = command.rotationDegrees }
+    }
+  } else if (command.type === 'climate.update') {
+    const month = project.climateProfile.months.find((item) => item.month === command.month); if (!month) throw new Error(`Month not found: ${command.month}`); Object.assign(month, command.values)
+    if (!command.values.temperatureByDayPartC && (command.values.meanMinC !== undefined || command.values.meanMaxC !== undefined)) month.temperatureByDayPartC = estimateDayPartTemperatures(month.meanMinC, month.meanMaxC)
   }
-  project.updatedAt = new Date().toISOString()
-  return project
 }
 
-export const applyCommands = (source: ProjectV1, commands: ProjectCommand[]) => commands.reduce(applyCommand, source)
+export const applyCommand = (source: ProjectV2, command: ProjectCommand): ProjectV2 => {
+  const project = clone(source); applyCommandMutable(project, command); project.updatedAt = new Date().toISOString(); return project
+}
+export const applyCommands = (source: ProjectV2, commands: ProjectCommand[]) => commands.reduce(applyCommand, source)
 
-const boxesOverlap = (a: RoomModel, b: RoomModel) => Math.abs(a.position.x - b.position.x) < (a.widthM + b.widthM) / 2 - 0.05
-  && Math.abs(a.position.z - b.position.z) < (a.depthM + b.depthM) / 2 - 0.05
+const allRefs = (building: BuildingModel) => [building.ref, building.roof.ref, ...building.storeys.map((item) => item.ref), ...building.slabs.map((item) => item.ref), ...building.walls.map((item) => item.ref), ...building.spaces.map((item) => item.ref), ...building.platforms.map((item) => item.ref), ...building.ceilingFinishes.map((item) => item.ref), ...building.walls.flatMap((wall) => wall.openings.map((item) => item.ref))]
 
-export const validateProject = (project: ProjectV1): ProjectIssue[] => {
+export const validateProject = (project: ProjectV2): ProjectIssue[] => {
   const issues: ProjectIssue[] = []
-  if (project.plot.boundary.length < 3 || polygonArea(project.plot.boundary) < 20) issues.push({ severity: 'error', code: 'plot.invalid', message: 'Plot boundary must contain a usable polygon.', subjectRef: project.ref })
-  if (project.buildings.some((building) => building.kind === 'house')) issues.push({
-    severity: 'warning',
-    code: 'site.geotechnical-review',
-    message: `Zielonki ground review required: weak-bearing soils to about ${project.knowledgeBase.geotechnical.weakBearingToApproxM.toFixed(1)} m, groundwater at ${project.knowledgeBase.geotechnical.groundwaterRangeM[0].toFixed(1)}–${project.knowledgeBase.geotechnical.groundwaterRangeM[1].toFixed(1)} m, and an unverified micropile concept.`,
-    subjectRef: 'house/main',
-  })
+  if (polygonSelfIntersects(project.site.boundary)) issues.push({ severity: 'error', code: 'site.self-intersection', message: 'Site boundary self-intersects.', subjectRef: 'site' })
   project.buildings.forEach((building) => {
-    if (!building.floors.length) issues.push({ severity: 'warning', code: 'building.empty', message: `${building.name} has no floors.`, subjectRef: building.ref })
-    building.floors.forEach((floor) => {
-      floor.rooms.forEach((room, index) => {
-        if (room.widthM <= 0 || room.depthM <= 0 || room.heightM <= 0) issues.push({ severity: 'error', code: 'room.dimensions', message: `${room.name} has invalid dimensions.`, subjectRef: room.ref })
-        const world = { x: room.position.x + building.position.x, z: room.position.z + building.position.z }
-        if (!pointInPolygon(world, project.plot.boundary)) issues.push({ severity: 'error', code: 'room.outside-plot', message: `${room.name} sits outside the plot.`, subjectRef: room.ref })
-        floor.rooms.slice(index + 1).forEach((other) => {
-          if (boxesOverlap(room, other)) issues.push({ severity: 'warning', code: 'room.overlap', message: `${room.name} overlaps ${other.name}.`, subjectRef: room.ref })
-        })
-        room.mezzanines.forEach((mezzanine) => {
-          if (mezzanine.widthM > room.widthM || mezzanine.depthM > room.depthM) issues.push({ severity: 'error', code: 'mezzanine.bounds', message: `Mezzanine exceeds ${room.name}.`, subjectRef: mezzanine.ref })
-          if (mezzanine.elevationM >= room.heightM - 0.5) issues.push({ severity: 'error', code: 'mezzanine.clearance', message: `Mezzanine has insufficient upper clearance.`, subjectRef: mezzanine.ref })
-        })
-      })
+    const refs = allRefs(building); const duplicates = refs.filter((ref, index) => refs.indexOf(ref) !== index)
+    if (duplicates.length) issues.push({ severity: 'error', code: 'ref.duplicate', message: `Duplicate reference: ${duplicates[0]}`, subjectRef: duplicates[0] })
+    building.storeys.forEach((storey) => {
+      const base = building.slabs.find((slab) => slab.ref === storey.baseSlabRef)
+      if (!base) issues.push({ severity: 'error', code: 'storey.base-slab', message: `${storey.name} has no base slab.`, subjectRef: storey.ref })
+      storey.wallRefs.forEach((ref) => { if (!building.walls.some((wall) => wall.ref === ref)) issues.push({ severity: 'error', code: 'storey.wall', message: `${storey.name} references a missing wall.`, subjectRef: ref }) })
+      storey.spaceRefs.forEach((ref) => { if (!building.spaces.some((space) => space.ref === ref)) issues.push({ severity: 'error', code: 'storey.space', message: `${storey.name} references a missing space.`, subjectRef: ref }) })
+      const upper = building.storeys.find((item) => item.level === storey.level + 1)
+      if (upper && storey.topBoundaryRef !== upper.baseSlabRef) issues.push({ severity: 'error', code: 'slab.shared-boundary', message: `${storey.name} ceiling must be the upper storey floor slab.`, subjectRef: storey.ref })
     })
+    building.spaces.forEach((space) => {
+      try { const footprint = spaceFootprint(building, space); if (polygonArea(footprint) < 1 || polygonSelfIntersects(footprint)) issues.push({ severity: 'error', code: 'space.polygon', message: `${space.name} has an invalid polygon.`, subjectRef: space.ref }) }
+      catch (error) { issues.push({ severity: 'error', code: 'space.wall', message: error instanceof Error ? error.message : 'Space boundary is invalid.', subjectRef: space.ref }) }
+    })
+    building.walls.forEach((wall) => wall.openings.forEach((opening: OpeningModel) => {
+      if (opening.offsetM - opening.widthM / 2 < 0 || opening.offsetM + opening.widthM / 2 > wallLength(wall)) issues.push({ severity: 'error', code: 'opening.bounds', message: `${opening.ref} exceeds its host wall.`, subjectRef: opening.ref })
+      if (opening.sillM + opening.heightM > wall.heightM) issues.push({ severity: 'error', code: 'opening.height', message: `${opening.ref} exceeds wall height.`, subjectRef: opening.ref })
+    }))
+    if (!buildingFootprintsWorld(building).flat().every((point) => pointInPolygon(point, project.site.boundary))) issues.push({ severity: 'error', code: 'building.site', message: `${building.name} is outside the site boundary.`, subjectRef: building.ref })
   })
-  project.garden.zones.forEach((zone) => {
-    if (!pointInPolygon(zone.position, project.plot.boundary)) issues.push({ severity: 'warning', code: 'garden.outside-plot', message: `${zone.name} is outside the plot.`, subjectRef: zone.ref })
+  project.landscape.zones.forEach((zone: LandscapeZone) => {
+    if (polygonArea(zone.footprint) < 0.01 || polygonSelfIntersects(zone.footprint)) issues.push({ severity: 'error', code: 'landscape.polygon', message: `${zone.name} has an invalid polygon.`, subjectRef: zone.ref })
+    if (!zone.footprint.every((point) => pointInPolygon(point, project.site.boundary))) issues.push({ severity: 'error', code: 'landscape.site', message: `${zone.name} extends outside the site.`, subjectRef: zone.ref })
   })
+  const hostRefs = new Set(['site/terrain', ...project.landscape.zones.map((zone) => zone.ref), ...project.buildings.flatMap((building) => [building.roof.ref, ...building.slabs.map((slab) => slab.ref), ...building.walls.map((wall) => wall.ref), ...building.platforms.map((platform) => platform.ref)])])
+  project.landscape.plants.forEach((plant) => {
+    if (!pointInPolygon(plant.position, project.site.boundary)) issues.push({ severity: 'error', code: 'plant.site', message: `${plant.name} is outside the site.`, subjectRef: plant.ref })
+    if (plant.attachment && !hostRefs.has(plant.attachment.hostRef)) issues.push({ severity: 'error', code: 'plant.support', message: `${plant.name} has an unknown support surface.`, subjectRef: plant.ref })
+  })
+  project.landscape.fixtures.forEach((fixture) => {
+    const definition = gardenFixtureById(fixture.catalogId); const radians = fixture.rotationDegrees * Math.PI / 180; const c = Math.cos(radians); const s = Math.sin(radians)
+    const corners = [[-definition.widthM / 2, -definition.depthM / 2], [definition.widthM / 2, -definition.depthM / 2], [definition.widthM / 2, definition.depthM / 2], [-definition.widthM / 2, definition.depthM / 2]]
+      .map(([x, z]) => ({ x: fixture.position.x + x * c + z * s, z: fixture.position.z - x * s + z * c }))
+    if (!corners.every((corner) => project.site.parcels.some((parcel) => pointInPolygon(corner, parcel.boundary)))) issues.push({ severity: 'error', code: 'fixture.site', message: `${fixture.name} extends outside the owned parcels.`, subjectRef: fixture.ref })
+  })
+  if (project.site.knowledgeBase.geotechnical.documentationNeed) issues.push({ severity: 'warning', code: 'site.geotechnical-review', message: project.site.knowledgeBase.geotechnical.documentationNeed, subjectRef: 'site' })
   return issues
 }
 
-export const calculateMetrics = (project: ProjectV1): ProjectMetrics => {
-  let homeAreaM2 = 0
-  let garageAreaM2 = 0
-  let roomCount = 0
-  project.buildings.forEach((building) => building.floors.forEach((floor) => floor.rooms.forEach((room) => {
-    const area = room.widthM * room.depthM
-    if (building.kind === 'garage') garageAreaM2 += area
-    else homeAreaM2 += area
-    roomCount += 1
-  })))
-  const plotArea = polygonArea(project.plot.boundary)
-  const hardscape = project.garden.zones.filter((zone) => ['terrace', 'path', 'driveway'].includes(zone.kind)).reduce((sum, zone) => sum + zone.widthM * zone.depthM, 0)
-  const annualPrecip = project.climateProfile.months.reduce((sum, month) => sum + month.precipitationMm + project.climateProfile.irrigationMm, 0)
-  const annualEt0 = project.climateProfile.months.reduce((sum, month) => sum + month.et0Mm, 0)
-  return {
-    homeAreaM2: Math.round(homeAreaM2 * 10) / 10,
-    garageAreaM2: Math.round(garageAreaM2 * 10) / 10,
-    gardenAreaM2: Math.max(0, Math.round((plotArea - homeAreaM2 - garageAreaM2) * 10) / 10),
-    greenAreaM2: Math.max(0, Math.round((plotArea - homeAreaM2 - garageAreaM2 - hardscape) * 10) / 10),
-    roomCount,
-    plantCount: project.garden.plants.length,
-    annualWaterBalanceMm: Math.round(annualPrecip - annualEt0),
-  }
+export const calculateMetrics = (project: ProjectV2): ProjectMetrics => {
+  const homeAreaM2 = project.buildings.filter((building) => building.kind === 'house').reduce((sum, building) => sum + building.storeys.reduce((area, storey) => area + polygonArea(building.slabs.find((slab) => slab.ref === storey.baseSlabRef)?.footprint ?? []), 0), 0)
+  const garageAreaM2 = project.buildings.filter((building) => building.kind === 'garage').reduce((sum, building) => sum + building.storeys.reduce((area, storey) => area + polygonArea(building.slabs.find((slab) => slab.ref === storey.baseSlabRef)?.footprint ?? []), 0), 0)
+  const landscapeAreaM2 = project.landscape.zones.reduce((sum, zone) => sum + polygonArea(zone.footprint), 0)
+  const green = new Set(['lawn', 'bed', 'rain-garden', 'vegetable'])
+  return { homeAreaM2, garageAreaM2, landscapeAreaM2, greenAreaM2: project.landscape.zones.filter((zone) => green.has(zone.kind)).reduce((sum, zone) => sum + polygonArea(zone.footprint), 0), spaceCount: project.buildings.reduce((sum, building) => sum + building.spaces.length, 0), plantCount: project.landscape.plants.length, fixtureCount: project.landscape.fixtures.length, annualWaterBalanceMm: project.climateProfile.months.reduce((sum, month) => sum + month.precipitationMm + project.climateProfile.irrigationMm - month.et0Mm, 0) }
 }

@@ -1,4 +1,4 @@
-import type { ProjectV1, SeasonalMonthAnalysis } from './types'
+import type { ProjectV2, SeasonalMonthAnalysis } from './types'
 
 const degrees = (value: number) => value * Math.PI / 180
 
@@ -9,13 +9,13 @@ export const daylightHours = (latitude: number, month: number) => {
   return 24 * hourAngle / Math.PI
 }
 
-export const analyzeSeason = (project: ProjectV1, months: number[] = [1, 4, 7, 10]): SeasonalMonthAnalysis[] => months.map((monthNumber) => {
+export const analyzeSeason = (project: ProjectV2, months: number[] = [1, 4, 7, 10]): SeasonalMonthAnalysis[] => months.map((monthNumber) => {
   const climate = project.climateProfile.months.find((item) => item.month === monthNumber)
   if (!climate) throw new Error(`Missing climate data for month ${monthNumber}`)
   const daylight = daylightHours(project.climateProfile.latitude, monthNumber)
   const waterBalance = climate.precipitationMm + project.climateProfile.irrigationMm - climate.et0Mm
-  const activePlants = project.garden.plants.filter((plant) => plant.leafMonths.includes(monthNumber)).length
-  const bloomingPlants = project.garden.plants.filter((plant) => plant.bloomMonths.includes(monthNumber)).length
+  const activePlants = project.landscape.plants.filter((plant) => plant.leafMonths.includes(monthNumber)).length
+  const bloomingPlants = project.landscape.plants.filter((plant) => plant.bloomMonths.includes(monthNumber)).length
   const droughtRisk = waterBalance < -35 ? 'high' : waterBalance < -10 ? 'moderate' : 'low'
   const frostRisk = climate.frostDays > 12 ? 'high' : climate.frostDays > 2 ? 'moderate' : 'low'
   const notes: string[] = []
@@ -24,6 +24,7 @@ export const analyzeSeason = (project: ProjectV1, months: number[] = [1, 4, 7, 1
   if (bloomingPlants === 0 && monthNumber >= 4 && monthNumber <= 10) notes.push('No catalog plants bloom this month; consider extending seasonal interest.')
   return {
     month: monthNumber,
+    temperatureByDayPartC: { ...climate.temperatureByDayPartC },
     daylightHours: Math.round(daylight * 10) / 10,
     representativeSunHours: Math.round(Math.min(daylight, climate.sunshineHours / 30.44) * 10) / 10,
     waterBalanceMm: Math.round(waterBalance), droughtRisk, frostRisk, activePlants, bloomingPlants, notes,

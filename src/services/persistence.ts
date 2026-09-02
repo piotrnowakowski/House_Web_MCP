@@ -1,9 +1,9 @@
 import { parseProject } from '../domain/schema'
-import type { ProjectV1 } from '../domain/types'
+import type { ProjectV2 } from '../domain/types'
 
 const DB_NAME = 'house-web-mcp'
 const STORE_NAME = 'projects'
-const ACTIVE_KEY = 'zielonki-survey-active-project-v2'
+const ACTIVE_KEY = 'zielonki-spatial-editor-project-v2'
 
 const openDatabase = () => new Promise<IDBDatabase>((resolve, reject) => {
   const request = indexedDB.open(DB_NAME, 1)
@@ -15,7 +15,7 @@ const openDatabase = () => new Promise<IDBDatabase>((resolve, reject) => {
   request.onerror = () => reject(request.error)
 })
 
-export const saveProject = async (project: ProjectV1) => {
+export const saveProject = async (project: ProjectV2) => {
   const database = await openDatabase()
   await new Promise<void>((resolve, reject) => {
     const transaction = database.transaction(STORE_NAME, 'readwrite')
@@ -26,7 +26,7 @@ export const saveProject = async (project: ProjectV1) => {
   database.close()
 }
 
-export const loadProject = async (): Promise<ProjectV1 | null> => {
+export const loadProject = async (): Promise<ProjectV2 | null> => {
   const database = await openDatabase()
   const value = await new Promise<unknown>((resolve, reject) => {
     const transaction = database.transaction(STORE_NAME, 'readonly')

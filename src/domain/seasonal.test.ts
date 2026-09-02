@@ -13,6 +13,8 @@ describe('seasonal analysis', () => {
     expect(result[0].frostRisk).toBe('high')
     expect(result[1].droughtRisk).toBe('low')
     expect(result[1].activePlants).toBeGreaterThan(result[0].activePlants)
+    expect(result[1].temperatureByDayPartC).toEqual({ night: 15.2, morning: 18.8, day: 23.6, evening: 20.2 })
+    expect(result[1].temperatureByDayPartC.day).toBeGreaterThan(result[1].temperatureByDayPartC.night)
   })
 
   it('produces a usable directional-light position', () => {

@@ -1,77 +1,116 @@
 import { create } from 'zustand'
 import { applyCommand, applyCommands, calculateMetrics, validateProject } from '../domain/commands'
-import { sampleProject } from '../domain/sampleProject'
-import type { ProjectCommand, ProjectV1, TransformMode, VariantModel, ViewMode } from '../domain/types'
+import { applyModernBarnPreset, isModernBarnPreset } from '../domain/presets'
+import { modernBarnProject } from '../domain/sampleProject'
+import type { ProjectCommand, ProjectV2, StructureReport, TransformMode, VariantModel, ViewerMode, ViewMode } from '../domain/types'
 
 interface StudioState {
-  project: ProjectV1
-  history: ProjectV1[]
+  project: ProjectV2
+  history: ProjectV2[]
   variants: VariantModel[]
   selectedRef: string | null
   viewMode: ViewMode
   transformMode: TransformMode
+  viewerMode: ViewerMode
+  activePlanStoreyRef: string | null
   month: number
-  explodeFloors: boolean
+  explodeStoreys: boolean
   webMcpAvailable: boolean
   hydrated: boolean
   confirmationVariantRef: string | null
-  pendingExport: 'json' | 'glb' | 'png' | null
+  structureReport: StructureReport | null
   toast: string | null
   helpOpen: boolean
+  cameraRefocusRequest: number
+  gardenFocusRequest: { sequence: number; targetX: number; targetZ: number }
   setSelectedRef: (ref: string | null) => void
   setViewMode: (mode: ViewMode) => void
   setTransformMode: (mode: TransformMode) => void
+  setViewerMode: (mode: ViewerMode) => void
+  setActivePlanStoreyRef: (ref: string | null) => void
   setMonth: (month: number) => void
-  setExplodeFloors: (value: boolean) => void
+  setExplodeStoreys: (value: boolean) => void
   setWebMcpAvailable: (value: boolean) => void
   setHydrated: (value: boolean) => void
   setConfirmationVariantRef: (ref: string | null) => void
-  setPendingExport: (format: StudioState['pendingExport']) => void
+  setStructureReport: (report: StructureReport | null) => void
   setToast: (message: string | null) => void
   setHelpOpen: (value: boolean) => void
-  replaceProject: (project: ProjectV1) => void
+  refocusCamera: () => void
+  focusGardenFixtures: () => void
+  useModernBarnPreset: () => ProjectV2
+  replaceProject: (project: ProjectV2) => void
   createVariant: (label: string, commands: ProjectCommand[]) => VariantModel
-  applyVariant: (ref: string) => ProjectV1
+  applyVariant: (ref: string) => ProjectV2
   discardVariant: (ref: string) => void
   commitCommand: (command: ProjectCommand) => void
-  undo: () => ProjectV1
+  commitCommands: (commands: ProjectCommand[], message?: string) => ProjectV2
+  undo: () => ProjectV2
 }
 
 let variantSequence = 0
 const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)
+const revokeReport = (report: StructureReport | null) => report?.views.forEach((view) => URL.revokeObjectURL(view.imageUrl))
 
 export const useStudioStore = create<StudioState>((set, get) => ({
-  project: structuredClone(sampleProject),
-  history: [], variants: [], selectedRef: null, viewMode: 'technical', transformMode: 'translate', month: 7,
-  explodeFloors: false, webMcpAvailable: false, hydrated: false, confirmationVariantRef: null, pendingExport: null, toast: 'Loaded surveyed Zielonki /3 construction site with /4 agricultural context.',
-  helpOpen: false,
+  project: structuredClone(modernBarnProject), history: [], variants: [], selectedRef: null,
+  viewMode: 'technical', transformMode: 'translate', viewerMode: 'edit', activePlanStoreyRef: null, month: 7,
+  explodeStoreys: false, webMcpAvailable: false, hydrated: false, confirmationVariantRef: null, structureReport: null,
+  toast: 'Loaded the ProjectV2 Zielonki spatial model.', helpOpen: false, cameraRefocusRequest: 0, gardenFocusRequest: { sequence: 0, targetX: 0, targetZ: 0 },
   setSelectedRef: (selectedRef) => set({ selectedRef }),
   setViewMode: (viewMode) => set({ viewMode }),
   setTransformMode: (transformMode) => set({ transformMode }),
+  setViewerMode: (viewerMode) => set({ viewerMode, activePlanStoreyRef: viewerMode === 'plan' ? get().activePlanStoreyRef : null }),
+  setActivePlanStoreyRef: (activePlanStoreyRef) => set({ activePlanStoreyRef, viewerMode: activePlanStoreyRef ? 'plan' : 'edit' }),
   setMonth: (month) => set({ month: Math.min(12, Math.max(1, month)) }),
-  setExplodeFloors: (explodeFloors) => set({ explodeFloors }),
+  setExplodeStoreys: (explodeStoreys) => set({ explodeStoreys }),
   setWebMcpAvailable: (webMcpAvailable) => set({ webMcpAvailable }),
   setHydrated: (hydrated) => set({ hydrated }),
   setConfirmationVariantRef: (confirmationVariantRef) => set({ confirmationVariantRef }),
-  setPendingExport: (pendingExport) => set({ pendingExport }),
+  setStructureReport: (structureReport) => { revokeReport(get().structureReport); set({ structureReport }) },
   setToast: (toast) => set({ toast }),
   setHelpOpen: (helpOpen) => set({ helpOpen }),
-  replaceProject: (project) => set({ project, variants: [], history: [], toast: `Loaded ${project.name}.` }),
+  refocusCamera: () => set((state) => ({
+    cameraRefocusRequest: state.cameraRefocusRequest + 1,
+    viewerMode: 'edit',
+    activePlanStoreyRef: null,
+    toast: `Camera refocused on ${state.project.buildings[0]?.name ?? 'the building'}.`,
+  })),
+  focusGardenFixtures: () => set((state) => {
+    if (!state.project.landscape.fixtures.length) return { toast: 'Place a garden fixture first.' }
+    const targetX = state.project.landscape.fixtures.reduce((sum, fixture) => sum + fixture.position.x, 0) / state.project.landscape.fixtures.length
+    const targetZ = state.project.landscape.fixtures.reduce((sum, fixture) => sum + fixture.position.z, 0) / state.project.landscape.fixtures.length
+    return { gardenFocusRequest: { sequence: state.gardenFocusRequest.sequence + 1, targetX, targetZ }, viewerMode: 'edit', activePlanStoreyRef: null, toast: 'Camera focused on the placed garden fixtures.' }
+  }),
+  useModernBarnPreset: () => {
+    const state = get()
+    if (isModernBarnPreset(state.project)) {
+      set({ selectedRef: state.project.buildings.find((item) => item.kind === 'house')?.ref ?? null, cameraRefocusRequest: state.cameraRefocusRequest + 1, toast: 'Modern barn preset is already active.' })
+      return state.project
+    }
+    const next = applyModernBarnPreset(state.project)
+    next.revision = state.project.revision + 1
+    next.updatedAt = new Date().toISOString()
+    const blocking = validateProject(next).filter((issue) => issue.severity === 'error')
+    if (blocking.length) throw new Error(blocking[0].message)
+    const houseRef = next.buildings.find((item) => item.kind === 'house')?.ref ?? null
+    set({ project: next, history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], selectedRef: houseRef, cameraRefocusRequest: state.cameraRefocusRequest + 1, toast: 'Modern barn preset applied: two levels and a 45° gable.' })
+    return next
+  },
+  replaceProject: (project) => { revokeReport(get().structureReport); set({ project, variants: [], history: [], structureReport: null, toast: `Loaded ${project.name}.` }) },
   createVariant: (label, commands) => {
     const current = get().project
     const preview = applyCommands(current, commands)
     variantSequence += 1
     const variant: VariantModel = {
-      ref: `variant/${slug(label)}-r${current.revision}-${variantSequence}`,
-      label, baseRevision: current.revision, createdAt: new Date().toISOString(), commands,
-      project: preview, issues: validateProject(preview), metrics: calculateMetrics(preview),
+      ref: `variant/${slug(label)}-r${current.revision}-${variantSequence}`, label, baseRevision: current.revision,
+      createdAt: new Date().toISOString(), commands, project: preview, issues: validateProject(preview), metrics: calculateMetrics(preview),
     }
     set((state) => ({ variants: [...state.variants, variant], toast: `${label} is ready to review.` }))
     return variant
   },
   applyVariant: (ref) => {
-    const state = get()
-    const variant = state.variants.find((item) => item.ref === ref)
+    const state = get(); const variant = state.variants.find((item) => item.ref === ref)
     if (!variant) throw new Error(`Variant not found: ${ref}`)
     if (variant.baseRevision !== state.project.revision) throw new Error('Variant is stale. Create it again from the current project.')
     if (variant.issues.some((issue) => issue.severity === 'error')) throw new Error('Variant contains blocking validation errors.')
@@ -81,16 +120,23 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   },
   discardVariant: (ref) => set((state) => ({ variants: state.variants.filter((item) => item.ref !== ref), confirmationVariantRef: null, toast: 'Variant discarded.' })),
   commitCommand: (command) => {
-    const state = get()
-    const next = applyCommand(state.project, command)
+    const state = get(); const next = applyCommand(state.project, command)
     const blocking = validateProject(next).filter((issue) => issue.severity === 'error')
     if (blocking.length) throw new Error(blocking[0].message)
     next.revision = state.project.revision + 1
-    set({ project: next, history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], toast: 'Manual edit applied.' })
+    set({ project: next, history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], toast: 'Spatial edit applied.' })
+  },
+  commitCommands: (commands, message = 'Spatial edits applied.') => {
+    const state = get(); const next = applyCommands(state.project, commands)
+    const blocking = validateProject(next).filter((issue) => issue.severity === 'error')
+    if (blocking.length) throw new Error(blocking[0].message)
+    next.revision = state.project.revision + 1
+    next.updatedAt = new Date().toISOString()
+    set({ project: next, history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], toast: message })
+    return next
   },
   undo: () => {
-    const state = get()
-    const previous = state.history.at(-1)
+    const state = get(); const previous = state.history.at(-1)
     if (!previous) throw new Error('There is no committed change to undo.')
     set({ project: previous, history: state.history.slice(0, -1), variants: [], confirmationVariantRef: null, toast: 'Last change undone.' })
     return previous

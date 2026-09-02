@@ -1,1260 +1,664 @@
-import { Edges, Environment, Grid, Lightformer, Line, OrbitControls, RoundedBox, TransformControls, useTexture } from '@react-three/drei'
+import { Html, Line as DreiLine, TransformControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { CuboidCollider, Physics, RigidBody } from '@react-three/rapier'
+import * as OBC from '@thatopen/components'
+import CameraControls from 'camera-controls'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  AmbientLight,
-  BackSide,
-  BufferGeometry,
-  Color,
-  DirectionalLight,
-  DodecahedronGeometry,
-  DoubleSide,
-  Float32BufferAttribute,
-  Group,
-  HemisphereLight,
-  MathUtils,
-  MirroredRepeatWrapping,
-  Object3D,
-  Quaternion,
-  SRGBColorSpace,
-  ShaderMaterial,
-  ShapeUtils,
-  Vector2,
-  Vector3,
+  Box3, BufferAttribute, BufferGeometry, DoubleSide, EdgesGeometry, Group, LinearFilter, MathUtils, Mesh, MeshStandardMaterial, Object3D,
+  OrthographicCamera, PerspectiveCamera, Plane, Raycaster, Scene, Shape, ShapeGeometry, Vector2, Vector3, WebGLRenderTarget, WebGLRenderer,
 } from 'three'
-import { sunPositionForMonth } from '../domain/seasonal'
-import type { ArchitecturalStyle, BuildingModel, GardenZone, PlantModel, PlotParcelModel, ProjectV1, RoomModel, VariantModel, ViewMode } from '../domain/types'
-import { setExportSceneRoot, setRenderCanvas } from '../services/export'
+import { acceleratedRaycast, computeBoundsTree, disposeBoundsTree } from 'three-mesh-bvh'
+import { buildingGroundOffset, buildingLocalBounds, elevationAt, pointInPolygon, polygonCentroid, spaceFootprint } from '../domain/geometry'
+import { gardenFixtureById } from '../domain/gardenFixtures'
+import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, StructureReport, ViewMode } from '../domain/types'
+import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
+import type { GeneratedSolid } from '../geometry/types'
+import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
 import { useStudioStore } from '../state/store'
-import { TextSprite } from '../ui/CanvasUi'
 
-const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+const TECH = { slab: '#d8d6cb', wall: '#e9e7df', roof: '#6c4a39', soil: '#a8ad8d' }
+const REAL = { slab: '#d6d0bf', wall: '#e8e1d2', roof: '#6f4735', soil: '#918867' }
+const BARN = { slab: '#777269', wall: '#282d2c', roof: '#343a3b' }
+const TERRAIN_SURFACE_Y = 0
+const MAX_ORBIT_DISTANCE = 420
+const SCENE_FAR = 1200
+const KEYBOARD_PAN_STEP_M = 2.5
+const STOREY_EXPLODE_GAP_M = 2.8
+const ROOM_EXPLODE_DISTANCE_M = 2.6
+export const CLEAR_MEASUREMENT_EVENT = 'projectv2:clear-measurement'
 
-const gardenTextureUrl = (file: string) => `${import.meta.env.BASE_URL}textures/${file}`
-
-const textureFiles = {
-  ground: 'ground-meadow.jpg',
-  lawn: 'lawn-fine.jpg',
-  gravel: 'gravel-limestone.jpg',
-  soil: 'soil-mulch.jpg',
-  terrace: 'terrace-limestone.jpg',
-  bark: 'bark-apple.jpg',
-  dormantGrass: 'grass-dormant.jpg',
-} as const
-
-const useTiledTexture = (file: string, repeatX: number, repeatY: number, rotation = 0) => {
-  const source = useTexture(gardenTextureUrl(file))
-  const gl = useThree((state) => state.gl)
-  const texture = useMemo(() => {
-    const clone = source.clone()
-    clone.colorSpace = SRGBColorSpace
-    clone.wrapS = MirroredRepeatWrapping
-    clone.wrapT = MirroredRepeatWrapping
-    clone.repeat.set(repeatX, repeatY)
-    clone.center.set(0.5, 0.5)
-    clone.rotation = rotation
-    clone.anisotropy = Math.min(8, gl.capabilities.getMaxAnisotropy())
-    clone.needsUpdate = true
-    return clone
-  }, [gl, repeatX, repeatY, rotation, source])
-  useEffect(() => () => texture.dispose(), [texture])
-  return texture
+const polygonShape = (points: Polygon2) => {
+  const shape = new Shape()
+  points.forEach((point, index) => index ? shape.lineTo(point.x, -point.z) : shape.moveTo(point.x, -point.z))
+  shape.closePath()
+  return shape
 }
 
-const groundTintForMonth = (month: number) => {
-  if (month <= 2 || month === 12) return '#c0b5a4'
-  if (month <= 4) return '#c3cbae'
-  if (month <= 8) return '#d1d7bd'
-  if (month <= 10) return '#c3b88f'
-  return '#aba68f'
-}
-
-function RealisticTerrainMaterial({ month }: { month: number }) {
-  const dormant = month <= 2 || month === 12
-  const texture = useTiledTexture(dormant ? textureFiles.dormantGrass : textureFiles.ground, 1, 1, 0.17)
-  return <meshStandardMaterial
-    map={texture}
-    bumpMap={texture}
-    bumpScale={0.055}
-    color={groundTintForMonth(month)}
-    roughness={0.98}
-    metalness={0}
-    envMapIntensity={0.42}
-    side={DoubleSide}
-  />
-}
-
-const roomPalette: Record<string, string> = {
-  living: '#e4dacb', kitchen: '#d8ddd2', work: '#d4dce0', utility: '#d3d0c9', sleeping: '#ddd4d8', garage: '#c3c9c5', flex: '#dbd4c9',
-}
-
-const architecturalPalette: Record<ArchitecturalStyle, { wall: string; roof: string; trim: string; accent: string; glass: string; edge: string; roughness: number; metalness: number }> = {
-  classic: { wall: '#e7e2d9', roof: '#485159', trim: '#f4f0e8', accent: '#8b5937', glass: '#7ca9ad', edge: '#756d61', roughness: 0.84, metalness: 0.02 },
-  futuristic: { wall: '#dfe6e3', roof: '#20282c', trim: '#f4f7f4', accent: '#262f33', glass: '#72b9c3', edge: '#5b7479', roughness: 0.46, metalness: 0.14 },
-  barn: { wall: '#242a29', roof: '#2d3233', trim: '#a9784f', accent: '#151a1b', glass: '#6ea4aa', edge: '#111616', roughness: 0.72, metalness: 0.08 },
-}
-
-const elevationAt = (project: ProjectV1, x: number, z: number) => {
-  let weighted = 0
-  let total = 0
-  project.plot.elevationPoints.forEach((point) => {
-    const distance = Math.max(0.4, Math.hypot(point.x - x, point.z - z))
-    const weight = 1 / (distance * distance)
-    weighted += point.elevation * weight
-    total += weight
-  })
-  return weighted / total
-}
-
-function Terrain({ project, mode, month }: { project: ProjectV1; mode: ViewMode; month: number }) {
-  const { topGeometry, skirtGeometry } = useMemo(() => {
-    const outline = project.plot.boundary.map((point) => new Vector2(point.x, point.z))
-    const triangles = ShapeUtils.triangulateShape(outline, [])
-    const positions: number[] = []
-    const uvs: number[] = []
-    triangles.forEach((triangle) => triangle.forEach((index) => {
-      const point = project.plot.boundary[index]
-      positions.push(point.x, elevationAt(project, point.x, point.z), point.z)
-      uvs.push(point.x / 3.2, point.z / 3.2)
-    }))
-    const top = new BufferGeometry()
-    top.setAttribute('position', new Float32BufferAttribute(positions, 3))
-    top.setAttribute('uv', new Float32BufferAttribute(uvs, 2))
-    top.computeVertexNormals()
-
-    const skirtPositions: number[] = []
-    const skirtDepth = 0.38
-    const push = (x: number, y: number, z: number) => skirtPositions.push(x, y, z)
-    project.plot.boundary.forEach((point, index) => {
-      const next = project.plot.boundary[(index + 1) % project.plot.boundary.length]
-      const y1 = elevationAt(project, point.x, point.z)
-      const y2 = elevationAt(project, next.x, next.z)
-      push(point.x, y1, point.z); push(next.x, y2, next.z); push(next.x, y2 - skirtDepth, next.z)
-      push(point.x, y1, point.z); push(next.x, y2 - skirtDepth, next.z); push(point.x, y1 - skirtDepth, point.z)
-    })
-    const skirt = new BufferGeometry()
-    skirt.setAttribute('position', new Float32BufferAttribute(skirtPositions, 3))
-    skirt.computeVertexNormals()
-    return { topGeometry: top, skirtGeometry: skirt }
-  }, [project])
-  useEffect(() => () => {
-    topGeometry.dispose()
-    skirtGeometry.dispose()
-  }, [skirtGeometry, topGeometry])
-  const boundary = useMemo(() => [
-    ...project.plot.boundary,
-    project.plot.boundary[0],
-  ].map((point) => [point.x, elevationAt(project, point.x, point.z) + 0.045, point.z] as [number, number, number]), [project])
-  return <group>
-    <mesh geometry={topGeometry} receiveShadow>
-      {mode === 'technical'
-        ? <meshStandardMaterial color="#14211d" roughness={0.96} metalness={0} side={DoubleSide} />
-        : <Suspense fallback={<meshStandardMaterial color="#7f9672" roughness={0.98} side={DoubleSide} />}>
-          <RealisticTerrainMaterial month={month} />
-        </Suspense>}
-    </mesh>
-    <mesh geometry={skirtGeometry} receiveShadow>
-      <meshStandardMaterial color={mode === 'technical' ? '#0a1210' : '#6f7461'} roughness={1} side={DoubleSide} />
-    </mesh>
-    <Line
-      points={boundary}
-      color={mode === 'technical' ? '#bfe876' : '#e8eadf'}
-      lineWidth={mode === 'technical' ? 1.5 : 0.75}
-      transparent
-      opacity={mode === 'technical' ? 0.9 : 0.5}
-    />
-  </group>
-}
-
-const parcelGeometry = (project: ProjectV1, parcel: PlotParcelModel) => {
-  const outline = parcel.boundary.map((point) => new Vector2(point.x, point.z))
-  const triangles = ShapeUtils.triangulateShape(outline, [])
-  const positions: number[] = []
-  const uvs: number[] = []
-  triangles.forEach((triangle) => triangle.forEach((index) => {
-    const point = parcel.boundary[index]
-    positions.push(point.x, elevationAt(project, point.x, point.z) + 0.055, point.z)
-    uvs.push(point.x / 3.2, point.z / 3.2)
-  }))
-  const geometry = new BufferGeometry()
-  geometry.setAttribute('position', new Float32BufferAttribute(positions, 3))
-  geometry.setAttribute('uv', new Float32BufferAttribute(uvs, 2))
-  geometry.computeVertexNormals()
+const localPolygonGeometry = (points: Polygon2) => {
+  const geometry = new ShapeGeometry(polygonShape(points))
+  geometry.rotateX(-Math.PI / 2)
   return geometry
 }
 
-function RealisticAgriculturalMaterial({ month }: { month: number }) {
-  const dormant = month <= 2 || month >= 11
-  const texture = useTiledTexture(dormant ? textureFiles.dormantGrass : textureFiles.ground, 1, 1, 0.12)
-  return <meshStandardMaterial
-    map={texture}
-    bumpMap={texture}
-    bumpScale={0.04}
-    color={dormant ? '#a99b72' : '#879b63'}
-    roughness={1}
-    metalness={0}
-    side={DoubleSide}
-  />
+class SharedRenderer extends OBC.BaseRenderer {
+  three: WebGLRenderer
+  constructor(components: OBC.Components, renderer: WebGLRenderer) { super(components); this.three = renderer }
+  update() { /* React Three Fiber owns the render loop. */ }
+  dispose() { this.clippingPlanes = []; this.onDisposed.trigger(undefined) }
+  getSize() { return this.three.getSize(new Vector2()) }
+  resize(_size?: Vector2) { this.onResize.trigger(this.getSize()) }
 }
 
-function ParcelScene({ parcel, project, mode, month }: { parcel: PlotParcelModel; project: ProjectV1; mode: ViewMode; month: number }) {
-  const geometry = useMemo(() => parcelGeometry(project, parcel), [parcel, project])
-  useEffect(() => () => geometry.dispose(), [geometry])
-  const outline = useMemo(() => [...parcel.boundary, parcel.boundary[0]].map((point) => [
-    point.x, elevationAt(project, point.x, point.z) + 0.09, point.z,
-  ] as [number, number, number]), [parcel, project])
-  const labelPosition = useMemo(() => {
-    const points = parcel.landRole === 'agricultural' ? parcel.boundary.slice(0, 2) : parcel.boundary
-    const x = points.reduce((sum, point) => sum + point.x, 0) / points.length
-    const z = points.reduce((sum, point) => sum + point.z, 0) / points.length + (parcel.landRole === 'agricultural' ? 5.2 : 0)
-    return [x, elevationAt(project, x, z) + 0.45, z] as [number, number, number]
-  }, [parcel, project])
-  const construction = parcel.landRole === 'construction'
-  return <group>
-    {(mode === 'technical' || !construction) && <mesh geometry={geometry} receiveShadow>
-      {mode === 'technical'
-        ? <meshBasicMaterial
-          color={construction ? '#579f91' : '#9a8a52'}
-          transparent
-          opacity={construction ? 0.13 : 0.25}
-          depthWrite={false}
-          side={DoubleSide}
-        />
-        : <Suspense fallback={<meshStandardMaterial color="#879b63" roughness={1} side={DoubleSide} />}>
-          <RealisticAgriculturalMaterial month={month} />
-        </Suspense>}
-    </mesh>}
-    <Line
-      points={outline}
-      color={construction ? (mode === 'technical' ? '#7ee1cc' : '#e7efe5') : (mode === 'technical' ? '#d7c276' : '#a7b17b')}
-      lineWidth={construction ? 1.35 : 0.8}
-      transparent
-      opacity={mode === 'technical' ? 0.9 : construction ? 0.24 : 0.46}
-      dashed={parcel.geometryConfidence === 'context-only'}
-      dashSize={1.15}
-      gapSize={0.75}
-    />
-    {mode === 'technical' && <group position={labelPosition}>
-      <TextSprite
-        text={`${parcel.cadastralNumber}  ·  ${parcel.landRole === 'construction' ? 'BUILD' : 'AGRI'}  ·  ${parcel.officialAreaM2.toLocaleString('en')} m²${parcel.geometryConfidence === 'context-only' ? '  ~' : ''}`}
-        width={parcel.landRole === 'construction' ? 5.8 : 6.2}
-        height={0.72}
-        color={construction ? '#c8f4e5' : '#eadb9d'}
-        fontSize={64}
-      />
-    </group>}
-  </group>
+class SharedScene extends OBC.BaseScene {
+  three: Object3D
+  constructor(components: OBC.Components, shared: Scene) { super(components); this.three = shared }
+  override dispose() { this.onDisposed.trigger(undefined) }
 }
 
-function SiteDimensions({ project, mode }: { project: ProjectV1; mode: ViewMode }) {
-  if (mode !== 'technical') return null
-  const yAt = (x: number, z: number) => elevationAt(project, x, z) + 0.22
-  const sections = [
-    { a: [-19.78, -15.1] as const, b: [8.7, -16.63] as const, label: '28.5 m  ·  ROAD-SIDE' },
-    { a: [-16.6, 0] as const, b: [16.6, 0] as const, label: '33.2 m  ·  MID-SITE' },
-    { a: [-18.4, 15.88] as const, b: [19.48, 15.88] as const, label: '37.9 m  ·  AGRI EDGE' },
-  ]
-  return <group>
-    {sections.map((section) => {
-      const midX = (section.a[0] + section.b[0]) / 2
-      const midZ = (section.a[1] + section.b[1]) / 2
-      return <group key={section.label}>
-        <Line
-          points={[
-            [section.a[0], yAt(section.a[0], section.a[1]), section.a[1]],
-            [section.b[0], yAt(section.b[0], section.b[1]), section.b[1]],
-          ]}
-          color="#c6ed76"
-          lineWidth={1.15}
-          dashed
-          dashSize={0.55}
-          gapSize={0.35}
-        />
-        <group position={[midX, yAt(midX, midZ) + 0.55, midZ]}>
-          <TextSprite text={section.label} width={4.8} height={0.58} color="#ddf4b0" fontSize={62} />
-        </group>
-      </group>
-    })}
-    <Line
-      points={[[0, yAt(0, -16.1), -16.1], [0, yAt(0, 16.2), 16.2]]}
-      color="#9fdbd0"
-      lineWidth={0.95}
-      dashed
-      dashSize={0.5}
-      gapSize={0.4}
-    />
-    <group position={[1.3, yAt(0, 1) + 0.7, 1]}>
-      <TextSprite text="32.3 m  ·  AXIS" width={4.2} height={0.56} color="#bfe9df" fontSize={62} />
-    </group>
-  </group>
-}
-
-function BoreholeMarkers({ project, mode }: { project: ProjectV1; mode: ViewMode }) {
-  if (mode !== 'technical') return null
-  return <group>
-    {project.knowledgeBase.geotechnical.boreholes.map((borehole) => {
-      const surface = elevationAt(project, borehole.position.x, borehole.position.z)
-      return <group key={borehole.ref} position={[borehole.position.x, surface, borehole.position.z]}>
-        <mesh position={[0, 0.75, 0]} castShadow>
-          <cylinderGeometry args={[0.13, 0.2, 1.5, 16]} />
-          <meshStandardMaterial color="#e05c98" emissive="#7d1947" emissiveIntensity={0.28} roughness={0.55} />
-        </mesh>
-        <mesh position={[0, 1.55, 0]} rotation={[Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[0.3, 24]} />
-          <meshBasicMaterial color="#ff8fbd" side={DoubleSide} />
-        </mesh>
-        <group position={[0, 2.15, 0]}>
-          <TextSprite text={`${borehole.label}  ·  GW ${borehole.groundwaterDepthM.toFixed(1)} m`} width={4.3} height={0.62} color="#ffc1dc" fontSize={62} />
-        </group>
-      </group>
-    })}
-  </group>
-}
-
-function Opening({ opening, room, mode, architecturalStyle }: { opening: RoomModel['openings'][number]; room: RoomModel; mode: ViewMode; architecturalStyle: ArchitecturalStyle }) {
-  const onX = opening.wall === 'east' || opening.wall === 'west'
-  const x = opening.wall === 'east' ? room.widthM / 2 + 0.012 : opening.wall === 'west' ? -room.widthM / 2 - 0.012 : opening.offsetM
-  const z = opening.wall === 'north' ? -room.depthM / 2 - 0.012 : opening.wall === 'south' ? room.depthM / 2 + 0.012 : opening.offsetM
-  const isWindow = opening.kind === 'window'
-  const palette = architecturalPalette[architecturalStyle]
-  return <group position={[x, opening.heightM / 2 + 0.18, z]} rotation={[0, onX ? Math.PI / 2 : 0, 0]}>
-    <mesh>
-      <planeGeometry args={[opening.widthM, opening.heightM]} />
-      <meshPhysicalMaterial
-        color={isWindow ? (mode === 'technical' ? '#9fd6d1' : palette.glass) : architecturalStyle === 'futuristic' ? palette.accent : '#765038'}
-        roughness={isWindow ? 0.08 : 0.78}
-        metalness={isWindow ? 0.08 : 0}
-        transmission={isWindow && mode === 'realistic' ? 0.52 : 0}
-        transparent
-        opacity={isWindow ? 0.78 : 1}
-        side={DoubleSide}
-      />
-      <Edges color={isWindow ? (architecturalStyle === 'barn' ? palette.trim : '#d7eeea') : '#422d20'} lineWidth={1.1} />
-    </mesh>
-    {isWindow && <mesh position={[0, 0, 0.008]}>
-      <boxGeometry args={[0.035, opening.heightM, 0.015]} />
-      <meshStandardMaterial color={architecturalStyle === 'classic' ? '#eeeae2' : palette.accent} roughness={0.5} metalness={architecturalStyle === 'futuristic' ? 0.25 : 0} />
-    </mesh>}
-  </group>
-}
-
-function RoomBody({ room, mode, selected, hovered, architecturalStyle, ghost = false }: { room: RoomModel; mode: ViewMode; selected: boolean; hovered: boolean; architecturalStyle: ArchitecturalStyle; ghost?: boolean }) {
-  const palette = architecturalPalette[architecturalStyle]
-  const classicWall = roomPalette[room.usage] ?? palette.wall
-  const realisticWall = architecturalStyle === 'classic' ? classicWall : palette.wall
-  const color = ghost ? '#c7f36e' : mode === 'technical' ? (selected ? '#9cc4ae' : hovered ? '#89b39f' : '#76a18e') : realisticWall
-  return <>
-    <mesh castShadow receiveShadow>
-      <boxGeometry args={[room.widthM, room.heightM, room.depthM]} />
-      <meshPhysicalMaterial
-        color={color}
-        emissive={(selected || hovered) && !ghost ? '#5d816f' : '#000000'}
-        emissiveIntensity={selected && !ghost ? 0.14 : hovered && !ghost ? 0.08 : 0}
-        transparent
-        opacity={ghost ? 0.18 : mode === 'technical' ? 0.2 : 0.96}
-        roughness={mode === 'technical' ? 0.55 : palette.roughness}
-        metalness={mode === 'technical' ? 0 : palette.metalness}
-        transmission={ghost ? 0.1 : mode === 'technical' ? 0.08 : 0}
-        depthWrite={!ghost}
-      />
-      <Edges
-        color={ghost ? '#d8ff8e' : selected ? '#b9e45e' : hovered ? '#a8d8c1' : mode === 'technical' ? '#8ab4a1' : palette.edge}
-        threshold={15}
-        lineWidth={ghost || selected ? 1.8 : 0.65}
-      />
-    </mesh>
-    {!ghost && room.openings.map((opening) => <Opening key={opening.ref} opening={opening} room={room} mode={mode} architecturalStyle={architecturalStyle} />)}
-    {room.mezzanines.map((mezzanine) => <mesh key={mezzanine.ref} position={[mezzanine.position.x, mezzanine.elevationM - room.heightM / 2, mezzanine.position.z]} castShadow>
-      <boxGeometry args={[mezzanine.widthM, mezzanine.thicknessM, mezzanine.depthM]} />
-      <meshStandardMaterial color={ghost ? '#c7f36e' : '#aa7b52'} roughness={0.72} transparent opacity={ghost ? 0.32 : 1} />
-      <Edges color={ghost ? '#d8ff8e' : '#5b3d29'} />
-    </mesh>)}
-    {!ghost && mode === 'technical' && <group position={[0, room.heightM / 2 + 0.32, 0]}>
-      <TextSprite text={room.name.toUpperCase()} width={Math.min(3.8, Math.max(1.8, room.widthM * 0.65))} height={0.42} color={mode === 'technical' ? '#d9e7df' : '#34423b'} fontSize={72} />
-    </group>}
-  </>
-}
-
-function EditableRoom({ room, building, floorY, mode, ghost = false }: { room: RoomModel; building: BuildingModel; floorY: number; mode: ViewMode; ghost?: boolean }) {
-  const selectedRef = useStudioStore((state) => state.selectedRef)
-  const transformMode = useStudioStore((state) => state.transformMode)
-  const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
-  const commitCommand = useStudioStore((state) => state.commitCommand)
-  const setToast = useStudioStore((state) => state.setToast)
-  const groupRef = useRef<Group>(null!)
-  const [hovered, setHovered] = useState(false)
-  const selected = !ghost && selectedRef === room.ref
-  const body = <group
-    ref={groupRef}
-    position={[room.position.x, floorY + room.heightM / 2, room.position.z]}
-    rotation={[0, MathUtils.degToRad(room.rotationDegrees), 0]}
-    onClick={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(room.ref) }}
-    onPointerOver={(event) => {
-      event.stopPropagation()
-      if (!ghost) {
-        setHovered(true)
-        document.body.style.cursor = room.locked ? 'not-allowed' : 'pointer'
-      }
-    }}
-    onPointerOut={() => {
-      setHovered(false)
-      document.body.style.cursor = 'default'
-    }}
-  >
-    <RoomBody room={room} mode={mode} selected={selected} hovered={hovered} architecturalStyle={building.architecturalStyle} ghost={ghost} />
-  </group>
-  if (!selected || room.locked || ghost) return body
-  const finishTransform = () => {
-    const object = groupRef.current
-    if (!object) return
-    try {
-      if (transformMode === 'translate') commitCommand({ type: 'room.update', action: 'move', buildingRef: building.ref, floorRef: building.floors.find((floor) => floor.rooms.some((item) => item.ref === room.ref))!.ref, roomRef: room.ref, position: { x: object.position.x, z: object.position.z } })
-      if (transformMode === 'scale') commitCommand({ type: 'room.update', action: 'resize', buildingRef: building.ref, floorRef: building.floors.find((floor) => floor.rooms.some((item) => item.ref === room.ref))!.ref, roomRef: room.ref, widthM: Math.max(1, room.widthM * object.scale.x), depthM: Math.max(1, room.depthM * object.scale.z) })
-      if (transformMode === 'rotate') commitCommand({ type: 'room.update', action: 'move', buildingRef: building.ref, floorRef: building.floors.find((floor) => floor.rooms.some((item) => item.ref === room.ref))!.ref, roomRef: room.ref, rotationDegrees: MathUtils.radToDeg(object.rotation.y) })
-      object.scale.set(1, 1, 1)
-    } catch (error) { setToast(error instanceof Error ? error.message : 'Transform failed.') }
-  }
-  return <>
-    {body}
-    <TransformControls
-      object={groupRef}
-      mode={transformMode} translationSnap={0.5} rotationSnap={Math.PI / 12} scaleSnap={0.1}
-      showX={transformMode !== 'rotate'} showY={transformMode === 'rotate'} showZ={transformMode !== 'rotate'}
-      onMouseUp={finishTransform}
-    />
-  </>
-}
-
-const buildingBounds = (building: BuildingModel) => {
-  const rooms = building.floors.flatMap((floor) => floor.rooms)
-  if (!rooms.length) return { minX: -2, maxX: 2, minZ: -2, maxZ: 2 }
-  return rooms.reduce((bounds, room) => ({
-    minX: Math.min(bounds.minX, room.position.x - room.widthM / 2), maxX: Math.max(bounds.maxX, room.position.x + room.widthM / 2),
-    minZ: Math.min(bounds.minZ, room.position.z - room.depthM / 2), maxZ: Math.max(bounds.maxZ, room.position.z + room.depthM / 2),
-  }), { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity })
-}
-
-function Roof({ building, mode, ghost, explodeOffset }: { building: BuildingModel; mode: ViewMode; ghost: boolean; explodeOffset: number }) {
-  const bounds = buildingBounds(building)
-  const width = bounds.maxX - bounds.minX + building.roof.overhangM * 2
-  const depth = bounds.maxZ - bounds.minZ + building.roof.overhangM * 2
-  const centerX = (bounds.minX + bounds.maxX) / 2
-  const centerZ = (bounds.minZ + bounds.maxZ) / 2
-  const highestFloor = building.floors.reduce((highest, floor) => floor.elevationM + floor.defaultHeightM > highest.elevationM + highest.defaultHeightM ? floor : highest, building.floors[0])
-  if (!highestFloor) return null
-  const top = highestFloor.elevationM + highestFloor.defaultHeightM + explodeOffset
-  const palette = architecturalPalette[building.architecturalStyle]
-  const material = <meshStandardMaterial
-    color={ghost ? '#c7f36e' : mode === 'technical' ? '#6f9182' : palette.roof}
-    roughness={mode === 'technical' ? 0.55 : building.architecturalStyle === 'futuristic' ? 0.42 : 0.8}
-    metalness={mode === 'realistic' ? palette.metalness : 0}
-    transparent
-    opacity={ghost ? 0.16 : mode === 'technical' ? 0.2 : 1}
-    depthWrite={!ghost}
-    side={DoubleSide}
-  />
-  if (building.roof.type === 'flat') return <mesh position={[centerX, top + 0.12, centerZ]} castShadow receiveShadow>
-    <boxGeometry args={[width, building.architecturalStyle === 'futuristic' ? 0.3 : 0.22, depth]} />{material}<Edges color={ghost ? '#d8ff8e' : mode === 'technical' ? '#9fc3b2' : palette.edge} lineWidth={0.8} />
-  </mesh>
-  if (building.roof.type === 'hip') {
-    const rise = Math.tan(MathUtils.degToRad(building.roof.pitchDegrees)) * Math.min(width, depth) / 2
-    return <mesh position={[centerX, top + rise / 2, centerZ]} rotation={[0, Math.PI / 4, 0]} scale={[width / Math.max(width, depth), 1, depth / Math.max(width, depth)]} castShadow>
-      <coneGeometry args={[Math.max(width, depth) / Math.sqrt(2), rise, 4]} />{material}<Edges color={ghost ? '#d8ff8e' : mode === 'technical' ? '#9fc3b2' : palette.edge} lineWidth={0.8} />
-    </mesh>
-  }
-  const pitch = MathUtils.degToRad(building.roof.pitchDegrees)
-  const half = width / 2
-  const panel = Math.sqrt(half * half + Math.tan(pitch) * half * Math.tan(pitch) * half)
-  const rise = Math.tan(pitch) * half
-  return <group position={[centerX, top, centerZ]}>
-    <mesh position={[-width / 4, rise / 2, 0]} rotation={[0, 0, pitch]} castShadow receiveShadow><boxGeometry args={[panel, 0.18, depth]} />{material}</mesh>
-    <mesh position={[width / 4, rise / 2, 0]} rotation={[0, 0, -pitch]} castShadow receiveShadow><boxGeometry args={[panel, 0.18, depth]} />{material}</mesh>
-    <mesh position={[0, rise + 0.06, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-      <cylinderGeometry args={[0.09, 0.09, depth + 0.12, 8]} />
-      <meshStandardMaterial color={ghost ? '#c7f36e' : mode === 'technical' ? '#91b7a5' : palette.edge} roughness={0.78} transparent opacity={ghost ? 0.2 : mode === 'technical' ? 0.45 : 1} />
-    </mesh>
-  </group>
-}
-
-function StyleReveal({ children }: { children: React.ReactNode }) {
-  const group = useRef<Group>(null)
-  const progress = useRef(prefersReducedMotion ? 1 : 0)
-  useFrame((_, delta) => {
-    if (!group.current || progress.current >= 1) return
-    progress.current = Math.min(1, progress.current + delta * 2.8)
-    const eased = 1 - Math.pow(1 - progress.current, 3)
-    group.current.scale.setScalar(0.96 + eased * 0.04)
-    group.current.position.y = -0.12 + eased * 0.12
-  })
-  return <group ref={group} scale={prefersReducedMotion ? 1 : 0.96} position-y={prefersReducedMotion ? 0 : -0.12}>{children}</group>
-}
-
-function FacadeBeam({ from, to, z, color, thickness = 0.18, depth = 0.14 }: { from: [number, number]; to: [number, number]; z: number; color: string; thickness?: number; depth?: number }) {
-  const dx = to[0] - from[0]
-  const dy = to[1] - from[1]
-  const length = Math.hypot(dx, dy)
-  return <mesh position={[(from[0] + to[0]) / 2, (from[1] + to[1]) / 2, z]} rotation={[0, 0, Math.atan2(dy, dx)]} castShadow>
-    <boxGeometry args={[length, thickness, depth]} />
-    <meshStandardMaterial color={color} roughness={0.7} />
-  </mesh>
-}
-
-function BarnGableGlass({ centerX, baseY, width, rise, z, palette }: { centerX: number; baseY: number; width: number; rise: number; z: number; palette: typeof architecturalPalette.barn }) {
-  const geometry = useMemo(() => {
-    const result = new BufferGeometry()
-    result.setAttribute('position', new Float32BufferAttribute([-width / 2, 0, 0, width / 2, 0, 0, 0, rise, 0], 3))
-    result.computeVertexNormals()
-    return result
-  }, [rise, width])
-  useEffect(() => () => geometry.dispose(), [geometry])
-  return <mesh geometry={geometry} position={[centerX, baseY, z]}>
-    <meshPhysicalMaterial color={palette.glass} roughness={0.08} metalness={0.16} transmission={0.5} transparent opacity={0.78} side={DoubleSide} />
-  </mesh>
-}
-
-function ArchitecturalDetails({ building }: { building: BuildingModel }) {
-  const bounds = buildingBounds(building)
-  const width = bounds.maxX - bounds.minX
-  const depth = bounds.maxZ - bounds.minZ
-  const centerX = (bounds.minX + bounds.maxX) / 2
-  const centerZ = (bounds.minZ + bounds.maxZ) / 2
-  const base = Math.min(...building.floors.map((floor) => floor.elevationM))
-  const top = Math.max(...building.floors.map((floor) => floor.elevationM + floor.defaultHeightM))
-  const frontZ = bounds.maxZ + 0.035
-  const palette = architecturalPalette[building.architecturalStyle]
-
-  if (building.kind !== 'house') return null
-
-  if (building.architecturalStyle === 'classic') {
-    const accentHeight = Math.min(2.8, top - base - 0.2)
-    return <StyleReveal>
-      <mesh position={[centerX, base + 0.22, frontZ + 0.035]} castShadow>
-        <boxGeometry args={[width * 0.96, 0.44, 0.1]} />
-        <meshStandardMaterial color="#8a8175" roughness={0.94} />
-      </mesh>
-      <mesh position={[centerX, base + accentHeight / 2 + 0.1, frontZ + 0.055]} castShadow>
-        <boxGeometry args={[2.3, accentHeight, 0.12]} />
-        <meshStandardMaterial color={palette.accent} roughness={0.78} />
-      </mesh>
-      <mesh position={[centerX, top - 0.58, frontZ + 0.62]} castShadow receiveShadow>
-        <boxGeometry args={[3.5, 0.16, 1.35]} />
-        <meshStandardMaterial color={palette.trim} roughness={0.78} />
-      </mesh>
-      {[-1.45, 1.45].map((offset) => <mesh key={offset} position={[centerX + offset, base + 1.05, frontZ + 1.08]} castShadow>
-        <boxGeometry args={[0.16, 2.1, 0.16]} />
-        <meshStandardMaterial color={palette.accent} roughness={0.74} />
-      </mesh>)}
-      <mesh position={[bounds.maxX - 1.25, top + 0.95, centerZ - depth * 0.08]} castShadow>
-        <boxGeometry args={[0.82, 2.3, 0.82]} />
-        <meshStandardMaterial color="#e7e2d9" roughness={0.88} />
-      </mesh>
-    </StyleReveal>
-  }
-
-  if (building.architecturalStyle === 'futuristic') {
-    const glassWidth = width * 0.58
-    const glassHeight = Math.max(1.9, top - base - 0.65)
-    return <StyleReveal>
-      <mesh position={[centerX + width * 0.1, base + 0.28 + glassHeight / 2, frontZ + 0.055]}>
-        <boxGeometry args={[glassWidth, glassHeight, 0.1]} />
-        <meshPhysicalMaterial color={palette.glass} roughness={0.06} metalness={0.22} transmission={0.55} transparent opacity={0.76} />
-      </mesh>
-      {[-0.5, 0, 0.5].map((factor) => <mesh key={factor} position={[centerX + width * 0.1 + glassWidth * factor, base + 0.28 + glassHeight / 2, frontZ + 0.12]}>
-        <boxGeometry args={[0.08, glassHeight, 0.11]} />
-        <meshStandardMaterial color={palette.accent} metalness={0.3} roughness={0.38} />
-      </mesh>)}
-      <mesh position={[centerX + width * 0.08, top + 0.32, frontZ + 0.78]} castShadow receiveShadow>
-        <boxGeometry args={[width * 0.78, 0.2, 1.65]} />
-        <meshStandardMaterial color={palette.trim} roughness={0.38} metalness={0.14} />
-      </mesh>
-      <mesh position={[bounds.minX + 0.7, base + (top - base) / 2, frontZ + 0.16]} castShadow>
-        <boxGeometry args={[0.34, top - base + 0.8, 0.42]} />
-        <meshStandardMaterial color={palette.accent} roughness={0.42} metalness={0.18} />
-      </mesh>
-      <mesh position={[bounds.maxX - 0.8, base + 0.55, frontZ + 0.72]} castShadow>
-        <boxGeometry args={[1.9, 1.1, 1.45]} />
-        <meshStandardMaterial color={palette.accent} roughness={0.55} metalness={0.12} />
-      </mesh>
-    </StyleReveal>
-  }
-
-  const glassWidth = width * 0.72
-  const glassHeight = Math.max(2, top - base - 0.35)
-  const rise = Math.tan(MathUtils.degToRad(building.roof.pitchDegrees)) * glassWidth / 2
-  const frameZ = frontZ + 0.14
-  return <StyleReveal>
-    <mesh position={[centerX, base + glassHeight / 2 + 0.08, frontZ + 0.055]}>
-      <boxGeometry args={[glassWidth, glassHeight, 0.1]} />
-      <meshPhysicalMaterial color={palette.glass} roughness={0.07} metalness={0.14} transmission={0.5} transparent opacity={0.76} />
-    </mesh>
-    <BarnGableGlass centerX={centerX} baseY={top - 0.2} width={glassWidth} rise={rise * 0.92} z={frontZ + 0.06} palette={architecturalPalette.barn} />
-    <FacadeBeam from={[centerX - glassWidth / 2, base]} to={[centerX - glassWidth / 2, top - 0.08]} z={frameZ} color={palette.trim} />
-    <FacadeBeam from={[centerX + glassWidth / 2, base]} to={[centerX + glassWidth / 2, top - 0.08]} z={frameZ} color={palette.trim} />
-    <FacadeBeam from={[centerX - glassWidth / 2, top - 0.08]} to={[centerX, top + rise * 0.92]} z={frameZ} color={palette.trim} thickness={0.22} />
-    <FacadeBeam from={[centerX, top + rise * 0.92]} to={[centerX + glassWidth / 2, top - 0.08]} z={frameZ} color={palette.trim} thickness={0.22} />
-    <FacadeBeam from={[centerX, base]} to={[centerX, top + rise * 0.92]} z={frameZ + 0.02} color={palette.trim} thickness={0.16} />
-    <FacadeBeam from={[centerX - glassWidth / 2, top - 0.08]} to={[centerX + glassWidth / 2, top - 0.08]} z={frameZ} color={palette.trim} thickness={0.18} />
-    {[-0.25, 0.25].map((factor) => <FacadeBeam key={factor} from={[centerX + glassWidth * factor, base]} to={[centerX + glassWidth * factor, top - 0.08]} z={frameZ} color={palette.trim} thickness={0.1} />)}
-    <mesh position={[centerX, base + 0.02, frontZ + 1.35]} castShadow receiveShadow>
-      <boxGeometry args={[width * 0.9, 0.14, 2.8]} />
-      <meshStandardMaterial color="#9b704d" roughness={0.76} />
-    </mesh>
-  </StyleReveal>
-}
-
-function BuildingScene({ building, mode, explode, ghost = false }: { building: BuildingModel; mode: ViewMode; explode: boolean; ghost?: boolean }) {
-  return <group position={[building.position.x, 0, building.position.z]} rotation={[0, MathUtils.degToRad(building.rotationDegrees), 0]}>
-    {building.floors.map((floor) => {
-      const floorY = floor.elevationM + (explode ? floor.level * 1.9 : 0)
-      return <group key={floor.ref}>
-        {floor.rooms.map((room) => <EditableRoom key={room.ref} room={room} building={building} floorY={floorY} mode={mode} ghost={ghost} />)}
-      </group>
-    })}
-    <Roof building={building} mode={mode} ghost={ghost} explodeOffset={explode ? Math.max(0, building.floors.length - 1) * 1.9 : 0} />
-    {!ghost && mode === 'realistic' && !explode && <ArchitecturalDetails key={building.architecturalStyle} building={building} />}
-  </group>
-}
-
-const zoneColor: Record<GardenZone['kind'], string> = {
-  lawn: '#7ea36a', terrace: '#cdb58f', path: '#bbb09d', driveway: '#9d9e95', bed: '#755b43', 'rain-garden': '#5f9184', vegetable: '#819b59',
-}
-
-const zoneTextureConfig: Record<GardenZone['kind'], { file: string; tileM: number; bumpScale: number; roughness: number }> = {
-  lawn: { file: textureFiles.lawn, tileM: 4.8, bumpScale: 0.075, roughness: 0.98 },
-  terrace: { file: textureFiles.terrace, tileM: 2.1, bumpScale: 0.035, roughness: 0.82 },
-  path: { file: textureFiles.gravel, tileM: 2.7, bumpScale: 0.085, roughness: 1 },
-  driveway: { file: textureFiles.gravel, tileM: 3.1, bumpScale: 0.09, roughness: 1 },
-  bed: { file: textureFiles.soil, tileM: 1.8, bumpScale: 0.075, roughness: 1 },
-  'rain-garden': { file: textureFiles.soil, tileM: 1.65, bumpScale: 0.055, roughness: 0.88 },
-  vegetable: { file: textureFiles.soil, tileM: 1.8, bumpScale: 0.07, roughness: 1 },
-}
-
-const zoneSurfaceHeight = (kind: GardenZone['kind']) => {
-  if (kind === 'lawn') return 0.025
-  if (kind === 'terrace') return 0.105
-  if (kind === 'path' || kind === 'driveway') return 0.052
-  if (kind === 'rain-garden') return 0.042
-  return 0.075
-}
-
-const zoneTintForMonth = (kind: GardenZone['kind'], month: number) => {
-  if (kind === 'lawn') {
-    if (month <= 2 || month === 12) return '#b7ac98'
-    if (month <= 4) return '#aeb995'
-    if (month <= 8) return '#b4b99a'
-    if (month <= 10) return '#95855f'
-    return '#817965'
-  }
-  if (kind === 'rain-garden') return month >= 4 && month <= 9 ? '#b5b8a9' : '#96958a'
-  if (kind === 'path' || kind === 'driveway') return '#aaa18f'
-  if (kind === 'terrace') return '#c0b6a6'
-  return '#a99683'
-}
-
-function RealisticGardenMaterial({ zone, month, selected, hovered }: { zone: GardenZone; month: number; selected: boolean; hovered: boolean }) {
-  const config = zoneTextureConfig[zone.kind]
-  const textureFile = zone.kind === 'lawn' && (month <= 2 || month === 12) ? textureFiles.dormantGrass : config.file
-  const texture = useTiledTexture(
-    textureFile,
-    Math.max(1, zone.widthM / config.tileM),
-    Math.max(1, zone.depthM / config.tileM),
-    zone.kind === 'path' || zone.kind === 'driveway' ? 0.13 : 0,
-  )
-  return <meshPhysicalMaterial
-    map={texture}
-    bumpMap={texture}
-    bumpScale={config.bumpScale}
-    color={zoneTintForMonth(zone.kind, month)}
-    emissive={(selected || hovered) ? '#26796d' : '#000000'}
-    emissiveIntensity={selected ? 0.14 : hovered ? 0.065 : 0}
-    roughness={config.roughness}
-    metalness={0}
-    clearcoat={zone.kind === 'rain-garden' ? 0.13 : zone.kind === 'terrace' ? 0.05 : 0}
-    clearcoatRoughness={zone.kind === 'rain-garden' ? 0.55 : 0.82}
-    envMapIntensity={zone.kind === 'rain-garden' ? 0.72 : 0.46}
-  />
-}
-
-const seededUnit = (seed: number) => {
-  const value = Math.sin(seed * 91.345 + 17.127) * 47453.5453
-  return value - Math.floor(value)
-}
-
-function SurfaceScatter({ zone, month }: { zone: GardenZone; month: number }) {
-  const detailKind = zone.kind === 'lawn' ? 'grass' : zone.kind === 'path' || zone.kind === 'driveway' ? 'stone' : null
-  const count = Math.min(detailKind === 'grass' ? 40 : 34, Math.max(12, Math.round(zone.widthM * zone.depthM * (detailKind === 'grass' ? 0.3 : 0.22))))
-  const mesh = useRef<import('three').InstancedMesh>(null)
-  const dummy = useMemo(() => new Object3D(), [])
-  const seedBase = useMemo(() => [...zone.ref].reduce((sum, character) => sum + character.charCodeAt(0), 0), [zone.ref])
-  const winter = month <= 2 || month === 12
-  useEffect(() => {
-    if (!detailKind || !mesh.current) return
-    for (let index = 0; index < count; index += 1) {
-      const x = (seededUnit(seedBase + index * 3) - 0.5) * Math.max(0.1, zone.widthM - 0.28)
-      const z = (seededUnit(seedBase + index * 3 + 1) - 0.5) * Math.max(0.1, zone.depthM - 0.28)
-      const scale = 0.62 + seededUnit(seedBase + index * 3 + 2) * 0.72
-      const surfaceTop = zoneSurfaceHeight(zone.kind) / 2
-      dummy.position.set(x, surfaceTop + (detailKind === 'grass' ? (winter ? 0.06 : 0.095) : 0.035), z)
-      dummy.rotation.set(detailKind === 'grass' ? 0 : seededUnit(index + 4) * 0.7, seededUnit(index + 7) * Math.PI, detailKind === 'grass' ? 0 : seededUnit(index + 9) * 0.5)
-      dummy.scale.set(scale, scale, scale)
-      dummy.updateMatrix()
-      mesh.current.setMatrixAt(index, dummy.matrix)
-    }
-    mesh.current.instanceMatrix.needsUpdate = true
-  }, [count, detailKind, dummy, seedBase, winter, zone.depthM, zone.kind, zone.widthM])
-  if (!detailKind) return null
-  return <instancedMesh ref={mesh} args={[undefined, undefined, count]} castShadow={detailKind === 'stone'} receiveShadow>
-    {detailKind === 'grass'
-      ? <coneGeometry args={[0.045, winter ? 0.12 : 0.19, 3]} />
-      : <dodecahedronGeometry args={[0.055, 0]} />}
-    <meshStandardMaterial
-      color={detailKind === 'grass' ? (winter ? '#7f7651' : '#668552') : '#c7bda9'}
-      roughness={detailKind === 'grass' ? 0.96 : 1}
-    />
-  </instancedMesh>
-}
-
-function RainGardenWater({ zone, month }: { zone: GardenZone; month: number }) {
-  const summer = month >= 5 && month <= 8
-  const patches = summer
-    ? [[-0.08, 0, 0.23, 0.2], [0.13, 0.02, 0.17, 0.13]]
-    : [[-0.06, 0, 0.31, 0.27], [0.17, 0.04, 0.22, 0.18]]
-  return <group position={[0, zoneSurfaceHeight(zone.kind) / 2 + 0.014, 0]}>
-    {patches.map(([x, z, scaleX, scaleZ], index) => <mesh
-      key={index}
-      position={[zone.widthM * x, index * 0.002, zone.depthM * z]}
-      rotation={[-Math.PI / 2, 0, index * 0.42]}
-      scale={[zone.widthM * scaleX, zone.depthM * scaleZ, 1]}
-      receiveShadow
-    >
-      <circleGeometry args={[1, 40]} />
-      <meshPhysicalMaterial
-        color={summer ? '#5c9690' : '#70a6a0'}
-        emissive="#284e4b"
-        emissiveIntensity={0.1}
-        roughness={0.1}
-        metalness={0.12}
-        clearcoat={0.92}
-        clearcoatRoughness={0.08}
-      />
-    </mesh>)}
-    <mesh position={[-zone.widthM * 0.07, 0.008, zone.depthM * 0.01]} rotation={[-Math.PI / 2, 0, 0]} scale={[zone.widthM * 0.12, zone.depthM * 0.1, 1]}>
-      <ringGeometry args={[0.82, 0.86, 36]} />
-      <meshBasicMaterial color="#c0d8d2" transparent opacity={0.28} depthWrite={false} />
-    </mesh>
-  </group>
-}
-
-function GardenZoneScene({ zone, project, mode, month, ghost = false }: { zone: GardenZone; project: ProjectV1; mode: ViewMode; month: number; ghost?: boolean }) {
-  const selectedRef = useStudioStore((state) => state.selectedRef)
-  const transformMode = useStudioStore((state) => state.transformMode)
-  const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
-  const setTransformMode = useStudioStore((state) => state.setTransformMode)
-  const commitCommand = useStudioStore((state) => state.commitCommand)
-  const setToast = useStudioStore((state) => state.setToast)
-  const groupRef = useRef<Group>(null!)
-  const [hovered, setHovered] = useState(false)
-  const selected = !ghost && selectedRef === zone.ref
-  const surfaceHeight = zoneSurfaceHeight(zone.kind)
-  const y = elevationAt(project, zone.position.x, zone.position.z) + surfaceHeight / 2 + 0.012
-  const body = <group
-    ref={groupRef}
-    position={[zone.position.x, y, zone.position.z]}
-    rotation={[0, MathUtils.degToRad(zone.rotationDegrees), 0]}
-    onClick={(event) => {
-      event.stopPropagation()
-      if (!ghost) {
-        setSelectedRef(zone.ref)
-        setTransformMode('translate')
-      }
-    }}
-    onPointerOver={(event) => {
-      event.stopPropagation()
-      if (!ghost) {
-        setHovered(true)
-        document.body.style.cursor = zone.locked ? 'not-allowed' : 'pointer'
-      }
-    }}
-    onPointerOut={() => { setHovered(false); document.body.style.cursor = 'default' }}
-  >
-    <RoundedBox
-      args={[zone.widthM, surfaceHeight, zone.depthM]}
-      radius={zone.kind === 'terrace' ? 0.08 : 0.035}
-      smoothness={4}
-      receiveShadow
-    >
-      {ghost || mode === 'technical'
-        ? <meshStandardMaterial
-          color={ghost ? '#c7f36e' : new Color(zoneColor[zone.kind]).multiplyScalar(selected ? 0.76 : hovered ? 0.67 : 0.58)}
-          emissive={(selected || hovered) && !ghost ? '#26796d' : '#000000'}
-          emissiveIntensity={selected ? 0.19 : hovered ? 0.09 : 0}
-          roughness={zone.kind === 'rain-garden' ? 0.65 : 0.95}
-          transparent
-          opacity={ghost ? 0.16 : 0.46}
-          depthWrite={!ghost}
-        />
-        : <Suspense fallback={<meshStandardMaterial color={zoneColor[zone.kind]} roughness={0.95} />}>
-          <RealisticGardenMaterial zone={zone} month={month} selected={selected} hovered={hovered} />
-        </Suspense>}
-      {(ghost || mode === 'technical' || selected || hovered) && <Edges color={ghost ? '#d8ff8e' : selected ? '#c6ed76' : hovered ? '#8bd8c9' : '#82998d'} lineWidth={selected ? 1.5 : 0.75} />}
-    </RoundedBox>
-    {!ghost && mode === 'realistic' && <SurfaceScatter zone={zone} month={month} />}
-    {!ghost && mode === 'realistic' && zone.kind === 'rain-garden' && <RainGardenWater zone={zone} month={month} />}
-    {!ghost && mode === 'technical' && <group position={[0, 0.35, 0]}><TextSprite text={zone.name.toUpperCase()} width={Math.min(3.5, zone.widthM * 0.75)} height={0.38} color="#d3dfd8" fontSize={64} /></group>}
-  </group>
-  if (!selected || zone.locked || ghost || transformMode !== 'translate') return body
-  const finishTransform = () => {
-    const object = groupRef.current
-    if (!object) return
-    try {
-      commitCommand({ type: 'garden.update', action: 'move-zone', subjectRef: zone.ref, position: { x: object.position.x, z: object.position.z } })
-    } catch (error) { setToast(error instanceof Error ? error.message : 'Garden transform failed.') }
-  }
-  return <>
-    {body}
-    <TransformControls object={groupRef} mode="translate" translationSnap={0.5} showY={false} onMouseUp={finishTransform} />
-  </>
-}
-
-const seasonalCanopy = (plant: PlantModel, month: number) => {
-  if (!plant.leafMonths.includes(month)) return { visible: false, color: '#75634c' }
-  if (month >= 9 && month <= 11) return { visible: true, color: plant.kind === 'hedge' ? '#7b743c' : '#9a6332' }
-  if (month >= 3 && month <= 5) return { visible: true, color: plant.kind === 'wetland' ? '#6d9a70' : '#5f8a50' }
-  return { visible: true, color: plant.kind === 'wetland' ? '#4f8f79' : plant.kind === 'hedge' ? '#315f3c' : '#3f7048' }
-}
-
-const foliageLobes: Array<[number, number, number, number]> = [
-  [0, 0.2, 0, 0.86], [-0.42, -0.04, 0.08, 0.62], [0.38, -0.02, 0.12, 0.66],
-  [0.08, 0.04, -0.4, 0.61], [-0.12, 0.1, 0.38, 0.59], [-0.25, 0.42, -0.18, 0.54],
-  [0.28, 0.39, 0.04, 0.5], [-0.52, 0.2, -0.28, 0.45], [0.5, 0.16, -0.26, 0.47],
-  [-0.46, 0.12, 0.36, 0.44], [0.44, 0.1, 0.4, 0.43], [0.05, 0.55, 0.3, 0.42],
-  [0.04, -0.2, 0.18, 0.5],
-]
-
-const bloomDots: Array<[number, number, number]> = [
-  [-0.52, 0.12, 0.2], [0.48, 0.2, 0.16], [0.08, 0.48, -0.12], [-0.15, -0.05, 0.52], [0.3, -0.08, -0.46],
-  [-0.28, 0.4, -0.36], [0.55, 0.02, -0.12], [-0.5, -0.08, -0.22], [0.2, 0.38, 0.42],
-  [0.02, -0.18, -0.58], [-0.04, 0.62, 0.08], [0.42, -0.02, 0.5],
-]
-
-function RealisticBarkMaterial({ height }: { height: number }) {
-  const texture = useTiledTexture(textureFiles.bark, 1.5, Math.max(1.2, height / 1.4))
-  return <meshStandardMaterial
-    map={texture}
-    bumpMap={texture}
-    bumpScale={0.07}
-    color="#aaa390"
-    roughness={0.97}
-    metalness={0}
-    envMapIntensity={0.3}
-  />
-}
-
-function Branch({ from, to, radius }: { from: [number, number, number]; to: [number, number, number]; radius: number }) {
-  const transform = useMemo(() => {
-    const start = new Vector3(...from)
-    const end = new Vector3(...to)
-    const direction = end.clone().sub(start)
-    const midpoint = start.clone().add(end).multiplyScalar(0.5)
-    const quaternion = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), direction.clone().normalize())
-    return { midpoint, quaternion, length: direction.length() }
-  }, [from, to])
-  return <mesh position={transform.midpoint} quaternion={transform.quaternion} castShadow>
-    <cylinderGeometry args={[radius * 0.66, radius, transform.length, 7]} />
-    <meshStandardMaterial color="#5a4332" roughness={1} />
-  </mesh>
-}
-
-function RealisticHedgeMaterial({ plant, month, color, selected }: { plant: PlantModel; month: number; color: string | Color; selected: boolean }) {
-  const texture = useTiledTexture(textureFiles.lawn, Math.max(1, plant.canopyM / 1.8), Math.max(1, plant.matureHeightM / 1.2), 0.08)
-  const growingSeason = month >= 4 && month <= 9
-  return <meshPhysicalMaterial
-    map={growingSeason ? texture : undefined}
-    bumpMap={texture}
-    bumpScale={0.065}
-    color={growingSeason ? '#9ab18a' : color}
-    emissive={selected ? '#26796d' : '#000000'}
-    emissiveIntensity={selected ? 0.14 : 0}
-    roughness={0.95}
-    clearcoat={0.025}
-    envMapIntensity={0.34}
-  />
-}
-
-function RealisticCanopy({
-  plant,
-  month,
-  color,
-  crownRadius,
-  crownHeight,
-  selected,
-  hovered,
-  isBlooming,
-}: {
-  plant: PlantModel
-  month: number
-  color: string | Color
-  crownRadius: number
-  crownHeight: number
-  selected: boolean
-  hovered: boolean
-  isBlooming: boolean
-}) {
-  const group = useRef<Group>(null)
-  const texture = useTiledTexture(textureFiles.lawn, 1.6, 1.6, 0.21)
-  const phase = useMemo(() => [...plant.ref].reduce((sum, character) => sum + character.charCodeAt(0), 0) * 0.071, [plant.ref])
-  const geometry = useMemo(() => new DodecahedronGeometry(crownRadius * 0.68, 1), [crownRadius])
-  useEffect(() => () => geometry.dispose(), [geometry])
+function MeasurementPoint({ position, waiting = false }: { position: Vector3; waiting?: boolean }) {
+  const point = useRef<Mesh>(null)
   useFrame(({ clock }) => {
-    if (!group.current || prefersReducedMotion || selected) return
-    group.current.rotation.z = Math.sin(clock.elapsedTime * 0.64 + phase) * 0.008
-    group.current.rotation.x = Math.cos(clock.elapsedTime * 0.48 + phase) * 0.004
+    if (!point.current) return
+    const scale = waiting ? 1 + Math.sin(clock.elapsedTime * 5) * 0.18 : 1
+    point.current.scale.setScalar(scale)
   })
-  return <group ref={group}>
-    {foliageLobes.map(([x, y, z, scale], index) => <mesh
-      key={index}
-      geometry={geometry}
-      position={[x * crownRadius, y * crownHeight, z * crownRadius]}
-      scale={[scale, scale * (plant.kind === 'tree' ? 0.84 : 0.65), scale]}
-      rotation={[seededUnit(index + phase) * 0.34, seededUnit(index * 2 + phase) * Math.PI, seededUnit(index * 3 + phase) * 0.22]}
-      castShadow
-      receiveShadow
-    >
-      <meshPhysicalMaterial
-        bumpMap={texture}
-        bumpScale={0.045}
-        color={index % 3 === 0 ? new Color(color).offsetHSL(0.015, 0.025, 0.045) : index % 2 ? new Color(color).offsetHSL(-0.01, 0.01, -0.04) : color}
-        emissive={selected ? '#26796d' : hovered ? '#1d5448' : '#000000'}
-        emissiveIntensity={selected ? 0.13 : hovered ? 0.055 : 0}
-        roughness={0.91}
-        clearcoat={0.035}
-        clearcoatRoughness={0.8}
-        envMapIntensity={0.4}
-        flatShading
-      />
-      {(selected || hovered) && <Edges color={selected ? '#c6ed76' : '#8bd8c9'} lineWidth={selected ? 1.2 : 0.55} />}
-    </mesh>)}
-    {isBlooming && bloomDots.map(([x, y, z], index) => <mesh key={`bloom-${index}`} position={[x * crownRadius, y * crownHeight, z * crownRadius]} castShadow>
-      <sphereGeometry args={[Math.max(0.065, crownRadius * (plant.kind === 'tree' ? 0.055 : 0.085)), 10, 7]} />
-      <meshStandardMaterial color={plant.kind === 'tree' ? (index % 2 ? '#f0e9de' : '#f4dfe0') : (index % 2 ? '#e2b6c8' : '#d78fae')} roughness={0.76} />
-    </mesh>)}
-  </group>
-}
-
-function HedgeCrownDetail({ plant, month }: { plant: PlantModel; month: number }) {
-  const count = Math.max(10, Math.min(22, Math.round(plant.canopyM * 2.6)))
-  const mesh = useRef<import('three').InstancedMesh>(null)
-  const dummy = useMemo(() => new Object3D(), [])
-  const color = seasonalCanopy(plant, month).color
-  useEffect(() => {
-    if (!mesh.current) return
-    for (let index = 0; index < count; index += 1) {
-      const row = index % 2
-      const x = -plant.canopyM * 0.46 + (index / Math.max(1, count - 1)) * plant.canopyM * 0.92
-      const z = (row ? -0.16 : 0.16) * Math.min(1.15, plant.canopyM * 0.24)
-      const scale = 0.76 + seededUnit(index + plant.canopyM) * 0.38
-      dummy.position.set(x, plant.matureHeightM * (0.78 + seededUnit(index + 17) * 0.15), z)
-      dummy.rotation.set(seededUnit(index + 3) * 0.3, seededUnit(index + 9) * Math.PI, seededUnit(index + 14) * 0.2)
-      dummy.scale.set(scale, scale * 0.65, scale)
-      dummy.updateMatrix()
-      mesh.current.setMatrixAt(index, dummy.matrix)
-    }
-    mesh.current.instanceMatrix.needsUpdate = true
-  }, [count, dummy, plant.canopyM, plant.matureHeightM])
-  return <instancedMesh ref={mesh} args={[undefined, undefined, count]} castShadow receiveShadow>
-    <dodecahedronGeometry args={[0.32, 0]} />
-    <meshStandardMaterial color={color} roughness={0.93} />
-  </instancedMesh>
-}
-
-function PlantScene({ plant, project, month, mode, ghost = false }: { plant: PlantModel; project: ProjectV1; month: number; mode: ViewMode; ghost?: boolean }) {
-  const selectedRef = useStudioStore((state) => state.selectedRef)
-  const transformMode = useStudioStore((state) => state.transformMode)
-  const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
-  const setTransformMode = useStudioStore((state) => state.setTransformMode)
-  const commitCommand = useStudioStore((state) => state.commitCommand)
-  const setToast = useStudioStore((state) => state.setToast)
-  const groupRef = useRef<Group>(null!)
-  const [hovered, setHovered] = useState(false)
-  const selected = !ghost && selectedRef === plant.ref
-  const ground = elevationAt(project, plant.position.x, plant.position.z)
-  const canopy = seasonalCanopy(plant, month)
-  const isTree = plant.kind === 'tree'
-  const crownRadius = Math.max(0.28, plant.canopyM / 2)
-  const crownHeight = Math.max(0.35, plant.matureHeightM * (isTree ? 0.48 : 0.68))
-  const trunkHeight = isTree ? plant.matureHeightM - crownHeight * 0.52 : Math.max(0.25, plant.matureHeightM * 0.32)
-  const baseColor = ghost ? '#c7f36e' : mode === 'technical' ? '#6f9c84' : canopy.color
-  const color = selected ? new Color(baseColor).offsetHSL(0, 0.05, 0.09) : hovered ? new Color(baseColor).offsetHSL(0, 0.03, 0.045) : baseColor
-  const isBlooming = plant.bloomMonths.includes(month) && canopy.visible && !ghost
-  const body = <group
-    ref={groupRef}
-    position={[plant.position.x, ground, plant.position.z]}
-    onClick={(event) => {
-      event.stopPropagation()
-      if (!ghost) {
-        setSelectedRef(plant.ref)
-        setTransformMode('translate')
-      }
-    }}
-    onPointerOver={(event) => {
-      event.stopPropagation()
-      if (!ghost) {
-        setHovered(true)
-        document.body.style.cursor = plant.locked ? 'not-allowed' : 'pointer'
-      }
-    }}
-    onPointerOut={() => { setHovered(false); document.body.style.cursor = 'default' }}
-  >
-    {!ghost && <mesh position={[0, Math.max(0.45, plant.matureHeightM * 0.42), 0]}>
-      <sphereGeometry args={[Math.max(0.7, plant.canopyM * 0.52), 10, 8]} />
-      <meshBasicMaterial transparent opacity={0.001} depthWrite={false} />
-    </mesh>}
-    <mesh position={[0, Math.max(0.2, trunkHeight / 2), 0]} castShadow>
-      <cylinderGeometry args={[isTree ? 0.13 : 0.05, isTree ? 0.24 : 0.11, Math.max(0.3, trunkHeight), 10]} />
-      {ghost || mode === 'technical' || !isTree
-        ? <meshStandardMaterial color={ghost ? '#c7f36e' : '#674631'} roughness={1} transparent opacity={ghost ? 0.22 : 1} />
-        : <Suspense fallback={<meshStandardMaterial color="#674631" roughness={1} />}>
-          <RealisticBarkMaterial height={trunkHeight} />
-        </Suspense>}
-    </mesh>
-    {!ghost && mode === 'realistic' && isTree && <>
-      <Branch from={[0, trunkHeight * 0.68, 0]} to={[-crownRadius * 0.58, trunkHeight + crownHeight * 0.14, 0.12]} radius={0.1} />
-      <Branch from={[0, trunkHeight * 0.75, 0]} to={[crownRadius * 0.54, trunkHeight + crownHeight * 0.25, -crownRadius * 0.2]} radius={0.085} />
-      <Branch from={[0, trunkHeight * 0.8, 0]} to={[crownRadius * 0.08, trunkHeight + crownHeight * 0.42, crownRadius * 0.48]} radius={0.072} />
-      <Branch from={[-crownRadius * 0.34, trunkHeight + crownHeight * 0.08, 0.08]} to={[-crownRadius * 0.76, trunkHeight + crownHeight * 0.46, -crownRadius * 0.18]} radius={0.047} />
-      <Branch from={[crownRadius * 0.31, trunkHeight + crownHeight * 0.14, -crownRadius * 0.1]} to={[crownRadius * 0.7, trunkHeight + crownHeight * 0.55, crownRadius * 0.12]} radius={0.043} />
-      <Branch from={[crownRadius * 0.04, trunkHeight + crownHeight * 0.25, crownRadius * 0.25]} to={[-crownRadius * 0.12, trunkHeight + crownHeight * 0.66, crownRadius * 0.53]} radius={0.038} />
-      <Branch from={[0, trunkHeight * 0.82, 0]} to={[crownRadius * 0.06, trunkHeight + crownHeight * 0.68, -crownRadius * 0.04]} radius={0.055} />
-    </>}
-    {canopy.visible && plant.kind === 'hedge' && <RoundedBox args={[plant.canopyM, plant.matureHeightM, Math.min(1.15, plant.canopyM * 0.24)]} radius={0.38} smoothness={4} position={[0, plant.matureHeightM / 2, 0]} castShadow>
-      {ghost || mode === 'technical'
-        ? <meshStandardMaterial color={color} emissive={selected ? '#26796d' : '#000000'} emissiveIntensity={selected ? 0.16 : 0} roughness={0.96} transparent opacity={ghost ? 0.18 : 0.68} />
-        : <Suspense fallback={<meshStandardMaterial color={color} roughness={0.96} />}>
-          <RealisticHedgeMaterial plant={plant} month={month} color={color} selected={selected} />
-        </Suspense>}
-      {(mode === 'technical' || selected || hovered) && <Edges color={selected ? '#c6ed76' : hovered ? '#8bd8c9' : '#a3b9ac'} lineWidth={selected ? 1.4 : 0.7} />}
-    </RoundedBox>}
-    {canopy.visible && plant.kind === 'hedge' && mode === 'realistic' && !ghost && <HedgeCrownDetail plant={plant} month={month} />}
-    {canopy.visible && plant.kind === 'wetland' && <group position={[0, 0.1, 0]}>
-      {Array.from({ length: 11 }, (_, index) => {
-        const angle = index * 2.19
-        const radius = (index % 4) * 0.16
-        const height = plant.matureHeightM * (0.72 + (index % 3) * 0.12)
-        return <mesh key={index} position={[Math.cos(angle) * radius, height / 2, Math.sin(angle) * radius]} rotation={[0.08 * Math.sin(angle), angle, 0.08 * Math.cos(angle)]} castShadow>
-          <coneGeometry args={[0.055, height, 5]} />
-          <meshStandardMaterial color={index % 2 ? color : '#7d9b5c'} roughness={0.95} transparent opacity={ghost ? 0.2 : 1} />
-        </mesh>
-      })}
-    </group>}
-    {canopy.visible && plant.kind !== 'hedge' && plant.kind !== 'wetland' && <group position={[0, trunkHeight, 0]}>
-      {mode === 'realistic' && !ghost
-        ? <Suspense fallback={null}>
-          <RealisticCanopy plant={plant} month={month} color={color} crownRadius={crownRadius} crownHeight={crownHeight} selected={selected} hovered={hovered} isBlooming={isBlooming} />
-        </Suspense>
-        : foliageLobes.slice(0, ghost ? 7 : 9).map(([x, y, z, scale], index) => <mesh
-          key={index}
-          position={[x * crownRadius, y * crownHeight, z * crownRadius]}
-          scale={[scale, scale * (isTree ? 0.84 : 0.65), scale]}
-          castShadow
-          receiveShadow
-        >
-          <icosahedronGeometry args={[crownRadius * 0.68, 1]} />
-          <meshStandardMaterial
-            color={color}
-            emissive={selected ? '#26796d' : '#000000'}
-            emissiveIntensity={selected ? 0.13 : 0}
-            roughness={0.96}
-            transparent
-            opacity={ghost ? 0.17 : 0.64}
-          />
-          {(mode === 'technical' || selected || hovered) && <Edges color={selected ? '#c6ed76' : hovered ? '#8bd8c9' : '#9db5a7'} lineWidth={selected ? 1.2 : 0.55} />}
-        </mesh>)}
-    </group>}
-  </group>
-  if (!selected || plant.locked || ghost || transformMode !== 'translate') return body
-  const finishTransform = () => {
-    const object = groupRef.current
-    if (!object) return
-    try {
-      commitCommand({ type: 'garden.update', action: 'move-plant', subjectRef: plant.ref, position: { x: object.position.x, z: object.position.z } })
-    } catch (error) { setToast(error instanceof Error ? error.message : 'Plant transform failed.') }
-  }
-  return <>
-    {body}
-    <TransformControls object={groupRef} mode="translate" translationSnap={0.5} showY={false} onMouseUp={finishTransform} />
-  </>
-}
-
-function ProjectScene({ project, mode, explode, month, ghost = false }: { project: ProjectV1; mode: ViewMode; explode: boolean; month: number; ghost?: boolean }) {
-  return <group>
-    {!ghost && <>
-      <Terrain project={project} mode={mode} month={month} />
-      {project.plot.parcels.map((parcel) => <ParcelScene key={parcel.ref} parcel={parcel} project={project} mode={mode} month={month} />)}
-      <SiteDimensions project={project} mode={mode} />
-      <BoreholeMarkers project={project} mode={mode} />
-    </>}
-    {project.garden.zones.map((zone) => <GardenZoneScene key={zone.ref} zone={zone} project={project} mode={mode} month={month} ghost={ghost} />)}
-    {project.garden.plants.map((plant) => <PlantScene key={plant.ref} plant={plant} project={project} month={month} mode={mode} ghost={ghost} />)}
-    {project.buildings.map((building) => <BuildingScene key={building.ref} building={building} mode={mode} explode={explode} ghost={ghost} />)}
-  </group>
-}
-
-function SceneLighting({ project, month, mode }: { project: ProjectV1; month: number; mode: ViewMode }) {
-  const ambient = useRef<AmbientLight>(null)
-  const hemisphere = useRef<HemisphereLight>(null)
-  const light = useRef<DirectionalLight>(null)
-  const target = useRef<Object3D>(null)
-  const sun = useMemo(() => sunPositionForMonth(project.climateProfile.latitude, month), [project.climateProfile.latitude, month])
-  const colors = useMemo(() => ({
-    ambient: new Color(mode === 'technical' ? '#8eb1a1' : '#f6ead5'),
-    sky: new Color(mode === 'technical' ? '#88aa9b' : '#d8e8ed'),
-    ground: new Color(mode === 'technical' ? '#07100d' : '#7a6a52'),
-    sun: new Color(mode === 'technical' ? '#d6f3e5' : '#fff0ce'),
-  }), [mode])
-  useEffect(() => { if (light.current && target.current) light.current.target = target.current }, [])
-  useFrame((_, delta) => {
-    const blend = prefersReducedMotion ? 1 : 1 - Math.exp(-delta * 3.2)
-    if (ambient.current) {
-      ambient.current.intensity = MathUtils.lerp(ambient.current.intensity, mode === 'technical' ? 0.52 : 0.72, blend)
-      ambient.current.color.lerp(colors.ambient, blend)
-    }
-    if (hemisphere.current) {
-      hemisphere.current.intensity = MathUtils.lerp(hemisphere.current.intensity, mode === 'technical' ? 0.6 : 1.15, blend)
-      hemisphere.current.color.lerp(colors.sky, blend)
-      hemisphere.current.groundColor.lerp(colors.ground, blend)
-    }
-    if (light.current) {
-      light.current.intensity = MathUtils.lerp(light.current.intensity, mode === 'technical' ? 1.05 : 2.45, blend)
-      light.current.color.lerp(colors.sun, blend)
-    }
-  })
-  return <>
-    <ambientLight ref={ambient} color={colors.ambient} intensity={mode === 'technical' ? 0.52 : 0.72} />
-    <hemisphereLight ref={hemisphere} color={colors.sky} groundColor={colors.ground} intensity={mode === 'technical' ? 0.6 : 1.15} />
-    <directionalLight
-      ref={light}
-      position={[sun.x, sun.y, sun.z]}
-      color={colors.sun}
-      intensity={mode === 'technical' ? 1.05 : 2.45}
-      castShadow
-      shadow-mapSize={[2048, 2048]}
-      shadow-camera-left={-38}
-      shadow-camera-right={38}
-      shadow-camera-top={38}
-      shadow-camera-bottom={-38}
-      shadow-bias={-0.00012}
-      shadow-normalBias={0.035}
-      shadow-radius={2.2}
-    />
-    <object3D ref={target} position={[0, 0, 0]} />
-    {mode === 'realistic' && <Environment resolution={128}>
-      <Lightformer form="rect" intensity={1.8} color="#fff3dd" position={[-18, 22, 12]} rotation={[Math.PI / 2, 0, 0]} scale={[24, 24, 1]} />
-      <Lightformer form="rect" intensity={0.75} color="#b9d4d2" position={[22, 9, -18]} rotation={[0, -Math.PI / 3, 0]} scale={[18, 10, 1]} />
-      <Lightformer form="ring" intensity={0.45} color="#d5e5da" position={[0, 6, 24]} scale={[12, 12, 1]} />
-    </Environment>}
-  </>
-}
-
-function Atmosphere({ mode }: { mode: ViewMode }) {
-  const material = useRef<ShaderMaterial>(null)
-  const uniforms = useMemo(() => ({
-    topColor: { value: new Color(mode === 'technical' ? '#101d19' : '#b8d0d3') },
-    horizonColor: { value: new Color(mode === 'technical' ? '#09110f' : '#e9ebe4') },
-    floorColor: { value: new Color(mode === 'technical' ? '#050908' : '#d9ddd5') },
-  }), [])
-  const targets = useMemo(() => ({
-    top: new Color(mode === 'technical' ? '#101d19' : '#b8d0d3'),
-    horizon: new Color(mode === 'technical' ? '#09110f' : '#e9ebe4'),
-    floor: new Color(mode === 'technical' ? '#050908' : '#d9ddd5'),
-  }), [mode])
-  useFrame((_, delta) => {
-    const blend = prefersReducedMotion ? 1 : 1 - Math.exp(-delta * 2.8)
-    uniforms.topColor.value.lerp(targets.top, blend)
-    uniforms.horizonColor.value.lerp(targets.horizon, blend)
-    uniforms.floorColor.value.lerp(targets.floor, blend)
-  })
-  return <mesh scale={145} renderOrder={-1000} frustumCulled={false}>
-    <sphereGeometry args={[1, 48, 24]} />
-    <shaderMaterial
-      ref={material}
-      side={BackSide}
-      depthWrite={false}
-      uniforms={uniforms}
-      vertexShader={`varying vec3 vPosition; void main() { vPosition = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`}
-      fragmentShader={`
-        varying vec3 vPosition;
-        uniform vec3 topColor;
-        uniform vec3 horizonColor;
-        uniform vec3 floorColor;
-        void main() {
-          float h = normalize(vPosition).y;
-          vec3 lower = mix(floorColor, horizonColor, smoothstep(-0.42, 0.08, h));
-          vec3 color = mix(lower, topColor, smoothstep(0.02, 0.78, h));
-          gl_FragColor = vec4(color, 1.0);
-        }
-      `}
-    />
+  return <mesh ref={point} position={position} renderOrder={30} userData={{ editorOnly: true, measurementOverlay: true }}>
+    <sphereGeometry args={[0.13, 16, 12]} />
+    <meshBasicMaterial color="#b9e84d" depthTest={false} />
   </mesh>
 }
 
-function CameraRig() {
-  const camera = useThree((state) => state.camera)
-  const initialized = useRef(false)
-  useFrame(() => {
-    if (!initialized.current) {
-      camera.lookAt(0, 2, 0)
-      initialized.current = true
-    }
+function MeasurementLabel({ position, type, children }: { position: Vector3; type: 'length' | 'area'; children: React.ReactNode }) {
+  return <Html position={position} center zIndexRange={[18, 0]}><div className={`spatial-measurement-label ${type}`} role="status" aria-label={`${type === 'length' ? 'Length' : 'Area'} measurement`}>{children}</div></Html>
+}
+
+function InteractiveMeasurements() {
+  const { camera, gl } = useThree()
+  const viewerMode = useStudioStore((state) => state.viewerMode)
+  const project = useStudioStore((state) => state.project)
+  const setToast = useStudioStore((state) => state.setToast)
+  const [lengthPoints, setLengthPointsState] = useState<Vector3[]>([])
+  const [areaRect, setAreaRectState] = useState<{ start: Vector3; end: Vector3; dragging: boolean } | null>(null)
+  const lengthRef = useRef<Vector3[]>([])
+  const areaRef = useRef<{ start: Vector3; end: Vector3; dragging: boolean } | null>(null)
+  const raycaster = useMemo(() => new Raycaster(), [])
+  const groundPlane = useMemo(() => new Plane(new Vector3(0, 1, 0), 0), [])
+  const setLengthPoints = (points: Vector3[]) => { lengthRef.current = points; setLengthPointsState(points) }
+  const setAreaRect = (rect: { start: Vector3; end: Vector3; dragging: boolean } | null) => { areaRef.current = rect; setAreaRectState(rect) }
+  const clear = () => { setLengthPoints([]); setAreaRect(null); setToast(null) }
+
+  useEffect(() => { setLengthPoints([]); setAreaRect(null) }, [viewerMode])
+  useEffect(() => {
+    const onClear = () => clear()
+    window.addEventListener(CLEAR_MEASUREMENT_EVENT, onClear)
+    return () => window.removeEventListener(CLEAR_MEASUREMENT_EVENT, onClear)
   })
+  useEffect(() => {
+    if (viewerMode !== 'measure-length' && viewerMode !== 'measure-area') return
+    const element = gl.domElement
+    const pointOnGround = (event: PointerEvent) => {
+      const bounds = element.getBoundingClientRect()
+      const pointer = new Vector2(((event.clientX - bounds.left) / bounds.width) * 2 - 1, -((event.clientY - bounds.top) / bounds.height) * 2 + 1)
+      raycaster.setFromCamera(pointer, camera)
+      const point = raycaster.ray.intersectPlane(groundPlane, new Vector3())
+      if (!point) return null
+      point.y = elevationAt(project, point.x, point.z) + 0.14
+      return point
+    }
+    const stopEditorClick = (event: PointerEvent) => { event.preventDefault(); event.stopImmediatePropagation() }
+    const onPointerDown = (event: PointerEvent) => {
+      if (event.button !== 0) return
+      const point = pointOnGround(event)
+      if (!point) return
+      stopEditorClick(event)
+      if (viewerMode === 'measure-length') {
+        if (lengthRef.current.length === 1) {
+          const points = [lengthRef.current[0], point]
+          setLengthPoints(points)
+          setToast(`Length: ${points[0].distanceTo(points[1]).toFixed(2)} m.`)
+        } else {
+          setLengthPoints([point])
+          setToast('First point placed. Click the second point.')
+        }
+      } else {
+        element.setPointerCapture(event.pointerId)
+        setAreaRect({ start: point, end: point.clone(), dragging: true })
+        setToast('Drag to size the rectangle, then release.')
+      }
+    }
+    const onPointerMove = (event: PointerEvent) => {
+      if (viewerMode !== 'measure-area' || !areaRef.current?.dragging) return
+      const point = pointOnGround(event)
+      if (!point) return
+      stopEditorClick(event)
+      setAreaRect({ start: areaRef.current.start, end: point, dragging: true })
+    }
+    const onPointerUp = (event: PointerEvent) => {
+      if (viewerMode !== 'measure-area' || !areaRef.current?.dragging) return
+      const point = pointOnGround(event) ?? areaRef.current.end
+      stopEditorClick(event)
+      if (element.hasPointerCapture(event.pointerId)) element.releasePointerCapture(event.pointerId)
+      const rect = { start: areaRef.current.start, end: point, dragging: false }
+      setAreaRect(rect)
+      const width = Math.abs(rect.end.x - rect.start.x); const depth = Math.abs(rect.end.z - rect.start.z)
+      setToast(width < 0.05 || depth < 0.05 ? 'Drag a larger rectangle to measure area.' : `Area: ${(width * depth).toFixed(2)} m².`)
+    }
+    element.addEventListener('pointerdown', onPointerDown)
+    element.addEventListener('pointermove', onPointerMove)
+    element.addEventListener('pointerup', onPointerUp)
+    return () => {
+      element.removeEventListener('pointerdown', onPointerDown)
+      element.removeEventListener('pointermove', onPointerMove)
+      element.removeEventListener('pointerup', onPointerUp)
+    }
+  }, [camera, gl, groundPlane, project, raycaster, setToast, viewerMode])
+
+  const length = lengthPoints.length === 2 ? lengthPoints[0].distanceTo(lengthPoints[1]) : null
+  const areaWidth = areaRect ? Math.abs(areaRect.end.x - areaRect.start.x) : 0
+  const areaDepth = areaRect ? Math.abs(areaRect.end.z - areaRect.start.z) : 0
+  const areaCenter = areaRect ? new Vector3((areaRect.start.x + areaRect.end.x) / 2, Math.max(areaRect.start.y, areaRect.end.y) + 0.08, (areaRect.start.z + areaRect.end.z) / 2) : null
+  const areaCorners = areaRect && areaCenter ? [
+    new Vector3(areaRect.start.x, areaCenter.y, areaRect.start.z), new Vector3(areaRect.end.x, areaCenter.y, areaRect.start.z),
+    new Vector3(areaRect.end.x, areaCenter.y, areaRect.end.z), new Vector3(areaRect.start.x, areaCenter.y, areaRect.end.z), new Vector3(areaRect.start.x, areaCenter.y, areaRect.start.z),
+  ] : []
+  return <group userData={{ editorOnly: true, measurementOverlay: true }}>
+    {viewerMode === 'measure-length' && lengthPoints.map((point, index) => <MeasurementPoint key={index} position={point} waiting={lengthPoints.length === 1} />)}
+    {viewerMode === 'measure-length' && lengthPoints.length === 2 && <>
+      <DreiLine points={lengthPoints} color="#b9e84d" lineWidth={3} depthTest={false} renderOrder={29} />
+      <MeasurementLabel type="length" position={lengthPoints[0].clone().lerp(lengthPoints[1], 0.5).add(new Vector3(0, 0.35, 0))}><strong>{length?.toFixed(2)} m</strong><span>point to point</span></MeasurementLabel>
+    </>}
+    {viewerMode === 'measure-area' && areaRect && areaCenter && <>
+      <mesh position={areaCenter} rotation={[-Math.PI / 2, 0, 0]} renderOrder={28} userData={{ editorOnly: true, measurementOverlay: true }}><planeGeometry args={[Math.max(areaWidth, 0.01), Math.max(areaDepth, 0.01)]} /><meshBasicMaterial color="#b9e84d" transparent opacity={0.22} depthWrite={false} depthTest side={DoubleSide} /></mesh>
+      <DreiLine points={areaCorners} color="#b9e84d" lineWidth={3} depthTest renderOrder={29} />
+      <MeasurementPoint position={areaRect.start} /><MeasurementPoint position={areaRect.end} />
+      {areaWidth >= 0.05 && areaDepth >= 0.05 && <MeasurementLabel type="area" position={areaCenter.clone().add(new Vector3(0, 0.35, 0))}><strong>{(areaWidth * areaDepth).toFixed(2)} m²</strong><span>{areaWidth.toFixed(2)} × {areaDepth.toFixed(2)} m</span></MeasurementLabel>}
+    </>}
+  </group>
+}
+
+function ThatOpenBridge() {
+  const { gl, scene, set, size } = useThree()
+  const viewerMode = useStudioStore((state) => state.viewerMode)
+  const explode = useStudioStore((state) => state.explodeStoreys)
+  const project = useStudioStore((state) => state.project)
+  const refocusRequest = useStudioStore((state) => state.cameraRefocusRequest)
+  const gardenFocusRequest = useStudioStore((state) => state.gardenFocusRequest)
+  const handledRefocusRequest = useRef(refocusRequest)
+  const handledGardenFocusRequest = useRef(gardenFocusRequest.sequence)
+  const handledExplode = useRef(explode)
+  const bridge = useRef<{ components: OBC.Components; world: OBC.SimpleWorld; camera: OBC.OrthoPerspectiveCamera; renderer: SharedRenderer; clipper: OBC.Clipper } | null>(null)
+
+  useEffect(() => {
+    const components = new OBC.Components()
+    const world = components.get(OBC.Worlds).create()
+    const renderer = new SharedRenderer(components, gl)
+    world.scene = new SharedScene(components, scene)
+    world.renderer = renderer
+    const camera = new OBC.OrthoPerspectiveCamera(components)
+    world.camera = camera
+    camera.threePersp.near = 0.1; camera.threePersp.far = SCENE_FAR; camera.threePersp.updateProjectionMatrix()
+    camera.threeOrtho.near = 0.1; camera.threeOrtho.far = SCENE_FAR; camera.threeOrtho.updateProjectionMatrix()
+    camera.controls.maxDistance = MAX_ORBIT_DISTANCE
+    camera.controls.mouseButtons.middle = CameraControls.ACTION.TRUCK
+    camera.three.position.set(18, 12, 20)
+    camera.controls?.setLookAt(18, 12, 20, 0, 1.4, 0, false)
+    set({ camera: camera.three })
+    const clipper = components.get(OBC.Clipper); clipper.enabled = false; clipper.setup({})
+    components.init()
+    bridge.current = { components, world, camera, renderer, clipper }
+    return () => {
+      clipper.dispose(); camera.dispose()
+      world.enabled = false; renderer.dispose(); components.enabled = false; bridge.current = null
+    }
+  }, [gl, scene, set])
+
+  useEffect(() => {
+    let pointerOverViewport = false
+    const setPointerInside = () => { pointerOverViewport = true }
+    const setPointerOutside = () => { pointerOverViewport = false }
+    const panWithArrows = (event: KeyboardEvent) => {
+      if (!pointerOverViewport || !['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return
+      const active = document.activeElement
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLSelectElement || (active instanceof HTMLElement && active.isContentEditable)) return
+      const controls = bridge.current?.camera.controls
+      if (!controls) return
+      const position = controls.getPosition(new Vector3())
+      const target = controls.getTarget(new Vector3())
+      const forward = target.clone().sub(position).setY(0)
+      if (forward.lengthSq() < 0.0001) forward.set(0, 0, -1)
+      forward.normalize()
+      const right = new Vector3(-forward.z, 0, forward.x)
+      const direction = event.key === 'ArrowUp' ? forward : event.key === 'ArrowDown' ? forward.clone().negate() : event.key === 'ArrowRight' ? right : right.clone().negate()
+      direction.multiplyScalar(KEYBOARD_PAN_STEP_M)
+      event.preventDefault()
+      void controls.setLookAt(position.x + direction.x, position.y, position.z + direction.z, target.x + direction.x, target.y, target.z + direction.z, true)
+    }
+    gl.domElement.addEventListener('pointerenter', setPointerInside)
+    gl.domElement.addEventListener('pointerleave', setPointerOutside)
+    window.addEventListener('keydown', panWithArrows)
+    return () => {
+      gl.domElement.removeEventListener('pointerenter', setPointerInside)
+      gl.domElement.removeEventListener('pointerleave', setPointerOutside)
+      window.removeEventListener('keydown', panWithArrows)
+    }
+  }, [gl])
+
+  useEffect(() => { bridge.current?.renderer.resize(new Vector2(size.width, size.height)) }, [size])
+  useEffect(() => {
+    const current = bridge.current
+    if (!current) return
+    current.clipper.enabled = viewerMode === 'section'
+    current.camera.controls.mouseButtons.left = viewerMode === 'measure-area' ? CameraControls.ACTION.NONE : CameraControls.ACTION.ROTATE
+    if (viewerMode === 'plan') { current.camera.set('Plan'); void current.camera.projection.set('Orthographic') }
+    else { current.camera.set('Orbit'); current.camera.controls.maxDistance = MAX_ORBIT_DISTANCE; void current.camera.projection.set('Perspective') }
+  }, [viewerMode])
+  useEffect(() => {
+    if (handledRefocusRequest.current === refocusRequest) return
+    handledRefocusRequest.current = refocusRequest
+    const current = bridge.current; const building = project.buildings[0]
+    if (!current || !building) return
+    const targetX = building.position.x; const targetY = 1.4; const targetZ = building.position.z
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    current.camera.set('Orbit'); current.camera.controls.maxDistance = MAX_ORBIT_DISTANCE; void current.camera.projection.set('Perspective')
+    void current.camera.controls.setFocalOffset(0, 0, 0, smooth)
+    void current.camera.controls?.setLookAt(targetX + 18, targetY + 12, targetZ + 20, targetX, targetY, targetZ, smooth)
+  }, [project, refocusRequest])
+  useEffect(() => {
+    if (handledGardenFocusRequest.current === gardenFocusRequest.sequence) return
+    handledGardenFocusRequest.current = gardenFocusRequest.sequence
+    const current = bridge.current
+    if (!current) return
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    current.camera.set('Orbit'); current.camera.controls.maxDistance = MAX_ORBIT_DISTANCE; void current.camera.projection.set('Perspective')
+    void current.camera.controls.setFocalOffset(5.5, 0, 0, smooth)
+    void current.camera.controls.setLookAt(gardenFocusRequest.targetX + 11, 8.5, gardenFocusRequest.targetZ - 13, gardenFocusRequest.targetX, 0.7, gardenFocusRequest.targetZ, smooth)
+  }, [gardenFocusRequest])
+  useEffect(() => {
+    if (handledExplode.current === explode) return
+    handledExplode.current = explode
+    const current = bridge.current; const building = project.buildings[0]
+    if (!current || !building) return
+    const bounds = buildingLocalBounds(building); const width = bounds.maxX - bounds.minX; const depth = bounds.maxZ - bounds.minZ
+    const highestLevel = Math.max(...building.storeys.map((storey) => storey.level))
+    const roofRise = building.roof.type === 'flat' ? 0.24 : Math.tan(MathUtils.degToRad(building.roof.pitchDegrees)) * width / 2
+    const explodedTop = building.roof.baseElevationM + roofRise + (highestLevel + 1) * STOREY_EXPLODE_GAP_M
+    const targetX = building.position.x; const targetY = explode ? explodedTop * 0.44 : 1.4; const targetZ = building.position.z
+    const span = Math.max(width + ROOM_EXPLODE_DISTANCE_M * 2, depth + ROOM_EXPLODE_DISTANCE_M * 2, explodedTop)
+    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    current.camera.set('Orbit'); current.camera.controls.maxDistance = MAX_ORBIT_DISTANCE; void current.camera.projection.set('Perspective')
+    void current.camera.controls.setFocalOffset(0, 0, 0, smooth)
+    void current.camera.controls.setLookAt(
+      targetX + (explode ? span * 1.05 : 18), targetY + (explode ? span * 0.72 : 12), targetZ + (explode ? span * 1.15 : 20),
+      targetX, targetY, targetZ, smooth,
+    )
+  }, [explode, project])
+  useEffect(() => {
+    const current = bridge.current
+    if (!current) return
+    current.world.meshes.clear()
+    scene.traverse((object) => { if (object instanceof Mesh && object.userData.semanticRef) current.world.meshes.add(object) })
+  }, [project, scene])
+  useFrame((_, delta) => { bridge.current?.world.update(delta) })
   return null
 }
 
-export function StudioScene() {
-  const project = useStudioStore((state) => state.project)
-  const mode = useStudioStore((state) => state.viewMode)
-  const month = useStudioStore((state) => state.month)
-  const explode = useStudioStore((state) => state.explodeFloors)
-  const variants = useStudioStore((state) => state.variants)
-  const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
-  const root = useRef<Group>(null)
-  const latestVariant: VariantModel | undefined = variants.at(-1)
-  useEffect(() => { setExportSceneRoot(root.current); return () => setExportSceneRoot(null) }, [])
-  const { gl, scene } = useThree()
-  useEffect(() => { setRenderCanvas(gl.domElement); return () => setRenderCanvas(null) }, [gl])
+function useGeneratedSolids(project: ProjectV2, building: BuildingModel) {
+  const [solids, setSolids] = useState<GeneratedSolid[]>([])
   useEffect(() => {
-    scene.background = new Color(mode === 'technical' ? '#050908' : '#d9ddd5')
-    scene.fog = null
-  }, [mode, scene])
+    let active = true
+    geometryService.generate(project.revision, solidInputsForBuilding(building)).then((next) => { if (active && next.length) setSolids(next) })
+      .catch((error) => useStudioStore.getState().setToast(`Geometry worker: ${error instanceof Error ? error.message : 'failed'}`))
+    return () => { active = false }
+  }, [building, project.revision])
+  return solids
+}
+
+function GeneratedMesh({ solid, mode, selected, buildingRef, style, yOffset, ghost }: { solid: GeneratedSolid; mode: ViewMode; selected: boolean; buildingRef: string; style: BuildingModel['architecturalStyle']; yOffset: number; ghost?: boolean }) {
+  const geometry = useMemo(() => {
+    const value = new BufferGeometry()
+    value.setAttribute('position', new BufferAttribute(solid.positions, 3)); value.setIndex(new BufferAttribute(solid.indices, 1)); value.computeVertexNormals()
+    computeBoundsTree.call(value)
+    return value
+  }, [solid])
+  useEffect(() => () => { disposeBoundsTree.call(geometry); geometry.dispose() }, [geometry])
+  const isWall = solid.ref.includes('wall'); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  const palette = mode === 'technical' ? TECH : style === 'barn' ? BARN : REAL
+  return <mesh geometry={geometry} position={[0, yOffset, 0]} castShadow receiveShadow raycast={acceleratedRaycast} userData={{ semanticRef: solid.ref, buildingRef }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(solid.ref) }}>
+    <meshStandardMaterial color={selected ? '#b9e84d' : isWall ? palette.wall : palette.slab} transparent={ghost} opacity={ghost ? 0.33 : 1} roughness={0.78} metalness={0.02} />
+  </mesh>
+}
+
+function Roof({ building, mode, selected, yOffset, ghost }: { building: BuildingModel; mode: ViewMode; selected: boolean; yOffset: number; ghost?: boolean }) {
+  const bounds = buildingLocalBounds(building); const width = bounds.maxX - bounds.minX; const depth = bounds.maxZ - bounds.minZ
+  const cx = (bounds.minX + bounds.maxX) / 2; const cz = (bounds.minZ + bounds.maxZ) / 2; const over = building.roof.overhangM; const pitch = MathUtils.degToRad(building.roof.pitchDegrees)
+  const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  const palette = mode === 'technical' ? TECH : building.architecturalStyle === 'barn' ? BARN : REAL
+  const material = <meshStandardMaterial color={selected ? '#b9e84d' : palette.roof} roughness={0.88} transparent={ghost} opacity={ghost ? 0.35 : 1} />
+  const half = width / 2 + over; const slope = half / Math.cos(pitch); const rise = Math.tan(pitch) * half
+  const gableEnds = useMemo(() => {
+    const value = new BufferGeometry(); const z0 = bounds.minZ; const z1 = bounds.maxZ; const ridgeY = building.roof.baseElevationM + Math.tan(pitch) * width / 2
+    value.setAttribute('position', new BufferAttribute(new Float32Array([
+      bounds.minX, building.roof.baseElevationM, z0, bounds.maxX, building.roof.baseElevationM, z0, cx, ridgeY, z0,
+      bounds.minX, building.roof.baseElevationM, z1, bounds.maxX, building.roof.baseElevationM, z1, cx, ridgeY, z1,
+    ]), 3)); value.setIndex([0, 1, 2, 3, 5, 4]); value.computeVertexNormals(); return value
+  }, [bounds.maxX, bounds.maxZ, bounds.minX, bounds.minZ, building.roof.baseElevationM, cx, pitch, width])
+  const hipGeometry = useMemo(() => {
+    const value = new BufferGeometry(); const apexY = building.roof.baseElevationM + rise
+    value.setAttribute('position', new BufferAttribute(new Float32Array([
+      bounds.minX - over, building.roof.baseElevationM, bounds.minZ - over, bounds.maxX + over, building.roof.baseElevationM, bounds.minZ - over,
+      bounds.maxX + over, building.roof.baseElevationM, bounds.maxZ + over, bounds.minX - over, building.roof.baseElevationM, bounds.maxZ + over,
+      cx, apexY, cz,
+    ]), 3)); value.setIndex([0, 1, 4, 1, 2, 4, 2, 3, 4, 3, 0, 4]); value.computeVertexNormals(); return value
+  }, [bounds.maxX, bounds.maxZ, bounds.minX, bounds.minZ, building.roof.baseElevationM, cx, cz, over, rise])
+  useEffect(() => () => { gableEnds.dispose(); hipGeometry.dispose() }, [gableEnds, hipGeometry])
+  if (building.roof.type === 'flat') return <mesh position={[cx, building.roof.baseElevationM + 0.12 + yOffset, cz]} castShadow userData={{ semanticRef: building.roof.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(building.roof.ref) }}><boxGeometry args={[width + over * 2, 0.24, depth + over * 2]} />{material}</mesh>
+  if (building.roof.type === 'hip') return <mesh geometry={hipGeometry} position={[0, yOffset, 0]} castShadow userData={{ semanticRef: building.roof.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(building.roof.ref) }}>{material}</mesh>
+  return <group position={[0, yOffset, 0]} userData={{ semanticRef: building.roof.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(building.roof.ref) }}>
+    <mesh position={[cx - half / 2, building.roof.baseElevationM + rise / 2, cz]} rotation={[0, 0, pitch]} castShadow><boxGeometry args={[slope, 0.2, depth + over * 2]} />{material}</mesh>
+    <mesh position={[cx + half / 2, building.roof.baseElevationM + rise / 2, cz]} rotation={[0, 0, -pitch]} castShadow><boxGeometry args={[slope, 0.2, depth + over * 2]} />{material}</mesh>
+    <mesh geometry={gableEnds} castShadow><meshStandardMaterial color={palette.wall} roughness={0.8} side={DoubleSide} transparent={ghost} opacity={ghost ? 0.35 : 1} /></mesh>
+  </group>
+}
+
+function FinishSurface({ footprint, y, refValue, buildingRef, color }: { footprint: Polygon2; y: number; refValue: string; buildingRef: string; color: string }) {
+  const geometry = useMemo(() => localPolygonGeometry(footprint), [footprint])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  return <mesh geometry={geometry} position={[0, y, 0]} userData={{ semanticRef: refValue, buildingRef }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(refValue) }}><meshStandardMaterial color={selectedRef === refValue ? '#b9e84d' : color} side={DoubleSide} roughness={0.75} /></mesh>
+}
+
+function PlatformsAndFinishes({ building, explodeOffset }: { building: BuildingModel; explodeOffset: number }) {
+  return <>{building.platforms.map((platform) => {
+    const storey = building.storeys.find((item) => item.platformRefs.includes(platform.ref)); return <FinishSurface key={platform.ref} footprint={platform.footprint} y={platform.elevationM + (storey?.level ?? 0) * explodeOffset} refValue={platform.ref} buildingRef={building.ref} color="#a18a66" />
+  })}{building.ceilingFinishes.map((finish) => {
+    const space = building.spaces.find((item) => item.ref === finish.spaceRef); const storey = building.storeys.find((item) => item.ceilingFinishRefs.includes(finish.ref)); if (!space) return null
+    return <FinishSurface key={finish.ref} footprint={spaceFootprint(building, space)} y={finish.elevationM + (storey?.level ?? 0) * explodeOffset} refValue={finish.ref} buildingRef={building.ref} color="#d8d5c8" />
+  })}</>
+}
+
+function SpaceOverlay({ building, spaceRef, explodedOffset, explode }: { building: BuildingModel; spaceRef: string; explodedOffset: number; explode: boolean }) {
+  const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  const space = building.spaces.find((item) => item.ref === spaceRef)!; const storey = building.storeys.find((item) => item.spaceRefs.includes(space.ref))!
+  const footprint = useMemo(() => spaceFootprint(building, space), [building, space])
+  const geometry = useMemo(() => localPolygonGeometry(footprint), [footprint])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  const centroid = polygonCentroid(footprint); const bounds = buildingLocalBounds(building)
+  const buildingCenter = { x: (bounds.minX + bounds.maxX) / 2, z: (bounds.minZ + bounds.maxZ) / 2 }
+  const storeySpaces = storey.spaceRefs.filter((ref) => building.spaces.some((item) => item.ref === ref)); const roomIndex = Math.max(0, storeySpaces.indexOf(space.ref))
+  let directionX = centroid.x - buildingCenter.x; let directionZ = centroid.z - buildingCenter.z
+  if (Math.hypot(directionX, directionZ) < 0.25) {
+    const angle = -Math.PI / 4 + roomIndex * (Math.PI * 2 / Math.max(1, storeySpaces.length))
+    directionX = Math.cos(angle); directionZ = Math.sin(angle)
+  }
+  const magnitude = Math.hypot(directionX, directionZ) || 1
+  const roomOffset = explode ? { x: directionX / magnitude * ROOM_EXPLODE_DISTANCE_M, z: directionZ / magnitude * ROOM_EXPLODE_DISTANCE_M } : { x: 0, z: 0 }
+  const y = storey.elevationM + 0.024 + storey.level * explodedOffset
+  const outline = [...footprint, footprint[0]].map((point) => new Vector3(point.x + roomOffset.x, y + 0.035, point.z + roomOffset.z))
   return <>
-    <CameraRig />
-    <Atmosphere mode={mode} />
-    <SceneLighting project={project} month={month} mode={mode} />
-    {mode === 'technical' && <Grid
-      args={[90, 90]}
-      position={[0, -0.19, 0]}
-      cellSize={1}
-      cellThickness={0.45}
-      cellColor="#20332b"
-      sectionSize={5}
-      sectionThickness={1}
-      sectionColor="#496556"
-      fadeDistance={72}
-      fadeStrength={1.3}
-      infiniteGrid
-    />}
-    <group ref={root} onPointerMissed={() => { setSelectedRef(null); document.body.style.cursor = 'default' }}>
-      <ProjectScene project={project} mode={mode} explode={explode} month={month} />
-      {latestVariant && <ProjectScene project={latestVariant.project} mode="technical" explode={explode} month={month} ghost />}
+    {explode && <DreiLine points={[new Vector3(centroid.x, y + 0.04, centroid.z), new Vector3(centroid.x + roomOffset.x, y + 0.04, centroid.z + roomOffset.z)]} color="#7d948b" lineWidth={1} transparent opacity={0.7} depthTest={false} />}
+    <group position={[roomOffset.x, y, roomOffset.z]}>
+      <mesh geometry={geometry} userData={{ semanticRef: space.ref, buildingRef: building.ref, explodedRoom: explode }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(space.ref) }}>
+        <meshBasicMaterial color={selectedRef === space.ref ? '#b9e84d' : '#72c6b7'} transparent opacity={explode ? 0.56 : selectedRef === space.ref ? 0.42 : 0.12} side={DoubleSide} depthWrite={false} />
+      </mesh>
+      {explode && <Html position={[centroid.x, 0.42, centroid.z]} center zIndexRange={[12, 0]}>
+        <div className="exploded-room-label" aria-label={`${space.name}, ${storey.name}`} data-space-ref={space.ref} data-storey-ref={storey.ref}>
+          <span>{storey.name}</span><strong>{space.name}</strong>
+        </div>
+      </Html>}
     </group>
-    <OrbitControls
-      makeDefault
-      target={[0, 2.1, 1.4]}
-      minDistance={10}
-      maxDistance={78}
-      minPolarAngle={Math.PI * 0.12}
-      maxPolarAngle={Math.PI * 0.46}
-      enableDamping
-      dampingFactor={0.055}
-    />
+    {explode && <DreiLine points={outline} color="#b9e84d" lineWidth={1.6} transparent opacity={0.88} depthTest={false} />}
+  </>
+}
+
+function SpaceOverlays({ building, explodedOffset, explode }: { building: BuildingModel; explodedOffset: number; explode: boolean }) {
+  return <>{building.spaces.map((space) => <SpaceOverlay key={space.ref} building={building} spaceRef={space.ref} explodedOffset={explodedOffset} explode={explode} />)}</>
+}
+
+const buildingCornersWorld = (building: BuildingModel, position = building.position) => {
+  const bounds = buildingLocalBounds(building); const rotation = MathUtils.degToRad(building.rotationDegrees); const c = Math.cos(rotation); const s = Math.sin(rotation)
+  return [{ x: bounds.minX, z: bounds.minZ }, { x: bounds.maxX, z: bounds.minZ }, { x: bounds.maxX, z: bounds.maxZ }, { x: bounds.minX, z: bounds.maxZ }].map((point) => ({ x: position.x + point.x * c + point.z * s, z: position.z - point.x * s + point.z * c }))
+}
+
+const placementValid = (project: ProjectV2, building: BuildingModel, position: { x: number; z: number }) => {
+  const corners = buildingCornersWorld(building, position)
+  if (!corners.every((corner) => pointInPolygon(corner, project.site.boundary))) return false
+  return project.buildings.filter((other) => other.ref !== building.ref).every((other) => {
+    const b = buildingCornersWorld(other); const ax = corners.map((p) => p.x); const az = corners.map((p) => p.z); const bx = b.map((p) => p.x); const bz = b.map((p) => p.z)
+    return Math.max(...ax) <= Math.min(...bx) || Math.min(...ax) >= Math.max(...bx) || Math.max(...az) <= Math.min(...bz) || Math.min(...az) >= Math.max(...bz)
+  })
+}
+
+function Building({ project, building, mode, ghost }: { project: ProjectV2; building: BuildingModel; mode: ViewMode; ghost?: boolean }) {
+  const solids = useGeneratedSolids(project, building); const selectedRef = useStudioStore((state) => state.selectedRef); const transformMode = useStudioStore((state) => state.transformMode)
+  const viewerMode = useStudioStore((state) => state.viewerMode); const explode = useStudioStore((state) => state.explodeStoreys)
+  const commitCommand = useStudioStore((state) => state.commitCommand); const setToast = useStudioStore((state) => state.setToast)
+  const group = useRef<Group>(null); const invalid = useRef(false); const selected = selectedRef === building.ref
+  const explodedOffset = explode ? STOREY_EXPLODE_GAP_M : 0
+  const terrainOffset = buildingGroundOffset(building, TERRAIN_SURFACE_Y)
+  const offsetFor = (ref: string) => {
+    const storey = building.storeys.find((item) => item.wallRefs.includes(ref) || item.baseSlabRef === ref)
+    return (storey?.level ?? 0) * explodedOffset
+  }
+  const roofOffset = explode ? (Math.max(...building.storeys.map((storey) => storey.level)) + 1) * explodedOffset : 0
+  const roofBounds = buildingLocalBounds(building); const roofWidth = roofBounds.maxX - roofBounds.minX + building.roof.overhangM * 2; const roofDepth = roofBounds.maxZ - roofBounds.minZ + building.roof.overhangM * 2
+  return <>
+    <group ref={group} position={[building.position.x, terrainOffset, building.position.z]} rotation={[0, -MathUtils.degToRad(building.rotationDegrees), 0]} userData={{ semanticRef: building.ref, buildingRef: building.ref, captureRoot: true, captureSource: ghost ? 'ghost' : 'committed' }} onDoubleClick={(event) => { event.stopPropagation(); useStudioStore.getState().setSelectedRef(building.ref) }}>
+      {solids.map((solid) => <GeneratedMesh key={solid.ref} solid={solid} mode={mode} selected={selectedRef === solid.ref} buildingRef={building.ref} style={building.architecturalStyle} yOffset={offsetFor(solid.ref)} ghost={ghost} />)}
+      <Roof building={building} mode={mode} selected={selectedRef === building.roof.ref} yOffset={roofOffset} ghost={ghost} />
+      {!ghost && <><SpaceOverlays building={building} explodedOffset={explodedOffset} explode={explode} /><PlatformsAndFinishes building={building} explodeOffset={explodedOffset} /></>}
+      {!ghost && <RigidBody type="fixed" colliders={false}>{solids.map((solid) => <CuboidCollider key={solid.ref} args={solid.collider.halfExtents} position={[solid.collider.center[0], solid.collider.center[1] + offsetFor(solid.ref), solid.collider.center[2]]} rotation={[0, solid.collider.rotationY, 0]} />)}<CuboidCollider args={[roofWidth / 2, 0.2, roofDepth / 2]} position={[(roofBounds.minX + roofBounds.maxX) / 2, building.roof.baseElevationM + 0.2 + roofOffset, (roofBounds.minZ + roofBounds.maxZ) / 2]} /></RigidBody>}
+    </group>
+    {selected && !ghost && viewerMode === 'edit' && group.current && <TransformControls object={group.current} mode={transformMode === 'scale' ? 'translate' : transformMode} showY={false} userData={{ editorOnly: true }}
+      onObjectChange={() => {
+        if (!group.current) return
+        invalid.current = !placementValid(project, building, { x: group.current.position.x, z: group.current.position.z })
+        group.current.traverse((object) => { if (object instanceof Mesh && object.material instanceof MeshStandardMaterial) object.material.emissive.set(invalid.current ? '#8b161d' : '#000000') })
+      }}
+      onMouseUp={() => {
+        if (!group.current) return
+        if (invalid.current) { group.current.position.set(building.position.x, terrainOffset, building.position.z); setToast('Placement reverted: collision, missing site support, or out-of-site footprint.') }
+        else commitCommand({ type: 'building.update', action: 'move', buildingRef: building.ref, position: { x: group.current.position.x, z: group.current.position.z }, rotationDegrees: MathUtils.radToDeg(-group.current.rotation.y) })
+      }} />}
+  </>
+}
+
+function ParcelSurface({ boundary, landRole, mode }: { boundary: Polygon2; landRole: 'construction' | 'agricultural'; mode: ViewMode }) {
+  const geometry = useMemo(() => localPolygonGeometry(boundary), [boundary])
+  const edges = useMemo(() => new EdgesGeometry(geometry, 1), [geometry])
+  useEffect(() => () => { edges.dispose(); geometry.dispose() }, [edges, geometry])
+  const construction = landRole === 'construction'
+  const fill = construction
+    ? (mode === 'technical' ? '#8fa57c' : '#829665')
+    : (mode === 'technical' ? '#84996d' : '#627b50')
+  return <group>
+    <mesh geometry={geometry} position={[0, TERRAIN_SURFACE_Y + 0.006, 0]} renderOrder={1} receiveShadow>
+      <meshStandardMaterial color={fill} transparent opacity={construction ? 0.34 : 0.82} roughness={1} side={DoubleSide} depthWrite={!construction} polygonOffset polygonOffsetFactor={-2} />
+    </mesh>
+    <lineSegments geometry={edges} position={[0, TERRAIN_SURFACE_Y + 0.012, 0]} renderOrder={2}>
+      <lineBasicMaterial color={construction ? '#526b45' : '#4d6841'} transparent opacity={construction ? 0.95 : 0.88} depthWrite={false} />
+    </lineSegments>
+  </group>
+}
+
+function TerrainAndSite({ project, mode }: { project: ProjectV2; mode: ViewMode }) {
+  const boundaryGeometry = useMemo(() => localPolygonGeometry(project.site.boundary), [project.site.boundary])
+  const landBounds = useMemo(() => project.site.parcels.flatMap((parcel) => parcel.boundary).reduce((box, point) => box.expandByPoint(new Vector3(point.x, 0, point.z)), new Box3()), [project.site.parcels])
+  const landCenter = landBounds.getCenter(new Vector3()); const landSize = landBounds.getSize(new Vector3())
+  useEffect(() => () => boundaryGeometry.dispose(), [boundaryGeometry])
+  return <group userData={{ semanticRef: 'site' }}>
+    <mesh geometry={boundaryGeometry} position={[0, TERRAIN_SURFACE_Y, 0]} receiveShadow userData={{ semanticRef: 'site/terrain' }}><meshStandardMaterial color={mode === 'technical' ? TECH.soil : REAL.soil} roughness={1} side={DoubleSide} /></mesh>
+    {project.site.parcels.map((parcel) => <ParcelSurface key={parcel.ref} boundary={parcel.boundary} landRole={parcel.landRole} mode={mode} />)}
+    <RigidBody type="fixed" colliders={false}><CuboidCollider args={[Math.max(1, landSize.x / 2), 0.08, Math.max(1, landSize.z / 2)]} position={[landCenter.x, TERRAIN_SURFACE_Y - 0.08, landCenter.z]} /></RigidBody>
+  </group>
+}
+
+const zoneColor: Record<LandscapeZone['kind'], string> = { lawn: '#738e55', terrace: '#c5b99b', path: '#c1b695', driveway: '#a69f8f', bed: '#684f44', 'rain-garden': '#4f8075', vegetable: '#66834d' }
+function Landscape({ project }: { project: ProjectV2 }) {
+  const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  return <>{project.landscape.zones.map((zone) => {
+    const center = polygonCentroid(zone.footprint); const y = elevationAt(project, center.x, center.z) + 0.02
+    return <mesh key={zone.ref} geometry={localPolygonGeometry(zone.footprint)} position={[0, y, 0]} receiveShadow userData={{ semanticRef: zone.ref }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(zone.ref) }}><meshStandardMaterial color={selectedRef === zone.ref ? '#b9e84d' : zoneColor[zone.kind]} roughness={0.95} side={DoubleSide} /></mesh>
+  })}{project.landscape.plants.map((plant) => <Plant key={plant.ref} plant={plant} project={project} selected={selectedRef === plant.ref} onSelect={() => setSelectedRef(plant.ref)} />)}</>
+}
+
+function Plant({ plant, project, selected, onSelect }: { plant: PlantModel; project: ProjectV2; selected: boolean; onSelect: () => void }) {
+  const month = useStudioStore((state) => state.month); const y = elevationAt(project, plant.position.x, plant.position.z); const canopy = Math.max(0.25, plant.canopyM / 2); const visibleLeaf = plant.leafMonths.includes(month)
+  return <group position={[plant.position.x, y, plant.position.z]} userData={{ semanticRef: plant.ref }} onPointerDown={(event) => { event.stopPropagation(); onSelect() }}>
+    <mesh position={[0, plant.matureHeightM * 0.28, 0]} castShadow><cylinderGeometry args={[0.1, 0.15, plant.matureHeightM * 0.56, 8]} /><meshStandardMaterial color="#584434" /></mesh>
+    <mesh position={[0, plant.matureHeightM * 0.72, 0]} castShadow><sphereGeometry args={[canopy, 12, 9]} /><meshStandardMaterial color={selected ? '#b9e84d' : visibleLeaf ? '#477348' : '#756955'} transparent opacity={visibleLeaf ? 0.92 : 0.52} /></mesh>
+  </group>
+}
+
+const fixtureMaterial = (color: string, selected: boolean, ghost: boolean) => <meshStandardMaterial color={selected ? '#b9e84d' : color} roughness={0.82} transparent={ghost} opacity={ghost ? 0.42 : 1} />
+
+function RaisedBedFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
+  return <group>
+    <mesh position={[0, 0.24, 0]} castShadow receiveShadow><boxGeometry args={[2.16, 0.32, 0.96]} />{fixtureMaterial('#473426', selected, ghost)}</mesh>
+    <mesh position={[0, 0.43, 0]} castShadow><boxGeometry args={[2.08, 0.09, 0.88]} />{fixtureMaterial('#5c4936', selected, ghost)}</mesh>
+    {[[-1.13, 0], [1.13, 0]].map(([x, z], index) => <mesh key={`end-${index}`} position={[x, 0.28, z]} castShadow><boxGeometry args={[0.12, 0.46, 1.2]} />{fixtureMaterial('#8b623d', selected, ghost)}</mesh>)}
+    {[[-0.54], [0.54]].map(([z], index) => <mesh key={`side-${index}`} position={[0, 0.28, z]} castShadow><boxGeometry args={[2.4, 0.46, 0.12]} />{fixtureMaterial('#8b623d', selected, ghost)}</mesh>)}
+  </group>
+}
+
+function TomatoRowFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
+  return <group>{[-0.78, -0.26, 0.26, 0.78].map((x, index) => <group key={x} position={[x, 0, index % 2 ? 0.12 : -0.12]}>
+    <mesh position={[0, 0.72, 0]} castShadow><cylinderGeometry args={[0.018, 0.025, 1.44, 6]} />{fixtureMaterial('#705039', selected, ghost)}</mesh>
+    <mesh position={[0, 0.48, 0]} castShadow><cylinderGeometry args={[0.025, 0.035, 0.86, 7]} />{fixtureMaterial('#3e703f', selected, ghost)}</mesh>
+    {[0.36, 0.58, 0.78].map((y, leafIndex) => <mesh key={y} position={[leafIndex % 2 ? -0.1 : 0.1, y, 0]} scale={[1.4, 0.7, 1]} castShadow><sphereGeometry args={[0.14, 8, 6]} />{fixtureMaterial('#4f8248', selected, ghost)}</mesh>)}
+    {[0.43, 0.66].map((y, fruitIndex) => <mesh key={y} position={[fruitIndex ? 0.08 : -0.08, y, 0.1]} castShadow><sphereGeometry args={[0.055, 8, 6]} />{fixtureMaterial('#b84f36', selected, ghost)}</mesh>)}
+  </group>)}</group>
+}
+
+function PotatoRowFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
+  return <group>{[-0.84, -0.42, 0, 0.42, 0.84].map((x, index) => <group key={x} position={[x, 0, index % 2 ? 0.1 : -0.1]}>
+    {[[-0.1, 0.25, 0], [0.08, 0.32, 0.06], [0.02, 0.21, -0.1]].map(([dx, y, dz], leafIndex) => <mesh key={leafIndex} position={[dx, y, dz]} rotation={[0, leafIndex * 0.9, 0.3]} scale={[1.2, 0.55, 0.8]} castShadow><sphereGeometry args={[0.2, 8, 6]} />{fixtureMaterial('#527b43', selected, ghost)}</mesh>)}
+  </group>)}</group>
+}
+
+function CucumberTrellisFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
+  return <group>
+    {[-1.02, 1.02].map((x) => <mesh key={x} position={[x, 0.72, 0]} castShadow><cylinderGeometry args={[0.035, 0.045, 1.44, 6]} />{fixtureMaterial('#886444', selected, ghost)}</mesh>)}
+    <mesh position={[0, 1.4, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.035, 0.04, 2.12, 6]} />{fixtureMaterial('#886444', selected, ghost)}</mesh>
+    {[-0.82, -0.41, 0, 0.41, 0.82].map((x, index) => <group key={x} position={[x, 0, 0]}>
+      <mesh position={[0, 0.72, 0]}><cylinderGeometry args={[0.012, 0.018, 1.34, 5]} />{fixtureMaterial('#467143', selected, ghost)}</mesh>
+      {[0.28, 0.58, 0.9].map((y, leafIndex) => <mesh key={y} position={[leafIndex % 2 ? -0.09 : 0.09, y, 0.05]} scale={[1.2, 0.65, 1]} castShadow><sphereGeometry args={[0.12, 7, 5]} />{fixtureMaterial('#548249', selected, ghost)}</mesh>)}
+      {index % 2 === 0 && <mesh position={[0.07, 0.68, 0.12]} rotation={[0, 0, 0.25]} castShadow><capsuleGeometry args={[0.035, 0.18, 4, 7]} />{fixtureMaterial('#6a9a4c', selected, ghost)}</mesh>}
+    </group>)}
+  </group>
+}
+
+function GardenFixture({ fixture, project, ghost = false }: { fixture: GardenFixtureModel; project: ProjectV2; ghost?: boolean }) {
+  const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  const definition = gardenFixtureById(fixture.catalogId)
+  const hostedInBed = definition.category === 'crop' && project.landscape.fixtures.some((candidate) => candidate.catalogId === 'raised-bed-2x1' && Math.hypot(candidate.position.x - fixture.position.x, candidate.position.z - fixture.position.z) < 0.15)
+  const y = elevationAt(project, fixture.position.x, fixture.position.z) + (hostedInBed ? 0.43 : 0.02)
+  const selected = selectedRef === fixture.ref
+  return <group position={[fixture.position.x, y, fixture.position.z]} rotation={[0, -MathUtils.degToRad(fixture.rotationDegrees), 0]} userData={{ semanticRef: fixture.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(fixture.ref) }}>
+    {fixture.catalogId === 'raised-bed-2x1' ? <RaisedBedFixture selected={selected} ghost={ghost} /> : fixture.catalogId === 'tomato-row' ? <TomatoRowFixture selected={selected} ghost={ghost} /> : fixture.catalogId === 'potato-row' ? <PotatoRowFixture selected={selected} ghost={ghost} /> : <CucumberTrellisFixture selected={selected} ghost={ghost} />}
+  </group>
+}
+
+function GardenFixtures({ project, fixtures = project.landscape.fixtures, ghost = false }: { project: ProjectV2; fixtures?: GardenFixtureModel[]; ghost?: boolean }) {
+  return <>{fixtures.map((fixture) => <GardenFixture key={`${ghost ? 'ghost-' : ''}${fixture.ref}`} fixture={fixture} project={project} ghost={ghost} />)}</>
+}
+
+const selectedBounds = (project: ProjectV2, refs: string[]) => refs.reduce((box, ref) => {
+  const building = project.buildings.find((item) => item.ref === ref)!; const bounds = buildingLocalBounds(building)
+  const y0 = Math.min(...building.slabs.map((slab) => slab.topElevationM - slab.thicknessM)); const y1 = building.roof.baseElevationM + 5
+  buildingCornersWorld(building).forEach((point) => { box.expandByPoint(new Vector3(point.x, y0, point.z)); box.expandByPoint(new Vector3(point.x, y1, point.z)) })
+  return box
+}, new Box3())
+
+const makeCaptureCamera = (view: ExpandedStructureView, project: ProjectV2, aspect: number) => {
+  const bounds = view.type === 'site-plan'
+    ? project.site.boundary.reduce((box, point) => box.expandByPoint(new Vector3(point.x, 0, point.z)), new Box3()).expandByScalar(1.5)
+    : selectedBounds(project, view.buildingRefs)
+  const center = bounds.getCenter(new Vector3()); const size = bounds.getSize(new Vector3()); const span = Math.max(size.x, size.y, size.z, 10)
+  if (view.type === 'axonometric') { const camera = new PerspectiveCamera(34, aspect, 0.1, 500); camera.position.copy(center).add(new Vector3(span * 1.5, span, span * 1.5)); camera.lookAt(center); camera.updateProjectionMatrix(); return camera }
+  const camera = new OrthographicCamera(-span * aspect * 0.62, span * aspect * 0.62, span * 0.62, -span * 0.62, 0.1, 500)
+  if (view.type === 'site-plan' || view.type === 'storey-plan') camera.position.copy(center).add(new Vector3(0, span * 3, 0.001))
+  else {
+    const north = MathUtils.degToRad(project.site.northDegrees); let angle = north
+    if (view.type === 'south-elevation') angle += Math.PI
+    if (view.type === 'east-elevation') angle += Math.PI / 2
+    if (view.type === 'west-elevation') angle -= Math.PI / 2
+    if (view.type === 'section') angle += view.axis === 'transverse' ? Math.PI / 2 : 0
+    camera.position.copy(center).add(new Vector3(Math.sin(angle) * span * 3, size.y * 0.15, Math.cos(angle) * span * 3))
+  }
+  camera.lookAt(center); camera.updateProjectionMatrix(); return camera
+}
+
+const pixelsToBlob = (pixels: Uint8Array, width: number, height: number, title: string, project: ProjectV2, names: string[], annotations: boolean) => new Promise<Blob>((resolve, reject) => {
+  const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height; const context = canvas.getContext('2d')
+  if (!context) { reject(new Error('2D report canvas unavailable.')); return }
+  const image = context.createImageData(width, height)
+  for (let y = 0; y < height; y += 1) image.data.set(pixels.subarray((height - y - 1) * width * 4, (height - y) * width * 4), y * width * 4)
+  context.putImageData(image, 0, 0)
+  if (annotations) {
+    context.fillStyle = 'rgba(10,16,15,.82)'; context.fillRect(0, 0, width, 62); context.fillRect(0, height - 42, width, 42)
+    context.fillStyle = '#f1f5ed'; context.font = '600 24px system-ui'; context.fillText(title, 24, 39); context.font = '13px system-ui'; context.fillStyle = '#c8d3cc'; context.fillText(names.join(' · '), 24, height - 16)
+    context.strokeStyle = '#b9e84d'; context.lineWidth = 3; context.beginPath(); context.moveTo(width - 48, 44); context.lineTo(width - 48, 18); context.stroke(); context.fillStyle = '#b9e84d'; context.beginPath(); context.moveTo(width - 48, 12); context.lineTo(width - 54, 23); context.lineTo(width - 42, 23); context.fill(); context.fillText('N', width - 72, 30)
+    context.strokeStyle = '#f1f5ed'; context.lineWidth = 4; context.beginPath(); context.moveTo(width - 180, height - 20); context.lineTo(width - 80, height - 20); context.stroke(); context.fillText('5 m', width - 172, height - 27); context.fillText(`site north ${project.site.northDegrees.toFixed(1)}°`, width - 340, height - 16)
+  }
+  canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG report encoding failed.')), 'image/png')
+})
+
+function StructureCaptureController() {
+  const { gl, scene } = useThree()
+  useEffect(() => registerStructureViewCapture(async (project, views, includeAnnotations, signal) => {
+    const width = 960; const height = 640; const target = new WebGLRenderTarget(width, height, { minFilter: LinearFilter, magFilter: LinearFilter })
+    const previousTarget = gl.getRenderTarget(); const previousClipping = [...gl.clippingPlanes]; const previousLocal = gl.localClippingEnabled; const visibility = new Map<Object3D, boolean>(); const materialState = new Map<MeshStandardMaterial, { transparent: boolean; opacity: number }>(); const results: StructureReport['views'] = []
+    const source = project === useStudioStore.getState().project ? 'committed' : 'ghost'
+    scene.traverse((object) => { if (object.userData.editorOnly) { visibility.set(object, object.visible); object.visible = false } })
+    try {
+      for (const view of views) {
+        if (signal.aborted) throw new DOMException('Architectural report cancelled.', 'AbortError')
+        scene.traverse((object) => {
+          if (!object.userData.captureRoot) return
+          const ref = object.userData.buildingRef as string
+          if (!visibility.has(object)) visibility.set(object, object.visible)
+          object.visible = view.buildingRefs.includes(ref) && object.userData.captureSource === source
+          if (object.visible) object.traverse((child) => {
+            if (!(child instanceof Mesh)) return
+            const materials = Array.isArray(child.material) ? child.material : [child.material]
+            materials.forEach((material) => {
+              if (!(material instanceof MeshStandardMaterial) || materialState.has(material)) return
+              materialState.set(material, { transparent: material.transparent, opacity: material.opacity }); material.transparent = false; material.opacity = 1
+            })
+          })
+        })
+        const camera = makeCaptureCamera(view, project, width / height); gl.clippingPlanes = []
+        if (view.type === 'storey-plan') { const storey = project.buildings.flatMap((building) => building.storeys).find((item) => item.ref === view.storeyRef)!; gl.clippingPlanes = [new Plane(new Vector3(0, -1, 0), storey.elevationM + storey.clearHeightM + 0.08)] }
+        if (view.type === 'section') { const box = selectedBounds(project, view.buildingRefs); const center = box.getCenter(new Vector3()); const offset = view.offsetM ?? 0; gl.clippingPlanes = [new Plane(view.axis === 'longitudinal' ? new Vector3(0, 0, -1) : new Vector3(-1, 0, 0), view.axis === 'longitudinal' ? center.z + offset : center.x + offset)] }
+        gl.localClippingEnabled = true; gl.setRenderTarget(target); gl.clear(); gl.render(scene, camera)
+        const pixels = new Uint8Array(width * height * 4); gl.readRenderTargetPixels(target, 0, 0, width, height, pixels)
+        const names = view.buildingRefs.map((ref) => project.buildings.find((building) => building.ref === ref)!.name); const blob = await pixelsToBlob(pixels, width, height, view.title, project, names, includeAnnotations)
+        results.push({ type: view.type, title: view.title, buildingRefs: view.buildingRefs, ...(view.type === 'storey-plan' ? { storeyRef: view.storeyRef } : {}), presentation: 'visible-in-page', imageUrl: URL.createObjectURL(blob) })
+      }
+      return results
+    } catch (error) { results.forEach((view) => URL.revokeObjectURL(view.imageUrl)); throw error }
+    finally { visibility.forEach((visible, object) => { object.visible = visible }); materialState.forEach((state, material) => { material.transparent = state.transparent; material.opacity = state.opacity }); gl.setRenderTarget(previousTarget); gl.clippingPlanes = previousClipping; gl.localClippingEnabled = previousLocal; target.dispose() }
+  }), [gl, scene])
+  return null
+}
+
+function Lighting({ mode }: { mode: ViewMode }) { return <><ambientLight intensity={mode === 'technical' ? 1.4 : 0.72} /><directionalLight position={[18, 28, 14]} intensity={mode === 'technical' ? 2 : 2.8} castShadow shadow-bias={-0.0002} shadow-normalBias={0.04} shadow-mapSize={[2048, 2048]} shadow-camera-left={-45} shadow-camera-right={45} shadow-camera-top={45} shadow-camera-bottom={-45} /></> }
+
+export function StudioScene() {
+  const project = useStudioStore((state) => state.project); const mode = useStudioStore((state) => state.viewMode); const confirmation = useStudioStore((state) => state.confirmationVariantRef)
+  const ghost = useStudioStore((state) => state.variants.find((variant) => variant.ref === confirmation)?.project); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  const changedGhostFixtures = ghost?.landscape.fixtures.filter((fixture) => {
+    const committed = project.landscape.fixtures.find((item) => item.ref === fixture.ref)
+    return !committed || committed.catalogId !== fixture.catalogId || committed.position.x !== fixture.position.x || committed.position.z !== fixture.position.z || committed.rotationDegrees !== fixture.rotationDegrees
+  }) ?? []
+  return <>
+    <color attach="background" args={[mode === 'technical' ? '#cfd5cd' : '#aebdb1']} />{mode === 'realistic' && <fog attach="fog" args={['#aebdb1', 450, 1100]} />}
+    <ThatOpenBridge /><InteractiveMeasurements /><StructureCaptureController /><Lighting mode={mode} />
+    <Physics gravity={[0, 0, 0]}><group onPointerMissed={() => setSelectedRef(null)}><TerrainAndSite project={project} mode={mode} /><Landscape project={project} /><GardenFixtures project={project} />
+      {project.buildings.map((building) => <Building key={building.ref} project={project} building={building} mode={mode} />)}
+      {ghost?.buildings.map((building) => <Building key={`ghost-${building.ref}`} project={ghost} building={building} mode={mode} ghost />)}
+      {ghost && <GardenFixtures project={ghost} fixtures={changedGhostFixtures} ghost />}
+    </group></Physics>
   </>
 }

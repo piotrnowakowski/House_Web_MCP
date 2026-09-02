@@ -1,210 +1,48 @@
-export interface WebMcpPromptDefinition {
-  name: string
-  title: string
-  description: string
-}
-
-interface PromptBlocks {
-  name: string
-  title: string
-  role: string
-  task: string
-  input: string
-  tools: string
-  output: string
-  exampleOutput: string
-}
-
-const agentRole = 'You are a browser agent collaborating with a person inside House_Web_MCP, a conceptual 3D home and garden planner. Use stable semantic references and preserve human control.'
-
-const resultContract = 'Call this WebMCP tool with a JSON object, not a JSON string. The app returns content[0].text as JSON with status, projectRevision and summary, plus optional variantRef, issues, metrics or data.'
-const proposalResultContract = `${resultContract} A successful proposal returns status "variant_created" and a variantRef. It does not modify the committed project.`
-
-const formatPrompt = ({ role, task, input, tools, output, exampleOutput }: PromptBlocks) => [
-  `<role>\n${role}\n</role>`,
-  `<task>\n${task}\n</task>`,
-  `<input>\n${input}\n</input>`,
-  `<tools>\n${tools}\n</tools>`,
-  `<output>\n${output}\n</output>`,
-  `<example_output>\n${exampleOutput}\n</example_output>`,
-].join('\n\n')
-
-const definePrompt = (blocks: PromptBlocks): WebMcpPromptDefinition => ({
+export interface WebMcpPromptBlocks { role: string; task: string; input: string; tools: string; output: string; exampleOutput: string }
+export interface WebMcpPromptDefinition { name: string; title: string; description: string; blocks: WebMcpPromptBlocks; exampleInput: unknown }
+type Blocks = { name: string; title: string } & WebMcpPromptBlocks
+const role = 'You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.'
+const result = 'Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output.'
+const proposalOutput = `${result} A valid change returns status "variant_created" and variantRef; it does not modify the committed project.`
+const proposalTools = 'Call get_project_state first. Create a ghost variant, compare it if useful, and call request_apply_variant only when the person should review it. Never claim the variant is committed before approval.'
+const format = ({ role: r, task, input, tools, output, exampleOutput }: Blocks) => `<role>\n${r}\n</role>\n\n<task>\n${task}\n</task>\n\n<input>\n${input}\n</input>\n\n<tools>\n${tools}\n</tools>\n\n<output>\n${output}\n</output>\n\n<example_output>\n${exampleOutput}\n</example_output>`
+const define = (blocks: Blocks): WebMcpPromptDefinition => ({
   name: blocks.name,
   title: blocks.title,
-  description: formatPrompt(blocks),
+  description: format(blocks),
+  blocks: { role: blocks.role, task: blocks.task, input: blocks.input, tools: blocks.tools, output: blocks.output, exampleOutput: blocks.exampleOutput },
+  exampleInput: JSON.parse(blocks.exampleOutput),
 })
-
-const proposalTools = 'Call get_project_state before proposing changes. After creating a variant, use compare_variants when comparison helps and request_apply_variant only when the person should review and decide. Never imply that a proposal is already committed.'
+const proposal = (name: string, title: string, task: string, input: string, exampleOutput: string) => define({ name, title, role, task, input, tools: proposalTools, output: proposalOutput, exampleOutput })
 
 export const webMcpFieldPrompts = {
-  positionX: 'East-west coordinate in meters.',
-  positionZ: 'North-south coordinate in meters.',
-  semanticRef: 'Stable semantic reference such as room/living-room.',
-  gardenGoals: 'Design goals, for example low water, play lawn, vegetables, or year-round interest.',
+  positionX: 'East-west local model coordinate in metres.', positionZ: 'North-south local model coordinate in metres.', semanticRef: 'Stable semantic reference such as building/main, storey/ground or wall/east.',
 } as const
 
 export const webMcpToolPrompts = {
-  get_project_state: definePrompt({
-    name: 'get_project_state',
-    title: 'Inspect Zielonki 3D project',
-    role: agentRole,
-    task: 'Read the current Zielonki parcel, evidence, geotechnical, planting, building, garden, climate, variant and validation state. Use this before proposing a change.',
-    input: '`detail` (required enum): `summary`, `site`, `structure`, `garden`, or `full`. Use `site` for the sourced knowledge bank and `garden` for climate plus planting guidance.',
-    tools: 'Use this read-only tool before proposal tools. Do not use it to claim that a variant has been applied.',
-    output: resultContract,
-    exampleOutput: '{"detail":"site"}',
-  }),
-  propose_plot_update: definePrompt({
-    name: 'propose_plot_update',
-    title: 'Propose plot update',
-    role: agentRole,
-    task: 'Create a reversible 3D variant that changes the plot boundary, north direction, or terrain elevation controls.',
-    input: '`northDegrees` (optional number); `boundary` (optional array of at least three `{x,z}` meter points); `elevationPoints` (optional non-empty array of `{x,z,elevation}` meter points).',
-    tools: proposalTools,
-    output: proposalResultContract,
-    exampleOutput: '{"northDegrees":-56.7}',
-  }),
-  propose_building_update: definePrompt({
-    name: 'propose_building_update',
-    title: 'Propose building update',
-    role: agentRole,
-    task: 'Create a reversible 3D variant that adds, removes, moves, rotates, changes the roof, or switches a building between Classic, Futuristic, and Barn architectural styles.',
-    input: '`action` and `buildingRef` are required. Use `set-style` with `architecturalStyle` (`classic`, `futuristic`, or `barn`). Other optional fields are `name`, `kind`, `position`, `rotationDegrees`, `roofType`, `pitchDegrees`, and `overhangM`; provide only fields relevant to the action.',
-    tools: proposalTools,
-    output: proposalResultContract,
-    exampleOutput: '{"action":"set-style","buildingRef":"house/main","architecturalStyle":"barn"}',
-  }),
-  propose_floor_update: definePrompt({
-    name: 'propose_floor_update',
-    title: 'Propose floor update',
-    role: agentRole,
-    task: 'Create a reversible 3D variant that adds or removes a floor or changes its clear height.',
-    input: '`action` (`add`, `remove`, or `set-height`), `buildingRef`, and `floorRef` are required. `name` and `heightM` are optional and action-dependent.',
-    tools: proposalTools,
-    output: proposalResultContract,
-    exampleOutput: '{"action":"add","buildingRef":"house/main","floorRef":"floor/upper","name":"Upper floor","heightM":2.9}',
-  }),
-  propose_room_update: definePrompt({
-    name: 'propose_room_update',
-    title: 'Propose room update',
-    role: agentRole,
-    task: 'Create a reversible 3D variant that adds, removes, moves, resizes, rotates, or changes the ceiling of an unlocked room.',
-    input: '`action`, `buildingRef`, `floorRef`, and `roomRef` are required. Optional action fields are `name`, `usage`, `position`, `widthM`, `depthM`, `heightM`, `rotationDegrees`, and `ceilingType`.',
-    tools: proposalTools,
-    output: proposalResultContract,
-    exampleOutput: '{"action":"set-ceiling","buildingRef":"house/main","floorRef":"floor/ground","roomRef":"room/living-room","heightM":3.1,"ceilingType":"lowered"}',
-  }),
-  propose_mezzanine_update: definePrompt({
-    name: 'propose_mezzanine_update',
-    title: 'Propose mezzanine update',
-    role: agentRole,
-    task: 'Create a reversible 3D variant that adds, removes, or resizes a mezzanine inside an unlocked room.',
-    input: '`action`, `buildingRef`, `floorRef`, `roomRef`, and `mezzanineRef` are required. Optional action fields are `position`, `widthM`, `depthM`, and `elevationM`.',
-    tools: proposalTools,
-    output: proposalResultContract,
-    exampleOutput: '{"action":"add","buildingRef":"house/main","floorRef":"floor/ground","roomRef":"room/living-room","mezzanineRef":"room/living-room/mezzanine","widthM":2.4,"depthM":3}',
-  }),
-  propose_garage_update: definePrompt({
-    name: 'propose_garage_update',
-    title: 'Propose garage update',
-    role: agentRole,
-    task: 'Create a reversible 3D variant for an integrated or attached garage.',
-    input: '`action` and `garageRef` are required. Optional action fields are `mode`, `position`, `widthM`, `depthM`, and `heightM`.',
-    tools: proposalTools,
-    output: proposalResultContract,
-    exampleOutput: '{"action":"add","garageRef":"garage/main","mode":"attached","position":{"x":-8,"z":0},"widthM":6,"depthM":6,"heightM":2.7}',
-  }),
-  propose_garden_plan: definePrompt({
-    name: 'propose_garden_plan',
-    title: 'Propose complete garden',
-    role: agentRole,
-    task: 'Generate a reversible seasonal 3D garden variant from design goals, preserved elements and water preference. Respect the Zielonki planting guidance and ground constraints returned by get_project_state.',
-    input: '`goals` (required non-empty string array); `preserveRefs` (string array, defaults to empty); `waterPreference` (`low`, `balanced`, or `lush`, defaults to `low`).',
-    tools: proposalTools,
-    output: proposalResultContract,
-    exampleOutput: '{"goals":["low water","year-round interest"],"preserveRefs":["zone/terrace","plant/apple"],"waterPreference":"low"}',
-  }),
-  propose_garden_update: definePrompt({
-    name: 'propose_garden_update',
-    title: 'Propose garden update',
-    role: agentRole,
-    task: 'Create a reversible 3D variant that adds, removes, or moves one garden zone or plant.',
-    input: '`action` and `subjectRef` are required. Optional action fields are `name`, `kind`, `position`, `widthM`, `depthM`, and `species`. Prefer species from the site planting guidance.',
-    tools: proposalTools,
-    output: proposalResultContract,
-    exampleOutput: '{"action":"add-plant","subjectRef":"plant/guelder-rose","name":"Guelder rose","kind":"shrub","species":"Viburnum opulus","position":{"x":-11,"z":9}}',
-  }),
-  propose_climate_update: definePrompt({
-    name: 'propose_climate_update',
-    title: 'Propose climate update',
-    role: agentRole,
-    task: 'Create a reversible variant that edits one month of the local climate profile used by seasonal analysis.',
-    input: '`month` (required integer 1–12). Optional values are `meanMinC`, `meanMaxC`, `precipitationMm`, `sunshineHours`, `et0Mm`, `frostDays`, and `windKph`.',
-    tools: proposalTools,
-    output: proposalResultContract,
-    exampleOutput: '{"month":7,"precipitationMm":88,"et0Mm":118}',
-  }),
-  run_seasonal_analysis: definePrompt({
-    name: 'run_seasonal_analysis',
-    title: 'Run seasonal analysis',
-    role: agentRole,
-    task: 'Estimate daylight, representative sun, water balance, drought, frost, foliage and bloom for selected months in the base project or one variant.',
-    input: '`months` (integer array from 1–12, defaults to `[1,4,7,10]`); `variantRef` (optional stable variant reference).',
-    tools: 'Use get_project_state first when project context is unknown. This tool is read-only and must not be presented as a professional weather, irrigation or horticultural assessment.',
-    output: resultContract,
-    exampleOutput: '{"months":[1,4,7,10]}',
-  }),
-  compare_variants: definePrompt({
-    name: 'compare_variants',
-    title: 'Compare 3D variants',
-    role: agentRole,
-    task: 'Compare metrics, validation issues and revisions for up to four existing visible 3D variants.',
-    input: '`variantRefs` (required array containing one to four existing stable variant references).',
-    tools: 'Use proposal tools to create variants first. This tool is read-only; use request_apply_variant separately when the person should make a decision.',
-    output: resultContract,
-    exampleOutput: '{"variantRefs":["variant/example-a","variant/example-b"]}',
-  }),
-  request_apply_variant: definePrompt({
-    name: 'request_apply_variant',
-    title: 'Request variant approval',
-    role: agentRole,
-    task: 'Open the selected ghost variant in the 3D canvas and wait for the person to apply or reject it.',
-    input: '`variantRef` (required existing stable variant reference).',
-    tools: 'Use only after a proposal tool returns the variantRef and the person has enough context to review it. Never approve on the person’s behalf. Agent cancellation closes the pending confirmation.',
-    output: `${resultContract} The promise resolves only after the person chooses Apply or Reject, returning status "applied" or "rejected".`,
-    exampleOutput: '{"variantRef":"variant/example-a"}',
-  }),
-  discard_variant: definePrompt({
-    name: 'discard_variant',
-    title: 'Discard variant',
-    role: agentRole,
-    task: 'Discard one uncommitted proposal without changing the committed project.',
-    input: '`variantRef` (required existing stable variant reference).',
-    tools: 'Use for an unwanted uncommitted variant. Do not use it to undo an applied change; use undo_last_change for that.',
-    output: resultContract,
-    exampleOutput: '{"variantRef":"variant/example-a"}',
-  }),
-  undo_last_change: definePrompt({
-    name: 'undo_last_change',
-    title: 'Undo committed change',
-    role: agentRole,
-    task: 'Undo the most recent committed project change without affecting uncommitted variants.',
-    input: 'Pass an empty JSON object.',
-    tools: 'Use only when the person requests reversal of the latest applied change. Use discard_variant for uncommitted proposals.',
-    output: resultContract,
-    exampleOutput: '{}',
-  }),
-  request_export: definePrompt({
-    name: 'request_export',
-    title: 'Request project export',
-    role: agentRole,
-    task: 'Ask the person to confirm export of versioned project JSON, the visible 3D scene as GLB, or a PNG image.',
-    input: '`format` (required enum): `json`, `glb`, or `png`.',
-    tools: 'Use only when an export is requested. The tool waits for explicit human confirmation and agent cancellation closes the pending request.',
-    output: `${resultContract} The export starts only after the person confirms it in the canvas.`,
-    exampleOutput: '{"format":"glb"}',
-  }),
+  get_project_state: define({ name: 'get_project_state', title: 'Inspect ProjectV2', role, task: 'Read the committed V2 site, terrain, buildings, shared slabs, wall graph, spaces, openings, landscape, climate, evidence-linked planting recommendations, soil analysis, metrics and variants.', input: '`detail` (enum): `summary`, `site`, `structure`, `landscape`, or `full`. `landscape` returns placed landscape, climate and the planting guide, including documented soil findings, unknowns, required tests, preparation principles, vegetables and fruit trees.', tools: 'Use before proposing edits or requesting views. This is read-only. Treat conditional crop recommendations and unknown soil properties as constraints, not verified suitability.', output: result, exampleOutput: '{"detail":"landscape"}' }),
+  list_garden_fixtures: define({ name: 'list_garden_fixtures', title: 'List ready garden fixtures', role, task: 'Read the editor-owned fixture catalog for raised beds and standard crop rows, including semantic IDs and metre dimensions.', input: 'Input is an empty JSON object.', tools: 'Use before proposing garden fixtures. This is read-only. Use only returned catalog IDs; do not invent fixture types.', output: `${result} Returns data as an array of fixture definitions with id, name, category, description, widthM, depthM and heightM.`, exampleOutput: '{}' }),
+  propose_site_update: proposal('propose_site_update', 'Propose site update', 'Change the straight-edged site boundary or site-north direction.', '`boundary` is an optional polygon; `northDegrees` is optional.', '{"northDegrees":-56.7}'),
+  propose_terrain_update: proposal('propose_terrain_update', 'Propose terrain update', 'Replace terrain elevation controls used for support and planting elevation.', '`elevationPoints` is a non-empty array of `{x,z,elevation}`.', '{"elevationPoints":[{"x":0,"z":0,"elevation":242.1}]}'),
+  propose_building_update: proposal('propose_building_update', 'Propose building update', 'Add, remove, move, rotate or restyle a building.', '`action`, `buildingRef`; optional `name`, `kind`, `architecturalStyle`, `position`, `rotationDegrees`.', '{"action":"move","buildingRef":"house/main","position":{"x":1,"z":-2}}'),
+  propose_storey_update: proposal('propose_storey_update', 'Propose storey update', 'Add/remove a storey or change its clear height. Adding creates one intermediate slab shared with the storey below.', '`action`, `buildingRef`, `storeyRef`; optional `name`, `clearHeightM`, polygon `footprint`.', '{"action":"add","buildingRef":"house/main","storeyRef":"storey/upper","clearHeightM":2.9}'),
+  propose_slab_update: proposal('propose_slab_update', 'Propose shared slab update', 'Edit a semantic slab once so it remains the upper floor and lower ceiling boundary.', '`action`, `buildingRef`, `slabRef`; optional `footprint`, `thicknessM`, `topElevationM`.', '{"action":"set-thickness","buildingRef":"house/main","slabRef":"storey/upper/base-slab","thicknessM":0.28}'),
+  propose_space_update: proposal('propose_space_update', 'Propose polygonal space update', 'Add/remove a polygonal space, edit its straight-edged footprint or usage, or add a linked lowered ceiling finish.', '`action`, `buildingRef`, `storeyRef`, `spaceRef`; action fields include `name`, `usage`, `footprint`, `ceilingElevationM`.', '{"action":"set-lowered-ceiling","buildingRef":"house/main","storeyRef":"storey/ground","spaceRef":"space/living","ceilingElevationM":3.1}'),
+  propose_wall_update: proposal('propose_wall_update', 'Propose shared wall update', 'Move or resize one wall in the shared wall graph.', '`action`, `buildingRef`, `wallRef`; optional `start`, `end`, `thicknessM`, `heightM`.', '{"action":"set-thickness","buildingRef":"house/main","wallRef":"wall/partition","thicknessM":0.16}'),
+  propose_opening_update: proposal('propose_opening_update', 'Propose opening update', 'Add, remove, move or resize a door/window void hosted by a wall.', '`action`, `buildingRef`, `wallRef`, `openingRef`; optional `kind`, `offsetM`, `widthM`, `heightM`, `sillM`.', '{"action":"add","buildingRef":"house/main","wallRef":"wall/west","openingRef":"opening/west-window","kind":"window","offsetM":3,"widthM":1.5,"heightM":1.4,"sillM":0.9}'),
+  propose_roof_update: proposal('propose_roof_update', 'Propose roof update', 'Change flat, gable or hip roof semantics.', '`buildingRef`; optional `roofType`, `pitchDegrees`, `overhangM`.', '{"buildingRef":"house/main","roofType":"hip","pitchDegrees":28}'),
+  propose_platform_update: proposal('propose_platform_update', 'Propose platform update', 'Add/remove/resize a mezzanine platform attached to a space.', '`action`, `buildingRef`, `storeyRef`, `spaceRef`, `platformRef`; optional `footprint`, `elevationM`, `thicknessM`.', '{"action":"add","buildingRef":"house/main","storeyRef":"storey/ground","spaceRef":"space/living","platformRef":"platform/mezzanine","footprint":[{"x":0,"z":0},{"x":2,"z":0},{"x":2,"z":2},{"x":0,"z":2}],"elevationM":2.5}'),
+  propose_landscape_update: proposal('propose_landscape_update', 'Propose landscape polygon update', 'Add/remove/move or reshape one straight-edged landscape zone.', '`action`, `zoneRef`; optional `name`, `kind`, polygon `footprint`, or move `delta`.', '{"action":"set-footprint","zoneRef":"zone/lawn","footprint":[{"x":0,"z":8},{"x":12,"z":8},{"x":12,"z":16},{"x":0,"z":16}]}'),
+  propose_plant_update: proposal('propose_plant_update', 'Propose terrain-supported plant update', 'Add/remove/move a plant whose elevation is derived from terrain.', '`action`, `plantRef`; optional `name`, `species`, `kind`, `position`.', '{"action":"move","plantRef":"plant/apple","position":{"x":10,"z":12}}'),
+  propose_garden_fixture_update: proposal('propose_garden_fixture_update', 'Propose garden fixture update', 'Add, remove, move or rotate one semantic garden fixture from the ready catalog.', '`action` (enum: `add`, `remove`, `move`, `rotate`) and `fixtureRef` (string) are required. For `add`, also pass `catalogId` and `position` `{x,z}`. Optional fields are `name` and `rotationDegrees`.', '{"action":"add","fixtureRef":"fixture/bed-4","catalogId":"raised-bed-2x1","position":{"x":8.4,"z":8.2},"rotationDegrees":0}'),
+  propose_garden_fixture_set: proposal('propose_garden_fixture_set', 'Propose garden fixture set', 'Build one coordinated garden set: the three-bed starter kitchen garden, or one raised bed already planted with tomatoes, potatoes or cucumbers. Use next-to-existing placement when the person says beside, alongside, next to or after the previous bed.', '`preset` is `starter-kitchen-garden`, `tomato-raised-bed`, `potato-raised-bed` or `cucumber-raised-bed`. `setRef` is a unique stable semantic prefix. To resolve phrases such as "next to the previous bed", pass `placement: "next-to-existing"` and omit `origin`; the tool places the set 3.1 m after the most recently placed raised bed. Otherwise pass `origin` as exact local `{x,z}` metres and optionally `placement: "at-origin"`. Optional `rotationDegrees` rotates the complete set.', '{"preset":"tomato-raised-bed","setRef":"fixture-set/tomato-bed-2","placement":"next-to-existing","rotationDegrees":0}'),
+  propose_climate_update: proposal('propose_climate_update', 'Propose climate update', 'Edit one month used by seasonal analysis.', '`month` (integer 1–12); optional `meanMinC`, `meanMaxC`, `temperatureByDayPartC` with required numeric `night`, `morning`, `day`, and `evening` values in °C, plus optional precipitation, sunshine, ET0, frost and wind fields. Day parts use local time: night 00–06, morning 06–12, day 12–18, evening 18–24.', '{"month":7,"temperatureByDayPartC":{"night":15.2,"morning":19.0,"day":24.1,"evening":20.2},"precipitationMm":88}'),
+  show_structure_views: define({ name: 'show_structure_views', title: 'Show architectural structure views', role, task: 'Open an ephemeral visible in-page architectural report with rendered images and return structured building placement numbers. Architectural-set expands to site plan, four site-north elevations, axonometric, selected storey plans and two centreline sections.', input: '`mode` defaults to `architectural-set`; optional `buildingRefs`, `variantRef`, custom `views`, and `includeAnnotations`. Maximum 12 expanded views.', tools: 'Use get_project_state for refs. This is read-only. Images appear in the page; the JSON result contains no data URL, Blob URL or binary content.', output: `${result} Returns reportRef, views with presentation "visible-in-page", and selected building placement in local model metres.`, exampleOutput: '{"mode":"architectural-set","buildingRefs":["house/main"],"includeAnnotations":true}' }),
+  run_seasonal_analysis: define({ name: 'run_seasonal_analysis', title: 'Run seasonal analysis', role, task: 'Estimate monthly night, morning, day and evening temperatures alongside daylight, water balance, frost, foliage and bloom from V2 climate and landscape state.', input: '`months` is an array of integers from 1–12 and defaults to `[1,4,7,10]`; optional string `variantRef`.', tools: 'Read-only; do not present conceptual climate values as professional weather or horticultural advice.', output: `${result} Each month includes \`temperatureByDayPartC\` with numeric \`night\`, \`morning\`, \`day\`, and \`evening\` averages in °C for the local-time windows 00–06, 06–12, 12–18, and 18–24.`, exampleOutput: '{"months":[1,4,7,10]}' }),
+  compare_variants: define({ name: 'compare_variants', title: 'Compare variants', role, task: 'Compare metrics and validation issues for one to four ghost variants.', input: '`variantRefs` is an array of one to four refs.', tools: 'Read-only. Apply separately with request_apply_variant.', output: result, exampleOutput: '{"variantRefs":["variant/a","variant/b"]}' }),
+  request_apply_variant: define({ name: 'request_apply_variant', title: 'Request variant approval', role, task: 'Show a ghost variant and wait for the person to apply or reject it.', input: '`variantRef`.', tools: 'Never approve for the person. Cancellation closes the pending confirmation.', output: `${result} Resolves with status "applied" or "rejected".`, exampleOutput: '{"variantRef":"variant/example"}' }),
+  discard_variant: define({ name: 'discard_variant', title: 'Discard variant', role, task: 'Discard one uncommitted variant.', input: '`variantRef`.', tools: 'Use undo_last_change for committed work.', output: result, exampleOutput: '{"variantRef":"variant/example"}' }),
+  undo_last_change: define({ name: 'undo_last_change', title: 'Undo committed change', role, task: 'Undo the most recent committed ProjectV2 change.', input: 'Empty object.', tools: 'Use only when the person requests the latest committed edit to be reversed.', output: result, exampleOutput: '{}' }),
 } as const
 
 export type WebMcpToolPromptName = keyof typeof webMcpToolPrompts
