@@ -174,7 +174,7 @@ const define = <S extends z.ZodType>(definition: {
 })
 
 export const webMcpTools: WebMcpTool[] = [
-  define({ name: 'get_project_state', title: 'Inspect Zielonki 3D project', description: 'Read the current Zielonki parcel, evidence, geotechnical, building, floor, room, garage, garden, climate, variant, and validation state. Use detail "site" for the concise sourced knowledge bank. Call this before proposing changes.', input: getStateSchema, readOnly: true, handler: ({ detail }) => {
+  define({ name: 'get_project_state', title: 'Inspect Zielonki 3D project', description: 'Read the current Zielonki parcel, evidence, geotechnical, planting, building, floor, room, garage, garden, climate, variant, and validation state. Use detail "site" for the concise sourced knowledge bank. Call this before proposing changes.', input: getStateSchema, readOnly: true, handler: ({ detail }) => {
     const state = useStudioStore.getState()
     const metrics = calculateMetrics(state.project)
     const constructionParcels = state.project.plot.parcels.filter((parcel) => parcel.landRole === 'construction')
@@ -195,7 +195,7 @@ export const webMcpTools: WebMcpTool[] = [
     }
       : detail === 'site' ? { plot: state.project.plot, knowledgeBase: state.project.knowledgeBase }
         : detail === 'structure' ? { plot: state.project.plot, buildings: state.project.buildings, designRules: state.project.knowledgeBase.designRules }
-        : detail === 'garden' ? { garden: state.project.garden, climateProfile: state.project.climateProfile }
+        : detail === 'garden' ? { garden: state.project.garden, climateProfile: state.project.climateProfile, plantingGuidance: state.project.knowledgeBase.planting }
           : state.project
     return { status: 'ok', projectRevision: state.project.revision, summary: `Returned ${detail} project state.`, metrics, data }
   } }),

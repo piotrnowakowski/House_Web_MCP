@@ -31,6 +31,8 @@ describe('Zielonki demo dataset', () => {
     expect(sampleProject.climateProfile.soil.ph).toBeNull()
     expect(sampleProject.knowledgeBase.measurements.every((measurement) => sourceRefs.has(measurement.sourceRef))).toBe(true)
     expect(sampleProject.knowledgeBase.designRules.every((rule) => sourceRefs.has(rule.sourceRef))).toBe(true)
+    expect(sampleProject.knowledgeBase.planting.recommendations.every((plant) => plant.sourceRefs.every((ref) => sourceRefs.has(ref)))).toBe(true)
+    expect(sampleProject.knowledgeBase.planting.recommendations.filter((plant) => plant.priority === 'best-fit')).toHaveLength(6)
     expect(validateProject(sampleProject)).toContainEqual(expect.objectContaining({ code: 'site.geotechnical-review', severity: 'warning' }))
   })
 })

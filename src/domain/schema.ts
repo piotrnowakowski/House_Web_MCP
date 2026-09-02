@@ -7,7 +7,7 @@ const PlotParcelSchema = z.object({
 })
 const KnowledgeSourceSchema = z.object({
   ref: z.string().min(1), title: z.string().min(1), date: z.string().min(1),
-  kind: z.enum(['survey-map', 'subdivision-map', 'working-measurement', 'geotechnical-report', 'specialist-email', 'user-direction']),
+  kind: z.enum(['survey-map', 'subdivision-map', 'working-measurement', 'geotechnical-report', 'specialist-email', 'climate-dataset', 'horticultural-guidance', 'user-direction']),
   authority: z.enum(['official', 'professional', 'working', 'user-provided']), summary: z.string().min(1),
 })
 const SiteMeasurementSchema = z.object({
@@ -21,6 +21,13 @@ const BoreholeKnowledgeSchema = z.object({
   ref: z.string().min(1), label: z.string().min(1), position: Vec2Schema,
   positionConfidence: z.enum(['map-derived', 'surveyed']), depthM: z.number().positive(), groundwaterDepthM: z.number().positive(),
   intervals: z.array(SoilIntervalSchema).min(1),
+})
+const PlantRecommendationSchema = z.object({
+  ref: z.string().min(1), commonName: z.string().min(1), botanicalName: z.string().min(1),
+  kind: z.enum(['tree', 'hedge', 'shrub', 'perennial', 'grass', 'crop', 'wetland']),
+  priority: z.enum(['best-fit', 'conditional']), preferredMoisture: z.enum(['wet', 'moist', 'balanced', 'dry']),
+  sunNeed: z.enum(['shade', 'partial', 'sun']), minHardinessC: z.number(), placement: z.string().min(1),
+  siteFit: z.string().min(1), caution: z.string(), sourceRefs: z.array(z.string().min(1)).min(1),
 })
 const OpeningSchema = z.object({
   ref: z.string().min(1), kind: z.enum(['door', 'window']), wall: z.enum(['north', 'east', 'south', 'west']),
@@ -80,6 +87,10 @@ export const ProjectSchema = z.object({
       weakBearingToApproxM: z.number().positive(), groundwaterRangeM: z.tuple([z.number().positive(), z.number().positive()]),
       foundationConcept: z.string().min(1), documentationNeed: z.string().min(1), reportClassification: z.string().min(1),
       constraints: z.array(z.string().min(1)).min(1),
+    }),
+    planting: z.object({
+      strategy: z.array(z.string().min(1)).min(1), recommendations: z.array(PlantRecommendationSchema).min(1),
+      exclusions: z.array(z.string().min(1)).min(1),
     }),
     designRules: z.array(z.object({ rule: z.string().min(1), basis: z.string().min(1), sourceRef: z.string().min(1) })).min(1),
     caveats: z.array(z.string().min(1)).min(1),

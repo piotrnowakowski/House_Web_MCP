@@ -43,6 +43,7 @@ describe('ProjectV1 command bus', () => {
     expect(result.garden.zones.some((zone) => zone.ref === 'zone/terrace')).toBe(true)
     expect(result.garden.zones.some((zone) => zone.kind === 'vegetable')).toBe(true)
     expect(result.garden.plants.some((plant) => plant.ref === 'plant/apple')).toBe(true)
-    expect(result.garden.plants.some((plant) => plant.species === 'Lavandula angustifolia')).toBe(true)
+    expect(result.garden.plants.some((plant) => plant.species === 'Geranium macrorrhizum')).toBe(true)
+    expect(result.garden.plants.some((plant) => plant.species === 'Lavandula angustifolia')).toBe(false)
   })
 })

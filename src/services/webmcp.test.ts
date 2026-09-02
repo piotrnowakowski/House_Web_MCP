@@ -36,7 +36,18 @@ describe('native WebMCP surface', () => {
     expect(parsed.data.knowledgeBase).toMatchObject({
       locality: 'Zielonki, Małopolskie, Poland',
       geotechnical: { weakBearingToApproxM: 4, groundwaterRangeM: [1.6, 2.3] },
+      planting: { recommendations: expect.any(Array) },
     })
+  })
+
+  it('returns climate and site-fit planting guidance with garden state', async () => {
+    const result = await tool('get_project_state').execute({ detail: 'garden' })
+    const parsed = payload(result)
+
+    expect(parsed.data.climateProfile.months).toHaveLength(12)
+    expect(parsed.data.plantingGuidance.recommendations).toContainEqual(expect.objectContaining({
+      botanicalName: 'Carpinus betulus', priority: 'best-fit',
+    }))
   })
 
   it('creates a reversible variant instead of committing a mutation', async () => {

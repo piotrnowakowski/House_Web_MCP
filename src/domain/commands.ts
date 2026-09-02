@@ -197,9 +197,9 @@ const applyGardenPlan = (project: ProjectV1, command: Extract<ProjectCommand, { 
     upsertZone(project, { ref: 'zone/agent-vegetable', name: 'Kitchen garden', kind: 'vegetable', position: { x: -10, z: 5 }, widthM: 4.2, depthM: 4, rotationDegrees: 0, locked: false })
   }
   const waterFactor = command.waterPreference === 'low' ? 0.55 : command.waterPreference === 'lush' ? 1.2 : 0.8
-  upsertPlant(project, { ref: 'plant/agent-birch', name: 'Canopy birch', species: 'Betula pendula', kind: 'tree', position: { x: 12, z: 16 }, matureHeightM: 9, canopyM: 5.5, sunNeed: 'sun', waterNeed: waterFactor, hardinessMinC: -28, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [4,5], locked: false })
-  upsertPlant(project, { ref: 'plant/agent-lavender', name: 'Lavender ribbon', species: 'Lavandula angustifolia', kind: 'perennial', position: { x: 9.5, z: 4 }, matureHeightM: 0.7, canopyM: 4.5, sunNeed: 'sun', waterNeed: 0.42, hardinessMinC: -20, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [6,7,8], locked: false })
-  upsertPlant(project, { ref: 'plant/agent-sedge', name: 'Rain garden sedges', species: 'Carex spp.', kind: 'wetland', position: { x: -9.5, z: 12 }, matureHeightM: 0.8, canopyM: 3.4, sunNeed: 'sun', waterNeed: 1.1, hardinessMinC: -25, leafMonths: [3,4,5,6,7,8,9,10,11], bloomMonths: [5,6], locked: false })
+  upsertPlant(project, { ref: 'plant/agent-birch', name: 'Downy birch canopy', species: 'Betula pubescens', kind: 'tree', position: { x: 12, z: 16 }, matureHeightM: 9, canopyM: 5.5, sunNeed: 'sun', waterNeed: waterFactor, hardinessMinC: -30, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [4,5], locked: false })
+  upsertPlant(project, { ref: 'plant/agent-cranesbill', name: 'Bigroot cranesbill ribbon', species: 'Geranium macrorrhizum', kind: 'perennial', position: { x: 9.5, z: 4 }, matureHeightM: 0.5, canopyM: 4.5, sunNeed: 'partial', waterNeed: 0.5, hardinessMinC: -25, leafMonths: [3,4,5,6,7,8,9,10,11], bloomMonths: [5,6,7], locked: false })
+  upsertPlant(project, { ref: 'plant/agent-sedge', name: 'Tufted sedge rain garden', species: 'Carex elata', kind: 'wetland', position: { x: -9.5, z: 12 }, matureHeightM: 0.8, canopyM: 3.4, sunNeed: 'sun', waterNeed: 1.1, hardinessMinC: -28, leafMonths: [3,4,5,6,7,8,9,10,11], bloomMonths: [5,6], locked: false })
 }
 
 const applyGardenUpdate = (project: ProjectV1, command: Extract<ProjectCommand, { type: 'garden.update' }>) => {

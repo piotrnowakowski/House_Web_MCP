@@ -10,8 +10,9 @@ reversible 3D variants through semantic tools.
 The bundled demo opens on the real Zielonki site: surveyed construction
 parcels `54/3 + 55/3 + 58/3`, agricultural context parcels
 `54/4 + 55/4 + 58/4`, terrain levels, working site dimensions, and a concise
-ground-risk model. See the [Zielonki site knowledge bank](docs/ZIELONKI_KNOWLEDGE_BANK.md)
-for source hierarchy, extracted facts, confidence levels, and design constraints.
+ground-risk model. All plot, climate, soil, and planting knowledge is kept in the
+[Zielonki knowledge bank](knowledge-bank/zielonki/README.md), including its typed
+runtime data, source hierarchy, confidence levels, and design constraints.
 
 This is a concept exploration tool. It does not produce construction
 documentation and does not claim compliance with planning, structural,

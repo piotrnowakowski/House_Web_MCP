@@ -53,7 +53,7 @@ export interface KnowledgeSource {
   ref: string
   title: string
   date: string
-  kind: 'survey-map' | 'subdivision-map' | 'working-measurement' | 'geotechnical-report' | 'specialist-email' | 'user-direction'
+  kind: 'survey-map' | 'subdivision-map' | 'working-measurement' | 'geotechnical-report' | 'specialist-email' | 'climate-dataset' | 'horticultural-guidance' | 'user-direction'
   authority: 'official' | 'professional' | 'working' | 'user-provided'
   summary: string
 }
@@ -84,6 +84,21 @@ export interface BoreholeKnowledge {
   intervals: SoilInterval[]
 }
 
+export interface PlantRecommendation {
+  ref: string
+  commonName: string
+  botanicalName: string
+  kind: PlantKind
+  priority: 'best-fit' | 'conditional'
+  preferredMoisture: 'wet' | 'moist' | 'balanced' | 'dry'
+  sunNeed: 'shade' | 'partial' | 'sun'
+  minHardinessC: number
+  placement: string
+  siteFit: string
+  caution: string
+  sourceRefs: string[]
+}
+
 export interface SiteKnowledgeBase {
   datasetVersion: string
   locality: string
@@ -109,6 +124,11 @@ export interface SiteKnowledgeBase {
     documentationNeed: string
     reportClassification: string
     constraints: string[]
+  }
+  planting: {
+    strategy: string[]
+    recommendations: PlantRecommendation[]
+    exclusions: string[]
   }
   designRules: Array<{ rule: string; basis: string; sourceRef: string }>
   caveats: string[]
