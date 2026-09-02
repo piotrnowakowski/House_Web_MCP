@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { webMcpFieldPrompts, webMcpToolPrompts } from '../../prompts/webmcp-tools'
 import { calculateMetrics } from '../domain/commands'
 import { analyzeSeason } from '../domain/seasonal'
 import type { ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV1, VariantModel } from '../domain/types'
@@ -18,8 +19,8 @@ interface ToolPayload {
 
 const content = (payload: ToolPayload): WebMcpToolResult => ({ content: [{ type: 'text', text: JSON.stringify(payload) }] })
 const schema = (value: z.ZodType) => z.toJSONSchema(value, { target: 'draft-7' }) as Record<string, unknown>
-const positionSchema = z.object({ x: z.number().describe('East-west coordinate in meters.'), z: z.number().describe('North-south coordinate in meters.') })
-const refString = z.string().min(1).describe('Stable semantic reference such as room/living-room.')
+const positionSchema = z.object({ x: z.number().describe(webMcpFieldPrompts.positionX), z: z.number().describe(webMcpFieldPrompts.positionZ) })
+const refString = z.string().min(1).describe(webMcpFieldPrompts.semanticRef)
 
 const getStateSchema = z.object({ detail: z.enum(['summary', 'site', 'structure', 'garden', 'full']).default('summary') })
 const plotSchema = z.object({
@@ -51,7 +52,7 @@ const garageSchema = z.object({
   position: positionSchema.optional(), widthM: z.number().min(2.5).optional(), depthM: z.number().min(4).optional(), heightM: z.number().min(2.2).optional(),
 })
 const gardenPlanSchema = z.object({
-  goals: z.array(z.string()).min(1).describe('Design goals, for example low water, play lawn, vegetables, or year-round interest.'),
+  goals: z.array(z.string()).min(1).describe(webMcpFieldPrompts.gardenGoals),
   preserveRefs: z.array(refString).default([]), waterPreference: z.enum(['low', 'balanced', 'lush']).default('low'),
 })
 const gardenUpdateSchema = z.object({
@@ -174,7 +175,7 @@ const define = <S extends z.ZodType>(definition: {
 })
 
 export const webMcpTools: WebMcpTool[] = [
-  define({ name: 'get_project_state', title: 'Inspect Zielonki 3D project', description: 'Read the current Zielonki parcel, evidence, geotechnical, planting, building, floor, room, garage, garden, climate, variant, and validation state. Use detail "site" for the concise sourced knowledge bank. Call this before proposing changes.', input: getStateSchema, readOnly: true, handler: ({ detail }) => {
+  define({ ...webMcpToolPrompts.get_project_state, input: getStateSchema, readOnly: true, handler: ({ detail }) => {
     const state = useStudioStore.getState()
     const metrics = calculateMetrics(state.project)
     const constructionParcels = state.project.plot.parcels.filter((parcel) => parcel.landRole === 'construction')
@@ -199,35 +200,35 @@ export const webMcpTools: WebMcpTool[] = [
           : state.project
     return { status: 'ok', projectRevision: state.project.revision, summary: `Returned ${detail} project state.`, metrics, data }
   } }),
-  define({ name: 'propose_plot_update', title: 'Propose plot update', description: 'Create a reversible 3D variant that changes the polygonal plot, north direction, or terrain elevation control points.', input: plotSchema, handler: (input) => createVariant('Plot update', { type: 'plot.update', ...input }) }),
-  define({ name: 'propose_building_update', title: 'Propose building update', description: 'Create a reversible 3D variant that adds, removes, moves, rotates, or changes the roof of a building.', input: buildingSchema, handler: (input) => createVariant('Building update', { type: 'building.update', action: input.action, buildingRef: input.buildingRef, name: input.name, kind: input.kind, position: input.position, rotationDegrees: input.rotationDegrees, roof: input.roofType ? { type: input.roofType, pitchDegrees: input.pitchDegrees ?? (input.roofType === 'flat' ? 0 : 28), overhangM: input.overhangM ?? 0.4 } : undefined }) }),
-  define({ name: 'propose_floor_update', title: 'Propose floor update', description: 'Create a reversible 3D variant that adds or removes a floor or changes its clear height.', input: floorSchema, handler: (input) => createVariant('Floor update', { type: 'floor.update', ...input }) }),
-  define({ name: 'propose_room_update', title: 'Propose room update', description: 'Create a reversible 3D variant that adds, removes, moves, resizes, rotates, or changes the ceiling of an unlocked room.', input: roomSchema, handler: (input) => createVariant('Room update', { type: 'room.update', ...input }) }),
-  define({ name: 'propose_mezzanine_update', title: 'Propose mezzanine update', description: 'Create a reversible 3D variant that adds, removes, or resizes a mezzanine inside an unlocked room.', input: mezzanineSchema, handler: (input) => createVariant('Mezzanine update', { type: 'mezzanine.update', ...input }) }),
-  define({ name: 'propose_garage_update', title: 'Propose garage update', description: 'Create a reversible 3D variant for an integrated or attached garage.', input: garageSchema, handler: (input) => createVariant('Garage update', { type: 'garage.update', ...input }) }),
-  define({ name: 'propose_garden_plan', title: 'Propose complete garden', description: 'Generate a reversible seasonal 3D garden variant from design goals, locked elements, and a water-use preference.', input: gardenPlanSchema, handler: (input) => createVariant('Agent garden plan', { type: 'garden.plan', ...input }) }),
-  define({ name: 'propose_garden_update', title: 'Propose garden update', description: 'Create a reversible 3D variant that adds, removes, or moves one garden zone or plant.', input: gardenUpdateSchema, handler: (input) => createVariant('Garden update', { type: 'garden.update', ...input }) }),
-  define({ name: 'propose_climate_update', title: 'Propose climate update', description: 'Create a reversible variant that edits one month of the local climate profile used by seasonal analysis.', input: climateSchema, handler: ({ month, ...values }) => createVariant('Climate profile update', { type: 'climate.update', month, values }) }),
-  define({ name: 'run_seasonal_analysis', title: 'Run seasonal analysis', description: 'Estimate daylight, representative sun, water balance, drought, frost, foliage, and bloom for selected months.', input: seasonSchema, readOnly: true, handler: ({ months, variantRef }) => {
+  define({ ...webMcpToolPrompts.propose_plot_update, input: plotSchema, handler: (input) => createVariant('Plot update', { type: 'plot.update', ...input }) }),
+  define({ ...webMcpToolPrompts.propose_building_update, input: buildingSchema, handler: (input) => createVariant('Building update', { type: 'building.update', action: input.action, buildingRef: input.buildingRef, name: input.name, kind: input.kind, position: input.position, rotationDegrees: input.rotationDegrees, roof: input.roofType ? { type: input.roofType, pitchDegrees: input.pitchDegrees ?? (input.roofType === 'flat' ? 0 : 28), overhangM: input.overhangM ?? 0.4 } : undefined }) }),
+  define({ ...webMcpToolPrompts.propose_floor_update, input: floorSchema, handler: (input) => createVariant('Floor update', { type: 'floor.update', ...input }) }),
+  define({ ...webMcpToolPrompts.propose_room_update, input: roomSchema, handler: (input) => createVariant('Room update', { type: 'room.update', ...input }) }),
+  define({ ...webMcpToolPrompts.propose_mezzanine_update, input: mezzanineSchema, handler: (input) => createVariant('Mezzanine update', { type: 'mezzanine.update', ...input }) }),
+  define({ ...webMcpToolPrompts.propose_garage_update, input: garageSchema, handler: (input) => createVariant('Garage update', { type: 'garage.update', ...input }) }),
+  define({ ...webMcpToolPrompts.propose_garden_plan, input: gardenPlanSchema, handler: (input) => createVariant('Agent garden plan', { type: 'garden.plan', ...input }) }),
+  define({ ...webMcpToolPrompts.propose_garden_update, input: gardenUpdateSchema, handler: (input) => createVariant('Garden update', { type: 'garden.update', ...input }) }),
+  define({ ...webMcpToolPrompts.propose_climate_update, input: climateSchema, handler: ({ month, ...values }) => createVariant('Climate profile update', { type: 'climate.update', month, values }) }),
+  define({ ...webMcpToolPrompts.run_seasonal_analysis, input: seasonSchema, readOnly: true, handler: ({ months, variantRef }) => {
     const state = useStudioStore.getState()
     const project = projectForVariant(state.project, state.variants, variantRef)
     return { status: 'ok', projectRevision: state.project.revision, variantRef, summary: `Seasonal analysis completed for ${months.length} month(s).`, metrics: calculateMetrics(project), data: analyzeSeason(project, months) }
   } }),
-  define({ name: 'compare_variants', title: 'Compare 3D variants', description: 'Compare metrics, validation issues, and revisions for up to four visible 3D variants.', input: compareSchema, readOnly: true, handler: ({ variantRefs }) => {
+  define({ ...webMcpToolPrompts.compare_variants, input: compareSchema, readOnly: true, handler: ({ variantRefs }) => {
     const state = useStudioStore.getState()
     const variants = variantRefs.map((ref) => state.variants.find((item) => item.ref === ref)).filter((item): item is VariantModel => Boolean(item))
     return { status: 'ok', projectRevision: state.project.revision, summary: `Compared ${variants.length} variant(s).`, data: variants.map(({ ref, label, baseRevision, metrics, issues }) => ({ ref, label, baseRevision, metrics, issues })) }
   } }),
-  define({ name: 'request_apply_variant', title: 'Request variant approval', description: 'Show the selected ghost variant in the 3D canvas and wait until the human explicitly applies or rejects it.', input: variantRefSchema, handler: ({ variantRef }, { signal }) => requestVariantApproval(variantRef, signal) }),
-  define({ name: 'discard_variant', title: 'Discard variant', description: 'Discard a reversible proposal without changing the committed project.', input: variantRefSchema, handler: ({ variantRef }) => {
+  define({ ...webMcpToolPrompts.request_apply_variant, input: variantRefSchema, handler: ({ variantRef }, { signal }) => requestVariantApproval(variantRef, signal) }),
+  define({ ...webMcpToolPrompts.discard_variant, input: variantRefSchema, handler: ({ variantRef }) => {
     const state = useStudioStore.getState(); state.discardVariant(variantRef)
     return { status: 'ok', projectRevision: state.project.revision, variantRef, summary: 'Variant discarded.' }
   } }),
-  define({ name: 'undo_last_change', title: 'Undo committed change', description: 'Undo the most recent committed project change. This does not affect uncommitted variants.', input: emptySchema, handler: () => {
+  define({ ...webMcpToolPrompts.undo_last_change, input: emptySchema, handler: () => {
     const project = useStudioStore.getState().undo()
     return { status: 'ok', projectRevision: project.revision, summary: 'Last committed change was undone.', metrics: calculateMetrics(project) }
   } }),
-  define({ name: 'request_export', title: 'Request project export', description: 'Ask the human to confirm export of the project as versioned JSON, the visible 3D scene as GLB, or a PNG image.', input: exportSchema, handler: ({ format }, { signal }) => requestExportApproval(format, signal) }),
+  define({ ...webMcpToolPrompts.request_export, input: exportSchema, handler: ({ format }, { signal }) => requestExportApproval(format, signal) }),
 ]
 
 export const registerWebMcpTools = () => {

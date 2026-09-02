@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
+import { webMcpToolPrompts } from '../../prompts/webmcp-tools'
 import { sampleProject } from '../domain/sampleProject'
 import { useStudioStore } from '../state/store'
 import { resolveVariantConfirmation, webMcpTools } from './webmcp'
@@ -18,6 +19,20 @@ describe('native WebMCP surface', () => {
     expect(new Set(webMcpTools.map((item) => item.name)).size).toBe(16)
     expect(tool('get_project_state').annotations?.readOnlyHint).toBe(true)
     expect(tool('run_seasonal_analysis').annotations?.readOnlyHint).toBe(true)
+  })
+
+  it('publishes every tool from the centralized structured prompt catalog', () => {
+    const prompts = Object.values(webMcpToolPrompts)
+    expect(webMcpTools.map((item) => item.name)).toEqual(prompts.map((prompt) => prompt.name))
+
+    for (const prompt of prompts) {
+      const published = tool(prompt.name)
+      expect(published).toMatchObject({ title: prompt.title, description: prompt.description })
+      const blockOffsets = ['<role>', '<task>', '<input>', '<tools>', '<output>', '<example_output>']
+        .map((tag) => prompt.description.indexOf(tag))
+      expect(blockOffsets.every((offset) => offset >= 0)).toBe(true)
+      expect(blockOffsets).toEqual([...blockOffsets].sort((a, b) => a - b))
+    }
   })
 
   it('reads state when a browser omits execute options', async () => {

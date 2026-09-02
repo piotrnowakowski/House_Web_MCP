@@ -102,6 +102,10 @@ registration lifetime. It does not ship a production polyfill or use the
 non-standard `outputSchema` extension. When the native API is absent, manual
 editing remains available and the canvas reports `WebMCP unavailable`.
 
+All agent-facing tool prompts live in the single [`prompts`](prompts/README.md)
+folder. The WebMCP adapter imports that catalog and contains only schemas and
+execution logic.
+
 ## Architecture
 
 All manual and agent operations pass through the same immutable command bus.
