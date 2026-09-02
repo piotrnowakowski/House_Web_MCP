@@ -47,3 +47,20 @@ selection; teal remains the keyboard-focus and hover color.
 - Respect `prefers-reduced-motion`; hover and lighting states may snap when it
   is enabled.
 
+## Garden material system
+
+- Realistic mode uses seven project-owned 1024 px material sources: meadow,
+  maintained lawn, dormant winter grass, limestone gravel, mulch soil,
+  limestone paving, and apple bark. Technical mode remains texture-free.
+- Use mirrored repeat wrapping, mipmaps, and anisotropic filtering up to 8x to
+  avoid visible seams and oblique-angle shimmer.
+- Preserve believable physical scale: terrace slabs around 60 x 40 cm, gravel
+  aggregate below 4 cm, lawn tiles around 4.8 m, and soil tiles around 1.8 m.
+- Pair albedo with restrained bump and high roughness. Water alone may use
+  strong clearcoat and low roughness.
+- Keep turf and permeable paths nearly flush with terrain; terrace paving may
+  sit about 10 cm proud. Never render garden zones as thick floating mats.
+- Surface texture must not replace semantic feedback: selection and hover
+  edges remain visible above every realistic material.
+- Add small instanced grass/stone scatter and layered foliage only where it
+  changes silhouette or close-range material reading.

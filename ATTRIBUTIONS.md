@@ -15,6 +15,15 @@ must not be treated as an official meteorological normal.
 The application runs entirely from committed local data and makes no weather
 request at runtime.
 
+## Garden material assets
+
+The seven seamless garden material sources in `public/textures/` are original
+AI-assisted assets generated specifically for House_Web_MCP with OpenAI image
+generation and optimized to 1024 px JPEG files for real-time rendering. They
+were not downloaded from a third-party texture library. The runtime adds
+project-authored tiling, seasonal tint, bump response, roughness, scatter, and
+procedural geometry.
+
 ## Runtime libraries
 
 This project uses React, Three.js, React Three Fiber, Drei, Zustand, Zod, and

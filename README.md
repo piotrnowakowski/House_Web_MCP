@@ -25,6 +25,9 @@ horticultural, or building regulations.
   keyboard control, and an in-canvas shortcut guide
 - Editable Zielonki climate preset, procedural vegetation, monthly sunlight,
   water-balance, frost, foliage, and bloom signals
+- Project-owned seamless garden materials with physical-scale tiling, bump and
+  roughness response, anisotropic filtering, irregular rain-garden water,
+  instanced surface detail, textured bark, and layered seasonal canopies
 - Ghost variants, validation, human approval, discard, and undo
 - IndexedDB autosave plus validated JSON import/export, PNG, and GLB export
 - Sixteen native WebMCP tools registered with
