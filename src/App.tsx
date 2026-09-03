@@ -7,9 +7,10 @@ import { gardenFixtureCatalog, nextFixturePosition, starterGardenCommands } from
 import { polygonCentroid, wallLength } from './domain/geometry'
 import { isModernBarnPreset } from './domain/presets'
 import { TerrainInputSchema, defaultTerrainInput, type TerrainInput } from './domain/terrain'
+import { gableWallsForBuilding } from './domain/roofWings'
 import type { BuildingModel, ClimateDayPart, GardenFixtureCatalogId, HeightMeasureKind, LandscapeZone, PlantingGuideCategory, Polygon2, ProjectCommand, ProposalStatus, WallMaterial, WallModel } from './domain/types'
 import { inferWallOpeningLayout, wallOpeningLayoutCommands, wallOpeningLayoutPresets, type WallOpeningLayoutPreset } from './domain/wallOpeningLayouts'
-import { resolveWallFinish, wallFinishCatalog, wallFinishCommands, type WallFinishScope } from './domain/wallFinishes'
+import { resolveGableWallFinish, resolveWallFinish, wallFinishCatalog, wallFinishCommands, type WallFinishScope } from './domain/wallFinishes'
 import { FLAT_TEXTURE, defaultGroundTexture, defaultWallTexture, resolveWallTexture, texturePreviewFor, texturesFor, textureById, type TextureId, type TextureSurface } from './scene/materialCatalog'
 import { CLEAR_MEASUREMENT_EVENT, StudioScene } from './scene/StudioScene'
 import { sunHoursColor } from './scene/sun'
@@ -201,7 +202,7 @@ function GardenFixturesPanel({ onClose }: { onClose: () => void }) {
   </section>
 }
 
-const wallLabel = (wall: WallModel) => wall.ref.split('/').at(-1)?.replaceAll('-', ' ') ?? 'wall'
+const wallLabel = (wall: Pick<WallModel, 'ref'>) => wall.ref.split('/').at(-1)?.replaceAll('-', ' ') ?? 'wall'
 
 const nextOpeningSlot = (wall: WallModel) => {
   const length = wallLength(wall); const edge = 0.3
@@ -238,7 +239,7 @@ function ZoneSurfaceEditor({ zone }: { zone: LandscapeZone }) {
   </section>
 }
 
-function WallFinishEditor({ building, wall }: { building: BuildingModel; wall: WallModel }) {
+function WallFinishEditor({ building, wall }: { building: BuildingModel; wall: Pick<WallModel, 'ref' | 'finish'> }) {
   const project = useStudioStore((state) => state.project); const commitCommands = useStudioStore((state) => state.commitCommands); const setSelectedRef = useStudioStore((state) => state.setSelectedRef); const setToast = useStudioStore((state) => state.setToast)
   const current = resolveWallFinish(wall, building.architecturalStyle); const [material, setMaterial] = useState<WallMaterial>(current.material); const [colorHex, setColorHex] = useState(current.colorHex); const [textureId, setTextureId] = useState<string | undefined>(current.textureId)
   useEffect(() => { const next = resolveWallFinish(wall, building.architecturalStyle); setMaterial(next.material); setColorHex(next.colorHex); setTextureId(next.textureId) }, [building.architecturalStyle, wall.finish, wall.ref])
@@ -404,11 +405,15 @@ function Inspector() {
   const metrics = calculateMetrics(project); const building = project.buildings.find((item) => item.ref === selectedRef); const fixture = project.landscape.fixtures.find((item) => item.ref === selectedRef)
   const plant = project.landscape.plants.find((item) => item.ref === selectedRef); const zone = project.landscape.zones.find((item) => item.ref === selectedRef)
   const selectedRoofSegment = project.buildings.flatMap((item) => item.roof.segments).find((item) => item.ref === selectedRef)
+  const gableEntries = project.buildings.flatMap((item) => gableWallsForBuilding(item).map((gable) => ({ building: item, gable })))
+  const selectedGableEntry = gableEntries.find(({ gable }) => gable.ref === selectedRef)
+  const selectedGableWall = selectedGableEntry?.gable; const selectedGableBuilding = selectedGableEntry?.building
+  const selectedGableFinish = selectedGableWall && selectedGableBuilding ? resolveGableWallFinish(selectedGableBuilding, selectedGableWall) : undefined
   const openingBuilding = project.buildings.find((item) => item.walls.some((wall) => wall.ref === selectedRef || wall.openings.some((opening) => opening.ref === selectedRef)))
   const selectedWall = openingBuilding?.walls.find((wall) => wall.ref === selectedRef || wall.openings.some((opening) => opening.ref === selectedRef))
   const selectedOpening = selectedWall?.openings.find((opening) => opening.ref === selectedRef)
   const exteriorWalls = project.buildings.flatMap((item) => item.walls.filter((wall) => item.spaces.filter((space) => space.boundary.some((boundary) => boundary.wallRef === wall.ref)).length <= 1))
-  const selectedTitle = building?.name ?? fixture?.name ?? plant?.name ?? zone?.name ?? (selectedRoofSegment ? 'Roof segment' : selectedOpening ? `${selectedOpening.kind === 'window' ? 'Window' : 'Door'} opening` : selectedWall ? wallLabel(selectedWall) : selectedRef ? selectedRef.split('/').at(-1) : 'Project overview')
+  const selectedTitle = building?.name ?? fixture?.name ?? plant?.name ?? zone?.name ?? (selectedGableWall ? 'Gable wall' : selectedRoofSegment ? 'Roof segment' : selectedOpening ? `${selectedOpening.kind === 'window' ? 'Window' : 'Door'} opening` : selectedWall ? wallLabel(selectedWall) : selectedRef ? selectedRef.split('/').at(-1) : 'Project overview')
   const modernBarnActive = isModernBarnPreset(project)
   const actionObject = building ?? fixture ?? plant ?? zone; const movable = Boolean(building || fixture || plant || zone); const locked = actionObject && 'locked' in actionObject ? actionObject.locked : false
   const zoneCenter = zone ? polygonCentroid(zone.footprint) : null
@@ -445,12 +450,14 @@ function Inspector() {
     {zone && zoneCenter && <dl className="readout"><div><dt>Type</dt><dd>{zone.kind}</dd></div><div><dt>Center</dt><dd>{zoneCenter.x.toFixed(2)}, {zoneCenter.z.toFixed(2)} m</dd></div><div><dt>Status</dt><dd>{zone.locked ? 'Locked' : 'Editable'}</dd></div></dl>}
     {zone && <ZoneSurfaceEditor zone={zone} />}
     {selectedRoofSegment && <dl className="readout"><div><dt>Eaves</dt><dd>{selectedRoofSegment.baseElevationM.toFixed(2)} m</dd></div><div><dt>Pitch</dt><dd>{selectedRoofSegment.pitchDegrees.toFixed(1)}°</dd></div><div><dt>Finish</dt><dd>{selectedRoofSegment.finish.material}</dd></div></dl>}
-    {selectedWall && openingBuilding ? <OpeningEditor building={openingBuilding} wall={selectedWall} selectedRef={selectedRef} /> : <>
+    {selectedGableWall && <dl className="readout"><div><dt>Wall type</dt><dd>Triangular gable</dd></div><div><dt>Roof segment</dt><dd>{selectedGableWall.segmentRef.split('/').at(-1)?.replaceAll('-', ' ')}</dd></div><div><dt>Finish</dt><dd>{selectedGableFinish?.material}</dd></div></dl>}
+    {selectedWall && openingBuilding ? <OpeningEditor building={openingBuilding} wall={selectedWall} selectedRef={selectedRef} /> : selectedGableWall && selectedGableBuilding && selectedGableFinish ? <WallFinishEditor building={selectedGableBuilding} wall={{ ref: selectedGableWall.ref, finish: selectedGableFinish }} /> : <>
       {project.buildings.length ? <section className="house-presets"><h3>House preset</h3><button className={modernBarnActive ? 'active' : ''} onClick={() => useModernBarnPreset()}><span>Modern barn</span><small>2 levels · 45° gable</small><b>{modernBarnActive ? 'ACTIVE' : 'USE'}</b></button></section> : <AddHouseCard />}
       <div className="metric-grid"><div><span>Home</span><strong>{metrics.homeAreaM2.toFixed(0)} m²</strong></div><div><span>Green</span><strong>{metrics.greenAreaM2.toFixed(0)} m²</strong></div><div><span>Plants</span><strong>{metrics.plantCount}</strong></div><div><span>Fixtures</span><strong>{metrics.fixtureCount}</strong></div></div>
     </>}
     <section className="model-tree"><h3>Buildings</h3>{!project.buildings.length && <p className="tree-empty">No buildings yet</p>}{project.buildings.map((item) => <button key={item.ref} onClick={() => useStudioStore.getState().setSelectedRef(item.ref)}><span>{item.name}</span><small>{item.storeys.length} storey</small></button>)}</section>
     <section className="model-tree wall-tree"><h3>Exterior walls</h3>{!exteriorWalls.length && <p className="tree-empty">No walls yet</p>}{exteriorWalls.map((wall) => <button key={wall.ref} className={selectedWall?.ref === wall.ref ? 'active' : ''} onClick={() => useStudioStore.getState().setSelectedRef(wall.ref)} aria-label={`Edit openings on ${wallLabel(wall)}`}><span>{wallLabel(wall)}</span><small>{wall.openings.length ? `${wall.openings.length} opening${wall.openings.length === 1 ? '' : 's'}` : 'solid'}</small></button>)}</section>
+    <section className="model-tree wall-tree"><h3>Gable walls</h3>{gableEntries.map(({ gable }) => <button key={gable.ref} className={selectedGableWall?.ref === gable.ref ? 'active' : ''} onClick={() => useStudioStore.getState().setSelectedRef(gable.ref)}><span>{gable.segmentRef.split('/').at(-1)?.replaceAll('-', ' ')}</span><small>{gable.side} end</small></button>)}</section>
     <section className="model-tree plant-tree"><h3>Plants</h3>{!project.landscape.plants.length && <p className="tree-empty">No plants yet</p>}{project.landscape.plants.slice(0, 12).map((item) => <button key={item.ref} className={plant?.ref === item.ref ? 'active' : ''} onClick={() => useStudioStore.getState().setSelectedRef(item.ref)}><span>{item.name}</span><small>{item.species}</small></button>)}</section>
     <p className="muted footer-note">{issues.length} ghost variant{issues.length === 1 ? '' : 's'} · local metres · north {project.site.northDegrees.toFixed(1)}°</p>
   </aside>

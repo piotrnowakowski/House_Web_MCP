@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { applyCommand } from './commands'
 import { buildingPlacement, polygonBounds } from './geometry'
 import { measureHeight } from './heightMeasurements'
-import { roofRidgeElevation, roofWings } from './roofWings'
+import { gableEndWall, gableWallsForBuilding, roofRidgeElevation, roofWings } from './roofWings'
+import { parseProject } from './schema'
 import { modernBarnProject, partialUpperModernBarnProject, sampleProject } from './sampleProject'
+import { resolveGableWallFinish, wallFinishCommands } from './wallFinishes'
 
 const tan = (degrees: number) => Math.tan(degrees * Math.PI / 180)
 const extendUpperStorey = () => applyCommand(partialUpperModernBarnProject, {
@@ -35,6 +37,39 @@ describe('roof wings', () => {
     expect(rear.ridgeElevationM).toBeCloseTo(6.45, 6)
     expect(projecting.ridgeElevationM).toBeCloseTo(9.55, 6)
     expect(roofRidgeElevation(building)).toBeCloseTo(9.55, 6)
+  })
+
+  it('associates every visible gable end with its supporting wall', () => {
+    const building = modernBarnProject.buildings[0]
+    const wings = roofWings(building)
+    const rear = wings.find((wing) => wing.ridgeAxis === 'x')!
+    const projecting = wings.find((wing) => wing.ridgeAxis === 'z')!
+    expect(gableEndWall(building, rear, 'x', -8)?.ref).toBe('house/main/storey-upper/space-wing/wall-5')
+    expect(gableEndWall(building, rear, 'x', 8)?.ref).toBe('house/main/storey-upper/space-wing/wall-2')
+    expect(gableEndWall(building, projecting, 'z', 1)?.ref).toBe('wall/upper-north')
+    expect(gableEndWall(building, projecting, 'z', 10)?.ref).toBe('wall/upper-front-glass')
+  })
+
+  it('gives gable triangles their own stable wall identities', () => {
+    const building = modernBarnProject.buildings[0]
+    const gables = gableWallsForBuilding(building)
+    expect(gables).toHaveLength(4)
+    expect(gables.map((gable) => gable.ref)).toEqual([
+      'roof/main/segment-upper-wing/gable-wall/min', 'roof/main/segment-upper-wing/gable-wall/max',
+      'roof/main/segment-rear-wing/gable-wall/min', 'roof/main/segment-rear-wing/gable-wall/max',
+    ])
+    expect(gables.every((gable) => !building.walls.some((wall) => wall.ref === gable.ref))).toBe(true)
+    expect(gables.find((gable) => gable.ref.endsWith('/segment-rear-wing/gable-wall/max'))?.supportingWallRef).toBe('house/main/storey-upper/space-wing/wall-2')
+  })
+
+  it('stores and restores an independent texture for one gable wall', () => {
+    const gable = gableWallsForBuilding(modernBarnProject.buildings[0]).find((item) => item.ref.endsWith('/segment-rear-wing/gable-wall/max'))!
+    const commands = wallFinishCommands(modernBarnProject, { buildingRef: 'house/main', scope: 'wall', wallRef: gable.ref, material: 'brick', colorHex: '#8B4E3C', textureId: 'brick-floor' })
+    const changed = applyCommand(modernBarnProject, commands[0])
+    const restored = parseProject(JSON.parse(JSON.stringify(changed)))
+    const restoredBuilding = restored.buildings[0]; const restoredGable = gableWallsForBuilding(restoredBuilding).find((item) => item.ref === gable.ref)!
+    expect(resolveGableWallFinish(restoredBuilding, restoredGable)).toEqual({ material: 'brick', colorHex: '#8B4E3C', textureId: 'brick-floor' })
+    expect(restoredBuilding.walls.find((wall) => wall.ref === gable.supportingWallRef)?.finish?.material).toBe('charred-timber')
   })
 
   it('lifts the rear wing once the upper storey is extended over it', () => {

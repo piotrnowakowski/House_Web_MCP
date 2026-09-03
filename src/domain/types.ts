@@ -62,7 +62,7 @@ export type RoofJunctionType = 'valley' | 'intersection'
 export interface RoofJunctionModel { ref: string; type: RoofJunctionType; segmentRefs: [string, string] }
 export interface RoofSegmentModel {
   ref: string; footprint: Polygon2; storeyRef?: string; spaceRef?: string; baseElevationM: number; type: RoofType; pitchDegrees: number; overhangM: number
-  ridgeDirection: 'x' | 'z'; finish: RoofFinish; adjacentSegmentRefs: string[]
+  ridgeDirection: 'x' | 'z'; finish: RoofFinish; adjacentSegmentRefs: string[]; gableWallFinishes?: Partial<Record<'min' | 'max', WallFinish>>
 }
 export interface RoofModel {
   ref: string; type: RoofType; baseElevationM: number; pitchDegrees: number; overhangM: number; footprint?: Polygon2

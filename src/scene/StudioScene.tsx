@@ -6,7 +6,7 @@ import CameraControls from 'camera-controls'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box3, BoxGeometry, BufferAttribute, BufferGeometry, Color, DirectionalLight, DoubleSide, EdgesGeometry, Group, LinearFilter, MathUtils, Mesh, MeshStandardMaterial, Object3D,
-  OrthographicCamera, PerspectiveCamera, Plane, PlaneGeometry, Raycaster, Scene, Shape, ShapeGeometry, Vector2, Vector3, WebGLRenderTarget, WebGLRenderer,
+  OrthographicCamera, PerspectiveCamera, Plane, PlaneGeometry, Raycaster, Scene, Shape, ShapeGeometry, SRGBColorSpace, Vector2, Vector3, WebGLRenderTarget, WebGLRenderer,
 } from 'three'
 import { acceleratedRaycast, computeBoundsTree, disposeBoundsTree } from 'three-mesh-bvh'
 import { buildingGroundOffset, buildingLocalBounds, elevationAt, pointInPolygon, polygonBounds, polygonCentroid, spaceFootprint } from '../domain/geometry'
@@ -14,11 +14,11 @@ import { gardenFixtureById } from '../domain/gardenFixtures'
 import { measureHeight } from '../domain/heightMeasurements'
 import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, RoofSegmentModel, SiteEntranceModel, StructureReport, Vec2, WallModel, WallMaterial } from '../domain/types'
 import { inferWallOpeningLayout } from '../domain/wallOpeningLayouts'
-import { resolveWallFinish } from '../domain/wallFinishes'
+import { resolveGableWallFinish, resolveWallFinish } from '../domain/wallFinishes'
 import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
 import type { GeneratedSolid } from '../geometry/types'
 import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
-import { roofWings, type RoofWing } from '../domain/roofWings'
+import { gableEndWall, gableWallsForBuilding, roofWings, type RoofWing } from '../domain/roofWings'
 import { CompassRose, SUN_DISTANCE_M, SunHoursOverlay, SunLight, SunPath, sunStateFor } from './sun'
 import { CucumberTrellisVisual, FruitTreeVisual, hasFruitTreeVisual, PotatoRowVisual, TomatoRowVisual } from './gardenVisuals'
 import { RealisticGrass } from './grassVisuals'
@@ -489,13 +489,9 @@ function roofSurfaceMaterial(segment: RoofSegmentModel, selected: boolean, ghost
   return <meshStandardMaterial color={selected ? '#b9e84d' : segment.finish.colorHex} roughness={metallic ? 0.42 : 0.78} metalness={metallic ? 0.58 : 0.04} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />
 }
 
-const gableEndIsGlass = (building: BuildingModel, wing: RoofWing, axis: 'x' | 'z', value: number) => building.architecturalStyle === 'barn' && building.walls.some((wall) => {
-  const onLine = (point: Vec2) => Math.abs((axis === 'x' ? point.x : point.z) - value) < 0.05
-  return onLine(wall.start) && onLine(wall.end) && wall.baseElevationM + wall.heightM > wing.baseElevationM - 0.05 && inferWallOpeningLayout(wall) === 'full-glass'
-})
-
 /** One gable roof segment: two slopes whose ridge sits at the shared segment ridge elevation and whose eaves drop past the wall line by the overhang. */
-function GableWing({ building, wing, segment, ghost, selected, wallColor }: { building: BuildingModel; wing: RoofWing; segment: RoofSegmentModel; ghost?: boolean; selected: boolean; wallColor: string }) {
+function GableWing({ building, wing, segment, ghost, selected }: { building: BuildingModel; wing: RoofWing; segment: RoofSegmentModel; ghost?: boolean; selected: boolean }) {
+  const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
   const bounds = polygonBounds(wing.footprint); const over = wing.overhangM; const pitch = MathUtils.degToRad(segment.pitchDegrees)
   const base = wing.baseElevationM; const ridge = wing.ridgeElevationM; const alongZ = wing.ridgeAxis === 'z'
   const width = bounds.maxX - bounds.minX; const depth = bounds.maxZ - bounds.minZ
@@ -506,8 +502,10 @@ function GableWing({ building, wing, segment, ghost, selected, wallColor }: { bu
   const gable = useMemo(() => {
     const value = new BufferGeometry()
     const positions = alongZ ? [bounds.minX, base, 0, bounds.maxX, base, 0, cx, ridge, 0] : [0, base, bounds.minZ, 0, base, bounds.maxZ, 0, ridge, cz]
-    value.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3)); value.setIndex([0, 1, 2]); value.computeVertexNormals(); return value
-  }, [alongZ, base, bounds.maxX, bounds.maxZ, bounds.minX, bounds.minZ, cx, cz, ridge])
+    value.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3))
+    value.setAttribute('uv', new BufferAttribute(new Float32Array([0, 0, span, 0, span / 2, ridge - base]), 2))
+    value.setIndex([0, 1, 2]); value.computeVertexNormals(); return value
+  }, [alongZ, base, bounds.maxX, bounds.maxZ, bounds.minX, bounds.minZ, cx, cz, ridge, span])
   useEffect(() => () => gable.dispose(), [gable])
   const ends = alongZ ? [bounds.minZ, bounds.maxZ] : [bounds.minX, bounds.maxX]
   const seamSpacing = alongZ ? 0.72 : 0.78
@@ -524,12 +522,29 @@ function GableWing({ building, wing, segment, ghost, selected, wallColor }: { bu
     </>}
     {ends.map((value, index) => {
       const outward = index === 0 ? -1 : 1; const offset = value + outward * 0.02; const frameOffset = value + outward * 0.06
-      const glass = gableEndIsGlass(building, wing, alongZ ? 'z' : 'x', value)
+      const wall = gableEndWall(building, wing, alongZ ? 'z' : 'x', value)
+      const gableWall = gableWallsForBuilding(building).find((gable) => gable.segmentRef === wing.ref && gable.side === (index === 0 ? 'min' : 'max'))!
+      const finish = resolveGableWallFinish(building, gableWall); const texture = resolveWallTexture(finish); const surface = wallSurface[finish.material]
+      const glass = building.architecturalStyle === 'barn' && Boolean(wall) && inferWallOpeningLayout(wall!) === 'full-glass'
+      const wallSelected = gableWall.ref === selectedRef
       const at = (across: number, y: number, along: number): [number, number, number] => alongZ ? [across, y, along] : [along, y, across]
-      return <group key={index}>
-        <mesh geometry={gable} position={alongZ ? [0, 0, offset] : [offset, 0, 0]} castShadow>{glass
+      const cladding = !glass && !texture && ['charred-timber', 'metal-panel'].includes(finish.material)
+      const spacing = finish.material === 'metal-panel' ? 0.64 : 0.34
+      const battens = cladding ? Array.from({ length: Math.floor(span / spacing) }, (_, battenIndex) => {
+        const acrossOffset = -span / 2 + spacing / 2 + battenIndex * spacing
+        const height = (ridge - base) * Math.max(0, 1 - Math.abs(acrossOffset) / (span / 2))
+        return { acrossOffset, height, battenIndex }
+      }) : []
+      return <group key={index} userData={{ semanticRef: gableWall.ref, buildingRef: building.ref }} onPointerDown={(event) => { if (ghost) return; event.stopPropagation(); setSelectedRef(gableWall.ref) }}>
+        <mesh geometry={gable} position={alongZ ? [0, 0, offset] : [offset, 0, 0]} castShadow receiveShadow>{glass
           ? <meshPhysicalMaterial color="#7e999c" transparent opacity={ghost ? 0.2 : 0.43} transmission={0.58} roughness={0.08} side={DoubleSide} depthWrite={false} />
-          : <meshStandardMaterial color={wallColor} roughness={0.92} side={DoubleSide} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />}</mesh>
+          : texture
+            ? <TexturedMaterial asset={texture.id} rotation={texture.rotation} color={wallSelected ? '#b9e84d' : tintForTexturedFinish(finish.colorHex)} fallbackColor={wallSelected ? '#b9e84d' : finish.colorHex} emissive={wallSelected ? '#6c812f' : '#000000'} emissiveIntensity={wallSelected ? 0.35 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.33 : 1} depthWrite={!ghost} side={DoubleSide} roughness={surface.roughness} metalness={surface.metalness} />
+            : <meshStandardMaterial color={wallSelected ? '#b9e84d' : finish.colorHex} emissive={wallSelected ? '#6c812f' : '#000000'} emissiveIntensity={wallSelected ? 0.35 : 0} roughness={surface.roughness} metalness={surface.metalness} side={DoubleSide} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />}</mesh>
+        {battens.map(({ acrossOffset, height, battenIndex }) => <mesh key={`gable-batten-${battenIndex}`} position={at((alongZ ? cx : cz) + acrossOffset, base + height / 2, frameOffset)} castShadow>
+          <boxGeometry args={alongZ ? [finish.material === 'metal-panel' ? 0.022 : 0.026, height, 0.038] : [0.038, height, finish.material === 'metal-panel' ? 0.022 : 0.026]} />
+          <meshStandardMaterial color={wallSelected ? '#b9e84d' : shade(finish.colorHex, battenIndex % 3 === 0 ? 1.2 : 0.72)} roughness={surface.roughness} metalness={surface.metalness} transparent={Boolean(ghost)} opacity={ghost ? 0.32 : 1} depthWrite={!ghost} />
+        </mesh>)}
         {glass && [-span / 4, 0, span / 4].map((mullion, mullionIndex) => {
           const height = mullion === 0 ? ridge - base : (ridge - base) / 2
           return <mesh key={mullionIndex} position={at((alongZ ? cx : cz) + mullion, base + height / 2, frameOffset)}><boxGeometry args={alongZ ? [0.075, height, 0.1] : [0.1, height, 0.075]} />{frameMaterial}</mesh>
@@ -569,14 +584,12 @@ function SegmentRoof({ wing, segment, ghost, selected }: { wing: RoofWing; segme
 function Roof({ building, selected, yOffset, ghost }: { building: BuildingModel; selected: boolean; yOffset: number; ghost?: boolean }) {
   const wings = useMemo(() => roofWings(building), [building])
   const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
-  const barn = building.architecturalStyle === 'barn'; const palette = barn ? BARN : REAL
-  const wallColor = barn ? '#242927' : palette.wall
   return <group position={[0, yOffset, 0]} userData={{ semanticRef: building.roof.ref, buildingRef: building.ref }}>
     {wings.map((wing) => {
       const segment = building.roof.segments.find((item) => item.ref === wing.ref) ?? building.roof.segments[0]
       const highlighted = selected || selectedRef === wing.ref
       return <group key={wing.ref} userData={{ semanticRef: wing.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(wing.ref) }}>
-        {segment.type === 'gable' ? <GableWing building={building} wing={wing} segment={segment} ghost={ghost} selected={highlighted} wallColor={wallColor} /> : <SegmentRoof wing={wing} segment={segment} ghost={ghost} selected={highlighted} />}
+        {segment.type === 'gable' ? <GableWing building={building} wing={wing} segment={segment} ghost={ghost} selected={highlighted} /> : <SegmentRoof wing={wing} segment={segment} ghost={ghost} selected={highlighted} />}
       </group>
     })}
   </group>
@@ -981,6 +994,9 @@ function StructureCaptureController() {
   useEffect(() => registerStructureViewCapture(async (project, views, includeAnnotations, signal) => {
     await waitForTextures()
     const width = 960; const height = 640; const target = new WebGLRenderTarget(width, height, { minFilter: LinearFilter, magFilter: LinearFilter })
+    // readRenderTargetPixels returns the target bytes verbatim. Mark the target as sRGB so the
+    // renderer applies the same display transform as the live canvas before those bytes become PNGs.
+    target.texture.colorSpace = SRGBColorSpace
     const previousTarget = gl.getRenderTarget(); const previousClipping = [...gl.clippingPlanes]; const previousLocal = gl.localClippingEnabled; const visibility = new Map<Object3D, boolean>(); const materialState = new Map<MeshStandardMaterial, { transparent: boolean; opacity: number }>(); const results: StructureReport['views'] = []
     const source = project === useStudioStore.getState().project ? 'committed' : 'ghost'
     scene.traverse((object) => { if (object.userData.editorOnly) { visibility.set(object, object.visible); object.visible = false } })

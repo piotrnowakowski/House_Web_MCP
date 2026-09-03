@@ -66,10 +66,12 @@ const StoreySchema = z.object({
   platformRefs: z.array(z.string().min(1)), ceilingFinishRefs: z.array(z.string().min(1)),
 })
 const RoofFinishSchema = z.object({ material: z.enum(['standing-seam-metal', 'tile', 'slate', 'membrane']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) })
+const WallFinishSchema = z.object({ material: z.enum(['charred-timber', 'natural-timber', 'light-render', 'brick', 'metal-panel']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), textureId: z.string().optional() })
 const RoofSegmentSchema = z.object({
   ref: z.string().min(1), footprint: PolygonSchema, storeyRef: z.string().min(1).optional(), spaceRef: z.string().min(1).optional(), baseElevationM: z.number().finite(),
   type: z.enum(['flat', 'gable', 'hip']), pitchDegrees: z.number().min(0).max(70), overhangM: z.number().min(0).max(3), ridgeDirection: z.enum(['x', 'z']),
   finish: RoofFinishSchema, adjacentSegmentRefs: z.array(z.string().min(1)).default([]),
+  gableWallFinishes: z.object({ min: WallFinishSchema.optional(), max: WallFinishSchema.optional() }).optional(),
 })
 const RoofJunctionSchema = z.object({
   ref: z.string().min(1), type: z.enum(['valley', 'intersection']),
