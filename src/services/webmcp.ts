@@ -14,7 +14,7 @@ import { wallFinishCommands } from '../domain/wallFinishes'
 import { wallOpeningLayoutCommands } from '../domain/wallOpeningLayouts'
 import { useStudioStore } from '../state/store'
 import { showStructureViews } from './structureViews'
-import { webMcpSchemas } from './webmcpDefinitions'
+import { inputSchemaFor, untrustedContentTools, webMcpSchemas, type WebMcpToolName } from './webmcpDefinitions'
 
 type ToolPayload = { status: string; projectRevision: number; summary: string; variantRef?: string; issues?: ProjectIssue[]; metrics?: ProjectMetrics; data?: unknown; [key: string]: unknown }
 const content = (payload: ToolPayload): WebMcpToolResult => ({ content: [{ type: 'text', text: JSON.stringify(payload) }] })
@@ -63,7 +63,10 @@ const describeToolError = (error: unknown) => {
 
 type Handler<S extends z.ZodType> = (input: z.infer<S>, options: WebMcpExecuteOptions) => ToolPayload | Promise<ToolPayload>
 const define = <S extends z.ZodType>(definition: { name: string; title: string; runtimeDescription: string; input: S; readOnly?: boolean; handler: Handler<S> }): WebMcpTool => ({
-  name: definition.name, title: definition.title, description: definition.runtimeDescription, inputSchema: z.toJSONSchema(definition.input, { target: 'draft-7' }) as Record<string, unknown>, annotations: definition.readOnly ? { readOnlyHint: true } : undefined,
+  name: definition.name, title: definition.title, description: definition.runtimeDescription, inputSchema: inputSchemaFor(definition.name as WebMcpToolName),
+  annotations: definition.readOnly || untrustedContentTools.has(definition.name as WebMcpToolName)
+    ? { ...(definition.readOnly ? { readOnlyHint: true } : {}), ...(untrustedContentTools.has(definition.name as WebMcpToolName) ? { untrustedContentHint: true } : {}) }
+    : undefined,
   execute: async (raw, options) => {
     try { const context = { signal: options?.signal ?? new AbortController().signal }; if (context.signal.aborted) throw new DOMException('Tool execution cancelled.', 'AbortError'); return content(await definition.handler(definition.input.parse(raw), context)) }
     catch (error) { const aborted = error instanceof DOMException && error.name === 'AbortError'; return content({ status: aborted ? 'cancelled' : 'error', projectRevision: useStudioStore.getState().project.revision, summary: describeToolError(error) }) }
@@ -71,7 +74,7 @@ const define = <S extends z.ZodType>(definition: { name: string; title: string; 
 })
 
 export const webMcpTools: WebMcpTool[] = [
-  define({ ...webMcpToolPrompts.get_project_state, input: webMcpSchemas.get_project_state, readOnly: true, handler: ({ detail, section, objectRef }) => {
+  define({ ...webMcpToolPrompts.get_project_state, input: webMcpSchemas.get_project_state, readOnly: true, handler: ({ detail, objectRef }) => {
     const state = useStudioStore.getState(); const project = state.project; const metrics = calculateMetrics(project)
     if (objectRef) {
       const found = findProjectObject(project, objectRef)
@@ -80,9 +83,12 @@ export const webMcpTools: WebMcpTool[] = [
     }
     const { knowledgeBase: _knowledgeBase, ...siteWithoutKnowledge } = project.site
     const data = detail === 'summary' ? { schemaVersion: 2, name: project.name, revision: project.revision, metrics, buildingRefs: project.buildings.map((building) => building.ref), variantRefs: state.variants.map((variant) => variant.ref) }
-      : detail === 'site' ? siteWithoutKnowledge : detail === 'structure' ? { buildings: project.buildings } : detail === 'landscape' ? { landscape: project.landscape, climateProfile: project.climateProfile }
-      : detail === 'knowledge' ? knowledgeSlice(project, section) : project
-    return { status: 'ok', projectRevision: project.revision, summary: `Returned ${detail}${section ? ` ${section}` : ''} ProjectV2 state.`, metrics, data }
+      : detail === 'site' ? siteWithoutKnowledge : detail === 'structure' ? { buildings: project.buildings } : detail === 'landscape' ? { landscape: project.landscape, climateProfile: project.climateProfile } : project
+    return { status: 'ok', projectRevision: project.revision, summary: `Returned ${detail} ProjectV2 state.`, metrics, data }
+  } }),
+  define({ ...webMcpToolPrompts.get_site_knowledge, input: webMcpSchemas.get_site_knowledge, readOnly: true, handler: ({ section }) => {
+    const project = useStudioStore.getState().project
+    return { status: 'ok', projectRevision: project.revision, summary: `Returned knowledge bank ${section ?? 'overview'}.`, data: knowledgeSlice(project, section) }
   } }),
   define({ ...webMcpToolPrompts.list_garden_fixtures, input: webMcpSchemas.list_garden_fixtures, readOnly: true, handler: () => ({ status: 'ok', projectRevision: useStudioStore.getState().project.revision, summary: `Returned ${gardenFixtureCatalog.length} ready garden fixtures.`, data: gardenFixtureCatalog }) }),
   define({ ...webMcpToolPrompts.propose_site_update, input: webMcpSchemas.propose_site_update, handler: (input) => createVariant('Site update', { type: 'site.update', ...input }) }),

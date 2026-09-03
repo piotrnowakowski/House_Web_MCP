@@ -10,7 +10,7 @@ No account, credentials or paid service is required. The project was created dur
 
 Early house and garden planning is spatial: people need to see the building, terrain, rooms, openings, planting and seasonal effects together. A normal chat can describe a change, but it cannot safely understand or edit the exact objects in a live 3D design.
 
-This editor gives both the person and their browser agent access to one semantic `ProjectV2` model. A person can navigate and edit the 3D scene directly. An agent can inspect the same project through 33 schema-described WebMCP tools, propose coordinated changes and open visible architectural reports. The result remains an uncommitted ghost variant until the person explicitly applies or rejects it.
+This editor gives both the person and their browser agent access to one semantic `ProjectV2` model. A person can navigate and edit the 3D scene directly. An agent can inspect the same project through 34 schema-described WebMCP tools, propose coordinated changes and open visible architectural reports. The result remains an uncommitted ghost variant until the person explicitly applies or rejects it.
 
 The bundled Zielonki project demonstrates:
 
@@ -62,6 +62,7 @@ The person can continue editing through the UI at every stage. WebMCP is not a s
    - `Extend the upper-storey footprint with a new wing, compare the proposal with the current design and ask before applying it.`
    - `Move the complete kitchen garden as one grouped change, but leave it for my approval.`
    - `Show the complete architectural set for the main house.`
+   - `How much afternoon sun does the terrace get on 21 September? Then propose extending the upper storey over the wing and tell me how that changes it.`
 
 5. For a modifying request, verify that the committed revision does not change until **Apply** is selected. Reject the proposal or apply it and use `undo_last_change` to restore the earlier committed project.
 
@@ -90,7 +91,7 @@ Read tools return structured state or open a visible in-page report. Modifying t
 
 | Criterion | Evidence in this project |
 | --- | --- |
-| WebMCP leverage | 33 non-trivial, schema-validated tools operate on live semantic spatial state; read, proposal, comparison, grouped transaction, approval and undo flows are all implemented. |
+| WebMCP leverage | 34 non-trivial, schema-validated tools operate on live semantic spatial state; read, proposal, comparison, grouped transaction, approval and undo flows are all implemented. |
 | Execution | Public no-login deployment, one coherent 3D editor, real geometry, local persistence, visible reports and automated browser coverage. |
 | Potential impact | Helps homeowners and early-stage design collaborators turn broad intent into inspectable house-and-garden alternatives before engaging professional design and engineering services. |
 | Creativity and ambition | Combines a semantic building model, landscape and seasonal context, agent-authored spatial variants and explicit human approval in one browser-native workspace. |
@@ -161,7 +162,8 @@ Use **MCP Tools** in the application to inspect the registered catalogue. The pa
 
 | Tool | Purpose |
 | --- | --- |
-| `get_project_state` | Read summary, site, structure, landscape, a knowledge-bank section, one object by ref, or full V2 state |
+| `get_project_state` | Read summary, site, structure, landscape, one object by ref, or full V2 state |
+| `get_site_knowledge` | Read the Zielonki evidence bank by section; flagged as untrusted content because it summarises external documents |
 | `propose_site_update` | Change site boundary or north |
 | `propose_terrain_update` | Change terrain elevation controls |
 | `propose_building_update` | Add, remove, move, rotate or restyle a building |

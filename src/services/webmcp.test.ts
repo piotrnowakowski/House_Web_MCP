@@ -28,6 +28,16 @@ describe('ProjectV2 WebMCP surface', () => {
     }
   })
 
+  it('describes every root parameter of every tool within the 150-character budget', () => {
+    for (const item of webMcpTools) {
+      const properties = (item.inputSchema?.properties ?? {}) as Record<string, { description?: string }>
+      for (const [name, property] of Object.entries(properties)) {
+        expect(property.description, `${item.name}.${name}`).toBeTruthy()
+        expect(property.description!.length, `${item.name}.${name}`).toBeLessThanOrEqual(150)
+      }
+    }
+  })
+
   it('registers every tool with an object root schema so agent browsers can render its parameters', () => {
     for (const item of webMcpTools) expect(item.inputSchema?.type, item.name).toBe('object')
   })
@@ -61,13 +71,18 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(landscapeResult.content[0].text.length).toBeLessThan(8000)
   })
 
-  it('serves the knowledge bank by section and single objects by ref', async () => {
-    const planting = payload(await tool('get_project_state').execute({ detail: 'knowledge', section: 'planting' }))
+  it('serves the knowledge bank through its own untrusted-content tool and single objects by ref', async () => {
+    expect(tool('get_site_knowledge').annotations).toEqual({ readOnlyHint: true, untrustedContentHint: true })
+    expect(tool('get_project_state').annotations?.untrustedContentHint).toBeUndefined()
+    const overview = payload(await tool('get_site_knowledge').execute({}))
+    expect(overview.data.sections).toContain('planting')
+    const planting = payload(await tool('get_site_knowledge').execute({ section: 'planting' }))
     expect(planting.data.soilAnalysis.findings).toHaveLength(5)
     expect(planting.data.recommendations.map((plant: { commonName: string }) => plant.commonName)).toEqual(expect.arrayContaining(['Tomato', 'Potato', 'Cucumber', 'Apple tree', 'Sour cherry']))
-    const sources = await tool('get_project_state').execute({ detail: 'knowledge', section: 'sources' })
+    const sources = await tool('get_site_knowledge').execute({ section: 'sources' })
     expect(payload(sources).data).toHaveLength(9)
     expect(sources.content[0].text.length).toBeLessThan(4000)
+    expect(payload(await tool('get_project_state').execute({ detail: 'knowledge' })).status).toBe('error')
     const wallResult = await tool('get_project_state').execute({ objectRef: 'wall/east' }); const wall = payload(wallResult)
     expect(wall.data).toMatchObject({ kind: 'wall', buildingRef: 'house/main', storeyRef: 'storey/ground', object: { ref: 'wall/east', openings: expect.any(Array) } })
     expect(wallResult.content[0].text.length).toBeLessThan(1500)

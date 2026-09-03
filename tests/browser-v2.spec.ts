@@ -174,7 +174,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await page.getByRole('button', { name: 'MCP Tools' }).click()
   const catalog = page.getByRole('region', { name: 'WebMCP tool catalog' })
   await expect(catalog).toBeVisible()
-  await expect(catalog.locator('.tool-browser nav button')).toHaveCount(33)
+  await expect(catalog.locator('.tool-browser nav button')).toHaveCount(34)
   await expect(catalog.getByRole('link', { name: 'Open JSON' })).toHaveAttribute('href', /webmcp-tools\.json$/)
   await catalog.getByRole('searchbox', { name: 'Search tools' }).fill('run_seasonal_analysis')
   await expect(catalog.locator('.tool-browser nav button')).toHaveCount(1)
@@ -197,7 +197,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
     }
   })
   expect(manifestSummary).toEqual({
-    toolCount: 33,
+    toolCount: 34,
     source: 'runtime-zod-and-structured-prompts',
     gardenTools: ['list_garden_fixtures', 'propose_garden_fixture_update', 'propose_garden_fixture_set'],
     adjustmentTools: ['propose_planting_area', 'create_change_set', 'add_change_set_operations', 'propose_change_set', 'discard_change_set', 'measure_height', 'run_sunlight_analysis', 'set_sun_time'],

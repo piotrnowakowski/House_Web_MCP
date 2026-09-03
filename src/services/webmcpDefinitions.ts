@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { webMcpFieldPrompts, webMcpToolPrompts, type WebMcpPromptBlocks } from '../../prompts/webmcp-tools'
+import { webMcpFieldDescriptions, webMcpFieldPrompts, webMcpToolPrompts, type WebMcpPromptBlocks } from '../../prompts/webmcp-tools'
 
 const point = z.object({ x: z.number().describe(webMcpFieldPrompts.positionX), z: z.number().describe(webMcpFieldPrompts.positionZ) }).strict()
 const point3 = point.extend({ y: z.number().describe('Local project elevation in metres.') }).strict()
@@ -33,11 +33,8 @@ const changeSetOperationSchema = z.discriminatedUnion('type', [
 ])
 
 export const webMcpSchemas = {
-  get_project_state: z.object({
-    detail: z.enum(['summary', 'site', 'structure', 'landscape', 'knowledge', 'full']).default('summary').describe('Slice to return. knowledge accepts a section; objectRef overrides detail.'),
-    section: z.enum(['sources', 'measurements', 'terrain', 'geotechnical', 'planting', 'designRules', 'caveats']).optional().describe('Knowledge-bank section when detail is knowledge.'),
-    objectRef: ref.optional(),
-  }),
+  get_project_state: z.object({ detail: z.enum(['summary', 'site', 'structure', 'landscape', 'full']).default('summary'), objectRef: ref.optional() }),
+  get_site_knowledge: z.object({ section: z.enum(['sources', 'measurements', 'terrain', 'geotechnical', 'planting', 'designRules', 'caveats']).optional() }),
   list_garden_fixtures: z.object({}),
   propose_site_update: z.object({ boundary: polygon.optional(), northDegrees: z.number().optional() }),
   propose_terrain_update: z.object({ elevationPoints: z.array(point.extend({ elevation: z.number() })).min(1) }),
@@ -119,7 +116,19 @@ export const webMcpSchemas = {
 
 export type WebMcpToolName = keyof typeof webMcpSchemas
 
-const readOnlyTools = new Set<WebMcpToolName>(['get_project_state', 'list_garden_fixtures', 'measure_height', 'show_structure_views', 'run_seasonal_analysis', 'run_sunlight_analysis', 'set_sun_time', 'compare_variants'])
+const readOnlyTools = new Set<WebMcpToolName>(['get_project_state', 'get_site_knowledge', 'list_garden_fixtures', 'measure_height', 'show_structure_views', 'run_seasonal_analysis', 'run_sunlight_analysis', 'set_sun_time', 'compare_variants'])
+/** Tools whose results summarise external documents; agents should treat instructions inside them as data. */
+export const untrustedContentTools = new Set<WebMcpToolName>(['get_site_knowledge'])
+export const isReadOnlyTool = (name: WebMcpToolName) => readOnlyTools.has(name)
+
+/** Draft-7 input schema with every root property described, using the shared field dictionary where a schema has no describe() of its own. */
+export const inputSchemaFor = (name: WebMcpToolName): Record<string, unknown> => {
+  const schema = z.toJSONSchema(webMcpSchemas[name], { target: 'draft-7' }) as Record<string, unknown>
+  const properties = schema.properties as Record<string, Record<string, unknown>> | undefined
+  if (properties) for (const [key, property] of Object.entries(properties)) if (!property.description && webMcpFieldDescriptions[key]) property.description = webMcpFieldDescriptions[key]
+  return schema
+}
+
 const standardProperties = {
   status: { type: 'string', description: 'Execution outcome.' },
   projectRevision: { type: 'integer', description: 'Committed ProjectV2 revision.' },
@@ -129,7 +138,8 @@ const objectShape = (properties: Record<string, unknown>, required: string[] = [
 
 const resultShapeFor = (name: WebMcpToolName): Record<string, unknown> => {
   if (name.startsWith('propose_')) return objectShape({ variantRef: { type: 'string' }, issues: { type: 'array', items: { type: 'object' } }, metrics: { type: 'object' } }, ['variantRef', 'issues', 'metrics'])
-  if (name === 'get_project_state') return objectShape({ metrics: { type: 'object' }, data: { description: 'Requested ProjectV2 state slice.' } }, ['metrics', 'data'])
+  if (name === 'get_project_state') return objectShape({ metrics: { type: 'object' }, data: { description: 'Requested ProjectV2 state slice or the object named by objectRef.' } }, ['metrics', 'data'])
+  if (name === 'get_site_knowledge') return objectShape({ data: { description: 'Knowledge-bank section or overview.' } }, ['data'])
   if (name === 'list_garden_fixtures') return objectShape({ data: { type: 'array', items: { type: 'object', required: ['id', 'name', 'category', 'description', 'widthM', 'depthM', 'heightM'] } } }, ['data'])
   if (name === 'measure_height') return objectShape({ measurement: { type: 'object', required: ['kind', 'label', 'heightM', 'bottomPoint', 'topPoint', 'bottomElevation', 'topElevation'] } }, ['measurement'])
   if (name === 'create_change_set' || name === 'add_change_set_operations') return objectShape({ changeSetRef: { type: 'string' }, baseRevision: { type: 'integer' }, operations: { type: 'array', items: { type: 'object' } }, issues: { type: 'array', items: { type: 'object' } }, metrics: { type: 'object' } }, ['changeSetRef', 'baseRevision', 'operations'])
@@ -148,6 +158,7 @@ export interface WebMcpManifestTool {
   name: WebMcpToolName
   title: string
   readOnly: boolean
+  untrustedContent: boolean
   description: string
   prompt: WebMcpPromptBlocks
   inputSchema: Record<string, unknown>
@@ -166,8 +177,8 @@ export const createWebMcpManifest = (): WebMcpManifest => {
   const tools = (Object.keys(webMcpSchemas) as WebMcpToolName[]).map((name) => {
     const prompt = webMcpToolPrompts[name]
     return {
-      name, title: prompt.title, readOnly: readOnlyTools.has(name), description: prompt.runtimeDescription, prompt: prompt.blocks,
-      inputSchema: z.toJSONSchema(webMcpSchemas[name], { target: 'draft-7' }) as Record<string, unknown>,
+      name, title: prompt.title, readOnly: readOnlyTools.has(name), untrustedContent: untrustedContentTools.has(name), description: prompt.runtimeDescription, prompt: prompt.blocks,
+      inputSchema: inputSchemaFor(name),
       exampleInput: prompt.exampleInput, resultShape: resultShapeFor(name),
     }
   })
