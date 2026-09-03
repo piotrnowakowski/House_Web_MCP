@@ -4,6 +4,7 @@ import { applyCommands, calculateMetrics, validateProject } from '../domain/comm
 import { gardenFixtureCatalog, gardenFixtureSetCommands, nextGardenBedPosition } from '../domain/gardenFixtures'
 import { buildingPlacement } from '../domain/roofWings'
 import { measureHeight } from '../domain/heightMeasurements'
+import { diffProjects } from '../domain/diff'
 import { findProjectObject, knowledgeSlice } from '../domain/refs'
 import { createPlantingAreaPlan } from '../domain/plantingAreas'
 import { analyzeSeason } from '../domain/seasonal'
@@ -166,6 +167,23 @@ export const webMcpTools: WebMcpTool[] = [
     const label = target.kind === 'point' ? `Point ${target.x}, ${target.z}` : target.kind === 'site' ? 'Site' : target.ref
     return { status: 'ok', projectRevision: state.project.revision, variantRef, summary: `${label}: ${analysis.sunHours.mean} h direct sun on ${formatSunMoment(month, analysis.day, 12).slice(0, -6)} (${analysis.expectedSunHours} h expected after typical cloud).`, analysis }
   } }),
+  define({ ...webMcpToolPrompts.set_viewer_state, input: webMcpSchemas.set_viewer_state, readOnly: true, handler: ({ viewMode, explode, planStoreyRef, focusRef }) => {
+    const state = useStudioStore.getState()
+    if (focusRef) { const found = findProjectObject(state.project, focusRef); if (!found && focusRef !== 'site') throw new Error(`Object not found: ${focusRef}.`) }
+    if (viewMode) state.setViewMode(viewMode)
+    if (explode !== undefined) { state.setViewerMode('edit'); state.setExplodeStoreys(explode) }
+    if (planStoreyRef !== undefined) {
+      if (planStoreyRef && !state.project.buildings.some((building) => building.storeys.some((storey) => storey.ref === planStoreyRef))) throw new Error(`Storey not found: ${planStoreyRef}.`)
+      state.setActivePlanStoreyRef(planStoreyRef)
+    }
+    if (focusRef !== undefined) {
+      state.setSelectedRef(focusRef)
+      const kind = focusRef ? findProjectObject(state.project, focusRef)?.kind : undefined
+      if (kind === 'building') state.refocusCamera(); else if (kind === 'fixture') state.focusGardenFixtures()
+    }
+    const next = useStudioStore.getState()
+    return { status: 'ok', projectRevision: next.project.revision, summary: `Viewer: ${next.viewMode}${next.explodeStoreys ? ', exploded' : ''}${next.selectedRef ? `, selected ${next.selectedRef}` : ''}.`, viewer: { viewMode: next.viewMode, explode: next.explodeStoreys, viewerMode: next.viewerMode, activePlanStoreyRef: next.activePlanStoreyRef, selectedRef: next.selectedRef } }
+  } }),
   define({ ...webMcpToolPrompts.set_sun_time, input: webMcpSchemas.set_sun_time, readOnly: true, handler: ({ month, day, hour }) => {
     const state = useStudioStore.getState(); state.setSunTime({ month, day, hour })
     const sunTime = useStudioStore.getState().sunTime
@@ -174,6 +192,14 @@ export const webMcpTools: WebMcpTool[] = [
     return { status: 'ok', projectRevision: state.project.revision, summary: `Viewer sun set to ${formatSunMoment(sunTime.month, sunTime.day, sunTime.hour)}: altitude ${sun.altitudeDeg.toFixed(1)}°, azimuth ${sun.azimuthDeg.toFixed(0)}°.`, sunTime, altitudeDeg: Number(sun.altitudeDeg.toFixed(2)), azimuthDeg: Number(sun.azimuthDeg.toFixed(2)), sunriseLocal: events ? Number(events.sunriseHour.toFixed(2)) : null, sunsetLocal: events ? Number(events.sunsetHour.toFixed(2)) : null }
   } }),
   define({ ...webMcpToolPrompts.compare_variants, input: webMcpSchemas.compare_variants, readOnly: true, handler: ({ variantRefs }) => { const state = useStudioStore.getState(); const variants = variantRefs.map((variantRef) => state.variants.find((variant) => variant.ref === variantRef) ?? (() => { throw new Error(`Variant not found: ${variantRef}`) })()); return { status: 'ok', projectRevision: state.project.revision, summary: `Compared ${variants.length} variants.`, data: variants.map(({ ref: variantRef, label, baseRevision, metrics, issues }) => ({ variantRef, label, baseRevision, metrics, issues })) } } }),
+  define({ ...webMcpToolPrompts.diff_variant, input: webMcpSchemas.diff_variant, readOnly: true, handler: ({ variantRef, baseVariantRef }) => {
+    const state = useStudioStore.getState()
+    const variant = state.variants.find((item) => item.ref === variantRef) ?? (() => { throw new Error(`Variant not found: ${variantRef}`) })()
+    const base = baseVariantRef ? projectForVariant(state.project, state.variants, baseVariantRef) : state.project
+    const diff = diffProjects(base, variant.project, { maxChanges: 40 })
+    const area = diff.metricDeltas.homeAreaM2 ? `; home area ${diff.metricDeltas.homeAreaM2.delta > 0 ? '+' : ''}${diff.metricDeltas.homeAreaM2.delta} m²` : ''
+    return { status: 'ok', projectRevision: state.project.revision, variantRef, baseVariantRef, summary: `${variant.label}: ${diff.counts.added} added, ${diff.counts.removed} removed, ${diff.counts.modified} modified${area}.`, diff }
+  } }),
   define({ ...webMcpToolPrompts.request_apply_variant, input: webMcpSchemas.request_apply_variant, handler: ({ variantRef }, { signal }) => requestVariantApproval(variantRef, signal) }),
   define({ ...webMcpToolPrompts.discard_variant, input: webMcpSchemas.discard_variant, handler: ({ variantRef }) => { const state = useStudioStore.getState(); state.discardVariant(variantRef); return { status: 'ok', projectRevision: state.project.revision, variantRef, summary: 'Variant discarded.' } } }),
   define({ ...webMcpToolPrompts.undo_last_change, input: webMcpSchemas.undo_last_change, handler: () => { const project = useStudioStore.getState().undo(); return { status: 'ok', projectRevision: project.revision, summary: 'Last committed change was undone.', metrics: calculateMetrics(project) } } }),

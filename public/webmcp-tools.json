@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "source": "runtime-zod-and-structured-prompts",
-  "toolCount": 34,
+  "toolCount": 36,
   "tools": [
     {
       "name": "get_project_state",
@@ -4514,6 +4514,100 @@
       }
     },
     {
+      "name": "set_viewer_state",
+      "title": "Set viewer state",
+      "readOnly": true,
+      "untrustedContent": false,
+      "description": "Show the person something in the scene: switch realistic or technical mode, explode the rooms and roof apart, open a storey plan, or select and highlight one object by ref. Changes only the viewer; the committed project and its revision stay untouched.",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Show the person something in the scene: switch realistic or technical mode, explode the rooms and roof apart, open a storey plan, or select and highlight one object by ref. Changes only the viewer; the committed project and its revision stay untouched.",
+        "input": "All fields optional: `viewMode` (`realistic`|`technical`), `explode` (boolean), `planStoreyRef` (storey ref or null), `focusRef` (object ref to select, or null to clear).",
+        "tools": "Use after a proposal or analysis to point at what you mean, for example focusRef on the wall you changed. Not a proposal; no approval is involved.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns viewer with viewMode, explode, viewerMode, activePlanStoreyRef and selectedRef.",
+        "exampleOutput": "{\"viewMode\":\"realistic\",\"focusRef\":\"wall/courtyard-living\"}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "viewMode": {
+            "type": "string",
+            "enum": [
+              "technical",
+              "realistic"
+            ],
+            "description": "realistic shows materials and the real sun; technical shows flat colours with a neutral studio light."
+          },
+          "explode": {
+            "type": "boolean",
+            "description": "true separates every room, storey and the roof so the person can see the interior structure."
+          },
+          "planStoreyRef": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Storey ref to open in top-down plan view; null returns to the 3D edit view."
+          },
+          "focusRef": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Object ref to select and highlight in the scene; null clears the selection."
+          }
+        },
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "viewMode": "realistic",
+        "focusRef": "wall/courtyard-living"
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "viewer"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "viewer": {
+            "type": "object",
+            "required": [
+              "viewMode",
+              "explode",
+              "viewerMode",
+              "selectedRef"
+            ]
+          }
+        }
+      }
+    },
+    {
       "name": "set_sun_time",
       "title": "Set viewer sun time",
       "readOnly": true,
@@ -4682,6 +4776,83 @@
             "items": {
               "type": "object"
             }
+          }
+        }
+      }
+    },
+    {
+      "name": "diff_variant",
+      "title": "Explain variant changes",
+      "readOnly": true,
+      "untrustedContent": false,
+      "description": "List exactly which objects a ghost variant adds, removes or modifies compared with the committed project or another variant, with changed field names and metric deltas, so the change can be explained before approval.",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "List exactly which objects a ghost variant adds, removes or modifies compared with the committed project or another variant, with changed field names and metric deltas, so the change can be explained before approval.",
+        "input": "`variantRef` is required; optional `baseVariantRef` compares two variants.",
+        "tools": "Read-only. Call after creating a variant and before request_apply_variant; quote the counts and metric deltas to the person.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns diff with counts, up to 40 changes {kind, ref, change, fields}, omittedChanges and metricDeltas {before, after, delta}.",
+        "exampleOutput": "{\"variantRef\":\"variant/storey-footprint-extension-r1-1\"}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "variantRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "baseVariantRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          }
+        },
+        "required": [
+          "variantRef"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "variantRef": "variant/storey-footprint-extension-r1-1"
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "variantRef",
+          "diff"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "baseVariantRef": {
+            "type": "string"
+          },
+          "diff": {
+            "type": "object",
+            "required": [
+              "counts",
+              "changes",
+              "omittedChanges",
+              "metricDeltas"
+            ]
           }
         }
       }

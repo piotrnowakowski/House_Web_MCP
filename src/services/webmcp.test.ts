@@ -267,6 +267,35 @@ describe('ProjectV2 WebMCP surface', () => {
   })
 })
 
+describe('variant explanation and viewer tools', () => {
+  beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), history: [], variants: [], selectedRef: null, viewMode: 'realistic', explodeStoreys: false, confirmationVariantRef: null }))
+
+  it('explains a ghost variant as compact object changes and metric deltas', async () => {
+    const proposal = payload(await tool('propose_storey_update').execute({
+      action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
+      extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }], spaceRef: 'house/main/storey-upper/space-wing',
+    }))
+    const result = await tool('diff_variant').execute({ variantRef: proposal.variantRef }); const parsed = payload(result)
+    expect(tool('diff_variant').annotations?.readOnlyHint).toBe(true)
+    expect(parsed).toMatchObject({ status: 'ok', variantRef: proposal.variantRef, diff: { metricDeltas: { homeAreaM2: { before: 204, after: 300, delta: 96 } } } })
+    expect(parsed.diff.changes).toContainEqual({ kind: 'slab', ref: 'slab/upper', change: 'modified', fields: ['footprint'] })
+    expect(result.content[0].text.length).toBeLessThan(1500)
+    expect(payload(await tool('diff_variant').execute({ variantRef: 'variant/missing' })).status).toBe('error')
+  })
+
+  it('drives the viewer without touching the project', async () => {
+    const parsed = payload(await tool('set_viewer_state').execute({ viewMode: 'technical', explode: true, focusRef: 'wall/courtyard-living' }))
+    expect(tool('set_viewer_state').annotations?.readOnlyHint).toBe(true)
+    expect(parsed).toMatchObject({ status: 'ok', projectRevision: 1, viewer: { viewMode: 'technical', explode: true, selectedRef: 'wall/courtyard-living' } })
+    const state = useStudioStore.getState()
+    expect(state.viewMode).toBe('technical'); expect(state.explodeStoreys).toBe(true); expect(state.selectedRef).toBe('wall/courtyard-living')
+    expect(state.project.revision).toBe(1); expect(state.variants).toEqual([])
+    expect(payload(await tool('set_viewer_state').execute({ focusRef: 'nothing/here' })).status).toBe('error')
+    const cleared = payload(await tool('set_viewer_state').execute({ focusRef: null, explode: false }))
+    expect(cleared.viewer).toMatchObject({ selectedRef: null, explode: false })
+  })
+})
+
 describe('sunlight WebMCP surface', () => {
   beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), history: [], variants: [], sunTime: { month: 7, day: 15, hour: 14 } }))
 

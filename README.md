@@ -10,7 +10,7 @@ No account, credentials or paid service is required. The project was created dur
 
 Early house and garden planning is spatial: people need to see the building, terrain, rooms, openings, planting and seasonal effects together. A normal chat can describe a change, but it cannot safely understand or edit the exact objects in a live 3D design.
 
-This editor gives both the person and their browser agent access to one semantic `ProjectV2` model. A person can navigate and edit the 3D scene directly. An agent can inspect the same project through 34 schema-described WebMCP tools, propose coordinated changes and open visible architectural reports. The result remains an uncommitted ghost variant until the person explicitly applies or rejects it.
+This editor gives both the person and their browser agent access to one semantic `ProjectV2` model. A person can navigate and edit the 3D scene directly. An agent can inspect the same project through 36 schema-described WebMCP tools, propose coordinated changes and open visible architectural reports. The result remains an uncommitted ghost variant until the person explicitly applies or rejects it.
 
 The bundled Zielonki project demonstrates:
 
@@ -91,7 +91,7 @@ Read tools return structured state or open a visible in-page report. Modifying t
 
 | Criterion | Evidence in this project |
 | --- | --- |
-| WebMCP leverage | 34 non-trivial, schema-validated tools operate on live semantic spatial state; read, proposal, comparison, grouped transaction, approval and undo flows are all implemented. |
+| WebMCP leverage | 36 non-trivial, schema-validated tools operate on live semantic spatial state; read, proposal, comparison, grouped transaction, approval and undo flows are all implemented. |
 | Execution | Public no-login deployment, one coherent 3D editor, real geometry, local persistence, visible reports and automated browser coverage. |
 | Potential impact | Helps homeowners and early-stage design collaborators turn broad intent into inspectable house-and-garden alternatives before engaging professional design and engineering services. |
 | Creativity and ambition | Combines a semantic building model, landscape and seasonal context, agent-authored spatial variants and explicit human approval in one browser-native workspace. |
@@ -191,8 +191,10 @@ Use **MCP Tools** in the application to inspect the registered catalogue. The pa
 | `show_structure_views` | Open visible architectural drawings and return placement data |
 | `run_seasonal_analysis` | Return day-part temperature averages, sunrise, sunset, daylight and V2 seasonal planning signals |
 | `run_sunlight_analysis` | Compute direct sun hours for a zone, plant, fixture, point or the site on a date, for the committed project or a ghost variant |
+| `set_viewer_state` | Switch realistic or technical mode, explode rooms, open a storey plan or select an object, without touching the revision |
 | `set_sun_time` | Move the viewer sun to a local date and time without touching the revision |
 | `compare_variants` | Compare ghost metrics and validation issues |
+| `diff_variant` | List the objects a ghost variant adds, removes or modifies, with changed fields and metric deltas |
 | `request_apply_variant` | Wait for explicit Apply/Reject confirmation |
 | `discard_variant` | Remove an uncommitted variant |
 | `undo_last_change` | Restore the previous committed V2 project |

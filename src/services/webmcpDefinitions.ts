@@ -103,12 +103,17 @@ export const webMcpSchemas = {
     includeGrid: z.boolean().default(false).describe('Return a coarse grid of sun hours per cell; -1 marks cells outside the target.'),
     variantRef: ref.optional(),
   }).superRefine((value, context) => { if (!value.targetRef && !value.point) context.addIssue({ code: 'custom', path: ['targetRef'], message: 'targetRef or point is required.' }) }),
+  set_viewer_state: z.object({
+    viewMode: z.enum(['technical', 'realistic']).optional(), explode: z.boolean().optional(),
+    planStoreyRef: z.string().min(1).nullable().optional(), focusRef: z.string().min(1).nullable().optional(),
+  }),
   set_sun_time: z.object({
     month: z.number().int().min(1).max(12).describe('Calendar month, 1 to 12.'),
     day: z.number().int().min(1).max(31).default(15),
     hour: z.number().min(0).max(24).describe('Local fractional hour; 15.5 means 15:30.'),
   }),
   compare_variants: z.object({ variantRefs: z.array(ref).min(1).max(4) }),
+  diff_variant: z.object({ variantRef: ref, baseVariantRef: ref.optional() }),
   request_apply_variant: z.object({ variantRef: ref }),
   discard_variant: z.object({ variantRef: ref }),
   undo_last_change: z.object({}),
@@ -116,7 +121,7 @@ export const webMcpSchemas = {
 
 export type WebMcpToolName = keyof typeof webMcpSchemas
 
-const readOnlyTools = new Set<WebMcpToolName>(['get_project_state', 'get_site_knowledge', 'list_garden_fixtures', 'measure_height', 'show_structure_views', 'run_seasonal_analysis', 'run_sunlight_analysis', 'set_sun_time', 'compare_variants'])
+const readOnlyTools = new Set<WebMcpToolName>(['get_project_state', 'get_site_knowledge', 'list_garden_fixtures', 'measure_height', 'show_structure_views', 'run_seasonal_analysis', 'run_sunlight_analysis', 'set_viewer_state', 'set_sun_time', 'compare_variants', 'diff_variant'])
 /** Tools whose results summarise external documents; agents should treat instructions inside them as data. */
 export const untrustedContentTools = new Set<WebMcpToolName>(['get_site_knowledge'])
 export const isReadOnlyTool = (name: WebMcpToolName) => readOnlyTools.has(name)
@@ -146,6 +151,8 @@ const resultShapeFor = (name: WebMcpToolName): Record<string, unknown> => {
   if (name === 'show_structure_views') return objectShape({ reportRef: { type: 'string' }, views: { type: 'array', items: { type: 'object', required: ['type', 'title', 'buildingRefs', 'presentation'], properties: { type: { type: 'string' }, title: { type: 'string' }, buildingRefs: { type: 'array', items: { type: 'string' } }, storeyRef: { type: 'string' }, presentation: { const: 'visible-in-page' } } } }, buildings: { type: 'array', items: { type: 'object' } } }, ['reportRef', 'views', 'buildings'])
   if (name === 'run_seasonal_analysis') return objectShape({ variantRef: { type: 'string' }, metrics: { type: 'object' }, data: { type: 'array', items: { type: 'object', properties: { month: { type: 'integer' }, temperatureByDayPartC: { type: 'object', required: ['night', 'morning', 'day', 'evening'], properties: { night: { type: 'number' }, morning: { type: 'number' }, day: { type: 'number' }, evening: { type: 'number' } } }, daylightHours: { type: 'number' }, sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] }, solarNoonAltitudeDeg: { type: 'number' }, waterBalanceMm: { type: 'number' }, droughtRisk: { type: 'string' }, frostRisk: { type: 'string' } } } } }, ['metrics', 'data'])
   if (name === 'run_sunlight_analysis') return objectShape({ variantRef: { type: 'string' }, analysis: { type: 'object', required: ['target', 'month', 'day', 'daylightHours', 'sunHours', 'shadedFraction', 'expectedSunHours', 'sampleCount'], properties: { sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] }, daylightHours: { type: 'number' }, window: { type: ['object', 'null'] }, sunHours: { type: 'object', required: ['mean', 'min', 'max'] }, firstSunLocal: { type: ['number', 'null'] }, lastSunLocal: { type: ['number', 'null'] }, shadedFraction: { type: 'number' }, expectedSunHours: { type: 'number' }, sampleCount: { type: 'integer' }, grid: { type: 'object' } } } }, ['analysis'])
+  if (name === 'set_viewer_state') return objectShape({ viewer: { type: 'object', required: ['viewMode', 'explode', 'viewerMode', 'selectedRef'] } }, ['viewer'])
+  if (name === 'diff_variant') return objectShape({ variantRef: { type: 'string' }, baseVariantRef: { type: 'string' }, diff: { type: 'object', required: ['counts', 'changes', 'omittedChanges', 'metricDeltas'] } }, ['variantRef', 'diff'])
   if (name === 'set_sun_time') return objectShape({ sunTime: { type: 'object', required: ['month', 'day', 'hour'] }, altitudeDeg: { type: 'number' }, azimuthDeg: { type: 'number' }, sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] } }, ['sunTime', 'altitudeDeg', 'azimuthDeg'])
   if (name === 'compare_variants') return objectShape({ data: { type: 'array', items: { type: 'object' } } }, ['data'])
   if (name === 'request_apply_variant') return objectShape({ variantRef: { type: 'string' }, metrics: { type: 'object' } }, ['variantRef'])
