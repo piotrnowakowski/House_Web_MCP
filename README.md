@@ -109,7 +109,8 @@ The default project includes three timber raised beds planted with tomatoes, pot
 
 - React Three Fiber is the only renderer and render loop.
 - That Open Components uses the existing R3F scene, WebGL renderer and canvas through a non-owning world bridge. Its `OrthoPerspectiveCamera` is the active camera. Length uses two ground-point clicks; area uses a drag-sized rectangular ground overlay. Edit, length, area, section and plan modes are mutually exclusive; the unused angle mode is excluded.
-- Manifold runs in a Web Worker and generates semantic slab and wall meshes. Door/window boxes are subtracted as real voids. Results are revision-checked, transferable and cached by semantic input.
+- Manifold runs in a Web Worker and generates semantic slab and wall meshes. Door/window boxes are subtracted as real voids. Results are revision-checked, transferable and cached by semantic input. The worker also emits planar UVs in metres, so textures tile at true physical scale.
+- Realistic mode dresses lawns and terrain, terraces, paths and drives, brick and natural-timber walls, raised beds and the barn's interior floors with four Poly Haven CC0 scans (about 9.5 MB). The wall colour picker becomes a light tint over a textured finish. Technical mode stays texture-free.
 - `three-mesh-bvh` builds and disposes acceleration structures with generated geometry.
 - Rapier supplies fixed semantic colliders and constrained editing previews; it is not used for structural analysis or falling buildings.
 - IndexedDB autosaves only under the V2 key. Old records remain untouched and unread.
@@ -199,7 +200,7 @@ Project data stays in the browser's local IndexedDB. The application makes no ru
 
 ## Assets and third-party software
 
-All necessary source, generated manifests and runtime assets are included in this repository. See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for the climate-data basis, original AI-assisted garden textures and open-source runtime libraries. No third-party 3D models, photos, logos or music are bundled.
+All necessary source, generated manifests and runtime assets are included in this repository. See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for the climate-data basis, the Poly Haven CC0 material scans and open-source runtime libraries. No third-party 3D models, photos, logos or music are bundled.
 
 ## License
 

@@ -15,18 +15,19 @@ must not be treated as an official meteorological normal.
 The application runs entirely from committed local data and makes no weather
 request at runtime.
 
-## Garden material assets
+## Texture scans
 
-The seven seamless garden material sources in `public/textures/` are original
-AI-assisted assets generated specifically for House_Web_MCP with OpenAI image
-generation and optimized to 1024 px JPEG files for real-time rendering. They
-were not downloaded from a third-party texture library. The runtime adds
-project-authored tiling, seasonal tint, bump response, roughness, scatter, and
-procedural geometry.
+The four material scans in `public/textures/` come from [Poly Haven](https://polyhaven.com)
+and are released under CC0 1.0 (public domain): Brick Floor 04 by Dimitrios Savva, Hinoki
+Planks and Leafy Grass by Charlotte Baglioni, and Coated Pine by Charlotte Baglioni and Rico
+Cilliers. They are re-encoded to web sizes (2K JPEG diffuse, 1K JPEG normal, 1K 8-bit PNG
+roughness, about 9.5 MB in total) and mapped at true physical scale from metre-based UVs that
+the geometry worker generates for every wall and slab. Per-asset links and the exact source
+URLs are listed in `public/textures/README.md`.
 
 ## Runtime libraries
 
-This project uses React, Three.js, React Three Fiber, Drei, Zustand, Zod, and
-Vite under their respective open-source licenses. No third-party 3D models,
-textures, photos, logos, or music are bundled. The garden geometry is generated
-procedurally at runtime.
+This project uses React, Three.js, React Three Fiber, Drei, Rapier, That Open
+Components, Manifold, Zustand, Zod, and Vite under their respective open-source
+licenses. No third-party 3D models, photos, logos, or music are bundled. The
+garden geometry is generated procedurally at runtime.

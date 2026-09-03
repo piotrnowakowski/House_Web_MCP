@@ -47,20 +47,23 @@ selection; teal remains the keyboard-focus and hover color.
 - Respect `prefers-reduced-motion`; hover and lighting states may snap when it
   is enabled.
 
-## Garden material system
+## Material system
 
-- Realistic mode uses seven project-owned 1024 px material sources: meadow,
-  maintained lawn, dormant winter grass, limestone gravel, mulch soil,
-  limestone paving, and apple bark. Technical mode remains texture-free.
-- Use mirrored repeat wrapping, mipmaps, and anisotropic filtering up to 8x to
-  avoid visible seams and oblique-angle shimmer.
-- Preserve believable physical scale: terrace slabs around 60 x 40 cm, gravel
-  aggregate below 4 cm, lawn tiles around 4.8 m, and soil tiles around 1.8 m.
-- Pair albedo with restrained bump and high roughness. Water alone may use
-  strong clearcoat and low roughness.
-- Keep turf and permeable paths nearly flush with terrain; terrace paving may
-  sit about 10 cm proud. Never render garden zones as thick floating mats.
-- Surface texture must not replace semantic feedback: selection and hover
-  edges remain visible above every realistic material.
-- Add small instanced grass/stone scatter and layered foliage only where it
-  changes silhouette or close-range material reading.
+- Realistic mode uses four Poly Haven CC0 scans shipped under `public/textures/`
+  (about 9.5 MB): leafy grass for lawns and the terrain, brick pavers for terrace,
+  path and drive, hinoki planks for natural-timber walls and raised beds, and
+  coated pine for the barn's interior floors. Technical mode remains texture-free.
+- Textures tile at true physical scale: 1.9 m brick and hinoki tiles, 2.0 m grass,
+  0.7 m pine. Ground polygons already carry metre UVs from ShapeGeometry; the
+  geometry worker emits planar metre UVs for walls and slabs.
+- Use mirrored repeat wrapping, mipmaps and anisotropic filtering up to 8x to
+  avoid visible seams and oblique-angle shimmer. Diffuse maps are sRGB; normal
+  and roughness maps are linear.
+- The wall colour picker tints a textured finish 65 percent toward white, so the
+  scan keeps most of its colour; the editor labels it "Tint over texture".
+- Lawns turn to straw from November to March and read green from April to
+  October, driven by the scene month.
+- Surface texture must not replace semantic feedback: selection still turns a
+  surface lime and ghost variants stay translucent above every material.
+- Textures load behind a Suspense boundary with the flat colour as fallback, so
+  a slow or failed load never blocks the canvas.
