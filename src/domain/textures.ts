@@ -69,7 +69,7 @@ export const resolveZoneTexture = (zone: LandscapeZone): ResolvedTexture | undef
 }
 
 const LAWN_DORMANT_TINT = '#C9B98A'
-const LAWN_GROWING_TINT = '#A9D874'
+const LAWN_GROWING_TINT = '#D3E2C1'
 /** Tint multiplied over a zone's scan: grass goes to straw from November to March, every other scan stays neutral. */
 export const zoneTintFor = (zone: LandscapeZone, month: number): string => {
   if (resolveZoneTexture(zone)?.id !== 'leafy-grass') return '#FFFFFF'

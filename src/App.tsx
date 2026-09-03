@@ -4,7 +4,8 @@ import { ACESFilmicToneMapping, PCFSoftShadowMap, SRGBColorSpace } from 'three'
 import { dayParts } from './domain/climate'
 import { calculateMetrics } from './domain/commands'
 import { ensureStarterGarden, gardenFixtureCatalog, nextFixturePosition, starterGardenCommands } from './domain/gardenFixtures'
-import { wallLength } from './domain/geometry'
+import { polygonCentroid, wallLength } from './domain/geometry'
+import { ensureStarterOrchard } from './domain/orchard'
 import { applyModernBarnPreset, isModernBarnPreset } from './domain/presets'
 import type { BuildingModel, ClimateDayPart, GardenFixtureCatalogId, HeightMeasureKind, LandscapeZone, PlantingGuideCategory, ProjectCommand, ProposalStatus, WallMaterial, WallModel } from './domain/types'
 import { inferWallOpeningLayout, wallOpeningLayoutCommands, wallOpeningLayoutPresets, type WallOpeningLayoutPreset } from './domain/wallOpeningLayouts'
@@ -21,7 +22,7 @@ import type { WebMcpManifest } from './services/webmcpDefinitions'
 import { useStudioStore } from './state/store'
 
 const modes = [
-  ['edit', 'Edit'], ['measure-length', 'Length'], ['measure-area', 'Area'], ['measure-height', 'Height'], ['section', 'Section'], ['plan', 'Plan'],
+  ['edit', 'Edit'], ['measure-length', 'Length'], ['measure-area', 'Area'], ['measure-height', 'Height'],
 ] as const
 
 const modeTitles = {
@@ -29,14 +30,12 @@ const modeTitles = {
   'measure-length': 'Click two points to measure the distance',
   'measure-area': 'Drag a rectangle across the ground to measure its area',
   'measure-height': 'Select a semantic object or Shift-click two points to measure vertically',
-  section: 'Cut through the model to inspect the interior',
-  plan: 'Switch to a top-down orthographic view',
 } as const
 
 function Toolbar({ onOpenClimate, onOpenPlanting, onOpenMcpTools, onOpenProposals }: { onOpenClimate: () => void; onOpenPlanting: () => void; onOpenMcpTools: () => void; onOpenProposals: () => void }) {
   const project = useStudioStore((state) => state.project); const viewerMode = useStudioStore((state) => state.viewerMode); const setViewerMode = useStudioStore((state) => state.setViewerMode)
   const explode = useStudioStore((state) => state.explodeStoreys); const setExplode = useStudioStore((state) => state.setExplodeStoreys)
-  const setActivePlan = useStudioStore((state) => state.setActivePlanStoreyRef); const webMcp = useStudioStore((state) => state.webMcpAvailable); const setToast = useStudioStore((state) => state.setToast)
+  const webMcp = useStudioStore((state) => state.webMcpAvailable); const setToast = useStudioStore((state) => state.setToast)
   const proposals = useStudioStore((state) => state.proposals); const proposalCounts = { pending: proposals.filter((proposal) => proposal.status === 'pending').length, approved: proposals.filter((proposal) => proposal.status === 'approved').length, rejected: proposals.filter((proposal) => proposal.status === 'rejected').length, stale: proposals.filter((proposal) => proposal.status === 'stale').length }
   const [busy, setBusy] = useState(false)
   const generateReport = async () => {
@@ -47,10 +46,7 @@ function Toolbar({ onOpenClimate, onOpenPlanting, onOpenMcpTools, onOpenProposal
   }
   return <header className="topbar">
     <div className="brand"><span className="brand-mark">V2</span><div><strong>Spatial Editor</strong><small>{project.name} · r{project.revision}</small></div></div>
-    <nav aria-label="Viewer tools">{modes.map(([value, label]) => <button key={value} className={viewerMode === value ? 'active' : ''} onClick={() => {
-      if (value === 'plan') { const first = project.buildings[0]?.storeys[0]; if (first) setActivePlan(first.ref) }
-      else setViewerMode(value)
-    }} title={modeTitles[value]}>{label}</button>)}</nav>
+    <nav aria-label="Viewer tools">{modes.map(([value, label]) => <button key={value} className={viewerMode === value ? 'active' : ''} onClick={() => setViewerMode(value)} title={modeTitles[value]}>{label}</button>)}</nav>
     <div className="top-actions">
       <button className={explode ? 'active' : ''} aria-pressed={explode} title="Separate every room, storey and the roof" onClick={() => {
         const next = !explode; setViewerMode('edit'); setExplode(next)
@@ -104,12 +100,12 @@ function ClimatePanel({ onClose }: { onClose: () => void }) {
 }
 
 type PlantingFilter = 'productive' | 'landscape' | 'all'
-const categoryLabels: Record<PlantingGuideCategory, string> = { structure: 'Structure', ornamental: 'Ornamental', vegetable: 'Vegetable', 'fruit-tree': 'Fruit tree' }
-const categoryOrder: Record<PlantingGuideCategory, number> = { vegetable: 0, 'fruit-tree': 1, structure: 0, ornamental: 1 }
+const categoryLabels: Record<PlantingGuideCategory, string> = { structure: 'Structure', ornamental: 'Ornamental', vegetable: 'Vegetable', 'fruit-shrub': 'Fruit shrub', 'fruit-tree': 'Fruit tree' }
+const categoryOrder: Record<PlantingGuideCategory, number> = { 'fruit-shrub': 0, vegetable: 1, 'fruit-tree': 2, structure: 0, ornamental: 1 }
 
 function PlantingGuidePanel({ onClose }: { onClose: () => void }) {
   const guide = useStudioStore((state) => state.project.site.knowledgeBase.planting); const [filter, setFilter] = useState<PlantingFilter>('productive')
-  const recommendations = guide.recommendations.filter((plant) => filter === 'all' || (filter === 'productive' ? plant.category === 'vegetable' || plant.category === 'fruit-tree' : plant.category === 'structure' || plant.category === 'ornamental')).sort((a, b) => categoryOrder[a.category] - categoryOrder[b.category])
+  const recommendations = guide.recommendations.filter((plant) => filter === 'all' || (filter === 'productive' ? ['vegetable', 'fruit-shrub', 'fruit-tree'].includes(plant.category) : plant.category === 'structure' || plant.category === 'ornamental')).sort((a, b) => Number(a.priority !== 'best-fit') - Number(b.priority !== 'best-fit') || categoryOrder[a.category] - categoryOrder[b.category])
   return <section className="planting-panel" aria-label="Planting guide and soil analysis">
     <header><div><p className="eyebrow">SITE / PLANTING GUIDE</p><h2>Planting and soil</h2><small>{guide.recommendations.length} recommendations · evidence-linked planning guidance</small></div><button className="close" onClick={onClose} aria-label="Close planting guide">×</button></header>
     <div className="planting-body">
@@ -189,7 +185,7 @@ function GardenFixturesPanel({ onClose }: { onClose: () => void }) {
       window.setTimeout(focusGardenFixtures, 0)
     } catch (error) { setToast(error instanceof Error ? error.message : 'Starter garden could not be placed.') }
   }
-  const structures = gardenFixtureCatalog.filter((item) => item.category === 'structure'); const crops = gardenFixtureCatalog.filter((item) => item.category === 'crop')
+  const furniture = gardenFixtureCatalog.filter((item) => item.category === 'furniture'); const structures = gardenFixtureCatalog.filter((item) => item.category === 'structure'); const crops = gardenFixtureCatalog.filter((item) => item.category === 'crop')
   const viewPlaced = () => { onClose(); window.setTimeout(focusGardenFixtures, 0) }
   const fixtureRows = (items: typeof gardenFixtureCatalog) => items.map((item) => <article className="fixture-row" key={item.id}>
     <span className={`fixture-thumb ${item.id}`} aria-hidden="true"><i /><i /><i /><i /></span>
@@ -199,7 +195,7 @@ function GardenFixturesPanel({ onClose }: { onClose: () => void }) {
   return <section className="garden-fixtures-panel" aria-label="Garden fixture library">
     <header><div><p className="eyebrow">SEMANTIC GARDEN / FIXTURES</p><h2>Garden fixtures</h2><small>{project.landscape.fixtures.length} placed · shared by editor and WebMCP</small></div><button className="close" onClick={onClose} aria-label="Close garden fixtures">×</button></header>
     <div className="fixture-starter"><div><span>READY SET</span><h3>Starter kitchen garden</h3><p>Three raised beds with tomatoes, potatoes and a cucumber trellis.</p></div><div className="fixture-starter-actions"><button onClick={viewPlaced}>View placed</button><button onClick={placeStarter}>Place another set</button></div></div>
-    <div className="fixture-library"><section><h2>Structures</h2>{fixtureRows(structures)}</section><section><h2>Standard crops</h2>{fixtureRows(crops)}</section></div>
+    <div className="fixture-library"><section><h2>Outdoor furniture</h2>{fixtureRows(furniture)}</section><section><h2>Garden structures</h2>{fixtureRows(structures)}</section><section><h2>Standard crops</h2>{fixtureRows(crops)}</section></div>
     <footer><span>WebMCP</span><code>list_garden_fixtures</code><code>propose_garden_fixture</code></footer>
   </section>
 }
@@ -319,7 +315,7 @@ function OpeningEditor({ building, wall, selectedRef }: { building: BuildingMode
 function Inspector() {
   const project = useStudioStore((state) => state.project); const selectedRef = useStudioStore((state) => state.selectedRef); const issues = useStudioStore((state) => state.variants)
   const useModernBarnPreset = useStudioStore((state) => state.useModernBarnPreset)
-  const beginReposition = useStudioStore((state) => state.beginReposition); const createVariant = useStudioStore((state) => state.createVariant); const reopenProposal = useStudioStore((state) => state.reopenProposal)
+  const beginReposition = useStudioStore((state) => state.beginReposition); const createVariant = useStudioStore((state) => state.createVariant); const reopenProposal = useStudioStore((state) => state.reopenProposal); const commitCommand = useStudioStore((state) => state.commitCommand); const setToast = useStudioStore((state) => state.setToast)
   const [deleteRef, setDeleteRef] = useState<string | null>(null)
   const metrics = calculateMetrics(project); const building = project.buildings.find((item) => item.ref === selectedRef); const fixture = project.landscape.fixtures.find((item) => item.ref === selectedRef)
   const plant = project.landscape.plants.find((item) => item.ref === selectedRef); const zone = project.landscape.zones.find((item) => item.ref === selectedRef)
@@ -330,8 +326,16 @@ function Inspector() {
   const exteriorWalls = project.buildings.flatMap((item) => item.walls.filter((wall) => item.spaces.filter((space) => space.boundary.some((boundary) => boundary.wallRef === wall.ref)).length <= 1))
   const selectedTitle = building?.name ?? fixture?.name ?? plant?.name ?? zone?.name ?? (selectedRoofSegment ? 'Roof segment' : selectedOpening ? `${selectedOpening.kind === 'window' ? 'Window' : 'Door'} opening` : selectedWall ? wallLabel(selectedWall) : selectedRef ? selectedRef.split('/').at(-1) : 'Project overview')
   const modernBarnActive = isModernBarnPreset(project)
-  const actionObject = building ?? fixture ?? plant ?? zone; const movable = Boolean(building || fixture || plant); const locked = actionObject && 'locked' in actionObject ? actionObject.locked : false
+  const actionObject = building ?? fixture ?? plant ?? zone; const movable = Boolean(building || fixture || plant || zone); const locked = actionObject && 'locked' in actionObject ? actionObject.locked : false
+  const zoneCenter = zone ? polygonCentroid(zone.footprint) : null
   useEffect(() => setDeleteRef(null), [selectedRef])
+  const unlockPlant = () => {
+    if (!plant?.locked) return
+    try {
+      commitCommand({ type: 'plant.update', action: 'unlock', plantRef: plant.ref })
+      setToast(`${plant.name} unlocked. You can now move or delete it. Ctrl+Z to undo.`)
+    } catch (error) { setToast(error instanceof Error ? error.message : 'Plant could not be unlocked.') }
+  }
   const proposeDelete = () => {
     if (!selectedRef || !actionObject || locked) return
     const command: ProjectCommand = building ? { type: 'building.update', action: 'remove', buildingRef: building.ref }
@@ -345,13 +349,16 @@ function Inspector() {
     <h2>{selectedTitle}</h2>
     <p className="muted">{selectedRef ?? 'Select a wall, shared slab, space, roof, landscape zone or plant.'}</p>
     {actionObject && <section className="object-actions" aria-label={`Actions for ${selectedTitle}`}>
-      {movable && <button disabled={locked} onClick={() => selectedRef && beginReposition(selectedRef)}>Move</button>}
-      <button className="delete-object" disabled={locked} onClick={() => setDeleteRef(selectedRef)}>Delete</button>
+      {plant && locked ? <div className="object-lock"><div><strong>Retained site feature</strong><span>Unlock this plant to move or delete it.</span></div><button className="unlock-object" onClick={unlockPlant}>Unlock</button></div> : <>
+        {movable && <button disabled={locked} onClick={() => selectedRef && beginReposition(selectedRef)}>Move</button>}
+        <button className="delete-object" disabled={locked} onClick={() => setDeleteRef(selectedRef)}>Delete</button>
+      </>}
       {deleteRef === selectedRef && <div className="delete-confirm"><strong>Delete {selectedTitle}?</strong><span>This creates a reviewable proposal. Nothing changes until approval.</span><div><button onClick={() => setDeleteRef(null)}>Cancel</button><button className="confirm-delete" onClick={proposeDelete}>Create delete proposal</button></div></div>}
     </section>}
     {building && <dl className="readout"><div><dt>Position</dt><dd>{building.position.x.toFixed(2)}, {building.position.z.toFixed(2)} m</dd></div><div><dt>Rotation</dt><dd>{building.rotationDegrees.toFixed(1)}°</dd></div><div><dt>Storeys</dt><dd>{building.storeys.length}</dd></div></dl>}
     {fixture && <dl className="readout"><div><dt>Fixture</dt><dd>{fixture.catalogId}</dd></div><div><dt>Position</dt><dd>{fixture.position.x.toFixed(2)}, {fixture.position.z.toFixed(2)} m</dd></div><div><dt>Rotation</dt><dd>{fixture.rotationDegrees.toFixed(1)}°</dd></div></dl>}
-    {plant && <dl className="readout"><div><dt>Species</dt><dd>{plant.species}</dd></div><div><dt>Position</dt><dd>{plant.position.x.toFixed(2)}, {plant.position.z.toFixed(2)} m</dd></div></dl>}
+    {plant && <dl className="readout"><div><dt>Species</dt><dd>{plant.species}</dd></div><div><dt>Position</dt><dd>{plant.position.x.toFixed(2)}, {plant.position.z.toFixed(2)} m</dd></div><div><dt>Status</dt><dd>{plant.locked ? 'Retained' : 'Editable'}</dd></div></dl>}
+    {zone && zoneCenter && <dl className="readout"><div><dt>Type</dt><dd>{zone.kind}</dd></div><div><dt>Center</dt><dd>{zoneCenter.x.toFixed(2)}, {zoneCenter.z.toFixed(2)} m</dd></div><div><dt>Status</dt><dd>{zone.locked ? 'Locked' : 'Editable'}</dd></div></dl>}
     {zone && <ZoneSurfaceEditor zone={zone} />}
     {selectedRoofSegment && <dl className="readout"><div><dt>Eaves</dt><dd>{selectedRoofSegment.baseElevationM.toFixed(2)} m</dd></div><div><dt>Pitch</dt><dd>{selectedRoofSegment.pitchDegrees.toFixed(1)}°</dd></div><div><dt>Finish</dt><dd>{selectedRoofSegment.finish.material}</dd></div></dl>}
     {selectedWall && openingBuilding ? <OpeningEditor building={openingBuilding} wall={selectedWall} selectedRef={selectedRef} /> : <>
@@ -478,15 +485,32 @@ function SunWidget() {
 
 export function App() {
   const project = useStudioStore((state) => state.project); const toast = useStudioStore((state) => state.toast); const hydrated = useStudioStore((state) => state.hydrated); const viewerMode = useStudioStore((state) => state.viewerMode); const explode = useStudioStore((state) => state.explodeStoreys)
-  const proposals = useStudioStore((state) => state.proposals); const draftChangeSets = useStudioStore((state) => state.draftChangeSets)
   const heightMeasureKind = useStudioStore((state) => state.heightMeasureKind); const setHeightMeasureKind = useStudioStore((state) => state.setHeightMeasureKind)
   const restoreWorkspace = useStudioStore((state) => state.restoreWorkspace); const setHydrated = useStudioStore((state) => state.setHydrated); const setToast = useStudioStore((state) => state.setToast); const undo = useStudioStore((state) => state.undo)
   const refocusCamera = useStudioStore((state) => state.refocusCamera)
   const focusGardenFixtures = useStudioStore((state) => state.focusGardenFixtures)
   const [dataPanel, setDataPanel] = useState<'climate' | 'planting' | 'fixtures' | 'mcp-tools' | 'proposals' | null>(null)
-  useEffect(() => { let active = true; loadWorkspace().then((saved) => { if (active && saved) restoreWorkspace({ ...saved, project: ensureStarterGarden(applyModernBarnPreset(saved.project)) }) }).catch(() => setToast('ProjectV2 autosave could not be restored.')).finally(() => { if (active) setHydrated(true) }); return () => { active = false } }, [restoreWorkspace, setHydrated, setToast])
-  useEffect(() => { if (!hydrated) return; const timer = window.setTimeout(() => saveWorkspace({ version: 1, project, proposals, draftChangeSets }).catch(() => setToast('ProjectV2 autosave failed.')), 350); return () => window.clearTimeout(timer) }, [draftChangeSets, hydrated, project, proposals, setToast])
-  useEffect(() => registerWebMcpTools(), [])
+  useEffect(() => { let active = true; loadWorkspace().then((saved) => { if (active && saved) restoreWorkspace({ ...saved, project: ensureStarterOrchard(ensureStarterGarden(applyModernBarnPreset(saved.project))) }) }).catch(() => setToast('ProjectV2 autosave could not be restored.')).finally(() => { if (active) setHydrated(true) }); return () => { active = false } }, [restoreWorkspace, setHydrated, setToast])
+  useEffect(() => {
+    if (!hydrated) return
+    let timer: number | null = null
+    const persist = () => {
+      const state = useStudioStore.getState()
+      return saveWorkspace({ version: 1, project: state.project, proposals: state.proposals, draftChangeSets: state.draftChangeSets }).catch(() => setToast('ProjectV2 autosave failed.'))
+    }
+    const schedule = () => {
+      if (timer !== null) window.clearTimeout(timer)
+      timer = window.setTimeout(() => { timer = null; void persist() }, 350)
+    }
+    const unsubscribe = useStudioStore.subscribe((state, previous) => {
+      if (state.project !== previous.project || state.proposals !== previous.proposals || state.draftChangeSets !== previous.draftChangeSets) schedule()
+    })
+    const flush = () => { if (timer !== null) { window.clearTimeout(timer); timer = null; void persist() } }
+    window.addEventListener('pagehide', flush)
+    schedule()
+    return () => { unsubscribe(); window.removeEventListener('pagehide', flush); flush() }
+  }, [hydrated, setToast])
+  useEffect(() => hydrated ? registerWebMcpTools() : undefined, [hydrated])
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(null), 4200); return () => window.clearTimeout(timer) }, [setToast, toast])
   useEffect(() => {
     const keyboard = (event: KeyboardEvent) => {

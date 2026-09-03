@@ -78,10 +78,12 @@ export function TexturePreloader() {
     if (!texturesReady) return
     const rest = allTextureUrls().filter((url) => !inUse.includes(url))
     if (!rest.length) return
-    const schedule = window.requestIdleCallback?.bind(window) ?? ((callback: () => void) => window.setTimeout(callback, 400))
-    const cancel = window.cancelIdleCallback?.bind(window) ?? window.clearTimeout.bind(window)
-    const handle = schedule(() => useTexture.preload(rest))
-    return () => cancel(handle)
+    if (window.requestIdleCallback) {
+      const handle = window.requestIdleCallback(() => useTexture.preload(rest), { timeout: 1500 })
+      return () => window.cancelIdleCallback?.(handle)
+    }
+    const handle = window.setTimeout(() => useTexture.preload(rest), 400)
+    return () => window.clearTimeout(handle)
   }, [inUse, texturesReady])
   return <ReadyOnError><Suspense fallback={null}><TexturePreloadInner urls={inUse} /></Suspense></ReadyOnError>
 }

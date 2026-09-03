@@ -62,7 +62,7 @@ describe('ProjectV2 persistence boundary', () => {
 
     const restored = await loadProject()
     const corrected55 = restored!.site.parcels.find((parcel) => parcel.cadastralNumber === '55/4')!
-    expect(restored!.site.knowledgeBase.datasetVersion).toBe('zielonki-knowledge-bank-2026-09-03-outline-v3')
+    expect(restored!.site.knowledgeBase.datasetVersion).toBe('zielonki-knowledge-bank-2026-09-03-outline-v4')
     expect(restored!.buildings[0].roof.segments).toHaveLength(1)
     expect(restored!.buildings[0].roof.segments[0].ref).toBe('roof/main/segment-main')
     expect(Math.max(...corrected55.boundary.map((point) => point.z))).toBeCloseTo(186.012, 3)

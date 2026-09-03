@@ -1,0 +1,70 @@
+/*
+ * Readability floor for the editor UI.
+ * Existing component rules still define hierarchy; these minimums prevent
+ * controls, prose, and metadata from falling below a comfortable size.
+ */
+body {
+  font-size: 12px;
+}
+
+:root {
+  --scrollbar-track: #101715;
+  --scrollbar-thumb: #56655f;
+  --scrollbar-thumb-hover: #7c8f86;
+  --scrollbar-thumb-active: #a5b7ae;
+}
+
+* {
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width: auto;
+}
+
+*::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar-thumb {
+  min-height: 44px;
+  border: 3px solid var(--scrollbar-track);
+  border-radius: 999px;
+  background: var(--scrollbar-thumb);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: var(--scrollbar-thumb-active);
+}
+
+*::-webkit-scrollbar-corner {
+  background: var(--scrollbar-track);
+}
+
+main :is(button, input, select, textarea) {
+  font-size: 12px !important;
+}
+
+main :is(p, li, dt, dd, td, th, label) {
+  font-size: max(11px, 1em) !important;
+}
+
+main :is(span, strong, em) {
+  font-size: max(11px, 1em) !important;
+}
+
+main :is(small, code, kbd) {
+  font-size: max(10px, 1em) !important;
+}
+
+/* Reserve lime for controls and state outlines; these labels are reading text. */
+.planting-panel :is(.eyebrow, .plant-index, .fit.best-fit),
+.planting-panel .soil-findings header span.documented {
+  color: #e6eee9;
+}

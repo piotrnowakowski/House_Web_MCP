@@ -218,10 +218,10 @@
       "title": "List ready garden fixtures",
       "readOnly": true,
       "untrustedContent": false,
-      "description": "Read the editor-owned fixture catalog for raised beds and standard crop rows, including semantic IDs and metre dimensions.",
+      "description": "Read the editor-owned catalogue for outdoor furniture, garden structures and crop rows, including semantic IDs and metre dimensions.",
       "prompt": {
         "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
-        "task": "Read the editor-owned fixture catalog for raised beds and standard crop rows, including semantic IDs and metre dimensions.",
+        "task": "Read the editor-owned catalogue for outdoor furniture, garden structures and crop rows, including semantic IDs and metre dimensions.",
         "input": "Input is an empty JSON object.",
         "tools": "Use before proposing garden fixtures. This is read-only. Use only returned catalog IDs; do not invent fixture types.",
         "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns data as an array of fixture definitions with id, name, category, description, widthM, depthM and heightM.",
@@ -2725,7 +2725,12 @@
               "raised-bed-2x1",
               "tomato-row",
               "potato-row",
-              "cucumber-trellis"
+              "cucumber-trellis",
+              "outdoor-dining-set",
+              "garden-lounge-set",
+              "slatted-bench",
+              "sun-lounger",
+              "cantilever-parasol"
             ],
             "description": "Fixture catalog id from list_garden_fixtures."
           },
@@ -3998,7 +4003,12 @@
                         "raised-bed-2x1",
                         "tomato-row",
                         "potato-row",
-                        "cucumber-trellis"
+                        "cucumber-trellis",
+                        "outdoor-dining-set",
+                        "garden-lounge-set",
+                        "slatted-bench",
+                        "sun-lounger",
+                        "cantilever-parasol"
                       ]
                     },
                     "name": {

@@ -4,7 +4,7 @@ import { applyCommand } from '../domain/commands'
 import { modernBarnProject, partialUpperModernBarnProject, sampleProject } from '../domain/sampleProject'
 import { useStudioStore } from '../state/store'
 import { expandStructureViews, registerStructureViewCapture } from './structureViews'
-import { resolveVariantConfirmation, webMcpTools } from './webmcp'
+import { registerWebMcpTools, resolveVariantConfirmation, webMcpTools } from './webmcp'
 import { webMcpManifest } from './webmcpDefinitions'
 
 const tool = (name: string) => webMcpTools.find((item) => item.name === name)!
@@ -13,6 +13,34 @@ const payload = (result: WebMcpToolResult) => JSON.parse(result.content[0].text)
 beforeEach(() => useStudioStore.setState({ project: structuredClone(sampleProject), history: [], variants: [], proposals: [], draftChangeSets: [], selectedRef: 'space/living', repositioningRef: null, confirmationVariantRef: null, structureReport: null }))
 
 describe('ProjectV2 WebMCP surface', () => {
+  it('replaces an older page registration so hot reload cannot keep a stale store alive', () => {
+    const originalDocument = globalThis.document
+    const signals: AbortSignal[] = []
+    Object.defineProperty(globalThis, 'document', {
+      configurable: true,
+      value: { modelContext: { registerTool: async (_tool: WebMcpTool, options?: { signal?: AbortSignal }) => { if (options?.signal) signals.push(options.signal) } } },
+    })
+    try {
+      const cleanupFirst = registerWebMcpTools()
+      const firstBatch = signals.slice()
+      expect(firstBatch).toHaveLength(webMcpTools.length)
+      expect(firstBatch.every((signal) => !signal.aborted)).toBe(true)
+
+      const cleanupSecond = registerWebMcpTools()
+      const secondBatch = signals.slice(webMcpTools.length)
+      expect(firstBatch.every((signal) => signal.aborted)).toBe(true)
+      expect(secondBatch).toHaveLength(webMcpTools.length)
+      expect(secondBatch.every((signal) => !signal.aborted)).toBe(true)
+
+      cleanupFirst()
+      expect(secondBatch.every((signal) => !signal.aborted)).toBe(true)
+      cleanupSecond()
+      expect(secondBatch.every((signal) => signal.aborted)).toBe(true)
+    } finally {
+      Object.defineProperty(globalThis, 'document', { configurable: true, value: originalDocument })
+    }
+  })
+
   it('publishes the prompt-aligned V2 tool catalog without export or V1 nouns', () => {
     const toolNames = webMcpTools.map((item) => item.name)
     expect(toolNames).toEqual(Object.values(webMcpToolPrompts).map((prompt) => prompt.name))
@@ -91,9 +119,10 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(overview.data.sections).toContain('planting')
     const planting = payload(await tool('get_site_knowledge').execute({ section: 'planting' }))
     expect(planting.data.soilAnalysis.findings).toHaveLength(5)
-    expect(planting.data.recommendations.map((plant: { commonName: string }) => plant.commonName)).toEqual(expect.arrayContaining(['Tomato', 'Potato', 'Cucumber', 'Apple tree', 'Sour cherry']))
+    expect(planting.data.recommendations.map((plant: { commonName: string }) => plant.commonName)).toEqual(expect.arrayContaining(["Blackcurrant 'Ben Alder'", 'Black chokeberry', 'Common elder', 'Tomato', 'Potato', 'Cucumber', 'Apple tree', 'Sour cherry']))
     const sources = await tool('get_site_knowledge').execute({ section: 'sources' })
-    expect(payload(sources).data).toHaveLength(9)
+    expect(payload(sources).data).toHaveLength(12)
+    expect(payload(sources).data.filter((source: { url?: string }) => source.url)).toHaveLength(3)
     expect(sources.content[0].text.length).toBeLessThan(4000)
     expect(payload(await tool('get_project_state').execute({ detail: 'knowledge' })).status).toBe('error')
     const wallResult = await tool('get_project_state').execute({ objectRef: 'wall/east' }); const wall = payload(wallResult)
@@ -104,13 +133,21 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(payload(await tool('get_project_state').execute({ objectRef: 'nothing/here' })).status).toBe('error')
   })
 
-  it('lists ready fixtures and proposes a complete kitchen garden without committing it', async () => {
+  it('lists outdoor furniture and garden fixtures, then proposes a complete kitchen garden without committing it', async () => {
     const catalog = payload(await tool('list_garden_fixtures').execute({}))
-    expect(catalog.data.map((item: { id: string }) => item.id)).toEqual(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis'])
+    expect(catalog.data.map((item: { id: string }) => item.id)).toEqual(['outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis'])
     const proposed = payload(await tool('propose_garden_fixture').execute({ mode: 'preset', preset: 'starter-kitchen-garden', setRef: 'fixture-set/webmcp-1', origin: { x: 8.4, z: 5.5 }, rotationDegrees: 0 }))
     expect(proposed.status).toBe('variant_created')
     expect(useStudioStore.getState().project.landscape.fixtures).toHaveLength(0)
     expect(useStudioStore.getState().variants[0].project.landscape.fixtures).toHaveLength(6)
+    expect(useStudioStore.getState().variants[0].issues.filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
+  it('proposes a catalogue furniture item without committing it', async () => {
+    const proposed = payload(await tool('propose_garden_fixture').execute({ mode: 'single', action: 'add', fixtureRef: 'fixture/dining-1', catalogId: 'outdoor-dining-set', position: { x: 5, z: 8 }, rotationDegrees: 15 }))
+    expect(proposed.status).toBe('variant_created')
+    expect(useStudioStore.getState().project.landscape.fixtures).toHaveLength(0)
+    expect(useStudioStore.getState().variants[0].project.landscape.fixtures[0]).toMatchObject({ catalogId: 'outdoor-dining-set', position: { x: 5, z: 8 }, rotationDegrees: 15 })
     expect(useStudioStore.getState().variants[0].issues.filter((issue) => issue.severity === 'error')).toEqual([])
   })
 
@@ -134,6 +171,8 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(proposed.status).toBe('variant_created')
     expect(useStudioStore.getState().project.landscape.fixtures[0].position).toEqual({ x: 8.4, z: 5.5 })
     expect(useStudioStore.getState().variants[0].project.landscape.fixtures[0].position).toEqual({ x: 9.2, z: 7.1 })
+    expect(useStudioStore.getState().variants[0].project.landscape.fixtures[1].position).toEqual({ x: 9.2, z: 7.1 })
+    expect(useStudioStore.getState().variants[0].issues.filter((issue) => issue.severity === 'error')).toEqual([])
   })
 
   it('rejects incomplete single-fixture actions before creating a variant', async () => {

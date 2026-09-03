@@ -20,6 +20,6 @@ export function CompassRose() {
   return <group position={position} userData={{ editorOnly: true }}>
     <Line points={ring} color="#dce5df" lineWidth={1.2} transparent opacity={0.8} />
     <Line points={arrow} color="#f7d568" lineWidth={2.4} />
-    <Html position={[north.x * RADIUS_M * 1.35, 0, north.z * RADIUS_M * 1.35]} center style={{ pointerEvents: 'none' }}><span className="compass-label">N</span></Html>
+    <Html position={[north.x * RADIUS_M * 1.35, 0, north.z * RADIUS_M * 1.35]} center zIndexRange={[6, 0]} style={{ pointerEvents: 'none' }}><span className="compass-label">N</span></Html>
   </group>
 }

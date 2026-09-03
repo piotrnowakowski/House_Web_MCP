@@ -31,5 +31,21 @@ Per-asset links and the exact source URLs are listed in `public/textures/README.
 
 This project uses React, Three.js, React Three Fiber, Drei, Rapier, That Open
 Components, Manifold, Zustand, Zod, and Vite under their respective open-source
-licenses. No third-party 3D models, photos, logos, or music are bundled. The
-garden geometry is generated procedurally at runtime.
+licenses. Small crop accents such as fruit, stakes, and trellis wires are generated procedurally at runtime.
+
+## Garden models
+
+The orchard tree and crop foliage meshes come from Poly Haven's photorealistic
+CC0 library. They are bundled as web-optimized GLB files and used as the visual
+bases for the fruit trees and raised-bed crops. Species-specific fruit, blossom,
+stakes, and trellis details remain procedural. Full source and processing notes are in
+`public/models/garden/README.md`.
+
+## Real-time grass
+
+The near-field lawn combines the bundled Poly Haven Leafy Grass PBR scan with a
+custom GPU-instanced short-blade shader. Its rendering approach is informed by
+the MIT-licensed [pmndrs grass-shader example](https://github.com/pmndrs/examples/tree/main/examples/grass-shader),
+but the application uses its own deterministic polygon clipping, blade geometry,
+seasonal colours, distance treatment, and exclusion rules. No additional grass
+texture or model is copied from that example.

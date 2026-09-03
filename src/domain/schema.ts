@@ -93,7 +93,7 @@ const PlantSchema = z.object({
   attachment: z.object({ hostRef: z.string().min(1), hostFace: z.enum(['top', 'bottom', 'inside', 'outside', 'terrain']), localPosition: Vec3Schema, rotationDegrees: z.number().finite() }).optional(),
 })
 const GardenFixtureSchema = z.object({
-  ref: z.string().min(1), catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis']), name: z.string().min(1),
+  ref: z.string().min(1), catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol']), name: z.string().min(1),
   position: Vec2Schema, rotationDegrees: z.number().finite(), locked: z.boolean(),
 })
 const TemperatureByDayPartSchema = z.object({ night: z.number(), morning: z.number(), day: z.number(), evening: z.number() }).strict()
@@ -107,7 +107,7 @@ export const ProjectSchema = z.object({
     parcels: z.array(ParcelSchema).min(1), entrances: z.array(SiteEntranceSchema).default([]), knowledgeBase: z.custom<SiteKnowledgeBase>((value) => Boolean(value) && typeof value === 'object').transform(hydrateKnowledgeBase),
   }),
   buildings: z.array(BuildingSchema),
-  landscape: z.object({ zones: z.array(z.object({ ref: z.string().min(1), name: z.string().min(1), kind: z.enum(['lawn', 'terrace', 'path', 'driveway', 'bed', 'rain-garden', 'vegetable']), footprint: PolygonSchema, locked: z.boolean(), textureId: z.string().optional() })), plants: z.array(PlantSchema), fixtures: z.array(GardenFixtureSchema).default([]), fixtureCatalogVersion: z.number().int().nonnegative().default(0) }),
+  landscape: z.object({ zones: z.array(z.object({ ref: z.string().min(1), name: z.string().min(1), kind: z.enum(['lawn', 'terrace', 'path', 'driveway', 'bed', 'rain-garden', 'vegetable']), footprint: PolygonSchema, locked: z.boolean(), textureId: z.string().optional() })), plants: z.array(PlantSchema), fixtures: z.array(GardenFixtureSchema).default([]), fixtureCatalogVersion: z.number().int().nonnegative().default(0), orchardCatalogVersion: z.number().int().nonnegative().default(0) }),
   climateProfile: z.object({
     ref: z.string().min(1), name: z.string().min(1), latitude: z.number().min(-90).max(90), longitude: z.number().min(-180).max(180), timezone: z.string().min(1), provenance: z.string().min(1),
     soil: z.object({ texture: z.enum(['sandy', 'loam', 'clay']), ph: z.number().min(0).max(14).nullable(), drainage: z.enum(['fast', 'balanced', 'slow']) }), irrigationMm: z.number().min(0), months: z.array(ClimateMonthSchema).length(12),
