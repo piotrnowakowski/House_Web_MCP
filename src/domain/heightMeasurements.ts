@@ -1,4 +1,5 @@
-import { buildingGroundOffset, buildingLocalBounds, elevationAt, polygonBounds, polygonCentroid, spaceFootprint } from './geometry'
+import { buildingGroundOffset, elevationAt, polygonCentroid, spaceFootprint } from './geometry'
+import { roofRidgeElevation } from './roofWings'
 import type { BuildingModel, HeightMeasureKind, HeightMeasurement, HeightMeasurementPoint, ProjectV2, Vec3 } from './types'
 
 export type HeightMeasurementRequest =
@@ -10,12 +11,6 @@ const round = (value: number) => Math.round(value * 1000) / 1000
 const localToProject = (building: BuildingModel, x: number, z: number) => {
   const angle = building.rotationDegrees * Math.PI / 180; const cosine = Math.cos(angle); const sine = Math.sin(angle)
   return { x: building.position.x + x * cosine + z * sine, z: building.position.z - x * sine + z * cosine }
-}
-
-const roofRise = (building: BuildingModel) => {
-  if (building.roof.type === 'flat') return 0.24
-  const bounds = building.roof.footprint ? polygonBounds(building.roof.footprint) : buildingLocalBounds(building)
-  return Math.tan(building.roof.pitchDegrees * Math.PI / 180) * (bounds.maxX - bounds.minX) / 2
 }
 
 const measured = (project: ProjectV2, input: {
@@ -48,7 +43,7 @@ export const measureHeight = (project: ProjectV2, request: HeightMeasurementRequ
     const roofCenterLocal = roofFootprint ? polygonCentroid(roofFootprint) : { x: 0, z: 0 }
     const roofCenter = localToProject(building, roofCenterLocal.x, roofCenterLocal.z)
     const terrainY = elevationAt(project, roofCenter.x, roofCenter.z)
-    const eavesY = building.roof.baseElevationM + offsetY; const ridgeY = eavesY + roofRise(building)
+    const eavesY = building.roof.baseElevationM + offsetY; const ridgeY = roofRidgeElevation(building) + offsetY
     const groundTo = (kind: 'ground-to-eaves' | 'ground-to-ridge') => measured(project, {
       objectRef: request.objectRef, buildingRef: building.ref, kind, label: kind === 'ground-to-eaves' ? 'Ground to eaves' : 'Ground to ridge',
       bottom: point(roofCenter.x, terrainY, roofCenter.z, 'terrain/surface'),

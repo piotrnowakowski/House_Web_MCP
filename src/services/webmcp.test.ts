@@ -95,7 +95,7 @@ describe('ProjectV2 WebMCP surface', () => {
       spaceRef: 'house/main/storey-upper/space-wing', spaceName: 'Upper wing', usage: 'living',
     }))
     const state = useStudioStore.getState(); const building = state.variants[0].project.buildings[0]
-    expect(parsed).toMatchObject({ status: 'variant_created', areaAddedM2: 96, buildingHeightM: 14.4, levelCount: 2, metrics: { homeAreaM2: 300 } })
+    expect(parsed).toMatchObject({ status: 'variant_created', areaAddedM2: 96, buildingHeightM: 9.82, levelCount: 2, metrics: { homeAreaM2: 300 } })
     expect(state.project.buildings[0].slabs.find((slab) => slab.ref === 'slab/upper')?.footprint).toHaveLength(4)
     expect(building.storeys).toHaveLength(2)
     expect(building.roof.footprint).toEqual(building.slabs.find((slab) => slab.ref === 'slab/upper')?.footprint)
