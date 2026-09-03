@@ -3,6 +3,7 @@ import { validateTextureChoice } from './textures'
 import { gardenFixtureById, groupedGardenFixtures } from './gardenFixtures'
 import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
 import { decomposeOrthogonalLFootprint, defaultRoofFinish, ridgeDirectionForFootprint, roofSegmentRidgeElevation, segmentContainsFootprint, supportingWallRefs } from './roofs'
+import { gableWallsForBuilding } from './roofWings'
 import { sunMismatchIssues } from './sunlight'
 import type { BuildingModel, LandscapeZone, OpeningModel, Polygon2, ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, RoofJunctionModel, RoofSegmentDefinition, RoofSegmentModel, SpaceBoundaryUse, StoreyModel, Vec2, WallModel } from './types'
 
@@ -397,11 +398,20 @@ const applyCommandMutable = (project: ProjectV2, command: ProjectCommand) => {
     if (command.thicknessM !== undefined) wall.thicknessM = command.thicknessM
     if (command.heightM !== undefined) wall.heightM = command.heightM
   } else if (command.type === 'wall.finish') {
-    const wall = getWall(getBuilding(project, command.buildingRef), command.wallRef)
-    if (wall.locked) throw new Error(`Wall is locked: ${wall.ref}`)
+    const building = getBuilding(project, command.buildingRef)
+    const wall = building.walls.find((item) => item.ref === command.wallRef)
     if (!/^#[0-9a-fA-F]{6}$/.test(command.colorHex)) throw new Error('Wall color must be a six-digit hex value such as #242927.')
     if (command.textureId !== undefined) validateTextureChoice('wall', command.textureId)
-    wall.finish = { material: command.material, colorHex: command.colorHex.toUpperCase(), ...(command.textureId !== undefined ? { textureId: command.textureId } : {}) }
+    const finish = { material: command.material, colorHex: command.colorHex.toUpperCase(), ...(command.textureId !== undefined ? { textureId: command.textureId } : {}) }
+    if (wall) {
+      if (wall.locked) throw new Error(`Wall is locked: ${wall.ref}`)
+      wall.finish = finish
+    } else {
+      const gable = gableWallsForBuilding(building).find((item) => item.ref === command.wallRef)
+      if (!gable) throw new Error(`Wall not found: ${command.wallRef}`)
+      const segment = building.roof.segments.find((item) => item.ref === gable.segmentRef)!
+      segment.gableWallFinishes = { ...segment.gableWallFinishes, [gable.side]: finish }
+    }
   } else if (command.type === 'opening.update') {
     const wall = getWall(getBuilding(project, command.buildingRef), command.wallRef)
     const index = wall.openings.findIndex((item) => item.ref === command.openingRef)
