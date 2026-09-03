@@ -790,7 +790,7 @@ const makeCaptureCamera = (view: ExpandedStructureView, project: ProjectV2, aspe
   camera.lookAt(center); camera.updateProjectionMatrix(); return camera
 }
 
-const pixelsToBlob = (pixels: Uint8Array, width: number, height: number, title: string, project: ProjectV2, names: string[], annotations: boolean) => new Promise<Blob>((resolve, reject) => {
+const pixelsToBlob = (pixels: Uint8Array, width: number, height: number, title: string, project: ProjectV2, names: string[], annotations: boolean, planView: boolean) => new Promise<Blob>((resolve, reject) => {
   const canvas = document.createElement('canvas'); canvas.width = width; canvas.height = height; const context = canvas.getContext('2d')
   if (!context) { reject(new Error('2D report canvas unavailable.')); return }
   const image = context.createImageData(width, height)
@@ -799,7 +799,13 @@ const pixelsToBlob = (pixels: Uint8Array, width: number, height: number, title: 
   if (annotations) {
     context.fillStyle = 'rgba(10,16,15,.82)'; context.fillRect(0, 0, width, 62); context.fillRect(0, height - 42, width, 42)
     context.fillStyle = '#f1f5ed'; context.font = '600 24px system-ui'; context.fillText(title, 24, 39); context.font = '13px system-ui'; context.fillStyle = '#c8d3cc'; context.fillText(names.join(' · '), 24, height - 16)
-    context.strokeStyle = '#b9e84d'; context.lineWidth = 3; context.beginPath(); context.moveTo(width - 48, 44); context.lineTo(width - 48, 18); context.stroke(); context.fillStyle = '#b9e84d'; context.beginPath(); context.moveTo(width - 48, 12); context.lineTo(width - 54, 23); context.lineTo(width - 42, 23); context.fill(); context.fillText('N', width - 72, 30)
+    // Plan views look straight down with screen up = -z, so true north on paper is (sin θ, cos θ) in canvas coordinates; other views keep a plain up arrow as a label.
+    const north = project.site.northDegrees * Math.PI / 180; const direction = planView ? { x: Math.sin(north), y: Math.cos(north) } : { x: 0, y: -1 }
+    const arrowBase = { x: width - 48, y: 31 }; const tip = { x: arrowBase.x + direction.x * 16, y: arrowBase.y + direction.y * 16 }; const tail = { x: arrowBase.x - direction.x * 12, y: arrowBase.y - direction.y * 12 }
+    const side = { x: -direction.y * 6, y: direction.x * 6 }
+    context.strokeStyle = '#b9e84d'; context.lineWidth = 3; context.beginPath(); context.moveTo(tail.x, tail.y); context.lineTo(tip.x, tip.y); context.stroke()
+    context.fillStyle = '#b9e84d'; context.beginPath(); context.moveTo(tip.x + direction.x * 7, tip.y + direction.y * 7); context.lineTo(tip.x + side.x, tip.y + side.y); context.lineTo(tip.x - side.x, tip.y - side.y); context.fill()
+    context.fillText('N', tip.x + direction.x * 14 - 4, tip.y + direction.y * 14 + 4)
     context.strokeStyle = '#f1f5ed'; context.lineWidth = 4; context.beginPath(); context.moveTo(width - 180, height - 20); context.lineTo(width - 80, height - 20); context.stroke(); context.fillText('5 m', width - 172, height - 27); context.fillText(`site north ${project.site.northDegrees.toFixed(1)}°`, width - 340, height - 16)
   }
   canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('PNG report encoding failed.')), 'image/png')
@@ -849,7 +855,7 @@ function StructureCaptureController() {
         const restoreSun = view.type === 'sun-study' ? overrideSunForStudy(scene, project, view) : null
         gl.localClippingEnabled = true; gl.setRenderTarget(target); gl.clear(); gl.render(scene, camera); restoreSun?.()
         const pixels = new Uint8Array(width * height * 4); gl.readRenderTargetPixels(target, 0, 0, width, height, pixels)
-        const names = view.buildingRefs.map((ref) => project.buildings.find((building) => building.ref === ref)!.name); const blob = await pixelsToBlob(pixels, width, height, view.title, project, names, includeAnnotations)
+        const names = view.buildingRefs.map((ref) => project.buildings.find((building) => building.ref === ref)!.name); const blob = await pixelsToBlob(pixels, width, height, view.title, project, names, includeAnnotations, view.type === 'site-plan' || view.type === 'storey-plan' || view.type === 'sun-study')
         results.push({ type: view.type, title: view.title, buildingRefs: view.buildingRefs, ...(view.type === 'storey-plan' ? { storeyRef: view.storeyRef } : {}), presentation: 'visible-in-page', imageUrl: URL.createObjectURL(blob) })
       }
       return results
