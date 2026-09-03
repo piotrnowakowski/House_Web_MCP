@@ -1,12 +1,13 @@
 import { Canvas } from '@react-three/fiber'
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { ACESFilmicToneMapping, PCFSoftShadowMap, SRGBColorSpace } from 'three'
 import { dayParts } from './domain/climate'
 import { calculateMetrics } from './domain/commands'
-import { ensureStarterGarden, gardenFixtureCatalog, nextFixturePosition, starterGardenCommands } from './domain/gardenFixtures'
+import { gardenFixtureCatalog, nextFixturePosition, starterGardenCommands } from './domain/gardenFixtures'
 import { wallLength } from './domain/geometry'
-import { applyModernBarnPreset, isModernBarnPreset } from './domain/presets'
-import type { BuildingModel, ClimateDayPart, GardenFixtureCatalogId, HeightMeasureKind, LandscapeZone, PlantingGuideCategory, ProjectCommand, ProposalStatus, WallMaterial, WallModel } from './domain/types'
+import { isModernBarnPreset } from './domain/presets'
+import { TerrainInputSchema, defaultTerrainInput, type TerrainInput } from './domain/terrain'
+import type { BuildingModel, ClimateDayPart, GardenFixtureCatalogId, HeightMeasureKind, LandscapeZone, PlantingGuideCategory, Polygon2, ProjectCommand, ProposalStatus, WallMaterial, WallModel } from './domain/types'
 import { inferWallOpeningLayout, wallOpeningLayoutCommands, wallOpeningLayoutPresets, type WallOpeningLayoutPreset } from './domain/wallOpeningLayouts'
 import { resolveWallFinish, wallFinishCatalog, wallFinishCommands, type WallFinishScope } from './domain/wallFinishes'
 import { FLAT_TEXTURE, defaultGroundTexture, defaultWallTexture, resolveWallTexture, texturePreviewFor, texturesFor, textureById, type TextureId, type TextureSurface } from './scene/materialCatalog'
@@ -14,7 +15,7 @@ import { CLEAR_MEASUREMENT_EVENT, StudioScene } from './scene/StudioScene'
 import { sunHoursColor } from './scene/sun'
 import { solarPosition, sunriseSunset } from './domain/solar'
 import { formatSunMoment } from './domain/sunlight'
-import { loadWorkspace, saveWorkspace } from './services/persistence'
+import { deleteWorkspace, saveWorkspace } from './services/persistence'
 import { showStructureViews } from './services/structureViews'
 import { registerWebMcpTools, resolveVariantConfirmation } from './services/webmcp'
 import type { WebMcpManifest } from './services/webmcpDefinitions'
@@ -33,7 +34,7 @@ const modeTitles = {
   plan: 'Switch to a top-down orthographic view',
 } as const
 
-function Toolbar({ onOpenClimate, onOpenPlanting, onOpenMcpTools, onOpenProposals }: { onOpenClimate: () => void; onOpenPlanting: () => void; onOpenMcpTools: () => void; onOpenProposals: () => void }) {
+function Toolbar({ onOpenClimate, onOpenPlanting, onOpenMcpTools, onOpenProposals, onOpenProjects }: { onOpenClimate: () => void; onOpenPlanting: () => void; onOpenMcpTools: () => void; onOpenProposals: () => void; onOpenProjects: () => void }) {
   const project = useStudioStore((state) => state.project); const viewerMode = useStudioStore((state) => state.viewerMode); const setViewerMode = useStudioStore((state) => state.setViewerMode)
   const explode = useStudioStore((state) => state.explodeStoreys); const setExplode = useStudioStore((state) => state.setExplodeStoreys)
   const setActivePlan = useStudioStore((state) => state.setActivePlanStoreyRef); const webMcp = useStudioStore((state) => state.webMcpAvailable); const setToast = useStudioStore((state) => state.setToast)
@@ -52,6 +53,7 @@ function Toolbar({ onOpenClimate, onOpenPlanting, onOpenMcpTools, onOpenProposal
       else setViewerMode(value)
     }} title={modeTitles[value]}>{label}</button>)}</nav>
     <div className="top-actions">
+      <button onClick={onOpenProjects} title="Open another project or start a new terrain">Projects</button>
       <button className={explode ? 'active' : ''} aria-pressed={explode} title="Separate every room, storey and the roof" onClick={() => {
         const next = !explode; setViewerMode('edit'); setExplode(next)
         const rooms = project.buildings.reduce((sum, building) => sum + building.spaces.length, 0)
@@ -120,7 +122,7 @@ function PlantingGuidePanel({ onClose }: { onClose: () => void }) {
       </aside>
       <div className="planting-catalog">
         <div className="catalog-controls"><div><p className="eyebrow">PLANT CATALOG</p><h3>{filter === 'productive' ? 'Food crops and orchard' : filter === 'landscape' ? 'Landscape planting' : 'All recommendations'}</h3></div><div className="guide-tabs" role="group" aria-label="Planting guide filter"><button className={filter === 'productive' ? 'active' : ''} onClick={() => setFilter('productive')}>Productive</button><button className={filter === 'landscape' ? 'active' : ''} onClick={() => setFilter('landscape')}>Landscape</button><button className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>All</button></div></div>
-        <div className="plant-list">{recommendations.map((plant) => <article key={plant.ref}>
+        <div className="plant-list">{!recommendations.length && <p className="plant-list-empty">No planting recommendations for this plot yet. Run the soil tests listed on the left and add findings to the knowledge bank; WebMCP agents read the same evidence through get_site_knowledge.</p>}{recommendations.map((plant) => <article key={plant.ref}>
           <div className="plant-title"><span className="plant-index">{categoryLabels[plant.category]}</span><div><h4>{plant.commonName}</h4><em>{plant.botanicalName}</em></div><span className={`fit ${plant.priority}`}>{plant.priority === 'best-fit' ? 'Best fit' : 'Conditional'}</span></div>
           <p>{plant.siteFit}</p><p className="plant-placement"><strong>Placement</strong>{plant.placement}</p>
           <dl><div><dt>Light</dt><dd>{plant.sunNeed}</dd></div><div><dt>Moisture</dt><dd>{plant.preferredMoisture}</dd></div><div><dt>Hardiness</dt><dd>{plant.minHardinessC}°C</dd></div>{plant.plantingWindow && <div><dt>Plant</dt><dd>{plant.plantingWindow}</dd></div>}{plant.harvestWindow && <div><dt>Harvest</dt><dd>{plant.harvestWindow}</dd></div>}</dl>
@@ -316,6 +318,89 @@ function OpeningEditor({ building, wall, selectedRef }: { building: BuildingMode
   </section>
 }
 
+function AddHouseCard() {
+  const project = useStudioStore((state) => state.project); const commitCommand = useStudioStore((state) => state.commitCommand); const setSelectedRef = useStudioStore((state) => state.setSelectedRef); const setToast = useStudioStore((state) => state.setToast); const refocusCamera = useStudioStore((state) => state.refocusCamera)
+  const addHouse = () => {
+    try {
+      commitCommand({ type: 'building.update', action: 'add', buildingRef: 'house/main', name: `${project.name} house`, kind: 'house', position: { x: 0, z: 0 } })
+      setSelectedRef('house/main'); refocusCamera(); setToast('House added at the plot centre with four walls. Apply the modern barn preset or edit the walls. Ctrl+Z to undo.')
+    } catch (error) { setToast(error instanceof Error ? error.message : 'House could not be added.') }
+  }
+  return <section className="house-presets add-house" aria-label="Add a house"><h3>Empty plot</h3><p>Start with a single-storey house at the plot centre; the modern barn preset and every WebMCP proposal work from there.</p><button onClick={addHouse}><span>Add a house</span><small>8 × 8 m · classic gable</small><b>ADD</b></button></section>
+}
+
+const plotOutlinePoints = (boundary: Polygon2) => {
+  const xs = boundary.map((point) => point.x); const zs = boundary.map((point) => point.z)
+  const minX = Math.min(...xs); const minZ = Math.min(...zs); const scale = 56 / Math.max(Math.max(...xs) - minX, Math.max(...zs) - minZ, 1)
+  const width = (Math.max(...xs) - minX) * scale; const depth = (Math.max(...zs) - minZ) * scale
+  return boundary.map((point) => `${(4 + (64 - width) / 2 - 4 + (point.x - minX) * scale).toFixed(1)},${(4 + (56 - depth) / 2 - 4 + (point.z - minZ) * scale).toFixed(1)}`).join(' ')
+}
+function PlotOutline({ boundary }: { boundary: Polygon2 }) {
+  return <svg className="plot-outline" viewBox="0 0 64 56" aria-hidden="true"><polygon points={plotOutlinePoints(boundary)} /></svg>
+}
+
+type TerrainFormValues = Record<keyof TerrainInput, string>
+const terrainFormDefaults = (): TerrainFormValues => ({ name: defaultTerrainInput.name, widthM: String(defaultTerrainInput.widthM), depthM: String(defaultTerrainInput.depthM), northDegrees: String(defaultTerrainInput.northDegrees), latitude: String(defaultTerrainInput.latitude), longitude: String(defaultTerrainInput.longitude), timezone: defaultTerrainInput.timezone })
+const timezoneOptions = (() => { try { const values = (Intl as unknown as { supportedValuesOf?: (key: string) => string[] }).supportedValuesOf?.('timeZone') ?? []; return values.length ? values : ['Europe/Warsaw', 'UTC'] } catch { return ['Europe/Warsaw', 'UTC'] } })()
+
+/** The start screen: continue a saved project, reset to the bundled Zielonki study, or describe a new plot. */
+function StartScreen() {
+  const open = useStudioStore((state) => state.launcherOpen); const saved = useStudioStore((state) => state.savedWorkspaces); const hydrated = useStudioStore((state) => state.hydrated); const project = useStudioStore((state) => state.project)
+  const closeLauncher = useStudioStore((state) => state.closeLauncher); const openLauncher = useStudioStore((state) => state.openLauncher); const startTerrain = useStudioStore((state) => state.startTerrain); const loadBundledStudy = useStudioStore((state) => state.loadBundledStudy); const openWorkspace = useStudioStore((state) => state.openWorkspace); const setToast = useStudioStore((state) => state.setToast)
+  const [mode, setMode] = useState<'choose' | 'terrain'>('choose'); const [values, setValues] = useState<TerrainFormValues>(terrainFormDefaults); const [errors, setErrors] = useState<Partial<TerrainFormValues>>({}); const [removeRef, setRemoveRef] = useState<string | null>(null)
+  const dialog = useRef<HTMLElement>(null)
+  useEffect(() => { if (!open) return; setMode('choose'); setRemoveRef(null); window.setTimeout(() => dialog.current?.querySelector<HTMLElement>('button, input, select')?.focus(), 0) }, [open])
+  useEffect(() => { if (mode === 'terrain') window.setTimeout(() => dialog.current?.querySelector<HTMLElement>('input')?.focus(), 0) }, [mode])
+  if (!open) return null
+  const focusable = () => Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input, select') ?? [])
+  const onKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === 'Escape') { event.stopPropagation(); if (mode === 'terrain') setMode('choose'); else if (hydrated) closeLauncher(); return }
+    if (event.key !== 'Tab') return
+    const items = focusable(); if (!items.length) return
+    const index = items.indexOf(document.activeElement as HTMLElement)
+    if (event.shiftKey && index <= 0) { event.preventDefault(); items[items.length - 1].focus() }
+    else if (!event.shiftKey && index === items.length - 1) { event.preventDefault(); items[0].focus() }
+  }
+  const field = (key: keyof TerrainInput, label: string, props: React.InputHTMLAttributes<HTMLInputElement> = {}) => <label className={key === 'name' ? 'full' : ''}><span>{label}</span><input name={key} value={values[key]} aria-invalid={Boolean(errors[key])} onChange={(event) => setValues({ ...values, [key]: event.target.value })} {...props} />{errors[key] && <em className="field-error" role="alert">{errors[key]}</em>}</label>
+  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const numeric = (value: string) => value.trim() === '' ? Number.NaN : Number(value)
+    const candidate = { name: values.name, widthM: numeric(values.widthM), depthM: numeric(values.depthM), northDegrees: numeric(values.northDegrees), latitude: numeric(values.latitude), longitude: numeric(values.longitude), timezone: values.timezone }
+    const parsed = TerrainInputSchema.safeParse(candidate)
+    if (!parsed.success) { const next: Partial<TerrainFormValues> = {}; for (const issue of parsed.error.issues) { const key = issue.path[0] as keyof TerrainInput; if (key && !next[key]) next[key] = issue.message.startsWith('Invalid input') || issue.message.startsWith('Expected') ? 'Enter a number.' : issue.message }; setErrors(next); return }
+    setErrors({})
+    try { startTerrain(parsed.data) } catch (error) { setToast(error instanceof Error ? error.message : 'Terrain could not be created.') }
+  }
+  const remove = async (ref: string) => { try { await deleteWorkspace(ref); setRemoveRef(null); await openLauncher() } catch (error) { setToast(error instanceof Error ? error.message : 'Project could not be removed.') } }
+  return <div className="start-screen-scrim"><section className="start-screen" role="dialog" aria-modal="true" aria-labelledby="start-screen-title" ref={dialog} onKeyDown={onKeyDown}>
+    <p className="eyebrow">PROJECTS</p>
+    <h2 id="start-screen-title">Where do you want to plan today?</h2>
+    {mode === 'choose' ? <>
+      {saved.length > 0 && <div className="start-saved"><h3>Saved projects</h3>{saved.map((item, index) => <div className="project-card" key={item.ref}>
+        <PlotOutline boundary={item.boundary} />
+        <div><strong>{item.name}</strong><small>r{item.revision} · saved {new Date(item.updatedAt).toLocaleString()} · {item.proposalCount} proposal{item.proposalCount === 1 ? '' : 's'}</small></div>
+        <div className="project-card-actions"><button className={index === 0 ? 'primary' : ''} onClick={() => void openWorkspace(item.ref)}>{index === 0 ? `Continue · ${item.name}` : 'Open'}</button><button onClick={() => setRemoveRef(removeRef === item.ref ? null : item.ref)} aria-label={`Remove ${item.name}`}>Remove</button></div>
+        {removeRef === item.ref && <div className="remove-confirm"><span>Remove {item.name} from this browser? Its proposals go with it.</span><button onClick={() => setRemoveRef(null)}>Keep</button><button className="confirm-delete" onClick={() => void remove(item.ref)}>Remove project</button></div>}
+      </div>)}</div>}
+      <div className="start-options">
+        <button className="start-card" onClick={loadBundledStudy}><strong>Zielonki house study</strong><span>The bundled demo plot near Kraków with the modern barn, site evidence, climate and starter garden. Resets the saved study.</span></button>
+        <button className="start-card" onClick={() => setMode('terrain')}><strong>New terrain</strong><span>An empty rectangular plot with your own size, north direction and coordinates, ready for a house.</span></button>
+      </div>
+      {hydrated && <div className="start-actions"><button onClick={closeLauncher}>Keep working on {project.name}</button></div>}
+    </> : <form className="terrain-form" aria-label="New terrain" onSubmit={submit} noValidate>
+      {field('name', 'Plot name', { type: 'text', maxLength: 60, autoComplete: 'off' })}
+      {field('widthM', 'Width (m)', { type: 'number', min: 5, max: 500, step: 0.5, inputMode: 'decimal' })}
+      {field('depthM', 'Depth (m)', { type: 'number', min: 5, max: 500, step: 0.5, inputMode: 'decimal' })}
+      {field('northDegrees', 'North (°)', { type: 'number', min: -180, max: 180, step: 0.1, inputMode: 'decimal' })}
+      <label><span>Timezone</span><select name="timezone" value={values.timezone} onChange={(event) => setValues({ ...values, timezone: event.target.value })}>{timezoneOptions.map((zone) => <option key={zone} value={zone}>{zone}</option>)}</select>{errors.timezone && <em className="field-error" role="alert">{errors.timezone}</em>}</label>
+      {field('latitude', 'Latitude', { type: 'number', min: -90, max: 90, step: 0.0001, inputMode: 'decimal' })}
+      {field('longitude', 'Longitude', { type: 'number', min: -180, max: 180, step: 0.0001, inputMode: 'decimal' })}
+      <p className="full terrain-note">North is the rotation of true north from the plot's +z axis. Monthly temperatures and rain copy the bundled Zielonki normal; the coordinates and timezone drive the sun.</p>
+      <div className="full start-actions"><button type="button" onClick={() => setMode('choose')}>Back</button><button type="submit" className="primary">Create terrain</button></div>
+    </form>}
+  </section></div>
+}
+
 function Inspector() {
   const project = useStudioStore((state) => state.project); const selectedRef = useStudioStore((state) => state.selectedRef); const issues = useStudioStore((state) => state.variants)
   const useModernBarnPreset = useStudioStore((state) => state.useModernBarnPreset)
@@ -355,12 +440,12 @@ function Inspector() {
     {zone && <ZoneSurfaceEditor zone={zone} />}
     {selectedRoofSegment && <dl className="readout"><div><dt>Eaves</dt><dd>{selectedRoofSegment.baseElevationM.toFixed(2)} m</dd></div><div><dt>Pitch</dt><dd>{selectedRoofSegment.pitchDegrees.toFixed(1)}°</dd></div><div><dt>Finish</dt><dd>{selectedRoofSegment.finish.material}</dd></div></dl>}
     {selectedWall && openingBuilding ? <OpeningEditor building={openingBuilding} wall={selectedWall} selectedRef={selectedRef} /> : <>
-      <section className="house-presets"><h3>House preset</h3><button className={modernBarnActive ? 'active' : ''} onClick={() => useModernBarnPreset()}><span>Modern barn</span><small>2 levels · 45° gable</small><b>{modernBarnActive ? 'ACTIVE' : 'USE'}</b></button></section>
+      {project.buildings.length ? <section className="house-presets"><h3>House preset</h3><button className={modernBarnActive ? 'active' : ''} onClick={() => useModernBarnPreset()}><span>Modern barn</span><small>2 levels · 45° gable</small><b>{modernBarnActive ? 'ACTIVE' : 'USE'}</b></button></section> : <AddHouseCard />}
       <div className="metric-grid"><div><span>Home</span><strong>{metrics.homeAreaM2.toFixed(0)} m²</strong></div><div><span>Green</span><strong>{metrics.greenAreaM2.toFixed(0)} m²</strong></div><div><span>Plants</span><strong>{metrics.plantCount}</strong></div><div><span>Fixtures</span><strong>{metrics.fixtureCount}</strong></div></div>
     </>}
-    <section className="model-tree"><h3>Buildings</h3>{project.buildings.map((item) => <button key={item.ref} onClick={() => useStudioStore.getState().setSelectedRef(item.ref)}><span>{item.name}</span><small>{item.storeys.length} storey</small></button>)}</section>
-    <section className="model-tree wall-tree"><h3>Exterior walls</h3>{exteriorWalls.map((wall) => <button key={wall.ref} className={selectedWall?.ref === wall.ref ? 'active' : ''} onClick={() => useStudioStore.getState().setSelectedRef(wall.ref)} aria-label={`Edit openings on ${wallLabel(wall)}`}><span>{wallLabel(wall)}</span><small>{wall.openings.length ? `${wall.openings.length} opening${wall.openings.length === 1 ? '' : 's'}` : 'solid'}</small></button>)}</section>
-    <section className="model-tree plant-tree"><h3>Plants</h3>{project.landscape.plants.slice(0, 12).map((item) => <button key={item.ref} className={plant?.ref === item.ref ? 'active' : ''} onClick={() => useStudioStore.getState().setSelectedRef(item.ref)}><span>{item.name}</span><small>{item.species}</small></button>)}</section>
+    <section className="model-tree"><h3>Buildings</h3>{!project.buildings.length && <p className="tree-empty">No buildings yet</p>}{project.buildings.map((item) => <button key={item.ref} onClick={() => useStudioStore.getState().setSelectedRef(item.ref)}><span>{item.name}</span><small>{item.storeys.length} storey</small></button>)}</section>
+    <section className="model-tree wall-tree"><h3>Exterior walls</h3>{!exteriorWalls.length && <p className="tree-empty">No walls yet</p>}{exteriorWalls.map((wall) => <button key={wall.ref} className={selectedWall?.ref === wall.ref ? 'active' : ''} onClick={() => useStudioStore.getState().setSelectedRef(wall.ref)} aria-label={`Edit openings on ${wallLabel(wall)}`}><span>{wallLabel(wall)}</span><small>{wall.openings.length ? `${wall.openings.length} opening${wall.openings.length === 1 ? '' : 's'}` : 'solid'}</small></button>)}</section>
+    <section className="model-tree plant-tree"><h3>Plants</h3>{!project.landscape.plants.length && <p className="tree-empty">No plants yet</p>}{project.landscape.plants.slice(0, 12).map((item) => <button key={item.ref} className={plant?.ref === item.ref ? 'active' : ''} onClick={() => useStudioStore.getState().setSelectedRef(item.ref)}><span>{item.name}</span><small>{item.species}</small></button>)}</section>
     <p className="muted footer-note">{issues.length} ghost variant{issues.length === 1 ? '' : 's'} · local metres · north {project.site.northDegrees.toFixed(1)}°</p>
   </aside>
 }
@@ -480,27 +565,27 @@ export function App() {
   const project = useStudioStore((state) => state.project); const toast = useStudioStore((state) => state.toast); const hydrated = useStudioStore((state) => state.hydrated); const viewerMode = useStudioStore((state) => state.viewerMode); const explode = useStudioStore((state) => state.explodeStoreys)
   const proposals = useStudioStore((state) => state.proposals); const draftChangeSets = useStudioStore((state) => state.draftChangeSets)
   const heightMeasureKind = useStudioStore((state) => state.heightMeasureKind); const setHeightMeasureKind = useStudioStore((state) => state.setHeightMeasureKind)
-  const restoreWorkspace = useStudioStore((state) => state.restoreWorkspace); const setHydrated = useStudioStore((state) => state.setHydrated); const setToast = useStudioStore((state) => state.setToast); const undo = useStudioStore((state) => state.undo)
+  const openLauncher = useStudioStore((state) => state.openLauncher); const setToast = useStudioStore((state) => state.setToast); const undo = useStudioStore((state) => state.undo)
   const refocusCamera = useStudioStore((state) => state.refocusCamera)
   const focusGardenFixtures = useStudioStore((state) => state.focusGardenFixtures)
   const [dataPanel, setDataPanel] = useState<'climate' | 'planting' | 'fixtures' | 'mcp-tools' | 'proposals' | null>(null)
-  useEffect(() => { let active = true; loadWorkspace().then((saved) => { if (active && saved) restoreWorkspace({ ...saved, project: ensureStarterGarden(applyModernBarnPreset(saved.project)) }) }).catch(() => setToast('ProjectV2 autosave could not be restored.')).finally(() => { if (active) setHydrated(true) }); return () => { active = false } }, [restoreWorkspace, setHydrated, setToast])
+  useEffect(() => { void openLauncher() }, [openLauncher])
   useEffect(() => { if (!hydrated) return; const timer = window.setTimeout(() => saveWorkspace({ version: 1, project, proposals, draftChangeSets }).catch(() => setToast('ProjectV2 autosave failed.')), 350); return () => window.clearTimeout(timer) }, [draftChangeSets, hydrated, project, proposals, setToast])
   useEffect(() => registerWebMcpTools(), [])
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(null), 4200); return () => window.clearTimeout(timer) }, [setToast, toast])
   useEffect(() => {
     const keyboard = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); try { undo() } catch (error) { setToast(error instanceof Error ? error.message : 'Undo failed.') } }
-      if (event.key === 'Escape') { useStudioStore.getState().setViewerMode('edit'); useStudioStore.getState().setSelectedRef(null); useStudioStore.getState().endReposition(); setDataPanel(null) }
+      if (event.key === 'Escape') { if (useStudioStore.getState().launcherOpen) return; useStudioStore.getState().setViewerMode('edit'); useStudioStore.getState().setSelectedRef(null); useStudioStore.getState().endReposition(); setDataPanel(null) }
     }
     window.addEventListener('keydown', keyboard); return () => window.removeEventListener('keydown', keyboard)
   }, [setToast, undo])
   useEffect(() => () => useStudioStore.getState().setStructureReport(null), [])
-  return <main aria-label="ProjectV2 spatial planning workspace"><Toolbar onOpenClimate={() => setDataPanel('climate')} onOpenPlanting={() => setDataPanel('planting')} onOpenMcpTools={() => setDataPanel('mcp-tools')} onOpenProposals={() => setDataPanel('proposals')} /><Inspector />
+  return <main aria-label="ProjectV2 spatial planning workspace"><Toolbar onOpenClimate={() => setDataPanel('climate')} onOpenPlanting={() => setDataPanel('planting')} onOpenMcpTools={() => setDataPanel('mcp-tools')} onOpenProposals={() => setDataPanel('proposals')} onOpenProjects={() => { setDataPanel(null); void openLauncher() }} /><Inspector />
     <div className="viewport"><Canvas shadows dpr={[1, 2]} camera={{ position: [29, 23, 32], fov: 38, near: 0.1, far: 1200 }} gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' }} onCreated={({ gl }) => { gl.outputColorSpace = SRGBColorSpace; gl.toneMapping = ACESFilmicToneMapping; gl.toneMappingExposure = 1.08; gl.shadowMap.type = PCFSoftShadowMap; gl.domElement.setAttribute('role', 'application'); gl.domElement.setAttribute('aria-label', 'Interactive ProjectV2 spatial editor'); gl.domElement.tabIndex = 0 }}><Suspense fallback={null}><StudioScene /></Suspense></Canvas>
-      <button className="refocus-button" onClick={refocusCamera} aria-label="Refocus on Main house">
+      <button className="refocus-button" onClick={refocusCamera} aria-label={project.buildings.length ? 'Refocus on Main house' : 'Refocus on the site'}>
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" /><circle cx="12" cy="12" r="3.25" /></svg>
-        <span>Refocus building</span>
+        <span>{project.buildings.length ? 'Refocus building' : 'Refocus site'}</span>
       </button>
       <button className="fixtures-button" onClick={() => { const opening = dataPanel !== 'fixtures'; setDataPanel(opening ? 'fixtures' : null); if (opening) focusGardenFixtures() }} aria-label="Open garden fixtures"><span>Garden fixtures</span><small>{project.landscape.fixtures.length} placed</small></button>
       <div className="navigation-hint" aria-label="Garden navigation controls"><span>Move across garden</span><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd><i>or hold wheel + drag</i></div>
@@ -517,6 +602,6 @@ export function App() {
       <SunWidget />
       <div className="land-legend" aria-label="Land-use legend"><span><i className="construction" />House land</span><span><i className="garden" />Garden / agricultural land</span><span><i className="entrance" />Road entrance</span></div>
     </div>
-    {dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'proposals' && <ProposalsPanel onClose={() => setDataPanel(null)} />}<ReportPanel /><VariantApproval />{toast && <div className="toast" role="status">{toast}</div>}
+    {dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'proposals' && <ProposalsPanel onClose={() => setDataPanel(null)} />}<ReportPanel /><VariantApproval /><StartScreen />{toast && <div className="toast" role="status">{toast}</div>}
   </main>
 }

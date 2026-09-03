@@ -1,9 +1,13 @@
 import { create } from 'zustand'
 import { applyCommand, applyCommands, calculateMetrics, validateProject } from '../domain/commands'
+import { ensureStarterGarden } from '../domain/gardenFixtures'
 import { applyModernBarnPreset, isModernBarnPreset } from '../domain/presets'
+import { slugify } from '../domain/refs'
 import { modernBarnProject } from '../domain/sampleProject'
 import { REFERENCE_YEAR, type SunTime } from '../domain/solar'
 import type { SunlightAnalysis } from '../domain/sunlight'
+import { createTerrainProject, isZielonkiProject, type TerrainInput } from '../domain/terrain'
+import { listWorkspaces, loadWorkspace, type WorkspaceSummary } from '../services/persistence'
 import type { DraftChangeSetModel, HeightMeasureKind, PersistedWorkspace, ProjectCommand, ProjectV2, ProposalRecord, StructureReport, TransformMode, VariantModel, ViewerMode } from '../domain/types'
 
 interface StudioState {
@@ -26,6 +30,9 @@ interface StudioState {
   webMcpAvailable: boolean
   texturesReady: boolean
   hydrated: boolean
+  /** The start screen; open until a project has been chosen, and again on demand from the Projects button. */
+  launcherOpen: boolean
+  savedWorkspaces: WorkspaceSummary[]
   confirmationVariantRef: string | null
   structureReport: StructureReport | null
   toast: string | null
@@ -54,6 +61,11 @@ interface StudioState {
   useModernBarnPreset: () => ProjectV2
   replaceProject: (project: ProjectV2) => void
   restoreWorkspace: (workspace: PersistedWorkspace) => void
+  openLauncher: () => Promise<void>
+  closeLauncher: () => void
+  startTerrain: (input: TerrainInput) => ProjectV2
+  loadBundledStudy: () => void
+  openWorkspace: (ref: string) => Promise<void>
   createVariant: (label: string, commands: ProjectCommand[], metadata?: Pick<ProposalRecord, 'sourceChangeSetRef' | 'recreatedFromRef'>) => VariantModel
   applyVariant: (ref: string) => ProjectV2
   discardVariant: (ref: string, reason?: string) => void
@@ -71,7 +83,6 @@ interface StudioState {
 }
 
 let variantSequence = 0
-const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)
 const revokeReport = (report: StructureReport | null) => report?.views.forEach((view) => URL.revokeObjectURL(view.imageUrl))
 const daysInMonth = (month: number) => new Date(Date.UTC(REFERENCE_YEAR, month, 0)).getUTCDate()
 const clampSunTime = (time: SunTime): SunTime => {
@@ -91,7 +102,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   project: structuredClone(modernBarnProject), history: [], variants: [], proposals: [], draftChangeSets: [], selectedRef: null, repositioningRef: null,
   transformMode: 'translate', viewerMode: 'edit', heightMeasureKind: 'auto', activePlanStoreyRef: null, month: 7,
   sunTime: { month: 7, day: 15, hour: 14 }, sunAnimation: 'none', sunOverlay: { enabled: false, targetRef: null, result: null },
-  explodeStoreys: false, webMcpAvailable: false, texturesReady: false, hydrated: false, confirmationVariantRef: null, structureReport: null,
+  explodeStoreys: false, webMcpAvailable: false, texturesReady: false, hydrated: false, launcherOpen: true, savedWorkspaces: [], confirmationVariantRef: null, structureReport: null,
   toast: 'Loaded the ProjectV2 Zielonki spatial model.', helpOpen: false, cameraRefocusRequest: 0, gardenFocusRequest: { sequence: 0, targetX: 0, targetZ: 0 },
   setSelectedRef: (selectedRef) => set({ selectedRef }),
   setTransformMode: (transformMode) => set({ transformMode }),
@@ -116,7 +127,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     cameraRefocusRequest: state.cameraRefocusRequest + 1,
     viewerMode: 'edit',
     activePlanStoreyRef: null,
-    toast: `Camera refocused on ${state.project.buildings[0]?.name ?? 'the building'}.`,
+    toast: state.project.buildings[0] ? `Camera refocused on ${state.project.buildings[0].name}.` : 'Camera refocused on the site.',
   })),
   focusGardenFixtures: (fixtureRef) => set((state) => {
     const fixtures = fixtureRef ? state.project.landscape.fixtures.filter((fixture) => fixture.ref === fixtureRef) : state.project.landscape.fixtures
@@ -147,13 +158,41 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     const variants = proposals.filter((proposal) => proposal.status === 'pending')
     set({ project: workspace.project, proposals, variants, draftChangeSets: staleDrafts(workspace.draftChangeSets, workspace.project.revision), history: [], structureReport: null, sunOverlay: { enabled: false, targetRef: null, result: null }, toast: `Loaded ${workspace.project.name} with ${proposals.length} proposal record${proposals.length === 1 ? '' : 's'}.` })
   },
+  openLauncher: async () => {
+    set({ launcherOpen: true })
+    try { set({ savedWorkspaces: await listWorkspaces() }) }
+    catch (error) { set({ savedWorkspaces: [], toast: `Saved projects could not be read: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
+  },
+  closeLauncher: () => set({ launcherOpen: false }),
+  startTerrain: (input) => {
+    let project: ProjectV2
+    try { project = createTerrainProject(input) }
+    catch (error) { throw new Error(error instanceof Error && 'issues' in error ? ((error as { issues: Array<{ message: string }> }).issues[0]?.message ?? 'Check the plot values.') : error instanceof Error ? error.message : 'Check the plot values.') }
+    get().replaceProject(project)
+    set((state) => ({ launcherOpen: false, hydrated: true, selectedRef: null, cameraRefocusRequest: state.cameraRefocusRequest + 1, toast: `${project.name} created: ${input.widthM} × ${input.depthM} m plot, north ${input.northDegrees}°. Add a house from the inspector.` }))
+    return project
+  },
+  loadBundledStudy: () => {
+    const project = ensureStarterGarden(structuredClone(modernBarnProject))
+    get().replaceProject(project)
+    set((state) => ({ launcherOpen: false, hydrated: true, selectedRef: null, cameraRefocusRequest: state.cameraRefocusRequest + 1, toast: 'Loaded the Zielonki house study.' }))
+  },
+  openWorkspace: async (ref) => {
+    try {
+      const saved = await loadWorkspace(ref)
+      if (!saved) { set({ toast: `Saved project not found: ${ref}.` }); return }
+      const project = isZielonkiProject(saved.project) ? ensureStarterGarden(applyModernBarnPreset(saved.project)) : saved.project
+      get().restoreWorkspace({ ...saved, project })
+      set((state) => ({ launcherOpen: false, hydrated: true, cameraRefocusRequest: state.cameraRefocusRequest + 1 }))
+    } catch (error) { set({ toast: `Saved project could not be opened: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
+  },
   createVariant: (label, commands, metadata) => {
     const current = get().project
     const preview = applyCommands(current, commands)
     variantSequence += 1
     const createdAt = new Date().toISOString()
     const proposal: ProposalRecord = {
-      ref: `variant/${slug(label)}-r${current.revision}-${Date.now().toString(36)}-${variantSequence}`, label, baseRevision: current.revision,
+      ref: `variant/${slugify(label)}-r${current.revision}-${Date.now().toString(36)}-${variantSequence}`, label, baseRevision: current.revision,
       createdAt, commands: structuredClone(commands), project: preview, issues: validateProject(preview), metrics: calculateMetrics(preview), status: 'pending', ...metadata,
     }
     set((state) => ({ variants: [...state.variants, proposal], proposals: [...state.proposals, proposal], toast: `${label} is ready to review.` }))

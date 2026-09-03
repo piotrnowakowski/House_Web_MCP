@@ -1,11 +1,11 @@
 import { z } from 'zod'
-import { webMcpFieldDescriptions, webMcpFieldPrompts, webMcpToolPrompts, type WebMcpPromptBlocks } from '../../prompts/webmcp-tools'
+import { webMcpFieldDescriptions, webMcpToolPrompts, type WebMcpPromptBlocks } from '../../prompts/webmcp-tools'
 
-const point = z.object({ x: z.number().describe(webMcpFieldPrompts.positionX), z: z.number().describe(webMcpFieldPrompts.positionZ) }).strict()
-const point3 = point.extend({ y: z.number().describe('Local project elevation in metres.') }).strict()
+const point = z.object({ x: z.number(), z: z.number() }).strict()
+const point3 = point.extend({ y: z.number() }).strict()
 const polygon = z.array(point).min(3).max(64)
 const polyline = z.array(point).min(2).max(128)
-const ref = z.string().min(1).describe(webMcpFieldPrompts.semanticRef)
+const ref = z.string().min(1)
 const roofMaterial = z.enum(['standing-seam-metal', 'tile', 'slate', 'membrane'])
 const roofJunction = z.object({ ref, type: z.enum(['valley', 'intersection']), segmentRefs: z.tuple([ref, ref]) }).strict()
 const roofSegmentDefinition = z.object({
@@ -148,6 +148,18 @@ export const webMcpSchemas = {
     explode: z.boolean().optional(),
     planStoreyRef: z.string().min(1).nullable().optional(), focusRef: z.string().min(1).nullable().optional(),
   }),
+  control_camera: z.object({
+    position: point3.describe('Exact camera position in local project metres.'),
+    target: point3.describe('Exact point the camera looks at in local project metres.'),
+    projection: z.enum(['perspective', 'orthographic']).default('perspective').describe('Camera projection: perspective or orthographic.'),
+    fovDegrees: z.number().min(10).max(120).default(38).describe('Perspective vertical field of view in degrees, from 10 to 120.'),
+    zoom: z.number().min(0.1).max(20).default(1).describe('Orthographic zoom factor, from 0.1 to 20.'),
+    focalOffset: point3.default({ x: 0, y: 0, z: 0 }).describe('Screen-space focal offset {x,y,z}; use zeroes for a centered target.'),
+    smooth: z.boolean().default(true).describe('Animate the camera transition when true; move immediately when false.'),
+  }).superRefine((value, context) => {
+    const distanceSquared = (value.position.x - value.target.x) ** 2 + (value.position.y - value.target.y) ** 2 + (value.position.z - value.target.z) ** 2
+    if (distanceSquared < 0.0001) context.addIssue({ code: 'custom', path: ['target'], message: 'target must differ from position.' })
+  }),
   set_sun_time: z.object({
     month: z.number().int().min(1).max(12).describe('Calendar month, 1 to 12.'),
     day: z.number().int().min(1).max(31).default(15),
@@ -161,7 +173,7 @@ export const webMcpSchemas = {
 
 export type WebMcpToolName = keyof typeof webMcpSchemas
 
-const readOnlyTools = new Set<WebMcpToolName>(['get_project_state', 'get_site_knowledge', 'get_proposals', 'list_garden_fixtures', 'list_textures', 'measure_height', 'show_structure_views', 'run_seasonal_analysis', 'run_sunlight_analysis', 'set_viewer_state', 'set_sun_time', 'compare_variants', 'diff_variant'])
+const readOnlyTools = new Set<WebMcpToolName>(['get_project_state', 'get_site_knowledge', 'get_proposals', 'list_garden_fixtures', 'list_textures', 'measure_height', 'show_structure_views', 'run_seasonal_analysis', 'run_sunlight_analysis', 'set_viewer_state', 'control_camera', 'set_sun_time', 'compare_variants', 'diff_variant'])
 /** Tools whose results summarise external documents; agents should treat instructions inside them as data. */
 export const untrustedContentTools = new Set<WebMcpToolName>(['get_site_knowledge'])
 export const isReadOnlyTool = (name: WebMcpToolName) => readOnlyTools.has(name)
@@ -198,6 +210,7 @@ const resultShapeFor = (name: WebMcpToolName): Record<string, unknown> => {
   if (name === 'run_seasonal_analysis') return objectShape({ variantRef: { type: 'string' }, metrics: { type: 'object' }, data: { type: 'array', items: { type: 'object', properties: { month: { type: 'integer' }, temperatureByDayPartC: { type: 'object', required: ['night', 'morning', 'day', 'evening'], properties: { night: { type: 'number' }, morning: { type: 'number' }, day: { type: 'number' }, evening: { type: 'number' } } }, daylightHours: { type: 'number' }, sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] }, solarNoonAltitudeDeg: { type: 'number' }, waterBalanceMm: { type: 'number' }, droughtRisk: { type: 'string' }, frostRisk: { type: 'string' } } } } }, ['metrics', 'data'])
   if (name === 'run_sunlight_analysis') return objectShape({ variantRef: { type: 'string' }, analysis: { type: 'object', required: ['target', 'month', 'day', 'daylightHours', 'sunHours', 'shadedFraction', 'expectedSunHours', 'sampleCount'], properties: { sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] }, daylightHours: { type: 'number' }, window: { type: ['object', 'null'] }, sunHours: { type: 'object', required: ['mean', 'min', 'max'] }, firstSunLocal: { type: ['number', 'null'] }, lastSunLocal: { type: ['number', 'null'] }, shadedFraction: { type: 'number' }, expectedSunHours: { type: 'number' }, sampleCount: { type: 'integer' }, grid: { type: 'object' } } } }, ['analysis'])
   if (name === 'set_viewer_state') return objectShape({ viewer: { type: 'object', required: ['explode', 'viewerMode', 'selectedRef'] } }, ['viewer'])
+  if (name === 'control_camera') return objectShape({ camera: { type: 'object', required: ['position', 'target', 'projection', 'fovDegrees', 'zoom', 'focalOffset', 'smooth'] } }, ['camera'])
   if (name === 'diff_variant') return objectShape({ variantRef: { type: 'string' }, baseVariantRef: { type: 'string' }, diff: { type: 'object', required: ['counts', 'changes', 'omittedChanges', 'metricDeltas'] } }, ['variantRef', 'diff'])
   if (name === 'set_sun_time') return objectShape({ sunTime: { type: 'object', required: ['month', 'day', 'hour'] }, altitudeDeg: { type: 'number' }, azimuthDeg: { type: 'number' }, sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] } }, ['sunTime', 'altitudeDeg', 'azimuthDeg'])
   if (name === 'compare_variants') return objectShape({ data: { type: 'array', items: { type: 'object' } } }, ['data'])

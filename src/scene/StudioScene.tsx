@@ -18,6 +18,7 @@ import { resolveWallFinish } from '../domain/wallFinishes'
 import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
 import type { GeneratedSolid } from '../geometry/types'
 import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
+import { registerCameraControl } from '../services/cameraControl'
 import { roofWings, type RoofWing } from '../domain/roofWings'
 import { CompassRose, SUN_DISTANCE_M, SunHoursOverlay, SunLight, SunPath, sunStateFor } from './sun'
 import { interiorFloorTexture, raisedBedSoilTexture, raisedBedTexture, resolveWallTexture, resolveZoneTexture, terrainTexture, tintForTexturedFinish, zoneTintFor } from './materialCatalog'
@@ -269,7 +270,32 @@ function ThatOpenBridge() {
     const clipper = components.get(OBC.Clipper); clipper.enabled = false; clipper.setup({})
     components.init()
     bridge.current = { components, world, camera, renderer, clipper }
+    const unregisterCameraControl = registerCameraControl(async (input, signal) => {
+      if (signal.aborted) throw new DOMException('Camera control cancelled.', 'AbortError')
+      camera.set('Orbit')
+      camera.controls.maxDistance = SCENE_FAR - 1
+      await camera.projection.set(input.projection === 'orthographic' ? 'Orthographic' : 'Perspective')
+      camera.threePersp.fov = input.fovDegrees
+      camera.threePersp.updateProjectionMatrix()
+      camera.threeOrtho.zoom = input.zoom
+      camera.threeOrtho.updateProjectionMatrix()
+      await camera.controls.setFocalOffset(input.focalOffset.x, input.focalOffset.y, input.focalOffset.z, false)
+      await camera.controls.setLookAt(
+        input.position.x, input.position.y, input.position.z,
+        input.target.x, input.target.y, input.target.z,
+        input.smooth,
+      )
+      if (signal.aborted) throw new DOMException('Camera control cancelled.', 'AbortError')
+      const position = camera.controls.getPosition(new Vector3())
+      const target = camera.controls.getTarget(new Vector3())
+      return {
+        ...input,
+        position: { x: position.x, y: position.y, z: position.z },
+        target: { x: target.x, y: target.y, z: target.z },
+      }
+    })
     return () => {
+      unregisterCameraControl()
       clipper.dispose(); camera.dispose()
       world.enabled = false; renderer.dispose(); components.enabled = false; bridge.current = null
     }
@@ -319,11 +345,19 @@ function ThatOpenBridge() {
     if (handledRefocusRequest.current === refocusRequest) return
     handledRefocusRequest.current = refocusRequest
     const current = bridge.current; const building = project.buildings[0]
-    if (!current || !building) return
-    const targetX = building.position.x; const targetY = isLShapedBarn(building) ? 3 : 1.4; const targetZ = building.position.z + (isLShapedBarn(building) ? 2.5 : 0)
+    if (!current) return
     const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
     current.camera.set('Orbit'); current.camera.controls.maxDistance = MAX_ORBIT_DISTANCE; void current.camera.projection.set('Perspective')
     void current.camera.controls.setFocalOffset(0, 0, 0, smooth)
+    if (!building) {
+      // An empty plot: frame the site boundary from the south-east so the whole rectangle and the compass are in view.
+      const xs = project.site.boundary.map((point) => point.x); const zs = project.site.boundary.map((point) => point.z)
+      const centerX = (Math.min(...xs) + Math.max(...xs)) / 2; const centerZ = (Math.min(...zs) + Math.max(...zs)) / 2
+      const extent = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs), 12)
+      void current.camera.controls?.setLookAt(centerX + extent * 0.7, extent * 0.75 + 6, centerZ + extent * 0.85, centerX, 0, centerZ, smooth)
+      return
+    }
+    const targetX = building.position.x; const targetY = isLShapedBarn(building) ? 3 : 1.4; const targetZ = building.position.z + (isLShapedBarn(building) ? 2.5 : 0)
     void current.camera.controls?.setLookAt(targetX + 22, targetY + 10, targetZ + 25, targetX, targetY, targetZ, smooth)
   }, [project, refocusRequest])
   useEffect(() => {
@@ -707,7 +741,7 @@ function RoadEntranceMarker({ entrance }: { entrance: SiteEntranceModel }) {
   return <group position={[centerX, TERRAIN_SURFACE_Y + 0.055, centerZ]} rotation={[0, angle, 0]} userData={{ semanticRef: entrance.ref }}>
     <mesh renderOrder={5} receiveShadow><boxGeometry args={[length, 0.07, 0.72]} /><meshStandardMaterial color={markerColor} emissive={markerColor} emissiveIntensity={0.14} roughness={0.72} /></mesh>
     {[-length / 2, length / 2].map((offset, index) => <mesh key={index} position={[offset, 0.43, 0]} castShadow><cylinderGeometry args={[0.09, 0.11, 0.86, 10]} /><meshStandardMaterial color="#f7d568" roughness={0.62} /></mesh>)}
-    <Html center position={[0, 1.25, 0]} distanceFactor={15} style={{ pointerEvents: 'none' }}>
+    <Html zIndexRange={[9, 0]} center position={[0, 1.25, 0]} distanceFactor={15} style={{ pointerEvents: 'none' }}>
       <span className="site-entrance-label">{entrance.name}</span>
     </Html>
   </group>
