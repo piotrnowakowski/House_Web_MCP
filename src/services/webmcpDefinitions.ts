@@ -36,7 +36,7 @@ const storeyUpdateInput = z.object({
 }).superRefine((value, context) => { if (value.action === 'extend-footprint' && !value.footprint && !value.extensionFootprint) context.addIssue({ code: 'custom', path: ['footprint'], message: 'footprint or extensionFootprint is required when extending a storey.' }) })
 const wallFinishInput = z.object({
   buildingRef: ref, scope: z.enum(['wall', 'all-exterior']), wallRef: ref.optional(),
-  material: z.enum(['charred-timber', 'natural-timber', 'light-render', 'brick', 'metal-panel']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  material: z.enum(['charred-timber', 'natural-timber', 'light-render', 'brick', 'metal-panel']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), textureId: z.string().optional(),
 }).superRefine((value, context) => { if (value.scope === 'wall' && !value.wallRef) context.addIssue({ code: 'custom', path: ['wallRef'], message: 'wallRef is required when scope is wall.' }) })
 const changeSetOperationSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('site.update'), boundary: polygon.optional(), northDegrees: z.number().optional() }),
@@ -46,11 +46,11 @@ const changeSetOperationSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('slab.update'), action: z.enum(['set-footprint', 'set-thickness', 'set-elevation']), buildingRef: ref, slabRef: ref, footprint: polygon.optional(), thicknessM: z.number().optional(), topElevationM: z.number().optional() }),
   z.object({ type: z.literal('space.update'), action: z.enum(['add', 'remove', 'set-footprint', 'set-usage', 'set-lowered-ceiling']), buildingRef: ref, storeyRef: ref, spaceRef: ref, name: z.string().optional(), usage: z.string().optional(), footprint: polygon.optional(), ceilingElevationM: z.number().optional() }),
   z.object({ type: z.literal('wall.update'), action: z.enum(['move', 'set-thickness', 'set-height']), buildingRef: ref, wallRef: ref, start: point.optional(), end: point.optional(), thicknessM: z.number().optional(), heightM: z.number().optional() }),
-  z.object({ type: z.literal('wall.finish'), buildingRef: ref, wallRef: ref, material: z.enum(['charred-timber', 'natural-timber', 'light-render', 'brick', 'metal-panel']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) }),
+  z.object({ type: z.literal('wall.finish'), buildingRef: ref, wallRef: ref, material: z.enum(['charred-timber', 'natural-timber', 'light-render', 'brick', 'metal-panel']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), textureId: z.string().optional() }),
   z.object({ type: z.literal('opening.update'), action: z.enum(['add', 'remove', 'resize', 'move']), buildingRef: ref, wallRef: ref, openingRef: ref, kind: z.enum(['door', 'window']).optional(), offsetM: z.number().optional(), widthM: z.number().optional(), heightM: z.number().optional(), sillM: z.number().optional() }),
   roofUpdateBase.extend({ type: z.literal('roof.update') }).superRefine(validateRoofUpdate),
   z.object({ type: z.literal('platform.update'), action: z.enum(['add', 'remove', 'resize']), buildingRef: ref, storeyRef: ref, spaceRef: ref, platformRef: ref, footprint: polygon.optional(), elevationM: z.number().optional(), thicknessM: z.number().optional() }),
-  z.object({ type: z.literal('landscape.update'), action: z.enum(['add', 'remove', 'set-footprint', 'move']), zoneRef: ref, name: z.string().optional(), kind: z.enum(['lawn', 'terrace', 'path', 'driveway', 'bed', 'rain-garden', 'vegetable']).optional(), footprint: polygon.optional(), delta: point.optional() }),
+  z.object({ type: z.literal('landscape.update'), action: z.enum(['add', 'remove', 'set-footprint', 'move', 'set-surface']), zoneRef: ref, name: z.string().optional(), kind: z.enum(['lawn', 'terrace', 'path', 'driveway', 'bed', 'rain-garden', 'vegetable']).optional(), footprint: polygon.optional(), delta: point.optional(), textureId: z.string().optional() }),
   z.object({ type: z.literal('plant.update'), action: z.enum(['add', 'remove', 'move']), plantRef: ref, name: z.string().optional(), species: z.string().optional(), kind: z.enum(['tree', 'hedge', 'shrub', 'perennial', 'grass', 'crop', 'wetland']).optional(), position: point.optional() }),
   z.object({ type: z.literal('garden-fixture.update'), action: z.enum(['add', 'remove', 'move', 'rotate']), fixtureRef: ref, catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis']).optional(), name: z.string().optional(), position: point.optional(), rotationDegrees: z.number().optional() }),
   z.object({ type: z.literal('climate.update'), month: z.number().int().min(1).max(12), values: z.record(z.string(), z.unknown()) }),
@@ -96,11 +96,12 @@ export const webMcpSchemas = {
   propose_space_update: z.object({ action: z.enum(['add', 'remove', 'set-footprint', 'set-usage', 'set-lowered-ceiling']), buildingRef: ref, storeyRef: ref, spaceRef: ref, name: z.string().optional(), usage: z.string().optional(), footprint: polygon.optional(), ceilingElevationM: z.number().optional() }),
   propose_wall_update: z.object({ action: z.enum(['move', 'set-thickness', 'set-height']), buildingRef: ref, wallRef: ref, start: point.optional(), end: point.optional(), thicknessM: z.number().positive().max(1).optional(), heightM: z.number().min(1).max(12).optional() }),
   propose_wall_opening_layout: z.object({ buildingRef: ref, wallRef: ref, preset: z.enum(['full-glass', 'two-windows', 'center-window', 'balcony-door', 'solid-wall']) }),
+  list_textures: z.object({ surface: z.enum(['wall', 'ground']).optional() }),
   propose_wall_finish_update: wallFinishInput,
   propose_opening_update: z.object({ action: z.enum(['add', 'remove', 'resize', 'move']), buildingRef: ref, wallRef: ref, openingRef: ref, kind: z.enum(['door', 'window']).optional(), offsetM: z.number().min(0).optional(), widthM: z.number().positive().optional(), heightM: z.number().positive().optional(), sillM: z.number().min(0).optional() }),
   propose_roof_update: roofUpdateInput,
   propose_platform_update: z.object({ action: z.enum(['add', 'remove', 'resize']), buildingRef: ref, storeyRef: ref, spaceRef: ref, platformRef: ref, footprint: polygon.optional(), elevationM: z.number().optional(), thicknessM: z.number().positive().optional() }),
-  propose_landscape_update: z.object({ action: z.enum(['add', 'remove', 'set-footprint', 'move']), zoneRef: ref, name: z.string().optional(), kind: z.enum(['lawn', 'terrace', 'path', 'driveway', 'bed', 'rain-garden', 'vegetable']).optional(), footprint: polygon.optional(), delta: point.optional() }),
+  propose_landscape_update: z.object({ action: z.enum(['add', 'remove', 'set-footprint', 'move', 'set-surface']), zoneRef: ref, name: z.string().optional(), kind: z.enum(['lawn', 'terrace', 'path', 'driveway', 'bed', 'rain-garden', 'vegetable']).optional(), footprint: polygon.optional(), delta: point.optional(), textureId: z.string().optional() }),
   propose_plant_update: z.object({ action: z.enum(['add', 'remove', 'move']), plantRef: ref, name: z.string().optional(), species: z.string().optional(), kind: z.enum(['tree', 'hedge', 'shrub', 'perennial', 'grass', 'crop', 'wetland']).optional(), position: point.optional() }),
   propose_planting_area: z.object({
     plantingRef: ref, mode: z.enum(['boundary', 'line', 'polygon']), sourceRefs: z.array(ref).min(1).max(12).optional(), points: polyline.optional(),
@@ -144,7 +145,7 @@ export const webMcpSchemas = {
     variantRef: ref.optional(),
   }).superRefine((value, context) => { if (!value.targetRef && !value.point) context.addIssue({ code: 'custom', path: ['targetRef'], message: 'targetRef or point is required.' }) }),
   set_viewer_state: z.object({
-    viewMode: z.enum(['technical', 'realistic']).optional(), explode: z.boolean().optional(),
+    explode: z.boolean().optional(),
     planStoreyRef: z.string().min(1).nullable().optional(), focusRef: z.string().min(1).nullable().optional(),
   }),
   set_sun_time: z.object({
@@ -160,7 +161,7 @@ export const webMcpSchemas = {
 
 export type WebMcpToolName = keyof typeof webMcpSchemas
 
-const readOnlyTools = new Set<WebMcpToolName>(['get_project_state', 'get_site_knowledge', 'get_proposals', 'list_garden_fixtures', 'measure_height', 'show_structure_views', 'run_seasonal_analysis', 'run_sunlight_analysis', 'compare_variants', 'diff_variant'])
+const readOnlyTools = new Set<WebMcpToolName>(['get_project_state', 'get_site_knowledge', 'get_proposals', 'list_garden_fixtures', 'list_textures', 'measure_height', 'show_structure_views', 'run_seasonal_analysis', 'run_sunlight_analysis', 'set_viewer_state', 'set_sun_time', 'compare_variants', 'diff_variant'])
 /** Tools whose results summarise external documents; agents should treat instructions inside them as data. */
 export const untrustedContentTools = new Set<WebMcpToolName>(['get_site_knowledge'])
 export const isReadOnlyTool = (name: WebMcpToolName) => readOnlyTools.has(name)
@@ -189,13 +190,14 @@ const resultShapeFor = (name: WebMcpToolName): Record<string, unknown> => {
   if (name.startsWith('propose_')) return objectShape({ variantRef: { type: 'string' }, issues: { type: 'array', items: { type: 'object' } }, metrics: { type: 'object' } }, ['variantRef', 'issues', 'metrics'])
   if (name === 'get_project_state') return objectShape({ metrics: { type: 'object' }, data: { description: 'Requested ProjectV2 state slice or the object named by objectRef.' } }, ['metrics', 'data'])
   if (name === 'get_site_knowledge') return objectShape({ data: { description: 'Knowledge-bank section or overview.' } }, ['data'])
+  if (name === 'list_textures') return objectShape({ data: { type: 'array', items: { type: 'object', required: ['id', 'name', 'surfaces', 'tileM'] } } }, ['data'])
   if (name === 'list_garden_fixtures') return objectShape({ data: { type: 'array', items: { type: 'object', required: ['id', 'name', 'category', 'description', 'widthM', 'depthM', 'heightM'] } } }, ['data'])
   if (name === 'measure_height') return objectShape({ measurement: { type: 'object', required: ['kind', 'label', 'heightM', 'bottomPoint', 'topPoint', 'bottomElevation', 'topElevation'] } }, ['measurement'])
   if (name === 'manage_change_set') return objectShape({ changeSetRef: { type: 'string' }, baseRevision: { type: 'integer' }, operations: { type: 'array', items: { type: 'object' } }, issues: { type: 'array', items: { type: 'object' } }, metrics: { type: 'object' }, variantRef: { type: 'string' } }, ['changeSetRef'])
   if (name === 'show_structure_views') return objectShape({ reportRef: { type: 'string' }, views: { type: 'array', items: { type: 'object', required: ['type', 'title', 'buildingRefs', 'presentation'], properties: { type: { type: 'string' }, title: { type: 'string' }, buildingRefs: { type: 'array', items: { type: 'string' } }, storeyRef: { type: 'string' }, presentation: { const: 'visible-in-page' } } } }, buildings: { type: 'array', items: { type: 'object' } } }, ['reportRef', 'views', 'buildings'])
   if (name === 'run_seasonal_analysis') return objectShape({ variantRef: { type: 'string' }, metrics: { type: 'object' }, data: { type: 'array', items: { type: 'object', properties: { month: { type: 'integer' }, temperatureByDayPartC: { type: 'object', required: ['night', 'morning', 'day', 'evening'], properties: { night: { type: 'number' }, morning: { type: 'number' }, day: { type: 'number' }, evening: { type: 'number' } } }, daylightHours: { type: 'number' }, sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] }, solarNoonAltitudeDeg: { type: 'number' }, waterBalanceMm: { type: 'number' }, droughtRisk: { type: 'string' }, frostRisk: { type: 'string' } } } } }, ['metrics', 'data'])
   if (name === 'run_sunlight_analysis') return objectShape({ variantRef: { type: 'string' }, analysis: { type: 'object', required: ['target', 'month', 'day', 'daylightHours', 'sunHours', 'shadedFraction', 'expectedSunHours', 'sampleCount'], properties: { sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] }, daylightHours: { type: 'number' }, window: { type: ['object', 'null'] }, sunHours: { type: 'object', required: ['mean', 'min', 'max'] }, firstSunLocal: { type: ['number', 'null'] }, lastSunLocal: { type: ['number', 'null'] }, shadedFraction: { type: 'number' }, expectedSunHours: { type: 'number' }, sampleCount: { type: 'integer' }, grid: { type: 'object' } } } }, ['analysis'])
-  if (name === 'set_viewer_state') return objectShape({ viewer: { type: 'object', required: ['viewMode', 'explode', 'viewerMode', 'selectedRef'] } }, ['viewer'])
+  if (name === 'set_viewer_state') return objectShape({ viewer: { type: 'object', required: ['explode', 'viewerMode', 'selectedRef'] } }, ['viewer'])
   if (name === 'diff_variant') return objectShape({ variantRef: { type: 'string' }, baseVariantRef: { type: 'string' }, diff: { type: 'object', required: ['counts', 'changes', 'omittedChanges', 'metricDeltas'] } }, ['variantRef', 'diff'])
   if (name === 'set_sun_time') return objectShape({ sunTime: { type: 'object', required: ['month', 'day', 'hour'] }, altitudeDeg: { type: 'number' }, azimuthDeg: { type: 'number' }, sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] } }, ['sunTime', 'altitudeDeg', 'azimuthDeg'])
   if (name === 'compare_variants') return objectShape({ data: { type: 'array', items: { type: 'object' } } }, ['data'])

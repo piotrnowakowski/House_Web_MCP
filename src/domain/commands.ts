@@ -1,4 +1,5 @@
 import { estimateDayPartTemperatures } from './climate'
+import { validateTextureChoice } from './textures'
 import { gardenFixtureById } from './gardenFixtures'
 import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
 import { decomposeOrthogonalLFootprint, defaultRoofFinish, ridgeDirectionForFootprint, roofSegmentRidgeElevation, segmentContainsFootprint, supportingWallRefs } from './roofs'
@@ -399,7 +400,8 @@ const applyCommandMutable = (project: ProjectV2, command: ProjectCommand) => {
     const wall = getWall(getBuilding(project, command.buildingRef), command.wallRef)
     if (wall.locked) throw new Error(`Wall is locked: ${wall.ref}`)
     if (!/^#[0-9a-fA-F]{6}$/.test(command.colorHex)) throw new Error('Wall color must be a six-digit hex value such as #242927.')
-    wall.finish = { material: command.material, colorHex: command.colorHex.toUpperCase() }
+    if (command.textureId !== undefined) validateTextureChoice('wall', command.textureId)
+    wall.finish = { material: command.material, colorHex: command.colorHex.toUpperCase(), ...(command.textureId !== undefined ? { textureId: command.textureId } : {}) }
   } else if (command.type === 'opening.update') {
     const wall = getWall(getBuilding(project, command.buildingRef), command.wallRef)
     const index = wall.openings.findIndex((item) => item.ref === command.openingRef)
@@ -421,9 +423,13 @@ const applyCommandMutable = (project: ProjectV2, command: ProjectCommand) => {
     else { const platform = building.platforms.find((item) => item.ref === command.platformRef); if (!platform) throw new Error(`Platform not found: ${command.platformRef}`); if (command.footprint) platform.footprint = clone(command.footprint); if (command.elevationM !== undefined) platform.elevationM = command.elevationM }
   } else if (command.type === 'landscape.update') {
     const index = project.landscape.zones.findIndex((item) => item.ref === command.zoneRef)
-    if (command.action === 'add') { if (!command.footprint) throw new Error('Landscape polygon is required.'); project.landscape.zones.push({ ref: command.zoneRef, name: command.name ?? 'Landscape zone', kind: command.kind ?? 'lawn', footprint: clone(command.footprint), locked: false }) }
+    if (command.action === 'add') { if (!command.footprint) throw new Error('Landscape polygon is required.'); if (command.textureId !== undefined) validateTextureChoice('ground', command.textureId); project.landscape.zones.push({ ref: command.zoneRef, name: command.name ?? 'Landscape zone', kind: command.kind ?? 'lawn', footprint: clone(command.footprint), locked: false, ...(command.textureId !== undefined ? { textureId: command.textureId } : {}) }) }
     else if (command.action === 'remove') project.landscape.zones = project.landscape.zones.filter((item) => item.ref !== command.zoneRef)
-    else { if (index < 0) throw new Error(`Landscape zone not found: ${command.zoneRef}`); const zone = project.landscape.zones[index]; if (zone.locked) throw new Error(`${zone.name} is locked.`); if (command.footprint) zone.footprint = clone(command.footprint); if (command.delta) zone.footprint = zone.footprint.map((point) => ({ x: point.x + command.delta!.x, z: point.z + command.delta!.z })) }
+    else {
+      if (index < 0) throw new Error(`Landscape zone not found: ${command.zoneRef}`); const zone = project.landscape.zones[index]; if (zone.locked) throw new Error(`${zone.name} is locked.`)
+      if (command.action === 'set-surface') { if (command.textureId === undefined) throw new Error('textureId is required to set a zone surface; use an id from list_textures or "none".'); validateTextureChoice('ground', command.textureId); zone.textureId = command.textureId }
+      if (command.footprint) zone.footprint = clone(command.footprint); if (command.delta) zone.footprint = zone.footprint.map((point) => ({ x: point.x + command.delta!.x, z: point.z + command.delta!.z }))
+    }
   } else if (command.type === 'plant.update') {
     const index = project.landscape.plants.findIndex((item) => item.ref === command.plantRef)
     if (command.action === 'add') { if (!command.position) throw new Error('Plant position is required.'); project.landscape.plants.push({ ref: command.plantRef, name: command.name ?? 'Plant', species: command.species ?? 'Unspecified', kind: command.kind ?? 'shrub', position: clone(command.position), matureHeightM: 1.5, canopyM: 1.2, sunNeed: 'sun', waterNeed: 0.7, hardinessMinC: -20, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [], locked: false }) }

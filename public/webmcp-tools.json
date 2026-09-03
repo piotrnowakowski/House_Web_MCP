@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "source": "runtime-zod-and-structured-prompts",
-  "toolCount": 32,
+  "toolCount": 33,
   "tools": [
     {
       "name": "get_project_state",
@@ -1263,6 +1263,74 @@
       }
     },
     {
+      "name": "list_textures",
+      "title": "List material scans",
+      "readOnly": true,
+      "untrustedContent": false,
+      "description": "Read the CC0 material scan library: ids, names, physical tile widths in metres and whether each scan fits walls, ground zones or both.",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Read the CC0 material scan library: ids, names, physical tile widths in metres and whether each scan fits walls, ground zones or both.",
+        "input": "Input is a JSON object with optional `surface` (`wall` or `ground`) to filter the library.",
+        "tools": "Use before choosing a `textureId` in propose_wall_finish_update or a landscape `set-surface`. This is read-only. Use only returned ids or `none` for a flat colour.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns data as an array of scans with id, name, surfaces and tileM.",
+        "exampleOutput": "{\"surface\":\"ground\"}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "surface": {
+            "type": "string",
+            "enum": [
+              "wall",
+              "ground"
+            ],
+            "description": "Filter the scan library: wall or ground. Omit for every scan."
+          }
+        },
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "surface": "ground"
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "data"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "surfaces",
+                "tileM"
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
       "name": "propose_wall_finish_update",
       "title": "Propose wall material and color",
       "readOnly": false,
@@ -1271,7 +1339,7 @@
       "prompt": {
         "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
         "task": "Apply an opaque semantic material and exact color to one wall or every exterior wall of a building. This changes wall surfaces only and does not add, remove, or resize openings.",
-        "input": "Input is a JSON object with required `buildingRef` (string), `scope` (`wall` or `all-exterior`), `material` (`charred-timber`, `natural-timber`, `light-render`, `brick`, or `metal-panel`), and `colorHex` (six-digit hex string including `#`). `wallRef` (string) is required only when `scope` is `wall`. Call get_project_state with detail structure first to resolve semantic references.",
+        "input": "Input is a JSON object with required `buildingRef` (string), `scope` (`wall` or `all-exterior`), `material` (`charred-timber`, `natural-timber`, `light-render`, `brick`, or `metal-panel`), and `colorHex` (six-digit hex string including `#`). `wallRef` (string) is required only when `scope` is `wall`. Optional `textureId` picks a scan from list_textures (`none` for a flat colour; omit for the material default). Call get_project_state with detail structure first to resolve semantic references.",
         "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call manage_variant with action `request-apply` only when the person should review it. Never claim the variant is committed before approval.",
         "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
         "exampleOutput": "{\"buildingRef\":\"house/main\",\"scope\":\"all-exterior\",\"material\":\"charred-timber\",\"colorHex\":\"#242927\"}"
@@ -1313,6 +1381,10 @@
             "type": "string",
             "pattern": "^#[0-9a-fA-F]{6}$",
             "description": "Six-digit hex colour including #, e.g. #242927."
+          },
+          "textureId": {
+            "type": "string",
+            "description": "Scan id from list_textures, or none for a flat colour. Omit to keep the material or zone default scan."
           }
         },
         "required": [
@@ -2121,11 +2193,11 @@
       "title": "Propose landscape polygon update",
       "readOnly": false,
       "untrustedContent": false,
-      "description": "Add/remove/move or reshape one straight-edged landscape zone.",
+      "description": "Add/remove/move or reshape one straight-edged landscape zone, or set the ground scan it wears.",
       "prompt": {
         "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
-        "task": "Add/remove/move or reshape one straight-edged landscape zone.",
-        "input": "`action`, `zoneRef`; optional `name`, `kind`, polygon `footprint`, or move `delta`.",
+        "task": "Add/remove/move or reshape one straight-edged landscape zone, or set the ground scan it wears.",
+        "input": "`action` (`add`, `remove`, `set-footprint`, `move` or `set-surface`), `zoneRef`; optional `name`, `kind`, polygon `footprint`, move `delta`, or `textureId` from list_textures (`none` for a flat colour, required for `set-surface`).",
         "tools": "Call get_project_state first. Create a ghost variant, compare it if useful, and call manage_variant with action `request-apply` only when the person should review it. Never claim the variant is committed before approval.",
         "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project.",
         "exampleOutput": "{\"action\":\"set-footprint\",\"zoneRef\":\"zone/lawn\",\"footprint\":[{\"x\":0,\"z\":8},{\"x\":12,\"z\":8},{\"x\":12,\"z\":16},{\"x\":0,\"z\":16}]}"
@@ -2140,7 +2212,8 @@
               "add",
               "remove",
               "set-footprint",
-              "move"
+              "move",
+              "set-surface"
             ],
             "description": "Operation to perform; one of the listed values for this tool."
           },
@@ -2208,6 +2281,10 @@
             ],
             "additionalProperties": false,
             "description": "Move offset {x,z} in metres applied to every polygon point."
+          },
+          "textureId": {
+            "type": "string",
+            "description": "Scan id from list_textures, or none for a flat colour. Omit to keep the material or zone default scan."
           }
         },
         "required": [
@@ -3311,6 +3388,9 @@
                     "colorHex": {
                       "type": "string",
                       "pattern": "^#[0-9a-fA-F]{6}$"
+                    },
+                    "textureId": {
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -3751,7 +3831,8 @@
                         "add",
                         "remove",
                         "set-footprint",
-                        "move"
+                        "move",
+                        "set-surface"
                       ]
                     },
                     "zoneRef": {
@@ -3814,6 +3895,9 @@
                         "z"
                       ],
                       "additionalProperties": false
+                    },
+                    "textureId": {
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -4928,13 +5012,13 @@
     {
       "name": "set_viewer_state",
       "title": "Set viewer state",
-      "readOnly": false,
+      "readOnly": true,
       "untrustedContent": false,
-      "description": "Show the person something in the scene: switch realistic or technical mode, explode the rooms and roof apart, open a storey plan, or select and highlight one object by ref. Changes only the viewer; the committed project and its revision stay untouched.",
+      "description": "Show the person something in the scene: explode the rooms and roof apart, open a storey plan, or select and highlight one object by ref. Changes only the viewer; the committed project and its revision stay untouched.",
       "prompt": {
         "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
-        "task": "Show the person something in the scene: switch realistic or technical mode, explode the rooms and roof apart, open a storey plan, or select and highlight one object by ref. Changes only the viewer; the committed project and its revision stay untouched.",
-        "input": "All fields optional: `viewMode` (`realistic`|`technical`), `explode` (boolean), `planStoreyRef` (storey ref or null), `focusRef` (object ref to select, or null to clear).",
+        "task": "Show the person something in the scene: explode the rooms and roof apart, open a storey plan, or select and highlight one object by ref. Changes only the viewer; the committed project and its revision stay untouched.",
+        "input": "All fields optional: `explode` (boolean), `planStoreyRef` (storey ref or null), `focusRef` (object ref to select, or null to clear).",
         "tools": "Use after a proposal or analysis to point at what you mean, for example focusRef on the wall you changed. Changes only viewer state and never creates or applies a project proposal.",
         "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns viewer with viewMode, explode, viewerMode, activePlanStoreyRef and selectedRef.",
         "exampleOutput": "{\"viewMode\":\"realistic\",\"focusRef\":\"wall/courtyard-living\"}"
@@ -4943,14 +5027,6 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
-          "viewMode": {
-            "type": "string",
-            "enum": [
-              "technical",
-              "realistic"
-            ],
-            "description": "realistic shows materials and the real sun; technical shows flat colours with a neutral studio light."
-          },
           "explode": {
             "type": "boolean",
             "description": "true separates every room, storey and the roof so the person can see the interior structure."
@@ -5010,7 +5086,6 @@
           "viewer": {
             "type": "object",
             "required": [
-              "viewMode",
               "explode",
               "viewerMode",
               "selectedRef"
@@ -5022,7 +5097,7 @@
     {
       "name": "set_sun_time",
       "title": "Set viewer sun time",
-      "readOnly": false,
+      "readOnly": true,
       "untrustedContent": false,
       "description": "Move the scene sun to a local date and time so the person sees the real shadows for that moment. This changes only the viewer; the committed project and its revision stay untouched.",
       "prompt": {

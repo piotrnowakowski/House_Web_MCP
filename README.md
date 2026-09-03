@@ -10,7 +10,7 @@ No account, credentials or paid service is required. The project was created dur
 
 Early house and garden planning is spatial: people need to see the building, terrain, rooms, openings, planting and seasonal effects together. A normal chat can describe a change, but it cannot safely understand or edit the exact objects in a live 3D design.
 
-This editor gives both the person and their browser agent access to one semantic `ProjectV2` model. A person can navigate and edit the 3D scene directly. An agent can inspect the same project through 32 schema-described WebMCP tools, propose coordinated changes and open visible architectural reports. The result remains an uncommitted ghost variant until the person explicitly applies or rejects it.
+This editor gives both the person and their browser agent access to one semantic `ProjectV2` model. A person can navigate and edit the 3D scene directly. An agent can inspect the same project through 33 schema-described WebMCP tools, propose coordinated changes and open visible architectural reports. The result remains an uncommitted ghost variant until the person explicitly applies or rejects it.
 
 The bundled Zielonki project demonstrates:
 
@@ -91,7 +91,7 @@ Read tools return structured state or open a visible in-page report. Modifying t
 
 | Criterion | Evidence in this project |
 | --- | --- |
-| WebMCP leverage | 32 non-trivial, schema-validated tools operate on live semantic spatial state; read, proposal, comparison, grouped transaction, approval and undo flows are all implemented. |
+| WebMCP leverage | 33 non-trivial, schema-validated tools operate on live semantic spatial state; read, proposal, comparison, grouped transaction, approval and undo flows are all implemented. |
 | Execution | Public no-login deployment, one coherent 3D editor, real geometry, local persistence, visible reports and automated browser coverage. |
 | Potential impact | Helps homeowners and early-stage design collaborators turn broad intent into inspectable house-and-garden alternatives before engaging professional design and engineering services. |
 | Creativity and ambition | Combines a semantic building model, landscape and seasonal context, agent-authored spatial variants and explicit human approval in one browser-native workspace. |
@@ -112,7 +112,7 @@ The default project includes three timber raised beds planted with tomatoes, pot
 - That Open Components uses the existing R3F scene, WebGL renderer and canvas through a non-owning world bridge. Its `OrthoPerspectiveCamera` is the active camera. Length uses two ground-point clicks; area uses a drag-sized rectangular ground overlay. Edit, length, area, section and plan modes are mutually exclusive; the unused angle mode is excluded.
 - The sun is a real solar position (NOAA formulas) for the site's latitude, longitude, timezone and true north. The directional light, the sun-path arc, the compass rose, the sun-hours heatmap, the `sun-study` report view and the `run_sunlight_analysis` tool all derive from the same functions, so shadows on screen and numbers returned to agents agree. Sun hours are computed analytically against walls, slabs, roof wings, tree canopies and garden fixtures, and a `planting.sun-mismatch` warning flags sun-loving planting that gets under six hours of direct sun between 09:00 and 17:00 on 21 June.
 - Manifold runs in a Web Worker and generates semantic slab and wall meshes. Door/window boxes are subtracted as real voids. Results are revision-checked, transferable and cached by semantic input. The worker also emits planar UVs in metres, so textures tile at true physical scale.
-- Realistic mode dresses lawns and terrain, terraces, paths and drives, brick and natural-timber walls, raised beds and the barn's interior floors with four Poly Haven CC0 scans (about 9.5 MB). The wall colour picker becomes a light tint over a textured finish. Technical mode stays texture-free.
+- A texture library of twelve Poly Haven CC0 scans (about 21 MB) dresses walls, ground zones, terrain, raised beds and the barn's interior floors at true physical scale. Every wall finish and every landscape zone can pick its scan from a thumbnail picker in the inspector, or keep the default for its material or zone kind, or go back to a flat colour. Agents read the same library with `list_textures` and choose with `textureId` on `propose_wall_finish_update` or a landscape `set-surface`. The scans a project draws load first; the rest of the library preloads in idle time so a later pick shows at once. The wall colour picker becomes a light tint over a textured finish.
 - `three-mesh-bvh` builds and disposes acceleration structures with generated geometry.
 - Rapier supplies fixed semantic colliders and constrained editing previews; it is not used for structural analysis or falling buildings.
 - IndexedDB autosaves only under the V2 key. Old records remain untouched and unread.
@@ -180,6 +180,7 @@ Use **MCP Tools** in the application to inspect the registered catalogue. The pa
 | `propose_plant_update` | Edit a terrain-supported plant |
 | `propose_planting_area` | Create one deterministic boundary, line or polygon planting scheme |
 | `list_garden_fixtures` | Read the ready structure and crop-fixture catalogue |
+| `list_textures` | Read the CC0 material scan library for walls and ground zones |
 | `propose_garden_fixture` | Add, remove, move or rotate one fixture, or place a coordinated garden preset selected by `mode` |
 | `manage_change_set` | Create, populate, finalize or discard a transactional draft selected by `action` |
 | `measure_height` | Read semantic or free vertical height with local and absolute elevations |
@@ -187,7 +188,7 @@ Use **MCP Tools** in the application to inspect the registered catalogue. The pa
 | `show_structure_views` | Open visible architectural drawings and return placement data |
 | `run_seasonal_analysis` | Return day-part temperature averages, sunrise, sunset, daylight and V2 seasonal planning signals |
 | `run_sunlight_analysis` | Compute direct sun hours for a zone, plant, fixture, point or the site on a date, for the committed project or a ghost variant |
-| `set_viewer_state` | Switch realistic or technical mode, explode rooms, open a storey plan or select an object, without touching the revision |
+| `set_viewer_state` | Explode rooms, open a storey plan or select an object, without touching the revision |
 | `set_sun_time` | Move the viewer sun to a local date and time without touching the revision |
 | `compare_variants` | Compare ghost metrics and validation issues |
 | `diff_variant` | List the objects a ghost variant adds, removes or modifies, with changed fields and metric deltas |
