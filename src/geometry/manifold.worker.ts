@@ -3,8 +3,9 @@ import { getManifoldModule, setWasmUrl } from 'manifold-3d/lib/wasm'
 import wasmUrl from 'manifold-3d/manifold.wasm?url'
 import type { Manifold, ManifoldToplevel } from 'manifold-3d'
 import type { GeneratedSolid, GeometryWorkerRequest, GeometryWorkerResponse, SolidInput } from './types'
+import { assignPlanarUvs, transformWallLocalToBuilding } from './uv'
 
-const copyMesh = (ref: string, solid: Manifold, collider: GeneratedSolid['collider']): GeneratedSolid => {
+const rawMesh = (solid: Manifold) => {
   const mesh = solid.getMesh()
   const positions = new Float32Array(mesh.numVert * 3)
   for (let vertex = 0; vertex < mesh.numVert; vertex += 1) {
@@ -13,11 +14,19 @@ const copyMesh = (ref: string, solid: Manifold, collider: GeneratedSolid['collid
     positions[vertex * 3 + 1] = mesh.vertProperties[source + 1]
     positions[vertex * 3 + 2] = mesh.vertProperties[source + 2]
   }
-  return { ref, positions, indices: new Uint32Array(mesh.triVerts), collider }
+  return { positions, indices: new Uint32Array(mesh.triVerts) }
+}
+
+/** Un-indexed mesh with metre UVs assigned in the solid's current frame. */
+const copyMesh = (ref: string, solid: Manifold, collider: GeneratedSolid['collider']): GeneratedSolid => {
+  const raw = rawMesh(solid); const planar = assignPlanarUvs(raw.positions, raw.indices)
+  return { ref, positions: planar.positions, uvs: planar.uvs, indices: planar.indices, collider }
 }
 
 setWasmUrl(wasmUrl)
 const manifoldModule = getManifoldModule()
+
+const wallSolid = (ref: string, positions: Float32Array, uvs: Float32Array, indices: Uint32Array, collider: GeneratedSolid['collider']): GeneratedSolid => ({ ref, positions, uvs, indices, collider })
 
 const buildSolid = (element: SolidInput, module: ManifoldToplevel): GeneratedSolid => {
   const { Manifold } = module
@@ -53,10 +62,11 @@ const buildSolid = (element: SolidInput, module: ManifoldToplevel): GeneratedSol
       owned.push(next)
       current = next
     }
-    const rotationDegrees = -Math.atan2(dz, dx) * 180 / Math.PI
-    const rotated = current.rotate([0, rotationDegrees, 0]); owned.push(rotated)
-    const translated = rotated.translate([(element.start.x + element.end.x) / 2, element.baseElevationM + element.heightM / 2, (element.start.z + element.end.z) / 2]); owned.push(translated)
-    return copyMesh(element.ref, translated, {
+    // UVs are assigned in wall-local space (u along the wall, v up) before the yaw and translation are applied in JS.
+    const raw = rawMesh(current); const planar = assignPlanarUvs(raw.positions, raw.indices)
+    const centre = { x: (element.start.x + element.end.x) / 2, y: element.baseElevationM + element.heightM / 2, z: (element.start.z + element.end.z) / 2 }
+    const positions = transformWallLocalToBuilding(planar.positions, { x: dx, z: dz }, centre)
+    return wallSolid(element.ref, positions, planar.uvs, planar.indices, {
       ref: element.ref,
       center: [(element.start.x + element.end.x) / 2, element.baseElevationM + element.heightM / 2, (element.start.z + element.end.z) / 2],
       halfExtents: [length / 2, element.heightM / 2, element.thicknessM / 2], rotationY: -Math.atan2(dz, dx),
@@ -73,7 +83,7 @@ self.onmessage = async (event: MessageEvent<GeometryWorkerRequest>) => {
     const module = await manifoldModule
     const solids = elements.map((element) => buildSolid(element, module))
     const response: GeometryWorkerResponse = { requestId, revision, solids }
-    self.postMessage(response, solids.flatMap((solid) => [solid.positions.buffer, solid.indices.buffer]))
+    self.postMessage(response, solids.flatMap((solid) => [solid.positions.buffer, solid.uvs.buffer, solid.indices.buffer]))
   } catch (error) {
     const response: GeometryWorkerResponse = { requestId, revision, solids: [], error: error instanceof Error ? error.message : 'Manifold geometry failed.' }
     self.postMessage(response)

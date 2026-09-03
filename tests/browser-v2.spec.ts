@@ -11,9 +11,15 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
     Object.assign(window, { __projectV2WebMcpTools: tools, __projectV2RevokedUrls: revoked })
     Object.defineProperty(document, 'modelContext', { configurable: true, value: { registerTool: async (tool: { name: string; execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }) => { tools[tool.name] = tool } } })
   })
+  const textureLoads: string[] = []
+  page.on('response', (response) => { if (response.url().includes('/textures/') && response.ok()) textureLoads.push(new URL(response.url()).pathname) })
   await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' })
 
   await expect(page.locator('canvas')).toHaveCount(1)
+  await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/leafy_grass/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
+  await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/brick_floor_04/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
+  await page.waitForTimeout(1200)
+  await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-textured-realistic.png' })
   await expect(page.getByText('Spatial Editor', { exact: true })).toBeVisible()
   await expect(page.getByText('PROJECTV2 / SEMANTIC MODEL')).toBeVisible()
   await expect(page.getByText('L-shaped modern barn')).toBeVisible()

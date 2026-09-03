@@ -5,8 +5,8 @@ import * as OBC from '@thatopen/components'
 import CameraControls from 'camera-controls'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Box3, BufferAttribute, BufferGeometry, Color, DirectionalLight, DoubleSide, EdgesGeometry, Group, LinearFilter, MathUtils, Mesh, MeshStandardMaterial, Object3D,
-  OrthographicCamera, PerspectiveCamera, Plane, Raycaster, Scene, Shape, ShapeGeometry, Vector2, Vector3, WebGLRenderTarget, WebGLRenderer,
+  Box3, BoxGeometry, BufferAttribute, BufferGeometry, Color, DirectionalLight, DoubleSide, EdgesGeometry, Group, LinearFilter, MathUtils, Mesh, MeshStandardMaterial, Object3D,
+  OrthographicCamera, PerspectiveCamera, Plane, PlaneGeometry, Raycaster, Scene, Shape, ShapeGeometry, Vector2, Vector3, WebGLRenderTarget, WebGLRenderer,
 } from 'three'
 import { acceleratedRaycast, computeBoundsTree, disposeBoundsTree } from 'three-mesh-bvh'
 import { buildingGroundOffset, buildingLocalBounds, elevationAt, pointInPolygon, polygonBounds, polygonCentroid, spaceFootprint } from '../domain/geometry'
@@ -20,6 +20,8 @@ import type { GeneratedSolid } from '../geometry/types'
 import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
 import { roofWings, type RoofWing } from '../domain/roofWings'
 import { CompassRose, SUN_DISTANCE_M, SunHoursOverlay, SunLight, SunPath, sunStateFor } from './sun'
+import { groundTextureFor, groundTintFor, interiorFloorTexture, raisedBedTexture, terrainTexture, tintForTexturedFinish, wallTextureFor } from './materialCatalog'
+import { TexturedMaterial, TexturePreloader, waitForTextures } from './materials'
 import { useStudioStore } from '../state/store'
 
 const TECH = { slab: '#d8d6cb', wall: '#e9e7df', roof: '#6c4a39', soil: '#a8ad8d' }
@@ -43,6 +45,22 @@ const polygonShape = (points: Polygon2) => {
 const localPolygonGeometry = (points: Polygon2) => {
   const geometry = new ShapeGeometry(polygonShape(points))
   geometry.rotateX(-Math.PI / 2)
+  return geometry
+}
+
+/** A flat plane whose UVs are in metres so textures tile at physical scale. */
+const metrePlaneGeometry = (width: number, depth: number) => {
+  const geometry = new PlaneGeometry(width, depth); const uv = geometry.attributes.uv
+  for (let index = 0; index < uv.count; index += 1) uv.setXY(index, uv.getX(index) * width, uv.getY(index) * depth)
+  geometry.rotateX(-Math.PI / 2)
+  return geometry
+}
+
+/** A box whose UVs are in metres per face (three.js face order: +x, -x, +y, -y, +z, -z). */
+const metreBoxGeometry = (width: number, height: number, depth: number) => {
+  const geometry = new BoxGeometry(width, height, depth); const uv = geometry.attributes.uv
+  const spans: Array<[number, number]> = [[depth, height], [depth, height], [width, depth], [width, depth], [width, height], [width, height]]
+  for (let index = 0; index < uv.count; index += 1) { const [u, v] = spans[Math.floor(index / 4)]; uv.setXY(index, uv.getX(index) * u, uv.getY(index) * v) }
   return geometry
 }
 
@@ -369,7 +387,7 @@ const shade = (hex: string, factor: number) => `#${new Color(hex).multiplyScalar
 function GeneratedMesh({ solid, mode, selected, buildingRef, style, wall, yOffset, ghost }: { solid: GeneratedSolid; mode: ViewMode; selected: boolean; buildingRef: string; style: BuildingModel['architecturalStyle']; wall?: WallModel; yOffset: number; ghost?: boolean }) {
   const geometry = useMemo(() => {
     const value = new BufferGeometry()
-    value.setAttribute('position', new BufferAttribute(solid.positions, 3)); value.setIndex(new BufferAttribute(solid.indices, 1)); value.computeVertexNormals()
+    value.setAttribute('position', new BufferAttribute(solid.positions, 3)); value.setAttribute('uv', new BufferAttribute(solid.uvs, 2)); value.setIndex(new BufferAttribute(solid.indices, 1)); value.computeVertexNormals()
     computeBoundsTree.call(value)
     return value
   }, [solid])
@@ -377,8 +395,12 @@ function GeneratedMesh({ solid, mode, selected, buildingRef, style, wall, yOffse
   const isWall = Boolean(wall) || solid.ref.includes('wall'); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
   const palette = mode === 'technical' ? TECH : style === 'barn' ? BARN : REAL
   const finish = resolveWallFinish(wall, style); const surface = wallSurface[finish.material]
+  const texture = isWall && mode === 'realistic' ? wallTextureFor[finish.material] : undefined
+  const material = texture
+    ? <TexturedMaterial asset={texture.asset} rotation={texture.rotation} color={selected ? '#b9e84d' : tintForTexturedFinish(finish.colorHex)} fallbackColor={selected ? '#b9e84d' : finish.colorHex} emissive={selected ? '#6c812f' : '#000000'} emissiveIntensity={selected ? 0.35 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.33 : 1} depthWrite={!ghost} side={DoubleSide} roughness={surface.roughness} metalness={surface.metalness} />
+    : <meshStandardMaterial color={isWall && mode !== 'technical' ? finish.colorHex : selected ? '#b9e84d' : isWall ? palette.wall : palette.slab} emissive={isWall && selected ? '#6c812f' : '#000000'} emissiveIntensity={isWall && selected ? 0.35 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.33 : 1} depthWrite={!ghost} side={isWall ? DoubleSide : undefined} roughness={isWall ? surface.roughness : 0.78} metalness={isWall ? surface.metalness : 0.02} />
   return <mesh geometry={geometry} position={[0, yOffset, 0]} castShadow receiveShadow raycast={acceleratedRaycast} userData={{ semanticRef: solid.ref, buildingRef }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(solid.ref) }}>
-    <meshStandardMaterial color={isWall && mode !== 'technical' ? finish.colorHex : selected ? '#b9e84d' : isWall ? palette.wall : palette.slab} emissive={isWall && selected ? '#6c812f' : '#000000'} emissiveIntensity={isWall && selected ? 0.35 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.33 : 1} depthWrite={!ghost} side={isWall ? DoubleSide : undefined} roughness={isWall ? surface.roughness : 0.78} metalness={isWall ? surface.metalness : 0.02} />
+    {material}
   </mesh>
 }
 
@@ -414,7 +436,7 @@ function BarnCladding({ building, ghost }: { building: BuildingModel; ghost?: bo
   const internalWalls = new Set(['wall/rear-partition', 'wall/wing-divider', 'wall/upper-north'])
   return <>{building.walls.filter((wall) => !internalWalls.has(wall.ref)).flatMap((wall) => {
     const finish = resolveWallFinish(wall, building.architecturalStyle)
-    if (!['charred-timber', 'natural-timber', 'metal-panel'].includes(finish.material)) return []
+    if (!['charred-timber', 'metal-panel'].includes(finish.material)) return []
     const dx = wall.end.x - wall.start.x; const dz = wall.end.z - wall.start.z; const length = Math.hypot(dx, dz)
     const ux = dx / length; const uz = dz / length; const nx = uz; const nz = -ux; const rotation = -Math.atan2(dz, dx)
     const spacing = finish.material === 'metal-panel' ? 0.64 : 0.34
@@ -437,12 +459,18 @@ function BarnCladding({ building, ghost }: { building: BuildingModel; ghost?: bo
   })}</>
 }
 
+function InteriorFloor({ position, width, depth, color }: { position: [number, number, number]; width: number; depth: number; color: string }) {
+  const geometry = useMemo(() => metrePlaneGeometry(width, depth), [depth, width])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  return <mesh geometry={geometry} position={position} receiveShadow><TexturedMaterial asset={interiorFloorTexture.asset} color={interiorFloorTexture.tint} fallbackColor={color} roughness={0.55} normalScale={0.35} /></mesh>
+}
+
 function BarnInteriorWarmth({ mode, ghost }: { mode: ViewMode; ghost?: boolean }) {
   if (mode !== 'realistic' || ghost) return null
   return <group userData={{ editorOnly: true }}>
-    <mesh position={[0, 0.465, -2]} receiveShadow><boxGeometry args={[15.7, 0.035, 5.7]} /><meshStandardMaterial color="#a9855d" roughness={0.72} /></mesh>
-    <mesh position={[-5, 0.475, 5.5]} receiveShadow><boxGeometry args={[5.7, 0.045, 8.7]} /><meshStandardMaterial color="#ad8b61" roughness={0.72} /></mesh>
-    <mesh position={[-5, 3.465, 5.5]} receiveShadow><boxGeometry args={[5.7, 0.035, 8.7]} /><meshStandardMaterial color="#987650" roughness={0.76} /></mesh>
+    <InteriorFloor position={[0, 0.483, -2]} width={15.7} depth={5.7} color="#a9855d" />
+    <InteriorFloor position={[-5, 0.498, 5.5]} width={5.7} depth={8.7} color="#ad8b61" />
+    <InteriorFloor position={[-5, 3.483, 5.5]} width={5.7} depth={8.7} color="#987650" />
     <pointLight position={[-5, 2.3, 6]} color="#ffd29a" intensity={18} distance={9} decay={2} />
     <pointLight position={[-5, 5.35, 6.5]} color="#ffd6a3" intensity={14} distance={8} decay={2} />
     <pointLight position={[3.6, 2.15, -1]} color="#ffd09a" intensity={20} distance={10} decay={2} />
@@ -687,7 +715,9 @@ function TerrainAndSite({ project, mode }: { project: ProjectV2; mode: ViewMode 
   const landCenter = landBounds.getCenter(new Vector3()); const landSize = landBounds.getSize(new Vector3())
   useEffect(() => () => boundaryGeometry.dispose(), [boundaryGeometry])
   return <group userData={{ semanticRef: 'site' }}>
-    <mesh geometry={boundaryGeometry} position={[0, TERRAIN_SURFACE_Y, 0]} receiveShadow userData={{ semanticRef: 'site/terrain' }}><meshStandardMaterial color={mode === 'technical' ? TECH.soil : REAL.soil} roughness={1} side={DoubleSide} /></mesh>
+    <mesh geometry={boundaryGeometry} position={[0, TERRAIN_SURFACE_Y, 0]} receiveShadow userData={{ semanticRef: 'site/terrain' }}>{mode === 'realistic'
+      ? <TexturedMaterial asset={terrainTexture.asset} color={terrainTexture.tint} fallbackColor={REAL.soil} roughness={1} side={DoubleSide} normalScale={0.4} />
+      : <meshStandardMaterial color={TECH.soil} roughness={1} side={DoubleSide} />}</mesh>
     {project.site.parcels.map((parcel) => <ParcelSurface key={parcel.ref} boundary={parcel.boundary} landRole={parcel.landRole} mode={mode} />)}
     {project.site.entrances.map((entrance) => <RoadEntranceMarker key={entrance.ref} entrance={entrance} mode={mode} />)}
     <RigidBody type="fixed" colliders={false}><CuboidCollider args={[Math.max(1, landSize.x / 2), 0.08, Math.max(1, landSize.z / 2)]} position={[landCenter.x, TERRAIN_SURFACE_Y - 0.08, landCenter.z]} /></RigidBody>
@@ -695,12 +725,22 @@ function TerrainAndSite({ project, mode }: { project: ProjectV2; mode: ViewMode 
 }
 
 const zoneColor: Record<LandscapeZone['kind'], string> = { lawn: '#738e55', terrace: '#c5b99b', path: '#c1b695', driveway: '#a69f8f', bed: '#684f44', 'rain-garden': '#4f8075', vegetable: '#66834d' }
-function Landscape({ project }: { project: ProjectV2 }) {
+
+function ZoneSurface({ zone, project, mode }: { zone: LandscapeZone; project: ProjectV2; mode: ViewMode }) {
+  const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef); const month = useStudioStore((state) => state.month)
+  const geometry = useMemo(() => localPolygonGeometry(zone.footprint), [zone.footprint])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  const center = polygonCentroid(zone.footprint); const y = elevationAt(project, center.x, center.z) + 0.02
+  const selected = selectedRef === zone.ref; const texture = mode === 'realistic' ? groundTextureFor[zone.kind] : undefined
+  return <mesh geometry={geometry} position={[0, y, 0]} receiveShadow userData={{ semanticRef: zone.ref }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(zone.ref) }}>{texture
+    ? <TexturedMaterial asset={texture.asset} color={selected ? '#b9e84d' : groundTintFor(zone.kind, month) ?? texture.tint} fallbackColor={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={zone.kind === 'lawn' ? 1 : 0.9} side={DoubleSide} normalScale={zone.kind === 'lawn' ? 0.5 : 0.7} />
+    : <meshStandardMaterial color={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={0.95} side={DoubleSide} />}</mesh>
+}
+
+function Landscape({ project, mode }: { project: ProjectV2; mode: ViewMode }) {
   const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
-  return <>{project.landscape.zones.map((zone) => {
-    const center = polygonCentroid(zone.footprint); const y = elevationAt(project, center.x, center.z) + 0.02
-    return <mesh key={zone.ref} geometry={localPolygonGeometry(zone.footprint)} position={[0, y, 0]} receiveShadow userData={{ semanticRef: zone.ref }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(zone.ref) }}><meshStandardMaterial color={selectedRef === zone.ref ? '#b9e84d' : zoneColor[zone.kind]} roughness={0.95} side={DoubleSide} /></mesh>
-  })}{project.landscape.plants.map((plant) => <Plant key={plant.ref} plant={plant} project={project} selected={selectedRef === plant.ref} onSelect={() => setSelectedRef(plant.ref)} />)}</>
+  return <>{project.landscape.zones.map((zone) => <ZoneSurface key={zone.ref} zone={zone} project={project} mode={mode} />)}
+    {project.landscape.plants.map((plant) => <Plant key={plant.ref} plant={plant} project={project} selected={selectedRef === plant.ref} onSelect={() => setSelectedRef(plant.ref)} />)}</>
 }
 
 function Plant({ plant, project, selected, onSelect, ghost = false }: { plant: PlantModel; project: ProjectV2; selected: boolean; onSelect: () => void; ghost?: boolean }) {
@@ -713,12 +753,21 @@ function Plant({ plant, project, selected, onSelect, ghost = false }: { plant: P
 
 const fixtureMaterial = (color: string, selected: boolean, ghost: boolean) => <meshStandardMaterial color={selected ? '#b9e84d' : color} roughness={0.82} transparent={ghost} opacity={ghost ? 0.42 : 1} />
 
+function TimberBoard({ position, size, selected, ghost, textured }: { position: [number, number, number]; size: [number, number, number]; selected: boolean; ghost: boolean; textured: boolean }) {
+  const geometry = useMemo(() => metreBoxGeometry(size[0], size[1], size[2]), [size])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  return <mesh geometry={geometry} position={position} castShadow>{textured && !selected
+    ? <TexturedMaterial asset={raisedBedTexture.asset} color={raisedBedTexture.tint} fallbackColor="#8b623d" roughness={0.85} transparent={ghost} opacity={ghost ? 0.42 : 1} />
+    : fixtureMaterial('#8b623d', selected, ghost)}</mesh>
+}
+
 function RaisedBedFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
+  const textured = useStudioStore((state) => state.viewMode) === 'realistic'
   return <group>
     <mesh position={[0, 0.24, 0]} castShadow receiveShadow><boxGeometry args={[2.16, 0.32, 0.96]} />{fixtureMaterial('#473426', selected, ghost)}</mesh>
     <mesh position={[0, 0.43, 0]} castShadow><boxGeometry args={[2.08, 0.09, 0.88]} />{fixtureMaterial('#5c4936', selected, ghost)}</mesh>
-    {[[-1.13, 0], [1.13, 0]].map(([x, z], index) => <mesh key={`end-${index}`} position={[x, 0.28, z]} castShadow><boxGeometry args={[0.12, 0.46, 1.2]} />{fixtureMaterial('#8b623d', selected, ghost)}</mesh>)}
-    {[[-0.54], [0.54]].map(([z], index) => <mesh key={`side-${index}`} position={[0, 0.28, z]} castShadow><boxGeometry args={[2.4, 0.46, 0.12]} />{fixtureMaterial('#8b623d', selected, ghost)}</mesh>)}
+    {([[-1.13, 0], [1.13, 0]] as const).map(([x, z], index) => <TimberBoard key={`end-${index}`} position={[x, 0.28, z]} size={[0.12, 0.46, 1.2]} selected={selected} ghost={ghost} textured={textured} />)}
+    {([[-0.54], [0.54]] as const).map(([z], index) => <TimberBoard key={`side-${index}`} position={[0, 0.28, z]} size={[2.4, 0.46, 0.12]} selected={selected} ghost={ghost} textured={textured} />)}
   </group>
 }
 
@@ -828,6 +877,7 @@ const overrideSunForStudy = (scene: Scene, project: ProjectV2, view: Extract<Exp
 function StructureCaptureController() {
   const { gl, scene } = useThree()
   useEffect(() => registerStructureViewCapture(async (project, views, includeAnnotations, signal) => {
+    if (useStudioStore.getState().viewMode === 'realistic') await waitForTextures()
     const width = 960; const height = 640; const target = new WebGLRenderTarget(width, height, { minFilter: LinearFilter, magFilter: LinearFilter })
     const previousTarget = gl.getRenderTarget(); const previousClipping = [...gl.clippingPlanes]; const previousLocal = gl.localClippingEnabled; const visibility = new Map<Object3D, boolean>(); const materialState = new Map<MeshStandardMaterial, { transparent: boolean; opacity: number }>(); const results: StructureReport['views'] = []
     const source = project === useStudioStore.getState().project ? 'committed' : 'ghost'
@@ -881,8 +931,8 @@ export function StudioScene() {
   }) ?? []
   return <>
     <color attach="background" args={[sky]} />{mode === 'realistic' && <fog attach="fog" args={[sky, 450, 1100]} />}
-    <ThatOpenBridge /><InteractiveMeasurements /><StructureCaptureController /><SunLight mode={mode} /><SunPath /><CompassRose /><SunHoursOverlay />
-    <Physics gravity={[0, 0, 0]}><group onPointerMissed={() => setSelectedRef(null)}><TerrainAndSite project={project} mode={mode} /><Landscape project={project} /><GardenFixtures project={project} />
+    <ThatOpenBridge /><InteractiveMeasurements /><StructureCaptureController /><SunLight mode={mode} /><SunPath /><CompassRose /><SunHoursOverlay />{mode === 'realistic' && <TexturePreloader />}
+    <Physics gravity={[0, 0, 0]}><group onPointerMissed={() => setSelectedRef(null)}><TerrainAndSite project={project} mode={mode} /><Landscape project={project} mode={mode} /><GardenFixtures project={project} />
       {project.buildings.map((building) => <Building key={building.ref} project={project} building={building} mode={mode} />)}
       {ghost?.buildings.map((building) => <Building key={`ghost-${building.ref}`} project={ghost} building={building} mode={mode} ghost />)}
       {ghost && <GardenFixtures project={ghost} fixtures={changedGhostFixtures} ghost />}
