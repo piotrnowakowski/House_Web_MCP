@@ -31,6 +31,8 @@ export type ColliderDescriptor = {
 export type GeneratedSolid = {
   ref: string
   positions: Float32Array
+  /** Planar UVs in metres, two per vertex, matched to `positions`. */
+  uvs: Float32Array
   indices: Uint32Array
   collider: ColliderDescriptor
 }

@@ -2,6 +2,7 @@ import { estimateDayPartTemperatures } from './climate'
 import { gardenFixtureById } from './gardenFixtures'
 import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
 import { decomposeOrthogonalLFootprint, defaultRoofFinish, ridgeDirectionForFootprint, roofSegmentRidgeElevation, segmentContainsFootprint, supportingWallRefs } from './roofs'
+import { sunMismatchIssues } from './sunlight'
 import type { BuildingModel, LandscapeZone, OpeningModel, Polygon2, ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, RoofJunctionModel, RoofSegmentDefinition, RoofSegmentModel, SpaceBoundaryUse, StoreyModel, Vec2, WallModel } from './types'
 
 export { polygonArea } from './geometry'
@@ -542,6 +543,7 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
   project.landscape.fixtures.filter((fixture) => fixture.catalogId !== 'raised-bed-2x1').forEach((fixture) => {
     if (!raisedBeds.some((bed) => Math.hypot(bed.position.x - fixture.position.x, bed.position.z - fixture.position.z) < 0.15)) issues.push({ severity: 'error', code: 'fixture.crop-host', message: `${fixture.name} must remain colocated with a raised bed.`, subjectRef: fixture.ref })
   })
+  issues.push(...sunMismatchIssues(project))
   if (project.site.knowledgeBase.geotechnical.documentationNeed) issues.push({ severity: 'warning', code: 'site.geotechnical-review', message: project.site.knowledgeBase.geotechnical.documentationNeed, subjectRef: 'site' })
   return issues
 }

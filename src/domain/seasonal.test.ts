@@ -1,10 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { sampleProject } from './sampleProject'
-import { analyzeSeason, daylightHours, sunPositionForMonth } from './seasonal'
+import { analyzeSeason, daylightHours } from './seasonal'
 
 describe('seasonal analysis', () => {
   it('has longer days in July than January for Zielonki', () => {
     expect(daylightHours(sampleProject.climateProfile.latitude, 7)).toBeGreaterThan(daylightHours(sampleProject.climateProfile.latitude, 1))
+  })
+
+  it('matches NOAA mid-month daylight duration to within three minutes', () => {
+    expect(daylightHours(50.12, 6)).toBeCloseTo(16.36, 1)
+    expect(daylightHours(50.12, 1)).toBeCloseTo(8.55, 1)
   })
 
   it('returns deterministic monthly planning signals', () => {
@@ -17,9 +22,11 @@ describe('seasonal analysis', () => {
     expect(result[1].temperatureByDayPartC.day).toBeGreaterThan(result[1].temperatureByDayPartC.night)
   })
 
-  it('produces a usable directional-light position', () => {
-    const sun = sunPositionForMonth(50.12, 7)
-    expect(sun.y).toBeGreaterThan(10)
-    expect(Math.hypot(sun.x, sun.y, sun.z)).toBeCloseTo(35, 3)
+  it('reports local sunrise, sunset and solar-noon altitude for the middle of each month', () => {
+    const [july] = analyzeSeason(sampleProject, [7])
+    expect(july.sunriseLocal).toBeCloseTo(4.79, 1)
+    expect(july.sunsetLocal).toBeCloseTo(20.75, 1)
+    expect(july.solarNoonAltitudeDeg).toBeCloseTo(61.4, 0)
+    expect(july.daylightHours).toBeCloseTo(15.96, 1)
   })
 })

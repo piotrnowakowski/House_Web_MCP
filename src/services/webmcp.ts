@@ -4,15 +4,19 @@ import { calculateMetrics, validateProject } from '../domain/commands'
 import { gardenFixtureCatalog, gardenFixtureSetCommands, nextGardenBedPosition } from '../domain/gardenFixtures'
 import { buildingPlacement } from '../domain/geometry'
 import { measureHeight } from '../domain/heightMeasurements'
+import { diffProjects } from '../domain/diff'
+import { findProjectObject, knowledgeSlice } from '../domain/refs'
 import { createPlantingAreaPlan } from '../domain/plantingAreas'
 import { roofSegmentSummary } from '../domain/roofs'
 import { analyzeSeason } from '../domain/seasonal'
+import { solarPosition, sunriseSunset } from '../domain/solar'
+import { analyzeSunlight, downsampleSunGrid, formatSunMoment, resolveSunTarget } from '../domain/sunlight'
 import type { ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, VariantModel } from '../domain/types'
 import { wallFinishCommands } from '../domain/wallFinishes'
 import { wallOpeningLayoutCommands } from '../domain/wallOpeningLayouts'
 import { useStudioStore } from '../state/store'
 import { showStructureViews } from './structureViews'
-import { webMcpSchemas } from './webmcpDefinitions'
+import { inputSchemaFor, untrustedContentTools, webMcpSchemas, type WebMcpToolName } from './webmcpDefinitions'
 
 type ToolPayload = { status: string; projectRevision: number; summary: string; variantRef?: string; issues?: ProjectIssue[]; metrics?: ProjectMetrics; data?: unknown; [key: string]: unknown }
 const content = (payload: ToolPayload): WebMcpToolResult => ({ content: [{ type: 'text', text: JSON.stringify(payload) }] })
@@ -50,21 +54,41 @@ const requestVariantApproval = (variantRef: string, signal: AbortSignal) => new 
   signal.addEventListener('abort', abort, { once: true }); variantWaiter = { resolve, reject, cleanup: () => signal.removeEventListener('abort', abort) }; state.setConfirmationVariantRef(variantRef)
 })
 
+/** Agents self-correct better from "field: problem" lines than from a serialized issue array. */
+const describeToolError = (error: unknown) => {
+  if (error instanceof z.ZodError) return error.issues.map((issue) => `${issue.path.map(String).join('.') || 'input'}: ${issue.message}`).join('; ')
+  return error instanceof Error ? error.message : 'Tool execution failed.'
+}
+
 type Handler<S extends z.ZodType> = (input: z.infer<S>, options: WebMcpExecuteOptions) => ToolPayload | Promise<ToolPayload>
 const define = <S extends z.ZodType>(definition: { name: string; title: string; runtimeDescription: string; input: S; readOnly?: boolean; handler: Handler<S> }): WebMcpTool => ({
-  name: definition.name, title: definition.title, description: definition.runtimeDescription, inputSchema: z.toJSONSchema(definition.input, { target: 'draft-7' }) as Record<string, unknown>, annotations: definition.readOnly ? { readOnlyHint: true } : undefined,
+  name: definition.name, title: definition.title, description: definition.runtimeDescription, inputSchema: inputSchemaFor(definition.name as WebMcpToolName),
+  annotations: definition.readOnly || untrustedContentTools.has(definition.name as WebMcpToolName)
+    ? { ...(definition.readOnly ? { readOnlyHint: true } : {}), ...(untrustedContentTools.has(definition.name as WebMcpToolName) ? { untrustedContentHint: true } : {}) }
+    : undefined,
   execute: async (raw, options) => {
     try { const context = { signal: options?.signal ?? new AbortController().signal }; if (context.signal.aborted) throw new DOMException('Tool execution cancelled.', 'AbortError'); return content(await definition.handler(definition.input.parse(raw), context)) }
-    catch (error) { const aborted = error instanceof DOMException && error.name === 'AbortError'; return content({ status: aborted ? 'cancelled' : 'error', projectRevision: useStudioStore.getState().project.revision, summary: error instanceof Error ? error.message : 'Tool execution failed.' }) }
+    catch (error) { const aborted = error instanceof DOMException && error.name === 'AbortError'; return content({ status: aborted ? 'cancelled' : 'error', projectRevision: useStudioStore.getState().project.revision, summary: describeToolError(error) }) }
   },
 })
 
 export const webMcpTools: WebMcpTool[] = [
-  define({ ...webMcpToolPrompts.get_project_state, input: webMcpSchemas.get_project_state, readOnly: true, handler: ({ detail }) => {
-    const state = useStudioStore.getState(); const metrics = calculateMetrics(state.project)
-    const data = detail === 'summary' ? { schemaVersion: 2, name: state.project.name, revision: state.project.revision, metrics, buildingRefs: state.project.buildings.map((building) => building.ref), variantRefs: state.variants.map((variant) => variant.ref) }
-      : detail === 'site' ? state.project.site : detail === 'structure' ? { buildings: state.project.buildings } : detail === 'landscape' ? { landscape: state.project.landscape, climateProfile: state.project.climateProfile, plantingGuidance: state.project.site.knowledgeBase.planting } : state.project
-    return { status: 'ok', projectRevision: state.project.revision, summary: `Returned ${detail} ProjectV2 state.`, metrics, data }
+  define({ ...webMcpToolPrompts.get_project_state, input: webMcpSchemas.get_project_state, readOnly: true, handler: ({ detail, objectRef }) => {
+    const state = useStudioStore.getState(); const project = state.project; const metrics = calculateMetrics(project)
+    if (objectRef) {
+      const found = findProjectObject(project, objectRef)
+      if (!found) throw new Error(`Object not found: ${objectRef}. Use a building, storey, slab, wall, opening, space, roof, zone, plant, fixture, parcel or entrance ref.`)
+      return { status: 'ok', projectRevision: project.revision, summary: `Returned ${found.kind} ${objectRef}.`, metrics, data: found }
+    }
+    const { knowledgeBase: _knowledgeBase, ...siteWithoutKnowledge } = project.site
+    const projectWithoutKnowledge = { ...project, site: siteWithoutKnowledge }
+    const data = detail === 'summary' ? { schemaVersion: 2, name: project.name, revision: project.revision, metrics, buildingRefs: project.buildings.map((building) => building.ref), variantRefs: state.variants.map((variant) => variant.ref) }
+      : detail === 'site' ? siteWithoutKnowledge : detail === 'structure' ? { buildings: project.buildings } : detail === 'landscape' ? { landscape: project.landscape, climateProfile: project.climateProfile } : projectWithoutKnowledge
+    return { status: 'ok', projectRevision: project.revision, summary: `Returned ${detail} ProjectV2 state.`, metrics, data }
+  } }),
+  define({ ...webMcpToolPrompts.get_site_knowledge, input: webMcpSchemas.get_site_knowledge, readOnly: true, handler: ({ section }) => {
+    const project = useStudioStore.getState().project
+    return { status: 'ok', projectRevision: project.revision, summary: `Returned knowledge bank ${section ?? 'overview'}.`, data: knowledgeSlice(project, section) }
   } }),
   define({ ...webMcpToolPrompts.get_proposals, input: webMcpSchemas.get_proposals, readOnly: true, handler: ({ proposalRef, status, includeDrafts }) => {
     const state = useStudioStore.getState(); const counts = state.proposals.reduce((result, proposal) => ({ ...result, [proposal.status]: result[proposal.status] + 1 }), { pending: 0, approved: 0, rejected: 0, stale: 0 })
@@ -122,10 +146,9 @@ export const webMcpTools: WebMcpTool[] = [
   } }),
   define({ ...webMcpToolPrompts.propose_garden_fixture, input: webMcpSchemas.propose_garden_fixture, handler: (input) => {
     if (input.mode === 'single') {
-      const { mode: _mode, ...command } = input
-      return createVariant('Garden fixture update', { type: 'garden-fixture.update', ...command })
+      return createVariant('Garden fixture update', { type: 'garden-fixture.update', action: input.action!, fixtureRef: input.fixtureRef!, catalogId: input.catalogId, name: input.name, position: input.position, rotationDegrees: input.rotationDegrees })
     }
-    const { preset, setRef, origin, placement, rotationDegrees } = input
+    const preset = input.preset!; const setRef = input.setRef!; const { origin, placement } = input; const rotationDegrees = input.rotationDegrees ?? 0
     const project = useStudioStore.getState().project
     const resolvedOrigin = placement === 'next-to-existing' ? nextGardenBedPosition(project) : origin
     if (!resolvedOrigin) throw new Error('Garden fixture set origin is required.')
@@ -135,12 +158,12 @@ export const webMcpTools: WebMcpTool[] = [
   define({ ...webMcpToolPrompts.manage_change_set, input: webMcpSchemas.manage_change_set, handler: (input) => {
     const state = useStudioStore.getState(); const project = state.project
     if (input.action === 'create') {
-      state.createDraftChangeSet(input.changeSetRef, input.label, input.baseRevision)
-      return { status: 'draft_created', projectRevision: project.revision, summary: `${input.label} draft created.`, changeSetRef: input.changeSetRef, baseRevision: input.baseRevision, operations: [], issues: [], metrics: calculateMetrics(project) }
+      state.createDraftChangeSet(input.changeSetRef, input.label!, input.baseRevision!)
+      return { status: 'draft_created', projectRevision: project.revision, summary: `${input.label} draft created.`, changeSetRef: input.changeSetRef, baseRevision: input.baseRevision!, operations: [], issues: [], metrics: calculateMetrics(project) }
     }
     if (input.action === 'add-operations') {
-      const { draft, preview } = state.addDraftOperations(input.changeSetRef, input.operations as ProjectCommand[])
-      return { status: 'draft_updated', projectRevision: project.revision, summary: `${input.operations.length} operation(s) added; ${draft.commands.length} total.`, changeSetRef: input.changeSetRef, baseRevision: draft.baseRevision, operations: commandAudit(draft.commands), issues: validateProject(preview), metrics: calculateMetrics(preview) }
+      const { draft, preview } = state.addDraftOperations(input.changeSetRef, input.operations! as ProjectCommand[])
+      return { status: 'draft_updated', projectRevision: project.revision, summary: `${input.operations!.length} operation(s) added; ${draft.commands.length} total.`, changeSetRef: input.changeSetRef, baseRevision: draft.baseRevision, operations: commandAudit(draft.commands), issues: validateProject(preview), metrics: calculateMetrics(preview) }
     }
     if (input.action === 'finalize') {
       const variant = state.finalizeDraftChangeSet(input.changeSetRef)
@@ -150,13 +173,55 @@ export const webMcpTools: WebMcpTool[] = [
     return { status: 'ok', projectRevision: project.revision, summary: 'Draft change set discarded.', changeSetRef: input.changeSetRef }
   } }),
   define({ ...webMcpToolPrompts.measure_height, input: webMcpSchemas.measure_height, readOnly: true, handler: (input) => {
-    const project = useStudioStore.getState().project; const measurement = measureHeight(project, input)
+    const project = useStudioStore.getState().project
+    const request = input.mode === 'semantic' ? { mode: 'semantic' as const, objectRef: input.objectRef!, measurement: input.measurement } : { mode: 'free-vertical' as const, startPoint: input.startPoint!, endPoint: input.endPoint! }
+    const measurement = measureHeight(project, request)
     return { status: 'ok', projectRevision: project.revision, summary: `${measurement.label}: ${measurement.heightM.toFixed(2)} m.`, measurement }
   } }),
   define({ ...webMcpToolPrompts.propose_climate_update, input: webMcpSchemas.propose_climate_update, handler: ({ month, ...values }) => createVariant('Climate update', { type: 'climate.update', month, values }) }),
   define({ ...webMcpToolPrompts.show_structure_views, input: webMcpSchemas.show_structure_views, readOnly: true, handler: (input, { signal }) => showStructureViews(input, signal) }),
   define({ ...webMcpToolPrompts.run_seasonal_analysis, input: webMcpSchemas.run_seasonal_analysis, readOnly: true, handler: ({ months, variantRef }) => { const state = useStudioStore.getState(); const project = projectForVariant(state.project, state.variants, variantRef); return { status: 'ok', projectRevision: state.project.revision, variantRef, summary: `Seasonal analysis completed for ${months.length} month(s).`, metrics: calculateMetrics(project), data: analyzeSeason(project, months) } } }),
+  define({ ...webMcpToolPrompts.run_sunlight_analysis, input: webMcpSchemas.run_sunlight_analysis, readOnly: true, handler: ({ targetRef, point, variantRef, includeGrid, month, day, stepMinutes, hours }) => {
+    const state = useStudioStore.getState(); const project = projectForVariant(state.project, state.variants, variantRef)
+    const target = resolveSunTarget(project, targetRef, point)
+    const analysis = analyzeSunlight(project, { target, month, day, stepMinutes, hours, includeGrid })
+    if (analysis.grid) analysis.grid = downsampleSunGrid(analysis.grid, 12)
+    const label = target.kind === 'point' ? `Point ${target.x}, ${target.z}` : target.kind === 'site' ? 'Site' : target.ref
+    return { status: 'ok', projectRevision: state.project.revision, variantRef, summary: `${label}: ${analysis.sunHours.mean} h direct sun on ${formatSunMoment(month, analysis.day, 12).slice(0, -6)} (${analysis.expectedSunHours} h expected after typical cloud).`, analysis }
+  } }),
+  define({ ...webMcpToolPrompts.set_viewer_state, input: webMcpSchemas.set_viewer_state, handler: ({ viewMode, explode, planStoreyRef, focusRef }) => {
+    const state = useStudioStore.getState()
+    if (focusRef) { const found = findProjectObject(state.project, focusRef); if (!found && focusRef !== 'site') throw new Error(`Object not found: ${focusRef}.`) }
+    if (viewMode) state.setViewMode(viewMode)
+    if (explode !== undefined) { state.setViewerMode('edit'); state.setExplodeStoreys(explode) }
+    if (planStoreyRef !== undefined) {
+      if (planStoreyRef && !state.project.buildings.some((building) => building.storeys.some((storey) => storey.ref === planStoreyRef))) throw new Error(`Storey not found: ${planStoreyRef}.`)
+      state.setActivePlanStoreyRef(planStoreyRef)
+    }
+    if (focusRef !== undefined) {
+      state.setSelectedRef(focusRef)
+      const kind = focusRef ? findProjectObject(state.project, focusRef)?.kind : undefined
+      if (kind === 'building') state.refocusCamera(); else if (kind === 'fixture' && focusRef) state.focusGardenFixtures(focusRef)
+    }
+    const next = useStudioStore.getState()
+    return { status: 'ok', projectRevision: next.project.revision, summary: `Viewer: ${next.viewMode}${next.explodeStoreys ? ', exploded' : ''}${next.selectedRef ? `, selected ${next.selectedRef}` : ''}.`, viewer: { viewMode: next.viewMode, explode: next.explodeStoreys, viewerMode: next.viewerMode, activePlanStoreyRef: next.activePlanStoreyRef, selectedRef: next.selectedRef } }
+  } }),
+  define({ ...webMcpToolPrompts.set_sun_time, input: webMcpSchemas.set_sun_time, handler: ({ month, day, hour }) => {
+    const state = useStudioStore.getState(); state.setSunTime({ month, day, hour })
+    const sunTime = useStudioStore.getState().sunTime
+    const site = { latitude: state.project.climateProfile.latitude, longitude: state.project.climateProfile.longitude, timezone: state.project.climateProfile.timezone }
+    const sun = solarPosition(site, sunTime); const events = sunriseSunset(site, sunTime)
+    return { status: 'ok', projectRevision: state.project.revision, summary: `Viewer sun set to ${formatSunMoment(sunTime.month, sunTime.day, sunTime.hour)}: altitude ${sun.altitudeDeg.toFixed(1)}°, azimuth ${sun.azimuthDeg.toFixed(0)}°.`, sunTime, altitudeDeg: Number(sun.altitudeDeg.toFixed(2)), azimuthDeg: Number(sun.azimuthDeg.toFixed(2)), sunriseLocal: events ? Number(events.sunriseHour.toFixed(2)) : null, sunsetLocal: events ? Number(events.sunsetHour.toFixed(2)) : null }
+  } }),
   define({ ...webMcpToolPrompts.compare_variants, input: webMcpSchemas.compare_variants, readOnly: true, handler: ({ variantRefs }) => { const state = useStudioStore.getState(); const variants = variantRefs.map((variantRef) => state.variants.find((variant) => variant.ref === variantRef) ?? (() => { throw new Error(`Variant not found: ${variantRef}`) })()); return { status: 'ok', projectRevision: state.project.revision, summary: `Compared ${variants.length} variants.`, data: variants.map(({ ref: variantRef, label, baseRevision, metrics, issues }) => ({ variantRef, label, baseRevision, metrics, issues })) } } }),
+  define({ ...webMcpToolPrompts.diff_variant, input: webMcpSchemas.diff_variant, readOnly: true, handler: ({ variantRef, baseVariantRef }) => {
+    const state = useStudioStore.getState()
+    const variant = state.variants.find((item) => item.ref === variantRef) ?? (() => { throw new Error(`Variant not found: ${variantRef}`) })()
+    const base = baseVariantRef ? projectForVariant(state.project, state.variants, baseVariantRef) : state.project
+    const diff = diffProjects(base, variant.project, { maxChanges: 40 })
+    const area = diff.metricDeltas.homeAreaM2 ? `; home area ${diff.metricDeltas.homeAreaM2.delta > 0 ? '+' : ''}${diff.metricDeltas.homeAreaM2.delta} m²` : ''
+    return { status: 'ok', projectRevision: state.project.revision, variantRef, baseVariantRef, summary: `${variant.label}: ${diff.counts.added} added, ${diff.counts.removed} removed, ${diff.counts.modified} modified${area}.`, diff }
+  } }),
   define({ ...webMcpToolPrompts.manage_variant, input: webMcpSchemas.manage_variant, handler: (input, { signal }) => {
     if (input.action === 'request-apply') return requestVariantApproval(input.variantRef, signal)
     const state = useStudioStore.getState(); state.discardVariant(input.variantRef, input.reason)

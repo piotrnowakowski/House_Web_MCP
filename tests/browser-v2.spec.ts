@@ -11,9 +11,15 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
     Object.assign(window, { __projectV2WebMcpTools: tools, __projectV2RevokedUrls: revoked })
     Object.defineProperty(document, 'modelContext', { configurable: true, value: { registerTool: async (tool: { name: string; execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }) => { tools[tool.name] = tool } } })
   })
+  const textureLoads: string[] = []
+  page.on('response', (response) => { if (response.url().includes('/textures/') && response.ok()) textureLoads.push(new URL(response.url()).pathname) })
   await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' })
 
   await expect(page.locator('canvas')).toHaveCount(1)
+  await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/leafy_grass/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
+  await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/brick_floor_04/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
+  await page.waitForTimeout(1200)
+  await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-textured-realistic.png' })
   await expect(page.getByText('Spatial Editor', { exact: true })).toBeVisible()
   await expect(page.getByText('PROJECTV2 / SEMANTIC MODEL')).toBeVisible()
   await expect(page.getByText('L-shaped modern barn')).toBeVisible()
@@ -106,6 +112,23 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   for (const mode of ['Section', 'Plan', 'Edit']) await page.getByRole('button', { name: mode, exact: true }).click()
   await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-editor.png' })
 
+  const sunWidget = page.getByRole('region', { name: 'Sun controls' })
+  await expect(sunWidget).toBeVisible()
+  await expect(sunWidget).toContainText('Altitude')
+  await expect(sunWidget).toContainText('Azimuth')
+  const beforeSun = await page.locator('.viewport').screenshot()
+  await sunWidget.getByRole('slider', { name: 'Local time' }).fill('7')
+  await page.waitForTimeout(500)
+  const afterSun = await page.locator('.viewport').screenshot()
+  expect(Buffer.compare(beforeSun, afterSun)).not.toBe(0)
+  await sunWidget.getByRole('button', { name: 'Sun hours' }).click()
+  await expect(page.getByLabel('Sun hours legend')).toBeVisible({ timeout: 20_000 })
+  await page.waitForTimeout(600)
+  await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-sun-hours.png' })
+  await sunWidget.getByRole('button', { name: 'Sun hours' }).click()
+  await expect(page.getByLabel('Sun hours legend')).toBeHidden()
+  await sunWidget.getByRole('slider', { name: 'Local time' }).fill('14')
+
   await page.getByRole('button', { name: 'Open garden fixtures' }).click()
   const fixtures = page.getByRole('region', { name: 'Garden fixture library' })
   await expect(fixtures).toBeVisible()
@@ -154,7 +177,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await page.getByRole('button', { name: 'MCP Tools' }).click()
   const catalog = page.getByRole('region', { name: 'WebMCP tool catalog' })
   await expect(catalog).toBeVisible()
-  await expect(catalog.locator('.tool-browser nav button')).toHaveCount(27)
+  await expect(catalog.locator('.tool-browser nav button')).toHaveCount(32)
   await expect(catalog.getByRole('link', { name: 'Open JSON' })).toHaveAttribute('href', /webmcp-tools\.json$/)
   await catalog.getByRole('searchbox', { name: 'Search tools' }).fill('run_seasonal_analysis')
   await expect(catalog.locator('.tool-browser nav button')).toHaveCount(1)
@@ -173,14 +196,14 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
       toolCount: value.toolCount,
       source: value.source,
       gardenTools: value.tools.map((tool) => tool.name).filter((name) => name.includes('garden_fixture')),
-      adjustmentTools: value.tools.map((tool) => tool.name).filter((name) => ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height'].includes(name)),
+      adjustmentTools: value.tools.map((tool) => tool.name).filter((name) => ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height', 'run_sunlight_analysis', 'set_sun_time'].includes(name)),
     }
   })
   expect(manifestSummary).toEqual({
-    toolCount: 27,
+    toolCount: 32,
     source: 'runtime-zod-and-structured-prompts',
     gardenTools: ['list_garden_fixtures', 'propose_garden_fixture'],
-    adjustmentTools: ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height'],
+    adjustmentTools: ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height', 'run_sunlight_analysis', 'set_sun_time'],
   })
   await page.waitForFunction(() => Boolean((window as unknown as { __projectV2WebMcpTools?: Record<string, unknown> }).__projectV2WebMcpTools?.propose_wall_opening_layout))
   const liveFacadeProof = await page.evaluate(async () => {
@@ -239,6 +262,14 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
     roof: { status: 'variant_created', targetScope: 'segment', roofChanges: [{ after: { eavesElevationM: 6.55, finish: { colorHex: '#364044' } } }] },
   })
   expect(liveAdjustmentProof.planting.count).toBeGreaterThan(40)
+  const liveSunProof = await page.evaluate(async () => {
+    const tools = (window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }> }).__projectV2WebMcpTools
+    const analysis = JSON.parse((await tools.run_sunlight_analysis.execute({ targetRef: 'zone/terrace', month: 9, day: 21 })).content[0].text) as { status: string; analysis: { sunHours: { mean: number }; expectedSunHours: number } }
+    const sun = JSON.parse((await tools.set_sun_time.execute({ month: 12, day: 21, hour: 12 })).content[0].text) as { status: string; projectRevision: number; altitudeDeg: number }
+    await tools.set_sun_time.execute({ month: 7, day: 15, hour: 14 })
+    return { analysisStatus: analysis.status, meanIsNumber: typeof analysis.analysis.sunHours.mean === 'number', expectedBelowMean: analysis.analysis.expectedSunHours <= analysis.analysis.sunHours.mean, sunStatus: sun.status, revision: sun.projectRevision, altitude: Math.round(sun.altitudeDeg) }
+  })
+  expect(liveSunProof).toEqual({ analysisStatus: 'ok', meanIsNumber: true, expectedBelowMean: true, sunStatus: 'ok', revision: 1, altitude: 16 })
   await page.evaluate(async () => {
     const browserWindow = window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }>; __pendingAdjustmentApproval?: Promise<unknown> }
     const proposal = JSON.parse((await browserWindow.__projectV2WebMcpTools.propose_storey_update.execute({ action: 'set-height', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper', clearHeightM: 3.2 })).content[0].text) as { variantRef: string }
@@ -256,6 +287,18 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await catalog.getByRole('button', { name: 'Close MCP tools' }).click()
   await expect(catalog).toBeHidden()
 
+  const sunStudy = await page.evaluate(async () => {
+    const tools = (window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }> }).__projectV2WebMcpTools
+    return JSON.parse((await tools.show_structure_views.execute({ mode: 'custom', views: [{ type: 'sun-study', month: 6, day: 21, hour: 15 }] })).content[0].text) as { status: string; views: Array<{ type: string; title: string }> }
+  })
+  expect(sunStudy.status).toBe('ok')
+  expect(sunStudy.views).toEqual([expect.objectContaining({ type: 'sun-study', title: 'Sun study, 21 Jun 15:00' })])
+  const sunReport = page.getByRole('region', { name: 'Architectural structure report' })
+  await expect(sunReport).toBeVisible({ timeout: 60_000 })
+  await expect(sunReport.locator('.thumbs button span')).toHaveText(['Sun study, 21 Jun 15:00'])
+  await sunReport.screenshot({ path: 'test-results/project-v2-sun-study.png' })
+  await sunReport.getByRole('button', { name: 'Close report' }).click()
+  await expect(sunReport).toBeHidden()
   const inspector = page.locator('.inspector')
   await inspector.getByRole('button', { name: /Hydrangea group/ }).click()
   const objectActions = inspector.getByRole('region', { name: 'Actions for Hydrangea group' })

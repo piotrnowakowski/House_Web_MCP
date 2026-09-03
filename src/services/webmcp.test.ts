@@ -16,7 +16,7 @@ describe('ProjectV2 WebMCP surface', () => {
   it('publishes the prompt-aligned V2 tool catalog without export or V1 nouns', () => {
     const toolNames = webMcpTools.map((item) => item.name)
     expect(toolNames).toEqual(Object.values(webMcpToolPrompts).map((prompt) => prompt.name))
-    expect(toolNames).toHaveLength(27)
+    expect(toolNames).toHaveLength(32)
     expect(toolNames).toEqual(expect.arrayContaining(['propose_garden_fixture', 'manage_change_set', 'manage_variant']))
     const retiredNames = ['propose_garden_fixture_update', 'propose_garden_fixture_set', 'create_change_set', 'add_change_set_operations', 'propose_change_set', 'discard_change_set', 'request_apply_variant', 'discard_variant']
     expect(toolNames.filter((name) => retiredNames.includes(name))).toEqual([])
@@ -34,6 +34,20 @@ describe('ProjectV2 WebMCP surface', () => {
     }
   })
 
+  it('describes every root parameter of every tool within the 150-character budget', () => {
+    for (const item of webMcpTools) {
+      const properties = (item.inputSchema?.properties ?? {}) as Record<string, { description?: string }>
+      for (const [name, property] of Object.entries(properties)) {
+        expect(property.description, `${item.name}.${name}`).toBeTruthy()
+        expect(property.description!.length, `${item.name}.${name}`).toBeLessThanOrEqual(150)
+      }
+    }
+  })
+
+  it('registers every tool with an object root schema so agent browsers can render its parameters', () => {
+    for (const item of webMcpTools) expect(item.inputSchema?.type, item.name).toBe('object')
+  })
+
   it('generates a complete inspectable manifest from runtime schemas and structured prompts', () => {
     expect(webMcpManifest.toolCount).toBe(webMcpTools.length)
     expect(webMcpManifest.tools.map((item) => item.name)).toEqual(webMcpTools.map((item) => item.name))
@@ -49,16 +63,44 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(webMcpManifest.tools.find((item) => item.name === 'show_structure_views')).toMatchObject({ readOnly: true })
     expect(webMcpManifest.tools.find((item) => item.name === 'get_proposals')).toMatchObject({ readOnly: true })
     expect(webMcpManifest.tools.find((item) => item.name === 'propose_building_update')).toMatchObject({ readOnly: false })
+    expect(webMcpManifest.tools.find((item) => item.name === 'set_viewer_state')).toMatchObject({ readOnly: false })
+    expect(webMcpManifest.tools.find((item) => item.name === 'set_sun_time')).toMatchObject({ readOnly: false })
   })
 
-  it('reads nested site and structure state', async () => {
-    const site = payload(await tool('get_project_state').execute({ detail: 'site' }))
+  it('reads nested site and structure state in agent-sized slices', async () => {
+    const siteResult = await tool('get_project_state').execute({ detail: 'site' }); const site = payload(siteResult)
     expect(site.data.parcels.map((parcel: { cadastralNumber: string }) => parcel.cadastralNumber)).toEqual(['54/3', '55/3', '58/3', '54/4', '55/4', '58/4'])
+    expect(site.data.knowledgeBase).toBeUndefined()
+    expect(siteResult.content[0].text.length).toBeLessThan(6000)
     const structure = payload(await tool('get_project_state').execute({ detail: 'structure' }))
     expect(structure.data.buildings[0]).toMatchObject({ storeys: expect.any(Array), slabs: expect.any(Array), walls: expect.any(Array), spaces: expect.any(Array) })
-    const landscape = payload(await tool('get_project_state').execute({ detail: 'landscape' }))
-    expect(landscape.data.plantingGuidance.soilAnalysis.findings).toHaveLength(5)
-    expect(landscape.data.plantingGuidance.recommendations.map((plant: { commonName: string }) => plant.commonName)).toEqual(expect.arrayContaining(['Tomato', 'Potato', 'Cucumber', 'Apple tree', 'Sour cherry']))
+    const landscapeResult = await tool('get_project_state').execute({ detail: 'landscape' }); const landscape = payload(landscapeResult)
+    expect(landscape.data.landscape.zones.length).toBeGreaterThan(0)
+    expect(landscape.data.plantingGuidance).toBeUndefined()
+    expect(landscapeResult.content[0].text.length).toBeLessThan(8000)
+    const full = payload(await tool('get_project_state').execute({ detail: 'full' }))
+    expect(full.data.site.knowledgeBase).toBeUndefined()
+    expect(full.data).toMatchObject({ site: { parcels: expect.any(Array) }, buildings: expect.any(Array), landscape: { zones: expect.any(Array) } })
+  })
+
+  it('serves the knowledge bank through its own untrusted-content tool and single objects by ref', async () => {
+    expect(tool('get_site_knowledge').annotations).toEqual({ readOnlyHint: true, untrustedContentHint: true })
+    expect(tool('get_project_state').annotations?.untrustedContentHint).toBeUndefined()
+    const overview = payload(await tool('get_site_knowledge').execute({}))
+    expect(overview.data.sections).toContain('planting')
+    const planting = payload(await tool('get_site_knowledge').execute({ section: 'planting' }))
+    expect(planting.data.soilAnalysis.findings).toHaveLength(5)
+    expect(planting.data.recommendations.map((plant: { commonName: string }) => plant.commonName)).toEqual(expect.arrayContaining(['Tomato', 'Potato', 'Cucumber', 'Apple tree', 'Sour cherry']))
+    const sources = await tool('get_site_knowledge').execute({ section: 'sources' })
+    expect(payload(sources).data).toHaveLength(9)
+    expect(sources.content[0].text.length).toBeLessThan(4000)
+    expect(payload(await tool('get_project_state').execute({ detail: 'knowledge' })).status).toBe('error')
+    const wallResult = await tool('get_project_state').execute({ objectRef: 'wall/east' }); const wall = payload(wallResult)
+    expect(wall.data).toMatchObject({ kind: 'wall', buildingRef: 'house/main', storeyRef: 'storey/ground', object: { ref: 'wall/east', openings: expect.any(Array) } })
+    expect(wallResult.content[0].text.length).toBeLessThan(1500)
+    const zone = payload(await tool('get_project_state').execute({ objectRef: 'zone/lawn' }))
+    expect(zone.data).toMatchObject({ kind: 'zone', object: { ref: 'zone/lawn' } })
+    expect(payload(await tool('get_project_state').execute({ objectRef: 'nothing/here' })).status).toBe('error')
   })
 
   it('lists ready fixtures and proposes a complete kitchen garden without committing it', async () => {
@@ -306,6 +348,15 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(() => expandStructureViews(tooMany, { mode: 'architectural-set' })).toThrow(/contains 13 views/)
   })
 
+  it('returns validation failures as readable field messages instead of raw issue JSON', async () => {
+    const parsed = payload(await tool('run_sunlight_analysis').execute({ month: 6 }))
+    expect(parsed.status).toBe('error')
+    expect(parsed.summary).toBe('targetRef: targetRef or point is required.')
+    const typed = payload(await tool('propose_roof_update').execute({ buildingRef: 'house/main', pitchDegrees: 95 }))
+    expect(typed.summary).toMatch(/^pitchDegrees: /)
+    expect(typed.summary).not.toMatch(/[{}\[\]]/)
+  })
+
   it('honors an already-aborted signal', async () => {
     const controller = new AbortController(); controller.abort()
     expect(payload(await tool('run_seasonal_analysis').execute({ months: [1, 7] }, { signal: controller.signal })).status).toBe('cancelled')
@@ -317,5 +368,107 @@ describe('ProjectV2 WebMCP surface', () => {
     const proposed = payload(await tool('propose_climate_update').execute({ month: 7, temperatureByDayPartC: { night: 15, morning: 19, day: 24, evening: 20 } }))
     expect(proposed.status).toBe('variant_created')
     expect(useStudioStore.getState().variants[0].project.climateProfile.months[6].temperatureByDayPartC).toEqual({ night: 15, morning: 19, day: 24, evening: 20 })
+  })
+})
+
+describe('variant explanation and viewer tools', () => {
+  beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), history: [], variants: [], selectedRef: null, viewMode: 'realistic', explodeStoreys: false, confirmationVariantRef: null }))
+
+  it('explains a ghost variant as compact object changes and metric deltas', async () => {
+    const proposal = payload(await tool('propose_storey_update').execute({
+      action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
+      extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }], spaceRef: 'house/main/storey-upper/space-wing',
+    }))
+    const result = await tool('diff_variant').execute({ variantRef: proposal.variantRef }); const parsed = payload(result)
+    expect(tool('diff_variant').annotations?.readOnlyHint).toBe(true)
+    expect(parsed).toMatchObject({ status: 'ok', variantRef: proposal.variantRef, diff: { metricDeltas: { homeAreaM2: { before: 204, after: 300, delta: 96 } } } })
+    expect(parsed.diff.changes).toContainEqual({ kind: 'slab', ref: 'slab/upper', change: 'modified', fields: ['footprint'] })
+    expect(result.content[0].text.length).toBeLessThan(1500)
+    expect(payload(await tool('diff_variant').execute({ variantRef: 'variant/missing' })).status).toBe('error')
+  })
+
+  it('drives the viewer without touching the project', async () => {
+    const parsed = payload(await tool('set_viewer_state').execute({ viewMode: 'technical', explode: true, focusRef: 'wall/courtyard-living' }))
+    expect(tool('set_viewer_state').annotations).toBeUndefined()
+    expect(parsed).toMatchObject({ status: 'ok', projectRevision: 1, viewer: { viewMode: 'technical', explode: true, selectedRef: 'wall/courtyard-living' } })
+    const state = useStudioStore.getState()
+    expect(state.viewMode).toBe('technical'); expect(state.explodeStoreys).toBe(true); expect(state.selectedRef).toBe('wall/courtyard-living')
+    expect(state.project.revision).toBe(1); expect(state.variants).toEqual([])
+    expect(payload(await tool('set_viewer_state').execute({ focusRef: 'nothing/here' })).status).toBe('error')
+    const cleared = payload(await tool('set_viewer_state').execute({ focusRef: null, explode: false }))
+    expect(cleared.viewer).toMatchObject({ selectedRef: null, explode: false })
+  })
+
+  it('focuses the camera on the requested fixture instead of the fixture-group centroid', async () => {
+    const withFirstFixture = applyCommand(sampleProject, { type: 'garden-fixture.update', action: 'add', fixtureRef: 'fixture/first', catalogId: 'raised-bed-2x1', position: { x: 4, z: 6 } })
+    const project = applyCommand(withFirstFixture, { type: 'garden-fixture.update', action: 'add', fixtureRef: 'fixture/target', catalogId: 'tomato-row', position: { x: 20, z: 30 } })
+    useStudioStore.setState({ project })
+
+    const parsed = payload(await tool('set_viewer_state').execute({ focusRef: 'fixture/target' }))
+
+    expect(parsed).toMatchObject({ status: 'ok', viewer: { selectedRef: 'fixture/target' } })
+    expect(useStudioStore.getState().gardenFocusRequest).toMatchObject({ targetX: 20, targetZ: 30 })
+  })
+})
+
+describe('sunlight WebMCP surface', () => {
+  beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), history: [], variants: [], sunTime: { month: 7, day: 15, hour: 14 } }))
+
+  it('analyses sun hours for a zone without creating variants and within the output budget', async () => {
+    const result = await tool('run_sunlight_analysis').execute({ targetRef: 'zone/lawn', month: 6, day: 21 })
+    const parsed = payload(result)
+    expect(tool('run_sunlight_analysis').annotations?.readOnlyHint).toBe(true)
+    expect(parsed.status).toBe('ok')
+    expect(typeof parsed.analysis.sunHours.mean).toBe('number')
+    expect(parsed.analysis.grid).toBeUndefined()
+    expect(result.content[0].text.length).toBeLessThan(1500)
+    expect(useStudioStore.getState().variants).toEqual([])
+  })
+
+  it('returns a downsampled grid only on request and analyses a ghost variant when given its ref', async () => {
+    const griddedResult = await tool('run_sunlight_analysis').execute({ targetRef: 'zone/lawn', month: 6, includeGrid: true }); const gridded = payload(griddedResult)
+    expect(gridded.analysis.grid.width).toBeLessThanOrEqual(12)
+    expect(gridded.analysis.grid.height).toBeLessThanOrEqual(12)
+    expect(griddedResult.content[0].text.length).toBeLessThan(1500)
+    expect(gridded.analysis.grid.hours).toHaveLength(gridded.analysis.grid.width * gridded.analysis.grid.height)
+    const proposal = payload(await tool('propose_storey_update').execute({
+      action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
+      extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }],
+    }))
+    const committed = payload(await tool('run_sunlight_analysis').execute({ targetRef: 'zone/terrace', month: 9 }))
+    const ghost = payload(await tool('run_sunlight_analysis').execute({ targetRef: 'zone/terrace', month: 9, variantRef: proposal.variantRef }))
+    expect(ghost.variantRef).toBe(proposal.variantRef)
+    expect(ghost.analysis.sunHours.mean).toBeLessThan(committed.analysis.sunHours.mean)
+  })
+
+  it('accepts a point target and rejects a call with neither target nor point', async () => {
+    const point = payload(await tool('run_sunlight_analysis').execute({ point: { x: 3, z: 2 }, month: 6, hours: { from: 9, to: 17 } }))
+    expect(point.status).toBe('ok')
+    expect(point.analysis.window).toEqual({ fromLocal: 9, toLocal: 17 })
+    expect(payload(await tool('run_sunlight_analysis').execute({ month: 6 })).status).toBe('error')
+  })
+
+  it('moves the viewer sun without touching the committed revision', async () => {
+    const parsed = payload(await tool('set_sun_time').execute({ month: 12, day: 21, hour: 12 }))
+    expect(tool('set_sun_time').annotations).toBeUndefined()
+    expect(parsed).toMatchObject({ status: 'ok', projectRevision: 1, sunTime: { month: 12, day: 21, hour: 12 } })
+    expect(parsed.altitudeDeg).toBeCloseTo(16.3, 0)
+    expect(parsed.sunriseLocal).toBeCloseTo(7.61, 1)
+    expect(useStudioStore.getState().sunTime).toEqual({ month: 12, day: 21, hour: 12 })
+    expect(useStudioStore.getState().project.revision).toBe(1)
+    expect(useStudioStore.getState().variants).toEqual([])
+  })
+
+  it('expands a sun-study view with a dated title', () => {
+    const { views } = expandStructureViews(sampleProject, { mode: 'custom', views: [{ type: 'sun-study', month: 6, day: 21, hour: 15 }] })
+    expect(views).toHaveLength(1)
+    expect(views[0].title).toBe('Sun study, 21 Jun 15:00')
+  })
+
+  it('adds local sunrise, sunset and noon altitude to the seasonal analysis', async () => {
+    const parsed = payload(await tool('run_seasonal_analysis').execute({ months: [7] }))
+    expect(parsed.data[0].sunriseLocal).toBeCloseTo(4.79, 1)
+    expect(parsed.data[0].sunsetLocal).toBeCloseTo(20.75, 1)
+    expect(parsed.data[0].solarNoonAltitudeDeg).toBeCloseTo(61.4, 0)
   })
 })
