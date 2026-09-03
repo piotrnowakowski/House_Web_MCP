@@ -17,7 +17,6 @@ import { wallFinishCommands } from '../domain/wallFinishes'
 import { wallOpeningLayoutCommands } from '../domain/wallOpeningLayouts'
 import { useStudioStore } from '../state/store'
 import { showStructureViews } from './structureViews'
-import { controlCamera } from './cameraControl'
 import { inputSchemaFor, untrustedContentTools, webMcpSchemas, type WebMcpToolName } from './webmcpDefinitions'
 
 type ToolPayload = { status: string; projectRevision: number; summary: string; variantRef?: string; issues?: ProjectIssue[]; metrics?: ProjectMetrics; data?: unknown; [key: string]: unknown }
@@ -208,20 +207,6 @@ export const webMcpTools: WebMcpTool[] = [
     const next = useStudioStore.getState()
     return { status: 'ok', projectRevision: next.project.revision, summary: `Viewer: ${next.explodeStoreys ? 'exploded' : 'assembled'}${next.selectedRef ? `, selected ${next.selectedRef}` : ''}.`, viewer: { explode: next.explodeStoreys, viewerMode: next.viewerMode, activePlanStoreyRef: next.activePlanStoreyRef, selectedRef: next.selectedRef } }
   } }),
-  define({ ...webMcpToolPrompts.control_camera, input: webMcpSchemas.control_camera, readOnly: true, handler: async (input, { signal }) => {
-    const state = useStudioStore.getState()
-    if (state.viewerMode !== 'edit') {
-      state.setViewerMode('edit')
-      if (typeof requestAnimationFrame === 'function') await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
-    }
-    const camera = await controlCamera(input, signal)
-    const roundPoint = ({ x, y, z }: typeof camera.position) => ({ x: Number(x.toFixed(4)), y: Number(y.toFixed(4)), z: Number(z.toFixed(4)) })
-    return {
-      status: 'ok', projectRevision: state.project.revision,
-      summary: `Camera moved to (${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}) looking at (${camera.target.x.toFixed(2)}, ${camera.target.y.toFixed(2)}, ${camera.target.z.toFixed(2)}).`,
-      camera: { ...camera, position: roundPoint(camera.position), target: roundPoint(camera.target), focalOffset: roundPoint(camera.focalOffset) },
-    }
-  } }),
   define({ ...webMcpToolPrompts.set_sun_time, input: webMcpSchemas.set_sun_time, readOnly: true, handler: ({ month, day, hour }) => {
     const state = useStudioStore.getState(); state.setSunTime({ month, day, hour })
     const sunTime = useStudioStore.getState().sunTime
@@ -246,10 +231,18 @@ export const webMcpTools: WebMcpTool[] = [
   define({ ...webMcpToolPrompts.undo_last_change, input: webMcpSchemas.undo_last_change, handler: () => { const project = useStudioStore.getState().undo(); return { status: 'ok', projectRevision: project.revision, summary: 'Last committed change was undone.', metrics: calculateMetrics(project) } } }),
 ]
 
+type WebMcpRegistrationHost = typeof globalThis & { __projectV2WebMcpRegistrationController?: AbortController }
+
 export const registerWebMcpTools = () => {
   const modelContext = document.modelContext; const available = Boolean(modelContext?.registerTool); useStudioStore.getState().setWebMcpAvailable(available)
   if (!modelContext) return () => undefined
+  const registrationHost = globalThis as WebMcpRegistrationHost
+  registrationHost.__projectV2WebMcpRegistrationController?.abort()
   const controller = new AbortController()
+  registrationHost.__projectV2WebMcpRegistrationController = controller
   Promise.all(webMcpTools.map((tool) => modelContext.registerTool(tool, { signal: controller.signal }))).catch((error) => { if (!controller.signal.aborted) useStudioStore.getState().setToast(`WebMCP registration failed: ${error instanceof Error ? error.message : 'unknown error'}`) })
-  return () => controller.abort()
+  return () => {
+    controller.abort()
+    if (registrationHost.__projectV2WebMcpRegistrationController === controller) delete registrationHost.__projectV2WebMcpRegistrationController
+  }
 }

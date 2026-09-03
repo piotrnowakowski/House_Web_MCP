@@ -1,6 +1,7 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 test('ProjectV2 editor and architectural report work in one real canvas', async ({ page }) => {
+  test.setTimeout(240_000)
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()) })
@@ -34,6 +35,16 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await expect(modernBarn).toContainText('2 levels · 45° gable')
   await expect(page.locator('.model-tree').first()).toContainText('2 storey')
   await expect(page.getByRole('button', { name: 'Open garden fixtures' })).toContainText('6 placed')
+  const initialInspector = page.locator('.inspector')
+  await initialInspector.getByRole('button', { name: /Old apple tree/ }).click()
+  const appleActions = initialInspector.getByRole('region', { name: 'Actions for Old apple tree' })
+  await expect(appleActions).toContainText('Retained site feature')
+  await appleActions.getByRole('button', { name: 'Unlock' }).click()
+  await expect(page.getByRole('status')).toContainText('Old apple tree unlocked')
+  await expect(appleActions.getByRole('button', { name: 'Move' })).toBeEnabled()
+  await expect(initialInspector).toContainText('Editable')
+  await page.keyboard.press('Control+z')
+  await expect(appleActions.getByRole('button', { name: 'Unlock' })).toBeVisible()
   await page.getByRole('button', { name: 'Edit openings on courtyard living' }).click()
   const openingEditor = page.getByRole('region', { name: 'Openings on courtyard living' })
   await expect(openingEditor).toBeVisible()
@@ -82,7 +93,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await expect(page.getByRole('status')).toContainText('Last change undone.')
   const refocus = page.getByRole('button', { name: 'Refocus on Main house' })
   await expect(refocus).toBeVisible()
-  await page.getByRole('button', { name: 'Plan', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Plan', exact: true })).toHaveCount(0)
   await refocus.click()
   await expect(page.getByRole('button', { name: 'Edit', exact: true })).toHaveClass(/active/)
   await expect(page.getByRole('status')).toContainText('Camera refocused on L-shaped modern barn.')
@@ -136,7 +147,8 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await expect(page.locator('.spatial-measurement-label.height')).toContainText('Ground to ridge')
   await expect(page.locator('.spatial-measurement-label.height')).toContainText('abs.')
   await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-height-measurement.png' })
-  for (const mode of ['Section', 'Plan', 'Edit']) await page.getByRole('button', { name: mode, exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Section', exact: true })).toHaveCount(0)
+  await page.getByRole('button', { name: 'Edit', exact: true }).click()
   await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-editor.png' })
 
   const sunWidget = page.getByRole('region', { name: 'Sun controls' })
@@ -159,8 +171,11 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await page.getByRole('button', { name: 'Open garden fixtures' }).click()
   const fixtures = page.getByRole('region', { name: 'Garden fixture library' })
   await expect(fixtures).toBeVisible()
-  await expect(fixtures.locator('.fixture-row')).toHaveCount(4)
+  await expect(fixtures.locator('.fixture-row')).toHaveCount(9)
   await expect(fixtures).toContainText('Starter kitchen garden')
+  await expect(fixtures).toContainText('Teak dining set')
+  await expect(fixtures).toContainText('Garden lounge set')
+  await expect(fixtures).toContainText('Cantilever parasol')
   await expect(fixtures).toContainText('Tomato row')
   await expect(fixtures).toContainText('Potato row')
   await expect(fixtures).toContainText('Cucumber trellis')
@@ -171,6 +186,15 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await expect(fixtures).toBeHidden()
   await page.waitForTimeout(700)
   await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-garden-scene.png' })
+  await page.getByRole('button', { name: 'Open garden fixtures' }).click()
+  const diningRow = fixtures.locator('.fixture-row').filter({ hasText: 'Teak dining set' })
+  await diningRow.getByRole('button', { name: 'Add' }).click()
+  await expect(diningRow).toContainText('1 placed')
+  await fixtures.getByRole('button', { name: 'Close garden fixtures' }).click()
+  await page.waitForTimeout(700)
+  await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-outdoor-dining-set.png' })
+  await page.keyboard.press('Control+z')
+  await expect(page.getByRole('button', { name: 'Open garden fixtures' })).toContainText('6 placed')
 
   await page.getByRole('button', { name: 'Climate' }).click()
   const climate = page.getByRole('region', { name: 'Monthly temperature by part of day' })
@@ -191,12 +215,34 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   const planting = page.getByRole('region', { name: 'Planting guide and soil analysis' })
   await expect(planting).toBeVisible()
   await expect(planting.getByText('Known ground conditions')).toBeVisible()
+  await expect(planting.getByText("Blackcurrant 'Ben Alder'", { exact: true })).toBeVisible()
+  await expect(planting.getByText('Black chokeberry', { exact: true })).toBeVisible()
+  await expect(planting.getByText('Common elder', { exact: true })).toBeVisible()
+  await expect(planting.locator('.fit.best-fit')).toHaveCount(3)
   await expect(planting.getByText('Tomato', { exact: true })).toBeVisible()
   await expect(planting.getByText('Potato', { exact: true })).toBeVisible()
   await expect(planting.getByText('Cucumber', { exact: true })).toBeVisible()
   await expect(planting.getByText('Apple tree', { exact: true })).toBeVisible()
   await expect(planting.getByText('Sour cherry', { exact: true })).toBeVisible()
   await expect(planting.getByText('pH and fertility')).toBeVisible()
+  const plantingFontSizes = await planting.evaluate((panel) => [
+    panel.querySelector('.soil-summary'),
+    panel.querySelector('.soil-findings p'),
+    panel.querySelector('.plant-list article > p'),
+  ].map((element) => element ? Number.parseFloat(getComputedStyle(element).fontSize) : 0))
+  expect(Math.min(...plantingFontSizes)).toBeGreaterThanOrEqual(11)
+  const panelZIndex = await planting.evaluate((panel) => Number.parseInt(getComputedStyle(panel).zIndex, 10))
+  const sceneLabelZIndexes = await page.locator('.sun-tick-label, .compass-label, .site-entrance-label').evaluateAll((labels) => labels.map((label) => {
+    let element: Element | null = label
+    let highestZIndex = 0
+    while (element && element !== document.body) {
+      const zIndex = Number.parseInt(getComputedStyle(element).zIndex, 10)
+      if (Number.isFinite(zIndex)) highestZIndex = Math.max(highestZIndex, zIndex)
+      element = element.parentElement
+    }
+    return highestZIndex
+  }))
+  expect(Math.max(...sceneLabelZIndexes)).toBeLessThan(panelZIndex)
   await planting.screenshot({ path: 'test-results/project-v2-planting-guide.png' })
   await planting.getByRole('button', { name: 'Close planting guide' }).click()
   await expect(planting).toBeHidden()
@@ -204,7 +250,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await page.getByRole('button', { name: 'MCP Tools' }).click()
   const catalog = page.getByRole('region', { name: 'WebMCP tool catalog' })
   await expect(catalog).toBeVisible()
-  await expect(catalog.locator('.tool-browser nav button')).toHaveCount(34)
+  await expect(catalog.locator('.tool-browser nav button')).toHaveCount(33)
   await expect(catalog.getByRole('link', { name: 'Open JSON' })).toHaveAttribute('href', /webmcp-tools\.json$/)
   await catalog.getByRole('searchbox', { name: 'Search tools' }).fill('run_seasonal_analysis')
   await expect(catalog.locator('.tool-browser nav button')).toHaveCount(1)
@@ -223,14 +269,14 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
       toolCount: value.toolCount,
       source: value.source,
       gardenTools: value.tools.map((tool) => tool.name).filter((name) => name.includes('garden_fixture')),
-      adjustmentTools: value.tools.map((tool) => tool.name).filter((name) => ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height', 'run_sunlight_analysis', 'control_camera', 'set_sun_time'].includes(name)),
+      adjustmentTools: value.tools.map((tool) => tool.name).filter((name) => ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height', 'run_sunlight_analysis', 'set_sun_time'].includes(name)),
     }
   })
   expect(manifestSummary).toEqual({
-    toolCount: 34,
+    toolCount: 33,
     source: 'runtime-zod-and-structured-prompts',
     gardenTools: ['list_garden_fixtures', 'propose_garden_fixture'],
-    adjustmentTools: ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height', 'run_sunlight_analysis', 'control_camera', 'set_sun_time'],
+    adjustmentTools: ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height', 'run_sunlight_analysis', 'set_sun_time'],
   })
   await page.waitForFunction(() => Boolean((window as unknown as { __projectV2WebMcpTools?: Record<string, unknown> }).__projectV2WebMcpTools?.propose_wall_opening_layout))
   const liveFacadeProof = await page.evaluate(async () => {
@@ -260,7 +306,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
     return { catalogIds: catalog.data.map((fixture) => fixture.id), proposalStatus: proposal.status, proposedFixtureCount: proposal.metrics.fixtureCount, committedFixtureCount: state.data.landscape.fixtures.length }
   })
   expect(liveGardenFixtureProof).toEqual({
-    catalogIds: ['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis'],
+    catalogIds: ['outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis'],
     proposalStatus: 'variant_created',
     proposedFixtureCount: 8,
     committedFixtureCount: 6,
@@ -297,17 +343,6 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
     return { analysisStatus: analysis.status, meanIsNumber: typeof analysis.analysis.sunHours.mean === 'number', expectedBelowMean: analysis.analysis.expectedSunHours <= analysis.analysis.sunHours.mean, sunStatus: sun.status, revision: sun.projectRevision, altitude: Math.round(sun.altitudeDeg) }
   })
   expect(liveSunProof).toEqual({ analysisStatus: 'ok', meanIsNumber: true, expectedBelowMean: true, sunStatus: 'ok', revision: 1, altitude: 16 })
-  const liveCameraProof = await page.evaluate(async () => {
-    const tools = (window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }> }).__projectV2WebMcpTools
-    return JSON.parse((await tools.control_camera.execute({
-      position: { x: 18, y: 12, z: 24 }, target: { x: 0, y: 3, z: 1.5 },
-      projection: 'perspective', fovDegrees: 38, zoom: 1, focalOffset: { x: 0, y: 0, z: 0 }, smooth: false,
-    })).content[0].text) as { status: string; projectRevision: number; camera: { position: { x: number; y: number; z: number }; target: { x: number; y: number; z: number }; projection: string } }
-  })
-  expect(liveCameraProof).toMatchObject({
-    status: 'ok', projectRevision: 1,
-    camera: { position: { x: 18, y: 12, z: 24 }, target: { x: 0, y: 3, z: 1.5 }, projection: 'perspective' },
-  })
   await page.evaluate(async () => {
     const browserWindow = window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }>; __pendingAdjustmentApproval?: Promise<unknown> }
     const proposal = JSON.parse((await browserWindow.__projectV2WebMcpTools.propose_storey_update.execute({ action: 'set-height', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper', clearHeightM: 3.2 })).content[0].text) as { variantRef: string }
@@ -377,9 +412,10 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await expect(report.locator('.drawing img')).toHaveAttribute('src', /^blob:/)
   await report.screenshot({ path: 'test-results/project-v2-architectural-report.png' })
 
+  const revokedBeforeArchitecturalClose = await page.evaluate(() => (window as unknown as { __projectV2RevokedUrls: string[] }).__projectV2RevokedUrls.length)
   await report.getByRole('button', { name: 'Close report' }).click()
   await expect(report).toBeHidden()
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __projectV2RevokedUrls: string[] }).__projectV2RevokedUrls.length)).toBe(10)
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __projectV2RevokedUrls: string[] }).__projectV2RevokedUrls.length)).toBe(revokedBeforeArchitecturalClose + 10)
   await page.waitForFunction(() => Boolean((window as unknown as { __projectV2WebMcpTools?: Record<string, unknown> }).__projectV2WebMcpTools?.show_structure_views))
   const variantResult = await page.evaluate(async () => {
     const tools = (window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }> }).__projectV2WebMcpTools
@@ -393,9 +429,10 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await expect(report).toBeVisible({ timeout: 60_000 })
   await expect(report.locator('.thumbs button')).toHaveCount(1)
   await expect(report.locator('.placement tbody')).toContainText('2.00 / -1.00 m')
+  const revokedBeforeVariantClose = await page.evaluate(() => (window as unknown as { __projectV2RevokedUrls: string[] }).__projectV2RevokedUrls.length)
   await report.getByRole('button', { name: 'Close report' }).click()
   await expect(report).toBeHidden()
-  await expect.poll(() => page.evaluate(() => (window as unknown as { __projectV2RevokedUrls: string[] }).__projectV2RevokedUrls.length)).toBe(11)
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __projectV2RevokedUrls: string[] }).__projectV2RevokedUrls.length)).toBe(revokedBeforeVariantClose + 1)
   await expect(page.locator('canvas')).toHaveCount(1)
   expect(errors).toEqual([])
 })
@@ -437,6 +474,14 @@ test('house remains visible when zoomed out across the long plot', async ({ page
   expect(errors).toEqual([])
 })
 
+const savedBuildingCount = (page: Page, name: string) => page.evaluate((projectName) => new Promise<number>((resolve) => {
+  const request = indexedDB.open('house-web-mcp')
+  request.onsuccess = () => {
+    const database = request.result; const all = database.transaction('projects').objectStore('projects').getAll()
+    all.onsuccess = () => { database.close(); const record = (all.result as Array<{ project?: { name: string; buildings: unknown[] } }>).find((item) => item?.project?.name === projectName); resolve(record?.project?.buildings.length ?? -1) }
+  }
+}), name)
+
 test('creates a blank terrain from the start screen and returns to it after a reload', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
@@ -464,20 +509,20 @@ test('creates a blank terrain from the start screen and returns to it after a re
   await expect(page.getByRole('status')).toContainText('House added')
   await expect(page.locator('.wall-tree button')).toHaveCount(4)
   await expect(page.getByRole('button', { name: /Modern barn/ })).toBeVisible()
-  // the autosave keeps the new plot; a reload offers to continue it
-  await expect.poll(async () => page.evaluate(() => new Promise<string[]>((resolve) => { const request = indexedDB.open('house-web-mcp'); request.onsuccess = () => { const keys = request.result.transaction('projects').objectStore('projects').getAllKeys(); keys.onsuccess = () => resolve(keys.result.map(String)) } })), { timeout: 10_000 }).toContain('active')
+  // the autosave must hold the house before the page goes away
+  await expect.poll(() => savedBuildingCount(page, 'Test plot'), { timeout: 10_000 }).toBe(1)
   await page.reload({ waitUntil: 'networkidle' })
   const again = page.getByRole('dialog', { name: 'Where do you want to plan today?' })
   await expect(again).toBeVisible()
-  await again.getByRole('button', { name: /Continue.*Test plot/ }).click()
+  await again.getByRole('button', { name: /Continue · Test plot/ }).click()
   await expect(again).toBeHidden()
   await expect(page.locator('.brand')).toContainText('Test plot')
   await expect(page.locator('.wall-tree button')).toHaveCount(4)
-  // the Projects button reopens the start screen and the bundled study resets the demo
   await page.getByRole('button', { name: 'Projects' }).click()
   await expect(again).toBeVisible()
   await expect(again).toContainText('Test plot')
   await again.getByRole('button', { name: /Zielonki house study/ }).click()
+  await expect(again).toBeHidden()
   await expect(page.getByText('L-shaped modern barn')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Open garden fixtures' })).toContainText('6 placed')
   expect(errors).toEqual([])

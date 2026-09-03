@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { applyCommand, applyCommands, calculateMetrics, validateProject } from '../domain/commands'
 import { ensureStarterGarden } from '../domain/gardenFixtures'
+import { ensureStarterOrchard } from '../domain/orchard'
 import { applyModernBarnPreset, isModernBarnPreset } from '../domain/presets'
 import { slugify } from '../domain/refs'
 import { modernBarnProject } from '../domain/sampleProject'
@@ -173,7 +174,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     return project
   },
   loadBundledStudy: () => {
-    const project = ensureStarterGarden(structuredClone(modernBarnProject))
+    const project = ensureStarterOrchard(ensureStarterGarden(structuredClone(modernBarnProject)))
     get().replaceProject(project)
     set((state) => ({ launcherOpen: false, hydrated: true, selectedRef: null, cameraRefocusRequest: state.cameraRefocusRequest + 1, toast: 'Loaded the Zielonki house study.' }))
   },
@@ -181,7 +182,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     try {
       const saved = await loadWorkspace(ref)
       if (!saved) { set({ toast: `Saved project not found: ${ref}.` }); return }
-      const project = isZielonkiProject(saved.project) ? ensureStarterGarden(applyModernBarnPreset(saved.project)) : saved.project
+      const project = isZielonkiProject(saved.project) ? ensureStarterOrchard(ensureStarterGarden(applyModernBarnPreset(saved.project))) : saved.project
       get().restoreWorkspace({ ...saved, project })
       set((state) => ({ launcherOpen: false, hydrated: true, cameraRefocusRequest: state.cameraRefocusRequest + 1 }))
     } catch (error) { set({ toast: `Saved project could not be opened: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }

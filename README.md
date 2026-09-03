@@ -108,7 +108,7 @@ The climate panel shows representative temperature averages for every month spli
 
 The planting guide separates productive and landscape recommendations. Its productive catalogue includes tomatoes, potatoes, cucumbers, apples, sour cherries, pears and plums, with planting/harvest windows and site-specific cautions. A dedicated soil-analysis section distinguishes documented ground observations from unknown horticultural properties, lists the laboratory and drainage checks still needed, and gives conservative raised-bed and orchard-mound preparation principles.
 
-The default project includes three timber raised beds planted with tomatoes, potatoes and cucumbers. Use **Garden fixtures** in the viewport to focus the camera on the set, place another complete set or add individual structures and crop rows. Fixtures are semantic, selectable project objects rather than decorative canvas-only geometry.
+The default project includes three timber raised beds planted with tomatoes, potatoes and cucumbers. Use **Garden fixtures** in the viewport to browse and place outdoor furniture—including a teak dining set, lounge set, bench, sun lounger and cantilever parasol—or add individual garden structures and crop rows. Fixtures are semantic, selectable project objects rather than decorative canvas-only geometry, and the same catalogue is available through WebMCP.
 
 ## Spatial and viewer stack
 
@@ -183,7 +183,7 @@ Use **MCP Tools** in the application to inspect the registered catalogue. The pa
 | `propose_landscape_update` | Edit a straight-edged landscape polygon |
 | `propose_plant_update` | Edit a terrain-supported plant |
 | `propose_planting_area` | Create one deterministic boundary, line or polygon planting scheme |
-| `list_garden_fixtures` | Read the ready structure and crop-fixture catalogue |
+| `list_garden_fixtures` | Read the outdoor-furniture, structure and crop-fixture catalogue |
 | `list_textures` | Read the CC0 material scan library for walls and ground zones |
 | `propose_garden_fixture` | Add, remove, move or rotate one fixture, or place a coordinated garden preset selected by `mode` |
 | `manage_change_set` | Create, populate, finalize or discard a transactional draft selected by `action` |

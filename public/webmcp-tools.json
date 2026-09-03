@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "source": "runtime-zod-and-structured-prompts",
-  "toolCount": 34,
+  "toolCount": 33,
   "tools": [
     {
       "name": "get_project_state",
@@ -36,7 +36,7 @@
           "objectRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable ref of one object to read or measure, e.g. wall/east, zone/lawn, house/main."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           }
         },
         "required": [
@@ -163,7 +163,7 @@
           "proposalRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable ref of one proposal to inspect; omit to list."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "status": {
             "type": "string",
@@ -218,10 +218,10 @@
       "title": "List ready garden fixtures",
       "readOnly": true,
       "untrustedContent": false,
-      "description": "Read the editor-owned fixture catalog for raised beds and standard crop rows, including semantic IDs and metre dimensions.",
+      "description": "Read the editor-owned catalogue for outdoor furniture, garden structures and crop rows, including semantic IDs and metre dimensions.",
       "prompt": {
         "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
-        "task": "Read the editor-owned fixture catalog for raised beds and standard crop rows, including semantic IDs and metre dimensions.",
+        "task": "Read the editor-owned catalogue for outdoor furniture, garden structures and crop rows, including semantic IDs and metre dimensions.",
         "input": "Input is an empty JSON object.",
         "tools": "Use before proposing garden fixtures. This is read-only. Use only returned catalog IDs; do not invent fixture types.",
         "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns data as an array of fixture definitions with id, name, category, description, widthM, depthM and heightM.",
@@ -299,10 +299,12 @@
               "type": "object",
               "properties": {
                 "x": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
                 },
                 "z": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
                 }
               },
               "required": [
@@ -386,10 +388,12 @@
               "type": "object",
               "properties": {
                 "x": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
                 },
                 "z": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
                 },
                 "elevation": {
                   "type": "number"
@@ -488,7 +492,7 @@
           "buildingRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable building ref, e.g. house/main."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "name": {
             "type": "string",
@@ -515,10 +519,12 @@
             "type": "object",
             "properties": {
               "x": {
-                "type": "number"
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
               },
               "z": {
-                "type": "number"
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
               }
             },
             "required": [
@@ -616,12 +622,12 @@
           "buildingRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable building ref, e.g. house/main."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "storeyRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable storey ref, e.g. storey/ground or house/main/storey-upper."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "name": {
             "type": "string",
@@ -641,10 +647,12 @@
               "type": "object",
               "properties": {
                 "x": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
                 },
                 "z": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
                 }
               },
               "required": [
@@ -663,10 +671,12 @@
               "type": "object",
               "properties": {
                 "x": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
                 },
                 "z": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
                 }
               },
               "required": [
@@ -680,7 +690,7 @@
           "spaceRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable space ref, e.g. space/living."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "spaceName": {
             "type": "string",
@@ -796,12 +806,12 @@
           "buildingRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable building ref, e.g. house/main."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "slabRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable slab ref shared by the storey it floors and the storey it ceils."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "footprint": {
             "minItems": 3,
@@ -811,10 +821,12 @@
               "type": "object",
               "properties": {
                 "x": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
                 },
                 "z": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
                 }
               },
               "required": [
@@ -919,17 +931,17 @@
           "buildingRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable building ref, e.g. house/main."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "storeyRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable storey ref, e.g. storey/ground or house/main/storey-upper."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "spaceRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable space ref, e.g. space/living."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "name": {
             "type": "string",
@@ -947,10 +959,12 @@
               "type": "object",
               "properties": {
                 "x": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
                 },
                 "z": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
                 }
               },
               "required": [
@@ -1049,21 +1063,23 @@
           "buildingRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable building ref, e.g. house/main."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "wallRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable wall ref, e.g. wall/courtyard-living."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "start": {
             "type": "object",
             "properties": {
               "x": {
-                "type": "number"
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
               },
               "z": {
-                "type": "number"
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
               }
             },
             "required": [
@@ -1077,10 +1093,12 @@
             "type": "object",
             "properties": {
               "x": {
-                "type": "number"
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
               },
               "z": {
-                "type": "number"
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
               }
             },
             "required": [
@@ -1175,12 +1193,12 @@
           "buildingRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable building ref, e.g. house/main."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "wallRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable wall ref, e.g. wall/courtyard-living."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "preset": {
             "type": "string",
@@ -1333,7 +1351,7 @@
           "buildingRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable building ref, e.g. house/main."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "scope": {
             "type": "string",
@@ -1346,7 +1364,7 @@
           "wallRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable wall ref, e.g. wall/courtyard-living."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "material": {
             "type": "string",
@@ -1452,17 +1470,17 @@
           "buildingRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable building ref, e.g. house/main."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "wallRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable wall ref, e.g. wall/courtyard-living."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "openingRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable opening ref, e.g. opening/living-balcony-door."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "kind": {
             "type": "string",
@@ -1576,17 +1594,17 @@
           "buildingRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable building ref, e.g. house/main."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "roofRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Roof ref when the update targets the complete roof, e.g. roof/main."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "segmentRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Roof segment ref, e.g. roof/main/segment-upper-wing."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "footprint": {
             "minItems": 3,
@@ -1596,10 +1614,12 @@
               "type": "object",
               "properties": {
                 "x": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
                 },
                 "z": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
                 }
               },
               "required": [
@@ -1621,12 +1641,12 @@
           "storeyRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable storey ref, e.g. storey/ground or house/main/storey-upper."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "spaceRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable space ref, e.g. space/living."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "segments": {
             "minItems": 2,
@@ -1637,7 +1657,8 @@
               "properties": {
                 "segmentRef": {
                   "type": "string",
-                  "minLength": 1
+                  "minLength": 1,
+                  "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                 },
                 "footprint": {
                   "minItems": 3,
@@ -1647,10 +1668,12 @@
                     "type": "object",
                     "properties": {
                       "x": {
-                        "type": "number"
+                        "type": "number",
+                        "description": "East-west local model coordinate in metres."
                       },
                       "z": {
-                        "type": "number"
+                        "type": "number",
+                        "description": "North-south local model coordinate in metres."
                       }
                     },
                     "required": [
@@ -1669,11 +1692,13 @@
                 },
                 "storeyRef": {
                   "type": "string",
-                  "minLength": 1
+                  "minLength": 1,
+                  "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                 },
                 "spaceRef": {
                   "type": "string",
-                  "minLength": 1
+                  "minLength": 1,
+                  "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                 },
                 "roofType": {
                   "type": "string",
@@ -1727,7 +1752,8 @@
               "properties": {
                 "ref": {
                   "type": "string",
-                  "minLength": 1
+                  "minLength": 1,
+                  "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                 },
                 "type": {
                   "type": "string",
@@ -1741,11 +1767,13 @@
                   "items": [
                     {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     }
                   ],
                   "additionalItems": false,
@@ -1823,7 +1851,7 @@
           "alignToSegmentRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Segment whose eaves or ridge this segment should align to."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "alignEdge": {
             "type": "string",
@@ -2036,22 +2064,22 @@
           "buildingRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable building ref, e.g. house/main."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "storeyRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable storey ref, e.g. storey/ground or house/main/storey-upper."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "spaceRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable space ref, e.g. space/living."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "platformRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable platform ref for a mezzanine."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "footprint": {
             "minItems": 3,
@@ -2061,10 +2089,12 @@
               "type": "object",
               "properties": {
                 "x": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
                 },
                 "z": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
                 }
               },
               "required": [
@@ -2190,7 +2220,7 @@
           "zoneRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable landscape zone ref, e.g. zone/lawn."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "name": {
             "type": "string",
@@ -2217,10 +2247,12 @@
               "type": "object",
               "properties": {
                 "x": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
                 },
                 "z": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
                 }
               },
               "required": [
@@ -2235,10 +2267,12 @@
             "type": "object",
             "properties": {
               "x": {
-                "type": "number"
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
               },
               "z": {
-                "type": "number"
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
               }
             },
             "required": [
@@ -2349,7 +2383,7 @@
           "plantRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable plant ref, e.g. plant/apple."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "name": {
             "type": "string",
@@ -2376,10 +2410,12 @@
             "type": "object",
             "properties": {
               "x": {
-                "type": "number"
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
               },
               "z": {
-                "type": "number"
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
               }
             },
             "required": [
@@ -2463,7 +2499,7 @@
           "plantingRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique prefix for the planting scheme; plants become <plantingRef>/plant-0001 and so on."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "mode": {
             "type": "string",
@@ -2480,7 +2516,8 @@
             "type": "array",
             "items": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
             },
             "description": "Boundary sources: site or parcel refs such as parcel/54-3. Adjacent parcels are merged."
           },
@@ -2492,10 +2529,12 @@
               "type": "object",
               "properties": {
                 "x": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "East-west local model coordinate in metres."
                 },
                 "z": {
-                  "type": "number"
+                  "type": "number",
+                  "description": "North-south local model coordinate in metres."
                 }
               },
               "required": [
@@ -2547,7 +2586,7 @@
           "plantingPaletteRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Planting-guide ref such as plant-guide/hornbeam; supplies species, kind and needs."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "species": {
             "type": "string",
@@ -2678,7 +2717,7 @@
           "fixtureRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable garden fixture ref, e.g. fixture-set/starter-1/bed-tomato."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "catalogId": {
             "type": "string",
@@ -2686,7 +2725,12 @@
               "raised-bed-2x1",
               "tomato-row",
               "potato-row",
-              "cucumber-trellis"
+              "cucumber-trellis",
+              "outdoor-dining-set",
+              "garden-lounge-set",
+              "slatted-bench",
+              "sun-lounger",
+              "cantilever-parasol"
             ],
             "description": "Fixture catalog id from list_garden_fixtures."
           },
@@ -2698,10 +2742,12 @@
             "type": "object",
             "properties": {
               "x": {
-                "type": "number"
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
               },
               "z": {
-                "type": "number"
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
               }
             },
             "required": [
@@ -2728,16 +2774,18 @@
           "setRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Unique stable prefix for the fixtures created by this set."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "origin": {
             "type": "object",
             "properties": {
               "x": {
-                "type": "number"
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
               },
               "z": {
-                "type": "number"
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
               }
             },
             "required": [
@@ -2837,7 +2885,7 @@
           "changeSetRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable ref of the draft change set."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "label": {
             "type": "string",
@@ -2872,10 +2920,12 @@
                         "type": "object",
                         "properties": {
                           "x": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "East-west local model coordinate in metres."
                           },
                           "z": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "North-south local model coordinate in metres."
                           }
                         },
                         "required": [
@@ -2908,10 +2958,12 @@
                         "type": "object",
                         "properties": {
                           "x": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "East-west local model coordinate in metres."
                           },
                           "z": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "North-south local model coordinate in metres."
                           },
                           "elevation": {
                             "type": "number"
@@ -2950,7 +3002,8 @@
                     },
                     "buildingRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "name": {
                       "type": "string"
@@ -2974,10 +3027,12 @@
                       "type": "object",
                       "properties": {
                         "x": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "East-west local model coordinate in metres."
                         },
                         "z": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "North-south local model coordinate in metres."
                         }
                       },
                       "required": [
@@ -3015,11 +3070,13 @@
                     },
                     "buildingRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "storeyRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "name": {
                       "type": "string"
@@ -3035,10 +3092,12 @@
                         "type": "object",
                         "properties": {
                           "x": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "East-west local model coordinate in metres."
                           },
                           "z": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "North-south local model coordinate in metres."
                           }
                         },
                         "required": [
@@ -3056,10 +3115,12 @@
                         "type": "object",
                         "properties": {
                           "x": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "East-west local model coordinate in metres."
                           },
                           "z": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "North-south local model coordinate in metres."
                           }
                         },
                         "required": [
@@ -3071,7 +3132,8 @@
                     },
                     "spaceRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "spaceName": {
                       "type": "string"
@@ -3105,11 +3167,13 @@
                     },
                     "buildingRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "slabRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "footprint": {
                       "minItems": 3,
@@ -3119,10 +3183,12 @@
                         "type": "object",
                         "properties": {
                           "x": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "East-west local model coordinate in metres."
                           },
                           "z": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "North-south local model coordinate in metres."
                           }
                         },
                         "required": [
@@ -3166,15 +3232,18 @@
                     },
                     "buildingRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "storeyRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "spaceRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "name": {
                       "type": "string"
@@ -3190,10 +3259,12 @@
                         "type": "object",
                         "properties": {
                           "x": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "East-west local model coordinate in metres."
                           },
                           "z": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "North-south local model coordinate in metres."
                           }
                         },
                         "required": [
@@ -3233,20 +3304,24 @@
                     },
                     "buildingRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "wallRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "start": {
                       "type": "object",
                       "properties": {
                         "x": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "East-west local model coordinate in metres."
                         },
                         "z": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "North-south local model coordinate in metres."
                         }
                       },
                       "required": [
@@ -3259,10 +3334,12 @@
                       "type": "object",
                       "properties": {
                         "x": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "East-west local model coordinate in metres."
                         },
                         "z": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "North-south local model coordinate in metres."
                         }
                       },
                       "required": [
@@ -3295,11 +3372,13 @@
                     },
                     "buildingRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "wallRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "material": {
                       "type": "string",
@@ -3346,15 +3425,18 @@
                     },
                     "buildingRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "wallRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "openingRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "kind": {
                       "type": "string",
@@ -3399,15 +3481,18 @@
                     },
                     "buildingRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "roofRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "segmentRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "footprint": {
                       "minItems": 3,
@@ -3417,10 +3502,12 @@
                         "type": "object",
                         "properties": {
                           "x": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "East-west local model coordinate in metres."
                           },
                           "z": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "North-south local model coordinate in metres."
                           }
                         },
                         "required": [
@@ -3439,11 +3526,13 @@
                     },
                     "storeyRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "spaceRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "segments": {
                       "minItems": 2,
@@ -3454,7 +3543,8 @@
                         "properties": {
                           "segmentRef": {
                             "type": "string",
-                            "minLength": 1
+                            "minLength": 1,
+                            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                           },
                           "footprint": {
                             "minItems": 3,
@@ -3464,10 +3554,12 @@
                               "type": "object",
                               "properties": {
                                 "x": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "East-west local model coordinate in metres."
                                 },
                                 "z": {
-                                  "type": "number"
+                                  "type": "number",
+                                  "description": "North-south local model coordinate in metres."
                                 }
                               },
                               "required": [
@@ -3486,11 +3578,13 @@
                           },
                           "storeyRef": {
                             "type": "string",
-                            "minLength": 1
+                            "minLength": 1,
+                            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                           },
                           "spaceRef": {
                             "type": "string",
-                            "minLength": 1
+                            "minLength": 1,
+                            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                           },
                           "roofType": {
                             "type": "string",
@@ -3543,7 +3637,8 @@
                         "properties": {
                           "ref": {
                             "type": "string",
-                            "minLength": 1
+                            "minLength": 1,
+                            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                           },
                           "type": {
                             "type": "string",
@@ -3557,11 +3652,13 @@
                             "items": [
                               {
                                 "type": "string",
-                                "minLength": 1
+                                "minLength": 1,
+                                "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                               },
                               {
                                 "type": "string",
-                                "minLength": 1
+                                "minLength": 1,
+                                "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                               }
                             ],
                             "additionalItems": false,
@@ -3628,7 +3725,8 @@
                     },
                     "alignToSegmentRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "alignEdge": {
                       "type": "string",
@@ -3667,19 +3765,23 @@
                     },
                     "buildingRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "storeyRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "spaceRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "platformRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "footprint": {
                       "minItems": 3,
@@ -3689,10 +3791,12 @@
                         "type": "object",
                         "properties": {
                           "x": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "East-west local model coordinate in metres."
                           },
                           "z": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "North-south local model coordinate in metres."
                           }
                         },
                         "required": [
@@ -3738,7 +3842,8 @@
                     },
                     "zoneRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "name": {
                       "type": "string"
@@ -3763,10 +3868,12 @@
                         "type": "object",
                         "properties": {
                           "x": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "East-west local model coordinate in metres."
                           },
                           "z": {
-                            "type": "number"
+                            "type": "number",
+                            "description": "North-south local model coordinate in metres."
                           }
                         },
                         "required": [
@@ -3780,10 +3887,12 @@
                       "type": "object",
                       "properties": {
                         "x": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "East-west local model coordinate in metres."
                         },
                         "z": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "North-south local model coordinate in metres."
                         }
                       },
                       "required": [
@@ -3820,7 +3929,8 @@
                     },
                     "plantRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "name": {
                       "type": "string"
@@ -3844,10 +3954,12 @@
                       "type": "object",
                       "properties": {
                         "x": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "East-west local model coordinate in metres."
                         },
                         "z": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "North-south local model coordinate in metres."
                         }
                       },
                       "required": [
@@ -3882,7 +3994,8 @@
                     },
                     "fixtureRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     },
                     "catalogId": {
                       "type": "string",
@@ -3890,7 +4003,12 @@
                         "raised-bed-2x1",
                         "tomato-row",
                         "potato-row",
-                        "cucumber-trellis"
+                        "cucumber-trellis",
+                        "outdoor-dining-set",
+                        "garden-lounge-set",
+                        "slatted-bench",
+                        "sun-lounger",
+                        "cantilever-parasol"
                       ]
                     },
                     "name": {
@@ -3900,10 +4018,12 @@
                       "type": "object",
                       "properties": {
                         "x": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "East-west local model coordinate in metres."
                         },
                         "z": {
-                          "type": "number"
+                          "type": "number",
+                          "description": "North-south local model coordinate in metres."
                         }
                       },
                       "required": [
@@ -4044,7 +4164,7 @@
           "objectRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Stable ref of one object to read or measure, e.g. wall/east, zone/lawn, house/main."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "measurement": {
             "default": "auto",
@@ -4064,13 +4184,16 @@
             "type": "object",
             "properties": {
               "x": {
-                "type": "number"
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
               },
               "z": {
-                "type": "number"
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
               },
               "y": {
-                "type": "number"
+                "type": "number",
+                "description": "Local project elevation in metres."
               }
             },
             "required": [
@@ -4085,13 +4208,16 @@
             "type": "object",
             "properties": {
               "x": {
-                "type": "number"
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
               },
               "z": {
-                "type": "number"
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
               },
               "y": {
-                "type": "number"
+                "type": "number",
+                "description": "Local project elevation in metres."
               }
             },
             "required": [
@@ -4318,14 +4444,15 @@
             "type": "array",
             "items": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
             },
             "description": "Buildings to include; defaults to every building."
           },
           "variantRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Ghost variant ref to read instead of the committed project."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "views": {
             "maxItems": 12,
@@ -4385,7 +4512,8 @@
                     },
                     "storeyRef": {
                       "type": "string",
-                      "minLength": 1
+                      "minLength": 1,
+                      "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
                     }
                   },
                   "required": [
@@ -4577,7 +4705,7 @@
           "variantRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Ghost variant ref to read instead of the committed project."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           }
         },
         "required": [
@@ -4712,10 +4840,12 @@
             "type": "object",
             "properties": {
               "x": {
-                "type": "number"
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
               },
               "z": {
-                "type": "number"
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
               }
             },
             "required": [
@@ -4774,7 +4904,7 @@
           "variantRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Ghost variant ref to read instead of the committed project."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           }
         },
         "required": [
@@ -4975,189 +5105,6 @@
       }
     },
     {
-      "name": "control_camera",
-      "title": "Control the 3D camera",
-      "readOnly": true,
-      "untrustedContent": false,
-      "description": "Move the live 3D camera to an exact project-space position and look-at target, with explicit projection, lens, zoom, focal offset and transition behavior.",
-      "prompt": {
-        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
-        "task": "Move the live 3D camera to an exact project-space position and look-at target, with explicit projection, lens, zoom, focal offset and transition behavior.",
-        "input": "Required `position` and `target` are `{x,y,z}` local project metres. Optional `projection` is `perspective` or `orthographic`; `fovDegrees` is 10–120, `zoom` is 0.1–20, `focalOffset` is `{x,y,z}`, and `smooth` animates the move.",
-        "tools": "Use exact coordinates to compose any exterior, interior, bird's-eye or detail view. This controls only the live viewer and never changes the project revision or creates a proposal.",
-        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns camera with the actual position and target plus projection, fovDegrees, zoom, focalOffset and smooth.",
-        "exampleOutput": "{\"position\":{\"x\":18,\"y\":12,\"z\":24},\"target\":{\"x\":0,\"y\":3,\"z\":1.5},\"projection\":\"perspective\",\"fovDegrees\":38,\"zoom\":1,\"focalOffset\":{\"x\":0,\"y\":0,\"z\":0},\"smooth\":true}"
-      },
-      "inputSchema": {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "type": "object",
-        "properties": {
-          "position": {
-            "type": "object",
-            "properties": {
-              "x": {
-                "type": "number"
-              },
-              "z": {
-                "type": "number"
-              },
-              "y": {
-                "type": "number"
-              }
-            },
-            "required": [
-              "x",
-              "z",
-              "y"
-            ],
-            "additionalProperties": false,
-            "description": "Exact camera position in local project metres."
-          },
-          "target": {
-            "type": "object",
-            "properties": {
-              "x": {
-                "type": "number"
-              },
-              "z": {
-                "type": "number"
-              },
-              "y": {
-                "type": "number"
-              }
-            },
-            "required": [
-              "x",
-              "z",
-              "y"
-            ],
-            "additionalProperties": false,
-            "description": "Exact point the camera looks at in local project metres."
-          },
-          "projection": {
-            "default": "perspective",
-            "description": "Camera projection: perspective or orthographic.",
-            "type": "string",
-            "enum": [
-              "perspective",
-              "orthographic"
-            ]
-          },
-          "fovDegrees": {
-            "default": 38,
-            "description": "Perspective vertical field of view in degrees, from 10 to 120.",
-            "type": "number",
-            "minimum": 10,
-            "maximum": 120
-          },
-          "zoom": {
-            "default": 1,
-            "description": "Orthographic zoom factor, from 0.1 to 20.",
-            "type": "number",
-            "minimum": 0.1,
-            "maximum": 20
-          },
-          "focalOffset": {
-            "default": {
-              "x": 0,
-              "y": 0,
-              "z": 0
-            },
-            "description": "Screen-space focal offset {x,y,z}; use zeroes for a centered target.",
-            "type": "object",
-            "properties": {
-              "x": {
-                "type": "number"
-              },
-              "z": {
-                "type": "number"
-              },
-              "y": {
-                "type": "number"
-              }
-            },
-            "required": [
-              "x",
-              "z",
-              "y"
-            ],
-            "additionalProperties": false
-          },
-          "smooth": {
-            "default": true,
-            "description": "Animate the camera transition when true; move immediately when false.",
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "position",
-          "target",
-          "projection",
-          "fovDegrees",
-          "zoom",
-          "focalOffset",
-          "smooth"
-        ],
-        "additionalProperties": false
-      },
-      "exampleInput": {
-        "position": {
-          "x": 18,
-          "y": 12,
-          "z": 24
-        },
-        "target": {
-          "x": 0,
-          "y": 3,
-          "z": 1.5
-        },
-        "projection": "perspective",
-        "fovDegrees": 38,
-        "zoom": 1,
-        "focalOffset": {
-          "x": 0,
-          "y": 0,
-          "z": 0
-        },
-        "smooth": true
-      },
-      "resultShape": {
-        "type": "object",
-        "required": [
-          "status",
-          "projectRevision",
-          "summary",
-          "camera"
-        ],
-        "properties": {
-          "status": {
-            "type": "string",
-            "description": "Execution outcome."
-          },
-          "projectRevision": {
-            "type": "integer",
-            "description": "Committed ProjectV2 revision."
-          },
-          "summary": {
-            "type": "string",
-            "description": "Short human-readable outcome."
-          },
-          "camera": {
-            "type": "object",
-            "required": [
-              "position",
-              "target",
-              "projection",
-              "fovDegrees",
-              "zoom",
-              "focalOffset",
-              "smooth"
-            ]
-          }
-        }
-      }
-    },
-    {
       "name": "set_sun_time",
       "title": "Set viewer sun time",
       "readOnly": true,
@@ -5283,7 +5230,8 @@
             "type": "array",
             "items": {
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
             },
             "description": "One to four ghost variant refs to compare."
           }
@@ -5350,12 +5298,12 @@
           "variantRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Ghost variant ref to read instead of the committed project."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "baseVariantRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Optional ghost variant to compare against instead of the committed project."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           }
         },
         "required": [
@@ -5435,7 +5383,7 @@
           "variantRef": {
             "type": "string",
             "minLength": 1,
-            "description": "Ghost variant ref to read instead of the committed project."
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           },
           "reason": {
             "type": "string",

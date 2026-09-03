@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { zielonkiClimate } from '../../knowledge-bank/zielonki/data'
 import { GARDEN_FIXTURE_CATALOG_VERSION } from './gardenFixtures'
+import { STARTER_ORCHARD_VERSION } from './orchard'
 import { rectangle } from './geometry'
 import { slugify } from './refs'
 import type { ProjectV2, SiteKnowledgeBase } from './types'
@@ -66,7 +67,7 @@ export const createTerrainProject = (input: TerrainInput, now = new Date()): Pro
       entrances: [], knowledgeBase: blankKnowledgeBase(name),
     },
     buildings: [],
-    landscape: { zones: [], plants: [], fixtures: [], fixtureCatalogVersion: GARDEN_FIXTURE_CATALOG_VERSION },
+    landscape: { zones: [], plants: [], fixtures: [], fixtureCatalogVersion: GARDEN_FIXTURE_CATALOG_VERSION, orchardCatalogVersion: STARTER_ORCHARD_VERSION },
     climateProfile: {
       ...structuredClone(zielonkiClimate), ref: `climate/terrain-${slug}`, name: `${name} · Zielonki climate normal (edit before use)`,
       latitude: values.latitude, longitude: values.longitude, timezone: values.timezone,

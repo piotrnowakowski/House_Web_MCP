@@ -30,9 +30,9 @@ describe('sunlight occluders', () => {
   it('collects walls, slabs, roof wings, canopies and fixtures from the barn project', () => {
     const occluders = collectOccluders(partialUpperModernBarnProject)
     const kinds = occluders.map((occluder) => occluder.ref.split('/')[0])
-    expect(occluders).toHaveLength(15 + 2 + 2 + 4 + 6)
+    expect(occluders).toHaveLength(15 + 2 + 2 + partialUpperModernBarnProject.landscape.plants.length + 6)
     expect(kinds.filter((kind) => kind === 'wall')).toHaveLength(15)
-    expect(occluders.filter((occluder) => occluder.kind === 'sphere')).toHaveLength(4)
+    expect(occluders.filter((occluder) => occluder.kind === 'sphere')).toHaveLength(partialUpperModernBarnProject.landscape.plants.length)
   })
 
   it('shades the north side of an east-west wall at solar noon and lights the south side', () => {

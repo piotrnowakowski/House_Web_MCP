@@ -18,9 +18,10 @@ import { resolveWallFinish } from '../domain/wallFinishes'
 import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
 import type { GeneratedSolid } from '../geometry/types'
 import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
-import { registerCameraControl } from '../services/cameraControl'
 import { roofWings, type RoofWing } from '../domain/roofWings'
 import { CompassRose, SUN_DISTANCE_M, SunHoursOverlay, SunLight, SunPath, sunStateFor } from './sun'
+import { CucumberTrellisVisual, FruitTreeVisual, hasFruitTreeVisual, PotatoRowVisual, TomatoRowVisual } from './gardenVisuals'
+import { RealisticGrass } from './grassVisuals'
 import { interiorFloorTexture, raisedBedSoilTexture, raisedBedTexture, resolveWallTexture, resolveZoneTexture, terrainTexture, tintForTexturedFinish, zoneTintFor } from './materialCatalog'
 import { TexturedMaterial, TexturePreloader, waitForTextures } from './materials'
 import { useStudioStore } from '../state/store'
@@ -250,7 +251,7 @@ function ThatOpenBridge() {
   const handledRefocusRequest = useRef(refocusRequest)
   const handledGardenFocusRequest = useRef(gardenFocusRequest.sequence)
   const handledExplode = useRef(explode)
-  const bridge = useRef<{ components: OBC.Components; world: OBC.SimpleWorld; camera: OBC.OrthoPerspectiveCamera; renderer: SharedRenderer; clipper: OBC.Clipper } | null>(null)
+  const bridge = useRef<{ components: OBC.Components; world: OBC.SimpleWorld; camera: OBC.OrthoPerspectiveCamera; renderer: SharedRenderer } | null>(null)
 
   useEffect(() => {
     const components = new OBC.Components()
@@ -267,36 +268,10 @@ function ThatOpenBridge() {
     camera.three.position.set(22, 13, 27)
     camera.controls?.setLookAt(22, 13, 27, 0, 3, 1.5, false)
     set({ camera: camera.three })
-    const clipper = components.get(OBC.Clipper); clipper.enabled = false; clipper.setup({})
     components.init()
-    bridge.current = { components, world, camera, renderer, clipper }
-    const unregisterCameraControl = registerCameraControl(async (input, signal) => {
-      if (signal.aborted) throw new DOMException('Camera control cancelled.', 'AbortError')
-      camera.set('Orbit')
-      camera.controls.maxDistance = SCENE_FAR - 1
-      await camera.projection.set(input.projection === 'orthographic' ? 'Orthographic' : 'Perspective')
-      camera.threePersp.fov = input.fovDegrees
-      camera.threePersp.updateProjectionMatrix()
-      camera.threeOrtho.zoom = input.zoom
-      camera.threeOrtho.updateProjectionMatrix()
-      await camera.controls.setFocalOffset(input.focalOffset.x, input.focalOffset.y, input.focalOffset.z, false)
-      await camera.controls.setLookAt(
-        input.position.x, input.position.y, input.position.z,
-        input.target.x, input.target.y, input.target.z,
-        input.smooth,
-      )
-      if (signal.aborted) throw new DOMException('Camera control cancelled.', 'AbortError')
-      const position = camera.controls.getPosition(new Vector3())
-      const target = camera.controls.getTarget(new Vector3())
-      return {
-        ...input,
-        position: { x: position.x, y: position.y, z: position.z },
-        target: { x: target.x, y: target.y, z: target.z },
-      }
-    })
+    bridge.current = { components, world, camera, renderer }
     return () => {
-      unregisterCameraControl()
-      clipper.dispose(); camera.dispose()
+      camera.dispose()
       world.enabled = false; renderer.dispose(); components.enabled = false; bridge.current = null
     }
   }, [gl, scene, set])
@@ -336,7 +311,6 @@ function ThatOpenBridge() {
   useEffect(() => {
     const current = bridge.current
     if (!current) return
-    current.clipper.enabled = viewerMode === 'section'
     current.camera.controls.mouseButtons.left = viewerMode === 'measure-area' ? CameraControls.ACTION.NONE : CameraControls.ACTION.ROTATE
     if (viewerMode === 'plan') { current.camera.set('Plan'); void current.camera.projection.set('Orthographic') }
     else { current.camera.set('Orbit'); current.camera.controls.maxDistance = MAX_ORBIT_DISTANCE; void current.camera.projection.set('Perspective') }
@@ -367,8 +341,8 @@ function ThatOpenBridge() {
     if (!current) return
     const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
     current.camera.set('Orbit'); current.camera.controls.maxDistance = MAX_ORBIT_DISTANCE; void current.camera.projection.set('Perspective')
-    void current.camera.controls.setFocalOffset(5.5, 0, 0, smooth)
-    void current.camera.controls.setLookAt(gardenFocusRequest.targetX + 11, 8.5, gardenFocusRequest.targetZ - 13, gardenFocusRequest.targetX, 0.7, gardenFocusRequest.targetZ, smooth)
+    void current.camera.controls.setFocalOffset(2.4, 0, 0, smooth)
+    void current.camera.controls.setLookAt(gardenFocusRequest.targetX + 5.5, 4.6, gardenFocusRequest.targetZ + 7, gardenFocusRequest.targetX, 0.65, gardenFocusRequest.targetZ, smooth)
   }, [gardenFocusRequest])
   useEffect(() => {
     if (handledExplode.current === explode) return
@@ -741,7 +715,7 @@ function RoadEntranceMarker({ entrance }: { entrance: SiteEntranceModel }) {
   return <group position={[centerX, TERRAIN_SURFACE_Y + 0.055, centerZ]} rotation={[0, angle, 0]} userData={{ semanticRef: entrance.ref }}>
     <mesh renderOrder={5} receiveShadow><boxGeometry args={[length, 0.07, 0.72]} /><meshStandardMaterial color={markerColor} emissive={markerColor} emissiveIntensity={0.14} roughness={0.72} /></mesh>
     {[-length / 2, length / 2].map((offset, index) => <mesh key={index} position={[offset, 0.43, 0]} castShadow><cylinderGeometry args={[0.09, 0.11, 0.86, 10]} /><meshStandardMaterial color="#f7d568" roughness={0.62} /></mesh>)}
-    <Html zIndexRange={[9, 0]} center position={[0, 1.25, 0]} distanceFactor={15} style={{ pointerEvents: 'none' }}>
+    <Html center position={[0, 1.25, 0]} distanceFactor={15} zIndexRange={[6, 0]} style={{ pointerEvents: 'none' }}>
       <span className="site-entrance-label">{entrance.name}</span>
     </Html>
   </group>
@@ -764,13 +738,21 @@ const zoneColor: Record<LandscapeZone['kind'], string> = { lawn: '#738e55', terr
 
 function ZoneSurface({ zone, project }: { zone: LandscapeZone; project: ProjectV2 }) {
   const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef); const month = useStudioStore((state) => state.month)
+  const repositioningRef = useStudioStore((state) => state.repositioningRef); const commitCommand = useStudioStore((state) => state.commitCommand); const endReposition = useStudioStore((state) => state.endReposition); const setToast = useStudioStore((state) => state.setToast)
   const geometry = useMemo(() => localPolygonGeometry(zone.footprint), [zone.footprint])
   useEffect(() => () => geometry.dispose(), [geometry])
   const center = polygonCentroid(zone.footprint); const y = elevationAt(project, center.x, center.z) + 0.02
-  const selected = selectedRef === zone.ref; const texture = resolveZoneTexture(zone); const grass = texture?.id === 'leafy-grass'
-  return <mesh geometry={geometry} position={[0, y, 0]} receiveShadow userData={{ semanticRef: zone.ref }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(zone.ref) }}>{texture
-    ? <TexturedMaterial asset={texture.id} color={selected ? '#b9e84d' : zoneTintFor(zone, month)} fallbackColor={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={grass ? 1 : 0.9} side={DoubleSide} normalScale={grass ? 0.5 : 0.7} />
-    : <meshStandardMaterial color={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={0.95} side={DoubleSide} />}</mesh>
+  const selected = selectedRef === zone.ref; const texture = resolveZoneTexture(zone); const grass = texture?.id === 'leafy-grass'; const group = useRef<Group>(null)
+  return <><group ref={group} position={[0, y, 0]} userData={{ semanticRef: zone.ref }}>
+    <mesh geometry={geometry} receiveShadow onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(zone.ref) }}>{texture
+      ? <TexturedMaterial asset={texture.id} color={selected ? '#b9e84d' : zoneTintFor(zone, month)} fallbackColor={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={grass ? 1 : 0.9} side={DoubleSide} normalScale={grass ? 0.5 : 0.7} />
+      : <meshStandardMaterial color={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={0.95} side={DoubleSide} />}</mesh>
+  </group>{selected && !zone.locked && repositioningRef === zone.ref && group.current && <TransformControls object={group.current} mode="translate" showY={false} userData={{ editorOnly: true }} onMouseUp={() => {
+    if (!group.current) return
+    try { commitCommand({ type: 'landscape.update', action: 'move', zoneRef: zone.ref, delta: { x: group.current.position.x, z: group.current.position.z } }) }
+    catch (error) { group.current.position.set(0, y, 0); setToast(error instanceof Error ? error.message : 'Landscape zone move could not be applied.') }
+    finally { endReposition() }
+  }} />}</>
 }
 
 function Landscape({ project }: { project: ProjectV2 }) {
@@ -783,8 +765,10 @@ function Plant({ plant, project, selected, onSelect, ghost = false }: { plant: P
   const month = useStudioStore((state) => state.month); const repositioningRef = useStudioStore((state) => state.repositioningRef); const commitCommand = useStudioStore((state) => state.commitCommand); const endReposition = useStudioStore((state) => state.endReposition); const setToast = useStudioStore((state) => state.setToast)
   const y = elevationAt(project, plant.position.x, plant.position.z); const canopy = Math.max(0.25, plant.canopyM / 2); const visibleLeaf = plant.leafMonths.includes(month); const group = useRef<Group>(null)
   return <><group ref={group} position={[plant.position.x, y, plant.position.z]} userData={{ semanticRef: plant.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) onSelect() }}>
-    <mesh position={[0, plant.matureHeightM * 0.28, 0]} castShadow={!ghost}><cylinderGeometry args={[0.1, 0.15, plant.matureHeightM * 0.56, 8]} /><meshStandardMaterial color="#584434" transparent={ghost} opacity={ghost ? 0.42 : 1} /></mesh>
-    <mesh position={[0, plant.matureHeightM * 0.72, 0]} castShadow={!ghost}><sphereGeometry args={[canopy, 12, 9]} /><meshStandardMaterial color={selected ? '#b9e84d' : ghost ? '#b9e84d' : visibleLeaf ? '#477348' : '#756955'} transparent opacity={ghost ? 0.38 : visibleLeaf ? 0.92 : 0.52} depthWrite={!ghost} /></mesh>
+    {hasFruitTreeVisual(plant) ? <FruitTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : <>
+      <mesh position={[0, plant.matureHeightM * 0.28, 0]} castShadow={!ghost}><cylinderGeometry args={[0.1, 0.15, plant.matureHeightM * 0.56, 8]} /><meshStandardMaterial color="#584434" transparent={ghost} opacity={ghost ? 0.42 : 1} /></mesh>
+      <mesh position={[0, plant.matureHeightM * 0.72, 0]} castShadow={!ghost}><sphereGeometry args={[canopy, 12, 9]} /><meshStandardMaterial color={selected ? '#b9e84d' : ghost ? '#b9e84d' : visibleLeaf ? '#477348' : '#756955'} transparent opacity={ghost ? 0.38 : visibleLeaf ? 0.92 : 0.52} depthWrite={!ghost} /></mesh>
+    </>}
   </group>{selected && !ghost && repositioningRef === plant.ref && group.current && <TransformControls object={group.current} mode="translate" showY={false} userData={{ editorOnly: true }} onMouseUp={() => {
     if (!group.current) return
     try { commitCommand({ type: 'plant.update', action: 'move', plantRef: plant.ref, position: { x: group.current.position.x, z: group.current.position.z } }) }
@@ -822,30 +806,92 @@ function RaisedBedFixture({ selected, ghost }: { selected: boolean; ghost: boole
 }
 
 function TomatoRowFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
-  return <group>{[-0.78, -0.26, 0.26, 0.78].map((x, index) => <group key={x} position={[x, 0, index % 2 ? 0.12 : -0.12]}>
-    <mesh position={[0, 0.72, 0]} castShadow><cylinderGeometry args={[0.018, 0.025, 1.44, 6]} />{fixtureMaterial('#705039', selected, ghost)}</mesh>
-    <mesh position={[0, 0.48, 0]} castShadow><cylinderGeometry args={[0.025, 0.035, 0.86, 7]} />{fixtureMaterial('#3e703f', selected, ghost)}</mesh>
-    {[0.36, 0.58, 0.78].map((y, leafIndex) => <mesh key={y} position={[leafIndex % 2 ? -0.1 : 0.1, y, 0]} scale={[1.4, 0.7, 1]} castShadow><sphereGeometry args={[0.14, 8, 6]} />{fixtureMaterial('#4f8248', selected, ghost)}</mesh>)}
-    {[0.43, 0.66].map((y, fruitIndex) => <mesh key={y} position={[fruitIndex ? 0.08 : -0.08, y, 0.1]} castShadow><sphereGeometry args={[0.055, 8, 6]} />{fixtureMaterial('#b84f36', selected, ghost)}</mesh>)}
-  </group>)}</group>
+  return <TomatoRowVisual selected={selected} ghost={ghost} />
 }
 
 function PotatoRowFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
-  return <group>{[-0.84, -0.42, 0, 0.42, 0.84].map((x, index) => <group key={x} position={[x, 0, index % 2 ? 0.1 : -0.1]}>
-    {[[-0.1, 0.25, 0], [0.08, 0.32, 0.06], [0.02, 0.21, -0.1]].map(([dx, y, dz], leafIndex) => <mesh key={leafIndex} position={[dx, y, dz]} rotation={[0, leafIndex * 0.9, 0.3]} scale={[1.2, 0.55, 0.8]} castShadow><sphereGeometry args={[0.2, 8, 6]} />{fixtureMaterial('#527b43', selected, ghost)}</mesh>)}
-  </group>)}</group>
+  return <PotatoRowVisual selected={selected} ghost={ghost} />
 }
 
 function CucumberTrellisFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
-  return <group>
-    {[-1.02, 1.02].map((x) => <mesh key={x} position={[x, 0.72, 0]} castShadow><cylinderGeometry args={[0.035, 0.045, 1.44, 6]} />{fixtureMaterial('#886444', selected, ghost)}</mesh>)}
-    <mesh position={[0, 1.4, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.035, 0.04, 2.12, 6]} />{fixtureMaterial('#886444', selected, ghost)}</mesh>
-    {[-0.82, -0.41, 0, 0.41, 0.82].map((x, index) => <group key={x} position={[x, 0, 0]}>
-      <mesh position={[0, 0.72, 0]}><cylinderGeometry args={[0.012, 0.018, 1.34, 5]} />{fixtureMaterial('#467143', selected, ghost)}</mesh>
-      {[0.28, 0.58, 0.9].map((y, leafIndex) => <mesh key={y} position={[leafIndex % 2 ? -0.09 : 0.09, y, 0.05]} scale={[1.2, 0.65, 1]} castShadow><sphereGeometry args={[0.12, 7, 5]} />{fixtureMaterial('#548249', selected, ghost)}</mesh>)}
-      {index % 2 === 0 && <mesh position={[0.07, 0.68, 0.12]} rotation={[0, 0, 0.25]} castShadow><capsuleGeometry args={[0.035, 0.18, 4, 7]} />{fixtureMaterial('#6a9a4c', selected, ghost)}</mesh>}
-    </group>)}
+  return <CucumberTrellisVisual selected={selected} ghost={ghost} />
+}
+
+function DiningChair({ position, rotation = 0, selected, ghost }: { position: [number, number, number]; rotation?: number; selected: boolean; ghost: boolean }) {
+  return <group position={position} rotation={[0, rotation, 0]}>
+    <mesh position={[0, 0.46, 0]} castShadow><boxGeometry args={[0.54, 0.1, 0.52]} />{fixtureMaterial('#9a704a', selected, ghost)}</mesh>
+    <mesh position={[0, 0.77, 0.22]} rotation={[Math.PI / 18, 0, 0]} castShadow><boxGeometry args={[0.54, 0.54, 0.08]} />{fixtureMaterial('#8b623d', selected, ghost)}</mesh>
+    {[[-0.21, -0.18], [0.21, -0.18], [-0.21, 0.18], [0.21, 0.18]].map(([x, z], index) => <mesh key={index} position={[x, 0.23, z]} castShadow><boxGeometry args={[0.055, 0.46, 0.055]} />{fixtureMaterial('#4b4138', selected, ghost)}</mesh>)}
   </group>
+}
+
+function OutdoorDiningSetFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
+  const chairs = [[-0.72, -0.92, 0], [0, -0.92, 0], [0.72, -0.92, 0], [-0.72, 0.92, Math.PI], [0, 0.92, Math.PI], [0.72, 0.92, Math.PI]] as const
+  return <group>
+    <mesh position={[0, 0.75, 0]} castShadow receiveShadow><boxGeometry args={[2.25, 0.13, 1.02]} />{fixtureMaterial('#a4774d', selected, ghost)}</mesh>
+    {[-0.91, 0.91].flatMap((x) => [-0.34, 0.34].map((z) => <mesh key={`${x}-${z}`} position={[x, 0.37, z]} castShadow><boxGeometry args={[0.09, 0.74, 0.09]} />{fixtureMaterial('#4b4138', selected, ghost)}</mesh>))}
+    {chairs.map(([x, z, rotation], index) => <DiningChair key={index} position={[x, 0, z]} rotation={rotation} selected={selected} ghost={ghost} />)}
+  </group>
+}
+
+function LoungeSeat({ width, position, rotation = 0, selected, ghost }: { width: number; position: [number, number, number]; rotation?: number; selected: boolean; ghost: boolean }) {
+  return <group position={position} rotation={[0, rotation, 0]}>
+    <mesh position={[0, 0.28, 0]} castShadow><boxGeometry args={[width, 0.32, 0.78]} />{fixtureMaterial('#343a38', selected, ghost)}</mesh>
+    <mesh position={[0, 0.51, -0.02]} castShadow><boxGeometry args={[Math.max(0.42, width - 0.22), 0.16, 0.58]} />{fixtureMaterial('#d8c9aa', selected, ghost)}</mesh>
+    <mesh position={[0, 0.72, 0.31]} rotation={[-Math.PI / 18, 0, 0]} castShadow><boxGeometry args={[Math.max(0.42, width - 0.2), 0.5, 0.14]} />{fixtureMaterial('#c8b894', selected, ghost)}</mesh>
+    {[-width / 2 + 0.07, width / 2 - 0.07].map((x) => <mesh key={x} position={[x, 0.48, 0]} castShadow><boxGeometry args={[0.12, 0.32, 0.8]} />{fixtureMaterial('#343a38', selected, ghost)}</mesh>)}
+  </group>
+}
+
+function GardenLoungeSetFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
+  return <group>
+    <LoungeSeat width={2.25} position={[0, 0, 1.03]} rotation={Math.PI} selected={selected} ghost={ghost} />
+    <LoungeSeat width={0.9} position={[-1.4, 0, -0.55]} rotation={Math.PI / 2} selected={selected} ghost={ghost} />
+    <LoungeSeat width={0.9} position={[1.4, 0, -0.55]} rotation={-Math.PI / 2} selected={selected} ghost={ghost} />
+    <mesh position={[0, 0.31, -0.45]} castShadow receiveShadow><boxGeometry args={[1.25, 0.1, 0.72]} />{fixtureMaterial('#986f4a', selected, ghost)}</mesh>
+    {[-0.5, 0.5].flatMap((x) => [-0.25, 0.25].map((z) => <mesh key={`${x}-${z}`} position={[x, 0.15, z - 0.45]}><boxGeometry args={[0.05, 0.3, 0.05]} />{fixtureMaterial('#343a38', selected, ghost)}</mesh>))}
+  </group>
+}
+
+function SlattedBenchFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
+  return <group>
+    {[-0.24, -0.12, 0, 0.12, 0.24].map((z) => <mesh key={z} position={[0, 0.49, z]} castShadow><boxGeometry args={[1.8, 0.07, 0.09]} />{fixtureMaterial('#9a704a', selected, ghost)}</mesh>)}
+    {[0.64, 0.76, 0.88].map((y) => <mesh key={y} position={[0, y, 0.29]} rotation={[Math.PI / 24, 0, 0]} castShadow><boxGeometry args={[1.8, 0.075, 0.09]} />{fixtureMaterial('#8b623d', selected, ghost)}</mesh>)}
+    {[-0.71, 0.71].map((x) => <mesh key={x} position={[x, 0.3, 0]} castShadow><boxGeometry args={[0.09, 0.6, 0.52]} />{fixtureMaterial('#414744', selected, ghost)}</mesh>)}
+  </group>
+}
+
+function SunLoungerFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
+  return <group>
+    <mesh position={[0, 0.31, -0.35]} rotation={[0.02, 0, 0]} castShadow><boxGeometry args={[0.7, 0.12, 1.25]} />{fixtureMaterial('#d8c9aa', selected, ghost)}</mesh>
+    <mesh position={[0, 0.58, 0.55]} rotation={[-Math.PI / 5.5, 0, 0]} castShadow><boxGeometry args={[0.7, 0.12, 0.9]} />{fixtureMaterial('#c8b894', selected, ghost)}</mesh>
+    {[-0.34, 0.34].map((x) => <mesh key={x} position={[x, 0.22, 0]} castShadow><boxGeometry args={[0.07, 0.12, 1.95]} />{fixtureMaterial('#8b623d', selected, ghost)}</mesh>)}
+    {[-0.7, 0.66].map((z) => [-0.31, 0.31].map((x) => <mesh key={`${x}-${z}`} position={[x, 0.11, z]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.07, 0.07, 0.12, 10]} />{fixtureMaterial('#414744', selected, ghost)}</mesh>))}
+  </group>
+}
+
+function CantileverParasolFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
+  return <group>
+    <mesh position={[1.12, 0.07, 0]} castShadow receiveShadow><cylinderGeometry args={[0.32, 0.38, 0.14, 12]} />{fixtureMaterial('#333a38', selected, ghost)}</mesh>
+    <mesh position={[1.12, 1.18, 0]} castShadow><cylinderGeometry args={[0.045, 0.055, 2.22, 10]} />{fixtureMaterial('#343a38', selected, ghost)}</mesh>
+    <mesh position={[0.55, 2.25, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.035, 0.045, 1.18, 10]} />{fixtureMaterial('#343a38', selected, ghost)}</mesh>
+    <mesh position={[0, 2.28, 0]} castShadow><coneGeometry args={[1.5, 0.34, 12]} />{fixtureMaterial('#d8c9aa', selected, ghost)}</mesh>
+    <mesh position={[0, 2.08, 0]} castShadow><cylinderGeometry args={[0.025, 0.025, 0.36, 8]} />{fixtureMaterial('#343a38', selected, ghost)}</mesh>
+  </group>
+}
+
+function GardenFixtureModel({ catalogId, selected, ghost }: { catalogId: GardenFixtureModel['catalogId']; selected: boolean; ghost: boolean }) {
+  switch (catalogId) {
+    case 'outdoor-dining-set': return <OutdoorDiningSetFixture selected={selected} ghost={ghost} />
+    case 'garden-lounge-set': return <GardenLoungeSetFixture selected={selected} ghost={ghost} />
+    case 'slatted-bench': return <SlattedBenchFixture selected={selected} ghost={ghost} />
+    case 'sun-lounger': return <SunLoungerFixture selected={selected} ghost={ghost} />
+    case 'cantilever-parasol': return <CantileverParasolFixture selected={selected} ghost={ghost} />
+    case 'raised-bed-2x1': return <RaisedBedFixture selected={selected} ghost={ghost} />
+    case 'tomato-row': return <TomatoRowFixture selected={selected} ghost={ghost} />
+    case 'potato-row': return <PotatoRowFixture selected={selected} ghost={ghost} />
+    case 'cucumber-trellis': return <CucumberTrellisFixture selected={selected} ghost={ghost} />
+  }
 }
 
 function GardenFixture({ fixture, project, ghost = false }: { fixture: GardenFixtureModel; project: ProjectV2; ghost?: boolean }) {
@@ -856,7 +902,7 @@ function GardenFixture({ fixture, project, ghost = false }: { fixture: GardenFix
   const y = elevationAt(project, fixture.position.x, fixture.position.z) + (hostedInBed ? 0.43 : 0.02)
   const selected = selectedRef === fixture.ref; const group = useRef<Group>(null)
   return <><group ref={group} position={[fixture.position.x, y, fixture.position.z]} rotation={[0, -MathUtils.degToRad(fixture.rotationDegrees), 0]} userData={{ semanticRef: fixture.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(fixture.ref) }}>
-    {fixture.catalogId === 'raised-bed-2x1' ? <RaisedBedFixture selected={selected} ghost={ghost} /> : fixture.catalogId === 'tomato-row' ? <TomatoRowFixture selected={selected} ghost={ghost} /> : fixture.catalogId === 'potato-row' ? <PotatoRowFixture selected={selected} ghost={ghost} /> : <CucumberTrellisFixture selected={selected} ghost={ghost} />}
+    <GardenFixtureModel catalogId={fixture.catalogId} selected={selected} ghost={ghost} />
   </group>{selected && !ghost && repositioningRef === fixture.ref && group.current && <TransformControls object={group.current} mode="translate" showY={false} userData={{ editorOnly: true }} onMouseUp={() => {
     if (!group.current) return
     try { commitCommand({ type: 'garden-fixture.update', action: 'move', fixtureRef: fixture.ref, position: { x: group.current.position.x, z: group.current.position.z } }) }
@@ -988,7 +1034,7 @@ export function StudioScene() {
   return <>
     <color attach="background" args={[sky]} /><fog attach="fog" args={[sky, 450, 1100]} />
     <ThatOpenBridge /><InteractiveMeasurements /><StructureCaptureController /><SunLight /><SunPath /><CompassRose /><SunHoursOverlay /><TexturePreloader />
-    <Physics gravity={[0, 0, 0]}><group onPointerMissed={() => setSelectedRef(null)}><TerrainAndSite project={project} /><Landscape project={project} /><GardenFixtures project={project} />
+    <Physics gravity={[0, 0, 0]}><group onPointerMissed={() => setSelectedRef(null)}><TerrainAndSite project={project} /><RealisticGrass project={project} /><Landscape project={project} /><GardenFixtures project={project} />
       {project.buildings.map((building) => <Building key={building.ref} project={project} building={building} />)}
       {ghost?.buildings.map((building) => <Building key={`ghost-${building.ref}`} project={ghost} building={building} ghost />)}
       {ghost && <GardenFixtures project={ghost} fixtures={changedGhostFixtures} ghost />}

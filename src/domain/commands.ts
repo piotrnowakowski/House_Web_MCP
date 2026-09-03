@@ -1,6 +1,6 @@
 import { estimateDayPartTemperatures } from './climate'
 import { validateTextureChoice } from './textures'
-import { gardenFixtureById } from './gardenFixtures'
+import { gardenFixtureById, groupedGardenFixtures } from './gardenFixtures'
 import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
 import { decomposeOrthogonalLFootprint, defaultRoofFinish, ridgeDirectionForFootprint, roofSegmentRidgeElevation, segmentContainsFootprint, supportingWallRefs } from './roofs'
 import { sunMismatchIssues } from './sunlight'
@@ -433,8 +433,16 @@ const applyCommandMutable = (project: ProjectV2, command: ProjectCommand) => {
   } else if (command.type === 'plant.update') {
     const index = project.landscape.plants.findIndex((item) => item.ref === command.plantRef)
     if (command.action === 'add') { if (!command.position) throw new Error('Plant position is required.'); project.landscape.plants.push({ ref: command.plantRef, name: command.name ?? 'Plant', species: command.species ?? 'Unspecified', kind: command.kind ?? 'shrub', position: clone(command.position), matureHeightM: 1.5, canopyM: 1.2, sunNeed: 'sun', waterNeed: 0.7, hardinessMinC: -20, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [], locked: false }) }
-    else if (command.action === 'remove') project.landscape.plants = project.landscape.plants.filter((item) => item.ref !== command.plantRef)
-    else { if (index < 0 || !command.position) throw new Error(index < 0 ? `Plant not found: ${command.plantRef}` : 'Plant position is required.'); if (project.landscape.plants[index].locked) throw new Error(`${project.landscape.plants[index].name} is locked.`); project.landscape.plants[index].position = clone(command.position) }
+    else {
+      if (index < 0) throw new Error(`Plant not found: ${command.plantRef}`)
+      const plant = project.landscape.plants[index]
+      if (command.action === 'unlock') plant.locked = false
+      else {
+        if (plant.locked) throw new Error(`${plant.name} is locked. Unlock it before changing it.`)
+        if (command.action === 'remove') project.landscape.plants.splice(index, 1)
+        else { if (!command.position) throw new Error('Plant position is required.'); plant.position = clone(command.position) }
+      }
+    }
   } else if (command.type === 'planting-area.update') {
     const existingRefs = new Set(project.landscape.plants.map((plant) => plant.ref))
     const duplicate = command.plants.find((plant, index) => existingRefs.has(plant.ref) || command.plants.findIndex((candidate) => candidate.ref === plant.ref) !== index)
@@ -452,8 +460,20 @@ const applyCommandMutable = (project: ProjectV2, command: ProjectCommand) => {
       const fixture = project.landscape.fixtures[index]
       if (fixture.locked) throw new Error(`${fixture.name} is locked.`)
       if (command.action === 'remove') project.landscape.fixtures.splice(index, 1)
-      else if (command.action === 'move') { if (!command.position) throw new Error('Fixture position is required.'); fixture.position = clone(command.position) }
-      else { if (command.rotationDegrees === undefined) throw new Error('Fixture rotation is required.'); fixture.rotationDegrees = command.rotationDegrees }
+      else {
+        const grouped = groupedGardenFixtures(project.landscape.fixtures, fixture)
+        const locked = grouped.find((item) => item.locked)
+        if (locked) throw new Error(`${locked.name} is locked.`)
+        if (command.action === 'move') {
+          if (!command.position) throw new Error('Fixture position is required.')
+          const delta = { x: command.position.x - fixture.position.x, z: command.position.z - fixture.position.z }
+          grouped.forEach((item) => { item.position = { x: item.position.x + delta.x, z: item.position.z + delta.z } })
+        } else {
+          if (command.rotationDegrees === undefined) throw new Error('Fixture rotation is required.')
+          const rotationDegrees = command.rotationDegrees
+          grouped.forEach((item) => { item.rotationDegrees = rotationDegrees })
+        }
+      }
     }
   } else if (command.type === 'climate.update') {
     const month = project.climateProfile.months.find((item) => item.month === command.month); if (!month) throw new Error(`Month not found: ${command.month}`); Object.assign(month, command.values)
@@ -546,7 +566,7 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
     if (!corners.every((corner) => project.site.parcels.some((parcel) => pointInPolygon(corner, parcel.boundary)))) issues.push({ severity: 'error', code: 'fixture.site', message: `${fixture.name} extends outside the owned parcels.`, subjectRef: fixture.ref })
   })
   const raisedBeds = project.landscape.fixtures.filter((fixture) => fixture.catalogId === 'raised-bed-2x1')
-  project.landscape.fixtures.filter((fixture) => fixture.catalogId !== 'raised-bed-2x1').forEach((fixture) => {
+  project.landscape.fixtures.filter((fixture) => gardenFixtureById(fixture.catalogId).category === 'crop').forEach((fixture) => {
     if (!raisedBeds.some((bed) => Math.hypot(bed.position.x - fixture.position.x, bed.position.z - fixture.position.z) < 0.15)) issues.push({ severity: 'error', code: 'fixture.crop-host', message: `${fixture.name} must remain colocated with a raised bed.`, subjectRef: fixture.ref })
   })
   issues.push(...sunMismatchIssues(project))
