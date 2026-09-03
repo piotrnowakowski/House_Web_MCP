@@ -21,6 +21,7 @@ import { registerStructureViewCapture, type ExpandedStructureView } from '../ser
 import { roofWings, type RoofWing } from '../domain/roofWings'
 import { CompassRose, SUN_DISTANCE_M, SunHoursOverlay, SunLight, SunPath, sunStateFor } from './sun'
 import { CucumberTrellisVisual, FruitTreeVisual, hasFruitTreeVisual, PotatoRowVisual, TomatoRowVisual } from './gardenVisuals'
+import { RealisticGrass } from './grassVisuals'
 import { interiorFloorTexture, raisedBedSoilTexture, raisedBedTexture, resolveWallTexture, resolveZoneTexture, terrainTexture, tintForTexturedFinish, zoneTintFor } from './materialCatalog'
 import { TexturedMaterial, TexturePreloader, waitForTextures } from './materials'
 import { useStudioStore } from '../state/store'
@@ -1025,7 +1026,7 @@ export function StudioScene() {
   return <>
     <color attach="background" args={[sky]} /><fog attach="fog" args={[sky, 450, 1100]} />
     <ThatOpenBridge /><InteractiveMeasurements /><StructureCaptureController /><SunLight /><SunPath /><CompassRose /><SunHoursOverlay /><TexturePreloader />
-    <Physics gravity={[0, 0, 0]}><group onPointerMissed={() => setSelectedRef(null)}><TerrainAndSite project={project} /><Landscape project={project} /><GardenFixtures project={project} />
+    <Physics gravity={[0, 0, 0]}><group onPointerMissed={() => setSelectedRef(null)}><TerrainAndSite project={project} /><RealisticGrass project={project} /><Landscape project={project} /><GardenFixtures project={project} />
       {project.buildings.map((building) => <Building key={building.ref} project={project} building={building} />)}
       {ghost?.buildings.map((building) => <Building key={`ghost-${building.ref}`} project={ghost} building={building} ghost />)}
       {ghost && <GardenFixtures project={ghost} fixtures={changedGhostFixtures} ghost />}
