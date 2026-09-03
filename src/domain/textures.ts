@@ -82,6 +82,7 @@ export const textureIdsInUse = (project: ProjectV2): TextureId[] => {
   for (const building of project.buildings) {
     if (building.architecturalStyle === 'barn') ids.add('coated-pine')
     for (const wall of building.walls) { const resolved = wall.finish && resolveWallTexture(wall.finish); if (resolved) ids.add(resolved.id) }
+    for (const segment of building.roof.segments) for (const finish of Object.values(segment.gableWallFinishes ?? {})) { const resolved = finish && resolveWallTexture(finish); if (resolved) ids.add(resolved.id) }
   }
   for (const zone of project.landscape.zones) { const resolved = resolveZoneTexture(zone); if (resolved) ids.add(resolved.id) }
   if (project.landscape.fixtures.some((fixture) => fixture.catalogId.startsWith('raised-bed'))) { ids.add('hinoki'); ids.add('dirt') }

@@ -1,4 +1,6 @@
 import type { ProjectV2 } from './types'
+import { gableWallsForBuilding } from './roofWings'
+import { resolveGableWallFinish } from './wallFinishes'
 
 export type ProjectObjectKind = 'building' | 'storey' | 'slab' | 'wall' | 'opening' | 'space' | 'roof' | 'roof-segment' | 'platform' | 'ceiling-finish' | 'zone' | 'plant' | 'fixture' | 'parcel' | 'entrance'
 export interface ProjectObjectLookup { kind: ProjectObjectKind; buildingRef?: string; storeyRef?: string; wallRef?: string; object: unknown }
@@ -23,6 +25,8 @@ export const findProjectObject = (project: ProjectV2, ref: string): ProjectObjec
     const slab = building.slabs.find((item) => item.ref === ref); if (slab) return { kind: 'slab', buildingRef: building.ref, object: slab }
     const wall = building.walls.find((item) => item.ref === ref)
     if (wall) return { kind: 'wall', buildingRef: building.ref, storeyRef: building.storeys.find((item) => item.wallRefs.includes(wall.ref))?.ref, object: wall }
+    const gable = gableWallsForBuilding(building).find((item) => item.ref === ref)
+    if (gable) return { kind: 'wall', buildingRef: building.ref, object: { ...gable, wallType: 'gable', finish: resolveGableWallFinish(building, gable) } }
     for (const host of building.walls) { const opening = host.openings.find((item) => item.ref === ref); if (opening) return { kind: 'opening', buildingRef: building.ref, wallRef: host.ref, object: opening } }
     const space = building.spaces.find((item) => item.ref === ref)
     if (space) return { kind: 'space', buildingRef: building.ref, storeyRef: building.storeys.find((item) => item.spaceRefs.includes(space.ref))?.ref, object: space }

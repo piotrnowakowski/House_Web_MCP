@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { webMcpToolPrompts } from '../../prompts/webmcp-tools'
 import { applyCommand } from '../domain/commands'
+import { gableWallsForBuilding } from '../domain/roofWings'
 import { modernBarnProject, partialUpperModernBarnProject, sampleProject } from '../domain/sampleProject'
 import { useStudioStore } from '../state/store'
 import { expandStructureViews, registerStructureViewCapture } from './structureViews'
@@ -539,6 +540,18 @@ describe('texture library over WebMCP', () => {
     expect(payload(rejected).status).not.toBe('variant_created')
     expect(rejected.content[0].text).toMatch(/wall/)
     expect(useStudioStore.getState().variants).toHaveLength(1)
+  })
+
+  it('reads and independently textures a semantic gable wall', async () => {
+    useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [] })
+    const gable = gableWallsForBuilding(modernBarnProject.buildings[0]).find((item) => item.ref.endsWith('/segment-rear-wing/gable-wall/max'))!
+    const read = payload(await tool('get_project_state').execute({ detail: 'summary', objectRef: gable.ref }))
+    expect(read.data).toMatchObject({ kind: 'wall', object: { ref: gable.ref, wallType: 'gable' } })
+    const proposed = payload(await tool('propose_wall_finish_update').execute({ buildingRef: 'house/main', scope: 'wall', wallRef: gable.ref, material: 'brick', colorHex: '#8B4E3C', textureId: 'brick-floor' }))
+    expect(proposed.status).toBe('variant_created')
+    const segment = useStudioStore.getState().variants[0].project.buildings[0].roof.segments.find((item) => item.ref === gable.segmentRef)!
+    expect(segment.gableWallFinishes?.[gable.side]).toEqual({ material: 'brick', colorHex: '#8B4E3C', textureId: 'brick-floor' })
+    expect(useStudioStore.getState().project.buildings[0].roof.segments.find((item) => item.ref === gable.segmentRef)?.gableWallFinishes).toBeUndefined()
   })
 
   it('proposes a zone surface through the landscape tool and accepts scan choices inside a change set', async () => {

@@ -1,4 +1,5 @@
 import { validateTextureChoice } from './textures'
+import { gableWallsForBuilding, type GableWallSurface } from './roofWings'
 import type { BuildingModel, ProjectV2, WallFinish, WallFinishUpdateCommand, WallMaterial, WallModel } from './types'
 
 export type WallFinishScope = 'wall' | 'all-exterior'
@@ -15,7 +16,13 @@ export const defaultWallFinish = (style: BuildingModel['architecturalStyle']): W
   ? { material: 'charred-timber', colorHex: '#242927' }
   : { material: 'light-render', colorHex: '#E8E1D2' }
 
-export const resolveWallFinish = (wall: WallModel | undefined, style: BuildingModel['architecturalStyle']): WallFinish => wall?.finish ?? defaultWallFinish(style)
+export const resolveWallFinish = (wall: Pick<WallModel, 'finish'> | undefined, style: BuildingModel['architecturalStyle']): WallFinish => wall?.finish ?? defaultWallFinish(style)
+
+export const resolveGableWallFinish = (building: BuildingModel, gable: GableWallSurface): WallFinish => {
+  const segment = building.roof.segments.find((item) => item.ref === gable.segmentRef)
+  const supportingWall = building.walls.find((wall) => wall.ref === gable.supportingWallRef)
+  return segment?.gableWallFinishes?.[gable.side] ?? resolveWallFinish(supportingWall, building.architecturalStyle)
+}
 
 export const exteriorWallsForBuilding = (building: BuildingModel) => building.walls.filter((wall) => building.spaces.filter((space) => space.boundary.some((boundary) => boundary.wallRef === wall.ref)).length <= 1)
 
@@ -24,8 +31,10 @@ export const wallFinishCommands = (project: ProjectV2, input: { buildingRef: str
   if (!building) throw new Error(`Building not found: ${input.buildingRef}`)
   if (!/^#[0-9a-fA-F]{6}$/.test(input.colorHex)) throw new Error('Wall color must be a six-digit hex value such as #242927.')
   if (input.textureId !== undefined) validateTextureChoice('wall', input.textureId)
-  const walls = input.scope === 'all-exterior'
-    ? exteriorWallsForBuilding(building)
-    : [building.walls.find((wall) => wall.ref === input.wallRef) ?? (() => { throw new Error(`Wall not found: ${input.wallRef ?? 'missing wallRef'}`) })()]
-  return walls.map((wall) => ({ type: 'wall.finish', buildingRef: building.ref, wallRef: wall.ref, material: input.material, colorHex: input.colorHex.toUpperCase(), ...(input.textureId !== undefined ? { textureId: input.textureId } : {}) }))
+  const wallRefs = input.scope === 'all-exterior'
+    ? [...exteriorWallsForBuilding(building).map((wall) => wall.ref), ...gableWallsForBuilding(building).map((gable) => gable.ref)]
+    : [input.wallRef && (building.walls.some((wall) => wall.ref === input.wallRef) || gableWallsForBuilding(building).some((gable) => gable.ref === input.wallRef))
+      ? input.wallRef
+      : (() => { throw new Error(`Wall not found: ${input.wallRef ?? 'missing wallRef'}`) })()]
+  return wallRefs.map((wallRef) => ({ type: 'wall.finish', buildingRef: building.ref, wallRef, material: input.material, colorHex: input.colorHex.toUpperCase(), ...(input.textureId !== undefined ? { textureId: input.textureId } : {}) }))
 }
