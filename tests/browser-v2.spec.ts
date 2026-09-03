@@ -151,7 +151,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await page.getByRole('button', { name: 'MCP Tools' }).click()
   const catalog = page.getByRole('region', { name: 'WebMCP tool catalog' })
   await expect(catalog).toBeVisible()
-  await expect(catalog.locator('.tool-browser nav button')).toHaveCount(31)
+  await expect(catalog.locator('.tool-browser nav button')).toHaveCount(27)
   await expect(catalog.getByRole('link', { name: 'Open JSON' })).toHaveAttribute('href', /webmcp-tools\.json$/)
   await catalog.getByRole('searchbox', { name: 'Search tools' }).fill('run_seasonal_analysis')
   await expect(catalog.locator('.tool-browser nav button')).toHaveCount(1)
@@ -170,14 +170,14 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
       toolCount: value.toolCount,
       source: value.source,
       gardenTools: value.tools.map((tool) => tool.name).filter((name) => name.includes('garden_fixture')),
-      adjustmentTools: value.tools.map((tool) => tool.name).filter((name) => ['propose_planting_area', 'create_change_set', 'add_change_set_operations', 'propose_change_set', 'discard_change_set', 'measure_height'].includes(name)),
+      adjustmentTools: value.tools.map((tool) => tool.name).filter((name) => ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height'].includes(name)),
     }
   })
   expect(manifestSummary).toEqual({
-    toolCount: 31,
+    toolCount: 27,
     source: 'runtime-zod-and-structured-prompts',
-    gardenTools: ['list_garden_fixtures', 'propose_garden_fixture_update', 'propose_garden_fixture_set'],
-    adjustmentTools: ['propose_planting_area', 'create_change_set', 'add_change_set_operations', 'propose_change_set', 'discard_change_set', 'measure_height'],
+    gardenTools: ['list_garden_fixtures', 'propose_garden_fixture'],
+    adjustmentTools: ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height'],
   })
   await page.waitForFunction(() => Boolean((window as unknown as { __projectV2WebMcpTools?: Record<string, unknown> }).__projectV2WebMcpTools?.propose_wall_opening_layout))
   const liveFacadeProof = await page.evaluate(async () => {
@@ -185,24 +185,24 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
     const proposal = JSON.parse((await tools.propose_wall_opening_layout.execute({ buildingRef: 'house/main', wallRef: 'wall/courtyard-living', preset: 'solid-wall' })).content[0].text) as { status: string; variantRef: string }
     const state = JSON.parse((await tools.get_project_state.execute({ detail: 'structure' })).content[0].text) as { data: { buildings: Array<{ walls: Array<{ ref: string; openings: unknown[] }> }> } }
     const committedWall = state.data.buildings[0].walls.find((wall) => wall.ref === 'wall/courtyard-living')!
-    const discarded = JSON.parse((await tools.discard_variant.execute({ variantRef: proposal.variantRef })).content[0].text) as { status: string }
+    const discarded = JSON.parse((await tools.manage_variant.execute({ action: 'discard', variantRef: proposal.variantRef })).content[0].text) as { status: string }
     return { proposalStatus: proposal.status, committedOpeningCount: committedWall.openings.length, discardStatus: discarded.status }
   })
-  expect(liveFacadeProof).toEqual({ proposalStatus: 'variant_created', committedOpeningCount: 2, discardStatus: 'ok' })
+  expect(liveFacadeProof).toEqual({ proposalStatus: 'variant_created', committedOpeningCount: 2, discardStatus: 'rejected' })
   const liveWallFinishProof = await page.evaluate(async () => {
     const tools = (window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }> }).__projectV2WebMcpTools
     const proposal = JSON.parse((await tools.propose_wall_finish_update.execute({ buildingRef: 'house/main', scope: 'all-exterior', material: 'brick', colorHex: '#8B4E3C' })).content[0].text) as { status: string; variantRef: string }
     const state = JSON.parse((await tools.get_project_state.execute({ detail: 'structure' })).content[0].text) as { data: { buildings: Array<{ walls: Array<{ ref: string; finish?: { material: string } }> }> } }
     const committedWall = state.data.buildings[0].walls.find((wall) => wall.ref === 'wall/courtyard-right')!
-    const discarded = JSON.parse((await tools.discard_variant.execute({ variantRef: proposal.variantRef })).content[0].text) as { status: string }
+    const discarded = JSON.parse((await tools.manage_variant.execute({ action: 'discard', variantRef: proposal.variantRef })).content[0].text) as { status: string }
     return { proposalStatus: proposal.status, committedMaterial: committedWall.finish?.material, discardStatus: discarded.status }
   })
-  expect(liveWallFinishProof).toEqual({ proposalStatus: 'variant_created', committedMaterial: 'charred-timber', discardStatus: 'ok' })
+  expect(liveWallFinishProof).toEqual({ proposalStatus: 'variant_created', committedMaterial: 'charred-timber', discardStatus: 'rejected' })
   await page.waitForFunction(() => Boolean((window as unknown as { __projectV2WebMcpTools?: Record<string, unknown> }).__projectV2WebMcpTools?.list_garden_fixtures))
   const liveGardenFixtureProof = await page.evaluate(async () => {
     const tools = (window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }> }).__projectV2WebMcpTools
     const catalog = JSON.parse((await tools.list_garden_fixtures.execute({})).content[0].text) as { data: Array<{ id: string }> }
-    const proposal = JSON.parse((await tools.propose_garden_fixture_set.execute({ preset: 'tomato-raised-bed', setRef: 'fixture-set/browser-tomato-2', placement: 'next-to-existing', rotationDegrees: 0 })).content[0].text) as { status: string; metrics: { fixtureCount: number } }
+    const proposal = JSON.parse((await tools.propose_garden_fixture.execute({ mode: 'preset', preset: 'tomato-raised-bed', setRef: 'fixture-set/browser-tomato-2', placement: 'next-to-existing', rotationDegrees: 0 })).content[0].text) as { status: string; metrics: { fixtureCount: number } }
     const state = JSON.parse((await tools.get_project_state.execute({ detail: 'landscape' })).content[0].text) as { data: { landscape: { fixtures: unknown[] } } }
     return { catalogIds: catalog.data.map((fixture) => fixture.id), proposalStatus: proposal.status, proposedFixtureCount: proposal.metrics.fixtureCount, committedFixtureCount: state.data.landscape.fixtures.length }
   })
@@ -215,28 +215,31 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   const liveAdjustmentProof = await page.evaluate(async () => {
     const tools = (window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }> }).__projectV2WebMcpTools
     const extension = JSON.parse((await tools.propose_storey_update.execute({ action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper', extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }], spaceRef: 'house/main/storey-upper/space-browser-wing' })).content[0].text) as { status: string; variantRef: string; areaAddedM2: number; levelCount: number }
-    await tools.discard_variant.execute({ variantRef: extension.variantRef })
+    await tools.manage_variant.execute({ action: 'discard', variantRef: extension.variantRef })
     const planting = JSON.parse((await tools.propose_planting_area.execute({ plantingRef: 'planting/browser-hornbeam', mode: 'boundary', sourceRefs: ['site'], inwardOffsetM: 1.2, spacingM: 5, rowCount: 1, rowSpacingM: 0.6, cornerTreatment: 'distribute', plantingPaletteRef: 'plant-guide/hornbeam', clearanceM: 1 })).content[0].text) as { status: string; variantRef: string; plantCount: number; affectedParcelRefs: string[] }
-    await tools.discard_variant.execute({ variantRef: planting.variantRef })
-    await tools.create_change_set.execute({ changeSetRef: 'change-set/browser-six-moves', label: 'Move complete kitchen garden', baseRevision: 1 })
+    await tools.manage_variant.execute({ action: 'discard', variantRef: planting.variantRef })
+    await tools.manage_change_set.execute({ action: 'create', changeSetRef: 'change-set/browser-six-moves', label: 'Move complete kitchen garden', baseRevision: 1 })
     const operations = ['bed-tomato', 'crop-tomato', 'bed-potato', 'crop-potato', 'bed-cucumber', 'crop-cucumber'].map((suffix, index) => ({ type: 'garden-fixture.update', action: 'move', fixtureRef: `fixture-set/starter-1/${suffix}`, position: { x: 8.4 + Math.floor(index / 2) * 3.1, z: 25.5 } }))
-    const draft = JSON.parse((await tools.add_change_set_operations.execute({ changeSetRef: 'change-set/browser-six-moves', operations })).content[0].text) as { operations: unknown[] }
-    const grouped = JSON.parse((await tools.propose_change_set.execute({ changeSetRef: 'change-set/browser-six-moves' })).content[0].text) as { status: string; variantRef: string; operations: unknown[] }
-    await tools.discard_variant.execute({ variantRef: grouped.variantRef })
+    const draft = JSON.parse((await tools.manage_change_set.execute({ action: 'add-operations', changeSetRef: 'change-set/browser-six-moves', operations })).content[0].text) as { operations: unknown[] }
+    const grouped = JSON.parse((await tools.manage_change_set.execute({ action: 'finalize', changeSetRef: 'change-set/browser-six-moves' })).content[0].text) as { status: string; variantRef: string; operations: unknown[] }
+    await tools.manage_variant.execute({ action: 'discard', variantRef: grouped.variantRef })
     const height = JSON.parse((await tools.measure_height.execute({ mode: 'semantic', objectRef: 'opening/upper-east-north', measurement: 'opening-height' })).content[0].text) as { status: string; measurement: { heightM: number; bottomPoint: { reference: string }; topPoint: { reference: string } } }
-    return { extension: { status: extension.status, area: extension.areaAddedM2, levels: extension.levelCount }, planting: { status: planting.status, count: planting.plantCount, parcels: planting.affectedParcelRefs.length }, changeSet: { draftOps: draft.operations.length, variantOps: grouped.operations.length, status: grouped.status }, height }
+    const roof = JSON.parse((await tools.propose_roof_update.execute({ buildingRef: 'house/main', segmentRef: 'roof/main/segment-rear-wing', alignToSegmentRef: 'roof/main/segment-upper-wing', alignEdge: 'eaves', material: 'standing-seam-metal', colorHex: '#2D3435', synchronization: 'roof-and-supporting-walls' })).content[0].text) as { status: string; variantRef: string; targetScope: string; roofChanges: Array<{ after: { eavesElevationM: number; finish: { colorHex: string } } }> }
+    await tools.manage_variant.execute({ action: 'discard', variantRef: roof.variantRef })
+    return { extension: { status: extension.status, area: extension.areaAddedM2, levels: extension.levelCount }, planting: { status: planting.status, count: planting.plantCount, parcels: planting.affectedParcelRefs.length }, changeSet: { draftOps: draft.operations.length, variantOps: grouped.operations.length, status: grouped.status }, height, roof }
   })
   expect(liveAdjustmentProof).toMatchObject({
     extension: { status: 'variant_created', area: 96, levels: 2 },
     planting: { status: 'variant_created', count: expect.any(Number), parcels: 6 },
     changeSet: { draftOps: 6, variantOps: 6, status: 'variant_created' },
     height: { status: 'ok', measurement: { heightM: 1.55, bottomPoint: { reference: 'opening/upper-east-north/sill' }, topPoint: { reference: 'opening/upper-east-north/head' } } },
+    roof: { status: 'variant_created', targetScope: 'segment', roofChanges: [{ after: { eavesElevationM: 6.55, finish: { colorHex: '#2D3435' } } }] },
   })
   expect(liveAdjustmentProof.planting.count).toBeGreaterThan(40)
   await page.evaluate(async () => {
     const browserWindow = window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }>; __pendingAdjustmentApproval?: Promise<unknown> }
     const proposal = JSON.parse((await browserWindow.__projectV2WebMcpTools.propose_storey_update.execute({ action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper', extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }], spaceRef: 'house/main/storey-upper/space-approval-proof' })).content[0].text) as { variantRef: string }
-    browserWindow.__pendingAdjustmentApproval = browserWindow.__projectV2WebMcpTools.request_apply_variant.execute({ variantRef: proposal.variantRef })
+    browserWindow.__pendingAdjustmentApproval = browserWindow.__projectV2WebMcpTools.manage_variant.execute({ action: 'request-apply', variantRef: proposal.variantRef })
   })
   const approval = page.locator('.approval')
   await expect(approval).toBeVisible()
@@ -249,6 +252,34 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await catalog.screenshot({ path: 'test-results/project-v2-mcp-tools.png' })
   await catalog.getByRole('button', { name: 'Close MCP tools' }).click()
   await expect(catalog).toBeHidden()
+
+  const inspector = page.locator('.inspector')
+  await inspector.getByRole('button', { name: /Hydrangea group/ }).click()
+  const objectActions = inspector.getByRole('region', { name: 'Actions for Hydrangea group' })
+  await expect(objectActions.getByRole('button', { name: 'Move' })).toBeVisible()
+  await objectActions.getByRole('button', { name: 'Delete' }).click()
+  await expect(objectActions).toContainText('Nothing changes until approval.')
+  await objectActions.getByRole('button', { name: 'Create delete proposal' }).click()
+  await expect(approval).toBeVisible()
+  await expect(approval).toContainText('Delete Hydrangea group')
+  await approval.getByRole('button', { name: 'Reject all' }).click()
+  await page.getByRole('button', { name: /Proposals/ }).click()
+  let proposalsPanel = page.getByRole('region', { name: 'Proposal review and history' })
+  await proposalsPanel.getByRole('button', { name: /Rejected/ }).click()
+  await expect(proposalsPanel).toContainText('Delete Hydrangea group')
+  await page.waitForTimeout(500)
+  await page.reload()
+  await expect(page.locator('.connection')).toContainText('WebMCP ready')
+  await page.getByRole('button', { name: /Proposals/ }).click()
+  proposalsPanel = page.getByRole('region', { name: 'Proposal review and history' })
+  await proposalsPanel.getByRole('button', { name: /Rejected/ }).click()
+  await expect(proposalsPanel).toContainText('Delete Hydrangea group')
+  await proposalsPanel.screenshot({ path: 'test-results/project-v2-proposal-history.png' })
+  await proposalsPanel.getByRole('button', { name: /Pending/ }).click()
+  await proposalsPanel.getByRole('button', { name: 'Review in scene' }).click()
+  await expect(approval).toBeVisible()
+  await expect(approval).toContainText('tomato raised bed addition')
+  await approval.getByRole('button', { name: 'Reject all' }).click()
 
   await page.getByRole('button', { name: 'Architectural set' }).click()
   const report = page.getByRole('region', { name: 'Architectural structure report' })

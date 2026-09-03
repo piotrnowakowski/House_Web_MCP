@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { polygonArea, polygonSelfIntersects } from './geometry'
 import { estimateDayPartTemperatures } from './climate'
-import type { PlantRecommendation, PlantingGuideCategory, PlantingSoilAnalysis, SiteKnowledgeBase } from './types'
+import type { PlantRecommendation, PlantingGuideCategory, PlantingSoilAnalysis, ProjectV2, SiteKnowledgeBase } from './types'
 
 type LegacyRecommendation = Omit<PlantRecommendation, 'category'> & { category?: PlantingGuideCategory }
 type LegacyPlanting = Omit<SiteKnowledgeBase['planting'], 'soilAnalysis' | 'recommendations'> & { soilAnalysis?: PlantingSoilAnalysis; recommendations: LegacyRecommendation[] }
@@ -65,13 +65,26 @@ const StoreySchema = z.object({
   baseSlabRef: z.string().min(1), topBoundaryRef: z.string().min(1), wallRefs: z.array(z.string().min(1)), spaceRefs: z.array(z.string().min(1)),
   platformRefs: z.array(z.string().min(1)), ceilingFinishRefs: z.array(z.string().min(1)),
 })
+const RoofFinishSchema = z.object({ material: z.enum(['standing-seam-metal', 'tile', 'slate', 'membrane']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) })
+const RoofSegmentSchema = z.object({
+  ref: z.string().min(1), footprint: PolygonSchema, storeyRef: z.string().min(1).optional(), spaceRef: z.string().min(1).optional(), baseElevationM: z.number().finite(),
+  type: z.enum(['flat', 'gable', 'hip']), pitchDegrees: z.number().min(0).max(70), overhangM: z.number().min(0).max(3), ridgeDirection: z.enum(['x', 'z']),
+  finish: RoofFinishSchema, adjacentSegmentRefs: z.array(z.string().min(1)).default([]),
+})
+const RoofJunctionSchema = z.object({
+  ref: z.string().min(1), type: z.enum(['valley', 'intersection']),
+  segmentRefs: z.tuple([z.string().min(1), z.string().min(1)]),
+})
 const BuildingSchema = z.object({
   ref: z.string().min(1), name: z.string().min(1), kind: z.enum(['house', 'garage']), architecturalStyle: z.enum(['classic', 'futuristic', 'barn']),
   garageMode: z.enum(['integrated', 'attached']).optional(), position: Vec2Schema, rotationDegrees: z.number().finite(), storeys: z.array(StoreySchema).min(1),
   slabs: z.array(SlabSchema).min(1), walls: z.array(WallSchema), spaces: z.array(SpaceSchema),
   platforms: z.array(z.object({ ref: z.string().min(1), spaceRef: z.string().min(1), footprint: PolygonSchema, elevationM: z.number().finite(), thicknessM: z.number().positive() })),
   ceilingFinishes: z.array(z.object({ ref: z.string().min(1), spaceRef: z.string().min(1), hostBoundaryRef: z.string().min(1), elevationM: z.number().finite(), thicknessM: z.number().positive() })),
-  roof: z.object({ ref: z.string().min(1), type: z.enum(['flat', 'gable', 'hip']), baseElevationM: z.number().finite(), pitchDegrees: z.number().min(0).max(70), overhangM: z.number().min(0).max(3), footprint: PolygonSchema.optional() }),
+  roof: z.object({
+    ref: z.string().min(1), type: z.enum(['flat', 'gable', 'hip']), baseElevationM: z.number().finite(), pitchDegrees: z.number().min(0).max(70), overhangM: z.number().min(0).max(3), footprint: PolygonSchema.optional(),
+    finish: RoofFinishSchema.default({ material: 'standing-seam-metal', colorHex: '#2D3435' }), segments: z.array(RoofSegmentSchema).default([]), junctions: z.array(RoofJunctionSchema).default([]),
+  }),
 })
 const PlantSchema = z.object({
   ref: z.string().min(1), name: z.string().min(1), species: z.string().min(1), kind: z.enum(['tree', 'hedge', 'shrub', 'perennial', 'grass', 'crop', 'wetland']),
@@ -101,4 +114,26 @@ export const ProjectSchema = z.object({
   }),
 })
 
-export const parseProject = (input: unknown) => ProjectSchema.parse(input)
+export const parseProject = (input: unknown): ProjectV2 => {
+  const project = ProjectSchema.parse(input) as ProjectV2
+  project.buildings.forEach((building) => {
+    if (!building.roof.segments.length) {
+      const storey = [...building.storeys].sort((a, b) => b.level - a.level)[0]
+      const footprint = structuredClone(building.roof.footprint ?? building.slabs.find((slab) => slab.ref === storey.baseSlabRef)?.footprint ?? building.slabs[0].footprint)
+      building.roof.segments = [{
+        ref: `${building.roof.ref}/segment-main`, footprint, storeyRef: storey.ref, spaceRef: storey.spaceRefs[0], baseElevationM: building.roof.baseElevationM,
+        type: building.roof.type, pitchDegrees: building.roof.pitchDegrees, overhangM: building.roof.overhangM, ridgeDirection: 'z', finish: structuredClone(building.roof.finish), adjacentSegmentRefs: [],
+      }]
+    }
+    if (!building.roof.junctions.length) {
+      const seen = new Set<string>()
+      building.roof.junctions = building.roof.segments.flatMap((segment) => segment.adjacentSegmentRefs.flatMap((otherRef) => {
+        const pair = [segment.ref, otherRef].sort() as [string, string]; const key = pair.join('|')
+        if (seen.has(key) || !building.roof.segments.some((candidate) => candidate.ref === otherRef)) return []
+        seen.add(key)
+        return [{ ref: `${building.roof.ref}/junction-${seen.size}`, type: 'intersection' as const, segmentRefs: pair }]
+      }))
+    }
+  })
+  return project
+}

@@ -1,7 +1,8 @@
 import { estimateDayPartTemperatures } from './climate'
 import { gardenFixtureById } from './gardenFixtures'
 import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
-import type { BuildingModel, LandscapeZone, OpeningModel, Polygon2, ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, SpaceBoundaryUse, StoreyModel, Vec2, WallModel } from './types'
+import { decomposeOrthogonalLFootprint, defaultRoofFinish, ridgeDirectionForFootprint, roofSegmentRidgeElevation, segmentContainsFootprint, supportingWallRefs } from './roofs'
+import type { BuildingModel, LandscapeZone, OpeningModel, Polygon2, ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, RoofJunctionModel, RoofSegmentDefinition, RoofSegmentModel, SpaceBoundaryUse, StoreyModel, Vec2, WallModel } from './types'
 
 export { polygonArea } from './geometry'
 const clone = <T>(value: T): T => structuredClone(value)
@@ -11,9 +12,54 @@ const styleRoof: Record<BuildingModel['architecturalStyle'], Pick<BuildingModel[
   barn: { type: 'gable', pitchDegrees: 45, overhangM: 0.3 },
 }
 const samePoint = (a: Vec2, b: Vec2) => Math.hypot(a.x - b.x, a.z - b.z) < 0.001
+const slugRef = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
 const getBuilding = (project: ProjectV2, ref: string) => { const value = project.buildings.find((item) => item.ref === ref); if (!value) throw new Error(`Building not found: ${ref}`); return value }
 const getStorey = (building: BuildingModel, ref: string) => { const value = building.storeys.find((item) => item.ref === ref); if (!value) throw new Error(`Storey not found: ${ref}`); return value }
 const getWall = (building: BuildingModel, ref: string) => { const value = building.walls.find((item) => item.ref === ref); if (!value) throw new Error(`Wall not found: ${ref}`); return value }
+const polygonsTouch = (first: Polygon2, second: Polygon2) => first.some((point) => second.some((start, index) => pointOnSegment(point, start, second[(index + 1) % second.length])))
+  || second.some((point) => first.some((start, index) => pointOnSegment(point, start, first[(index + 1) % first.length])))
+const footprintContains = (outer: Polygon2, inner: Polygon2) => inner.every((point) => pointInPolygon(point, outer) || outer.some((start, index) => pointOnSegment(point, start, outer[(index + 1) % outer.length])))
+const footprintsEquivalent = (first: Polygon2, second: Polygon2) => Math.abs(polygonArea(first) - polygonArea(second)) < 0.02 && footprintContains(first, second) && footprintContains(second, first)
+const rebuildRoofAdjacency = (building: BuildingModel) => {
+  building.roof.segments.forEach((segment) => { segment.adjacentSegmentRefs = [] })
+  building.roof.junctions.forEach((junction) => {
+    const first = building.roof.segments.find((segment) => segment.ref === junction.segmentRefs[0])
+    const second = building.roof.segments.find((segment) => segment.ref === junction.segmentRefs[1])
+    if (!first || !second) return
+    first.adjacentSegmentRefs.push(second.ref); second.adjacentSegmentRefs.push(first.ref)
+  })
+}
+const createRoofSegment = (roof: BuildingModel['roof'], definition: RoofSegmentDefinition, source?: RoofSegmentModel): RoofSegmentModel => ({
+  ref: definition.segmentRef,
+  footprint: clone(definition.footprint),
+  storeyRef: definition.storeyRef ?? source?.storeyRef,
+  spaceRef: definition.spaceRef ?? source?.spaceRef,
+  baseElevationM: definition.baseElevationM ?? source?.baseElevationM ?? roof.baseElevationM,
+  type: definition.roofType ?? source?.type ?? roof.type,
+  pitchDegrees: definition.pitchDegrees ?? source?.pitchDegrees ?? roof.pitchDegrees,
+  overhangM: definition.overhangM ?? source?.overhangM ?? roof.overhangM,
+  ridgeDirection: definition.ridgeDirection,
+  finish: {
+    material: definition.material ?? source?.finish.material ?? roof.finish.material,
+    colorHex: (definition.colorHex ?? source?.finish.colorHex ?? roof.finish.colorHex).toUpperCase(),
+  },
+  adjacentSegmentRefs: [],
+})
+const replaceRoofJunctions = (building: BuildingModel, affectedRefs: Set<string>, junctions: RoofJunctionModel[]) => {
+  const retained = building.roof.junctions.filter((junction) => !junction.segmentRefs.some((ref) => affectedRefs.has(ref)))
+  const all = [...retained, ...clone(junctions)]
+  const seen = new Set<string>()
+  all.forEach((junction) => {
+    if (seen.has(junction.ref)) throw new Error(`Roof junction reference already exists: ${junction.ref}`)
+    seen.add(junction.ref)
+    const [firstRef, secondRef] = junction.segmentRefs
+    if (firstRef === secondRef) throw new Error(`Roof junction must connect two different segments: ${junction.ref}`)
+    const first = building.roof.segments.find((segment) => segment.ref === firstRef); const second = building.roof.segments.find((segment) => segment.ref === secondRef)
+    if (!first || !second) throw new Error(`Roof junction ${junction.ref} references a missing segment.`)
+    if (!polygonsTouch(first.footprint, second.footprint)) throw new Error(`Roof junction ${junction.ref} connects segment footprints that do not meet.`)
+  })
+  building.roof.junctions = all; rebuildRoofAdjacency(building)
+}
 
 const findReusableWall = (building: BuildingModel, start: Vec2, end: Vec2, baseElevationM: number) => {
   const exact = building.walls.find((wall) => Math.abs(wall.baseElevationM - baseElevationM) < 0.001
@@ -55,7 +101,11 @@ const defaultBuilding = (ref: string, name: string, kind: BuildingModel['kind'],
   const building: BuildingModel = {
     ref, name, kind, architecturalStyle: 'classic', position, rotationDegrees: 0, storeys: [storey],
     slabs: [{ ref: slabRef, footprint, topElevationM: 0.4, thicknessM: 0.3, locked: false }], walls: [], spaces: [], platforms: [], ceilingFinishes: [],
-    roof: { ref: roofRef, type: kind === 'garage' ? 'flat' : 'gable', baseElevationM: 3.2, pitchDegrees: kind === 'garage' ? 0 : 28, overhangM: 0.4 },
+    roof: {
+      ref: roofRef, type: kind === 'garage' ? 'flat' : 'gable', baseElevationM: 3.2, pitchDegrees: kind === 'garage' ? 0 : 28, overhangM: 0.4, finish: clone(defaultRoofFinish),
+      segments: [{ ref: `${roofRef}/segment-main`, footprint: clone(footprint), storeyRef: storey.ref, spaceRef: storey.spaceRefs[0], baseElevationM: 3.2, type: kind === 'garage' ? 'flat' : 'gable', pitchDegrees: kind === 'garage' ? 0 : 28, overhangM: 0.4, ridgeDirection: 'z', finish: clone(defaultRoofFinish), adjacentSegmentRefs: [] }],
+      junctions: [],
+    },
   }
   building.spaces.push({ ref: storey.spaceRefs[0], name: kind === 'garage' ? 'Parking' : 'Main space', usage: kind === 'garage' ? 'garage' : 'living', boundary: buildBoundary(building, storey, storey.spaceRefs[0], footprint), baseSlabRef: slabRef, topBoundaryRef: roofRef, locked: false })
   return building
@@ -79,6 +129,7 @@ const applyBuilding = (project: ProjectV2, command: Extract<ProjectCommand, { ty
   if (command.architecturalStyle) {
     building.architecturalStyle = command.architecturalStyle
     Object.assign(building.roof, styleRoof[command.architecturalStyle])
+    building.roof.segments.forEach((segment) => Object.assign(segment, styleRoof[command.architecturalStyle!]))
   }
 }
 
@@ -99,6 +150,9 @@ const applyStorey = (project: ProjectV2, command: Extract<ProjectCommand, { type
     const spaceRef = storey.spaceRefs[0]
     building.spaces.push({ ref: spaceRef, name: 'Upper space', usage: 'flex', boundary: buildBoundary(building, storey, spaceRef, footprint), baseSlabRef: slabRef, topBoundaryRef: building.roof.ref, locked: false })
     building.roof.baseElevationM = elevationM + storey.clearHeightM
+    building.roof.footprint = clone(footprint)
+    building.roof.segments = [{ ...clone(building.roof.segments[0]), ref: `${building.roof.ref}/segment-main`, footprint: clone(footprint), storeyRef: storey.ref, spaceRef, baseElevationM: building.roof.baseElevationM, adjacentSegmentRefs: [] }]
+    building.roof.junctions = []
     return
   }
   const storey = getStorey(building, command.storeyRef)
@@ -107,17 +161,24 @@ const applyStorey = (project: ProjectV2, command: Extract<ProjectCommand, { type
     if (!slab) throw new Error(`Base slab not found: ${storey.baseSlabRef}`)
     if (slab.locked) throw new Error(`Slab is locked: ${slab.ref}`)
     if (!command.footprint && !command.extensionFootprint) throw new Error('A complete footprint or extensionFootprint is required.')
-    const completeFootprint = clone(command.footprint ?? mergeAdjacentPolygons(slab.footprint, command.extensionFootprint!))
+    const previousFootprint = clone(slab.footprint)
+    const completeFootprint = clone(command.footprint ?? mergeAdjacentPolygons(previousFootprint, command.extensionFootprint!))
     if (command.extensionFootprint && command.footprint) {
       const expectedArea = polygonArea(slab.footprint) + polygonArea(command.extensionFootprint)
       if (Math.abs(polygonArea(completeFootprint) - expectedArea) > 0.02) throw new Error('Complete footprint area must equal the existing storey plus the non-overlapping extension.')
     }
     if (polygonArea(completeFootprint) <= polygonArea(slab.footprint) + 0.01) throw new Error('The new storey footprint must increase modeled floor area.')
-    if (command.extensionFootprint) {
+    const inferredWings = command.extensionFootprint ? null : decomposeOrthogonalLFootprint(completeFootprint)
+    const previousWingIndex = inferredWings?.findIndex((wing) => footprintsEquivalent(wing, previousFootprint)) ?? -1
+    const inferredExtension = inferredWings && previousWingIndex >= 0 ? inferredWings[previousWingIndex === 0 ? 1 : 0] : undefined
+    const extensionFootprint = command.extensionFootprint ?? inferredExtension
+    let extensionSpaceRef: string | undefined
+    if (extensionFootprint) {
       const spaceRef = command.spaceRef ?? `${storey.ref}/space-extension`
+      extensionSpaceRef = spaceRef
       if (building.spaces.some((space) => space.ref === spaceRef)) throw new Error(`Reference already exists: ${spaceRef}`)
-      const extensionFootprint = splitPolygonEdges(command.extensionFootprint, slab.footprint)
-      building.spaces.push({ ref: spaceRef, name: command.spaceName ?? 'Storey extension', usage: command.usage ?? 'flex', boundary: buildBoundary(building, storey, spaceRef, extensionFootprint), baseSlabRef: slab.ref, topBoundaryRef: storey.topBoundaryRef, locked: false })
+      const splitExtensionFootprint = splitPolygonEdges(extensionFootprint, previousFootprint)
+      building.spaces.push({ ref: spaceRef, name: command.spaceName ?? 'Storey extension', usage: command.usage ?? 'flex', boundary: buildBoundary(building, storey, spaceRef, splitExtensionFootprint), baseSlabRef: slab.ref, topBoundaryRef: storey.topBoundaryRef, locked: false })
       storey.spaceRefs.push(spaceRef)
     } else {
       const primarySpace = building.spaces.find((space) => storey.spaceRefs.includes(space.ref) && !space.locked)
@@ -129,7 +190,25 @@ const applyStorey = (project: ProjectV2, command: Extract<ProjectCommand, { type
       }
     }
     slab.footprint = completeFootprint
-    if (storey.level === Math.max(...building.storeys.map((item) => item.level))) building.roof.footprint = clone(completeFootprint)
+    if (storey.level === Math.max(...building.storeys.map((item) => item.level))) {
+      building.roof.footprint = clone(completeFootprint)
+      const eavesElevationM = storey.elevationM + storey.clearHeightM
+      if (extensionFootprint) {
+        const existing = building.roof.segments.find((segment) => segmentContainsFootprint(segment, extensionFootprint))
+        if (existing) {
+          existing.footprint = clone(extensionFootprint); existing.storeyRef = storey.ref; existing.spaceRef = extensionSpaceRef; existing.baseElevationM = eavesElevationM
+        } else {
+          const ref = `${building.roof.ref}/segment-${slugRef(extensionSpaceRef ?? storey.ref)}`
+          const touchingSegments = building.roof.segments.filter((segment) => polygonsTouch(segment.footprint, extensionFootprint))
+          building.roof.segments.push({ ref, footprint: clone(extensionFootprint), storeyRef: storey.ref, spaceRef: extensionSpaceRef, baseElevationM: eavesElevationM, type: building.roof.type, pitchDegrees: building.roof.pitchDegrees, overhangM: building.roof.overhangM, ridgeDirection: ridgeDirectionForFootprint(extensionFootprint), finish: clone(building.roof.finish), adjacentSegmentRefs: [] })
+          touchingSegments.forEach((segment) => building.roof.junctions.push({ ref: `${building.roof.ref}/junction-${slugRef(segment.ref)}-${slugRef(ref)}`, type: 'valley', segmentRefs: [segment.ref, ref] }))
+          rebuildRoofAdjacency(building)
+        }
+      } else if (building.roof.segments.length === 1) {
+        Object.assign(building.roof.segments[0], { footprint: clone(completeFootprint), storeyRef: storey.ref, baseElevationM: eavesElevationM })
+      }
+      building.roof.baseElevationM = Math.max(...building.roof.segments.map((segment) => segment.baseElevationM))
+    }
     const usedWallRefs = new Set(building.spaces.filter((space) => storey.spaceRefs.includes(space.ref)).flatMap((space) => space.boundary.map((use) => use.wallRef)))
     const obsoleteWallRefs = new Set(storey.wallRefs.filter((ref) => !usedWallRefs.has(ref)))
     storey.wallRefs = [...usedWallRefs]
@@ -148,6 +227,10 @@ const applyStorey = (project: ProjectV2, command: Extract<ProjectCommand, { type
     building.walls = building.walls.filter((item) => !storey.wallRefs.includes(item.ref))
     building.slabs = building.slabs.filter((item) => item.ref !== storey.baseSlabRef)
     building.roof.baseElevationM = lower.elevationM + lower.clearHeightM
+    const lowerSlab = building.slabs.find((slab) => slab.ref === lower.baseSlabRef)
+    building.roof.footprint = clone(lowerSlab?.footprint ?? building.slabs[0].footprint)
+    building.roof.segments = [{ ...clone(building.roof.segments[0]), ref: `${building.roof.ref}/segment-main`, footprint: clone(building.roof.footprint), storeyRef: lower.ref, spaceRef: lower.spaceRefs[0], baseElevationM: building.roof.baseElevationM, adjacentSegmentRefs: [] }]
+    building.roof.junctions = []
     return
   }
   if (command.clearHeightM !== undefined) {
@@ -158,6 +241,10 @@ const applyStorey = (project: ProjectV2, command: Extract<ProjectCommand, { type
     building.slabs.filter((slab) => slab.topElevationM > storey.elevationM).forEach((slab) => { slab.topElevationM += delta })
     building.walls.filter((wall) => wall.baseElevationM > storey.elevationM).forEach((wall) => { wall.baseElevationM += delta })
     building.roof.baseElevationM += delta
+    building.roof.segments.forEach((segment) => {
+      const host = building.storeys.find((item) => item.ref === segment.storeyRef)
+      if (host && host.level >= storey.level) segment.baseElevationM += delta
+    })
   }
 }
 
@@ -183,6 +270,92 @@ const applySpace = (project: ProjectV2, command: Extract<ProjectCommand, { type:
     const elevationM = command.ceilingElevationM ?? storey.elevationM + storey.clearHeightM - 0.25
     if (existing) existing.elevationM = elevationM
     else { building.ceilingFinishes.push({ ref, spaceRef: space.ref, hostBoundaryRef: space.topBoundaryRef, elevationM, thicknessM: 0.08 }); storey.ceilingFinishRefs.push(ref) }
+  }
+}
+
+const applyRoof = (project: ProjectV2, command: Extract<ProjectCommand, { type: 'roof.update' }>) => {
+  const building = getBuilding(project, command.buildingRef); const roof = building.roof
+  if (command.roofRef && command.roofRef !== roof.ref && !roof.segments.some((segment) => segment.ref === command.roofRef)) throw new Error(`Roof not found: ${command.roofRef}`)
+  const segmentRef = command.segmentRef ?? (command.roofRef && command.roofRef !== roof.ref ? command.roofRef : undefined)
+  const action = command.action ?? 'update'
+  if (action === 'add-segment') {
+    if (!segmentRef || !command.footprint || !command.ridgeDirection) throw new Error('add-segment requires segmentRef, footprint and ridgeDirection.')
+    if (roof.segments.some((segment) => segment.ref === segmentRef)) throw new Error(`Reference already exists: ${segmentRef}`)
+    const definition: RoofSegmentDefinition = {
+      segmentRef, footprint: command.footprint, ridgeDirection: command.ridgeDirection, storeyRef: command.storeyRef, spaceRef: command.spaceRef,
+      roofType: command.roofType, pitchDegrees: command.pitchDegrees, overhangM: command.overhangM, baseElevationM: command.baseElevationM ?? command.targetEavesElevationM,
+      material: command.material, colorHex: command.colorHex,
+    }
+    roof.segments.push(createRoofSegment(roof, definition))
+    replaceRoofJunctions(building, new Set([segmentRef]), command.junctions ?? [])
+    roof.baseElevationM = Math.max(...roof.segments.map((segment) => segment.baseElevationM))
+    return
+  }
+  if (action === 'split-segment') {
+    const source = roof.segments.find((segment) => segment.ref === segmentRef)
+    if (!source || !command.segments || command.segments.length < 2) throw new Error('split-segment requires an existing segmentRef and at least two replacement segments.')
+    if (!command.junctions?.length) throw new Error('split-segment requires at least one declared valley or intersection junction.')
+    const childRefs = command.segments.map((segment) => segment.segmentRef)
+    if (new Set(childRefs).size !== childRefs.length) throw new Error('Split segment references must be unique.')
+    const conflicts = roof.segments.filter((segment) => segment.ref !== source.ref && childRefs.includes(segment.ref))
+    if (conflicts.length) throw new Error(`Reference already exists: ${conflicts[0].ref}`)
+    const splitArea = command.segments.reduce((sum, segment) => sum + polygonArea(segment.footprint), 0)
+    if (Math.abs(splitArea - polygonArea(source.footprint)) > 0.02) throw new Error('Split footprints must cover the complete source segment without overlap or missing area.')
+    if (command.segments.some((segment) => segment.footprint.some((point) => !pointInPolygon(point, source.footprint) && !source.footprint.some((start, index) => pointOnSegment(point, start, source.footprint[(index + 1) % source.footprint.length]))))) {
+      throw new Error('Every split footprint must remain within the source segment footprint.')
+    }
+    roof.segments = [...roof.segments.filter((segment) => segment.ref !== source.ref), ...command.segments.map((definition) => createRoofSegment(roof, definition, source))]
+    const affectedRefs = new Set([source.ref, ...childRefs])
+    replaceRoofJunctions(building, affectedRefs, command.junctions ?? [])
+    roof.baseElevationM = Math.max(...roof.segments.map((segment) => segment.baseElevationM))
+    return
+  }
+  const targets = segmentRef ? roof.segments.filter((segment) => segment.ref === segmentRef) : roof.segments
+  if (!targets.length) throw new Error(`Roof segment not found: ${segmentRef}`)
+  const alignment = command.alignToSegmentRef ? roof.segments.find((segment) => segment.ref === command.alignToSegmentRef) : undefined
+  if (command.alignToSegmentRef && !alignment) throw new Error(`Alignment roof segment not found: ${command.alignToSegmentRef}`)
+  if (alignment && targets.some((segment) => segment.ref === alignment.ref)) throw new Error('A roof segment cannot align to itself.')
+  if (command.colorHex && !/^#[0-9a-fA-F]{6}$/.test(command.colorHex)) throw new Error('Roof color must be a six-digit hex value such as #2D3435.')
+  const synchronization = command.synchronization ?? 'roof-only'
+
+  targets.forEach((segment) => {
+    const nextType = command.roofType ?? segment.type; const nextPitch = command.pitchDegrees ?? segment.pitchDegrees
+    const projected = { ...segment, type: nextType, pitchDegrees: nextPitch }
+    let nextBase = segment.baseElevationM
+    if (alignment) nextBase = (command.alignEdge ?? 'eaves') === 'ridge' ? roofSegmentRidgeElevation(alignment) - (roofSegmentRidgeElevation(projected) - projected.baseElevationM) : alignment.baseElevationM
+    else if (command.targetEavesElevationM !== undefined) nextBase = command.targetEavesElevationM
+    else if (command.baseElevationM !== undefined) nextBase = command.baseElevationM
+    else if (command.verticalDeltaM !== undefined) nextBase += command.verticalDeltaM
+
+    if (Math.abs(nextBase - segment.baseElevationM) > 0.0001 && synchronization === 'storey-height') {
+      if (!segment.storeyRef) throw new Error(`Roof segment has no associated storey: ${segment.ref}`)
+      const storey = getStorey(building, segment.storeyRef); const clearHeightM = nextBase - storey.elevationM
+      if (clearHeightM < 2) throw new Error('Synchronized storey clear height cannot be below 2 m.')
+      applyStorey(project, { type: 'storey.update', action: 'set-height', buildingRef: building.ref, storeyRef: storey.ref, clearHeightM })
+    } else if (Math.abs(nextBase - segment.baseElevationM) > 0.0001 && synchronization === 'roof-and-supporting-walls') {
+      const refs = supportingWallRefs(building, segment)
+      if (!refs.length) throw new Error(`No supporting walls were resolved for roof segment: ${segment.ref}`)
+      refs.forEach((ref) => { const wall = getWall(building, ref); const heightM = nextBase - wall.baseElevationM; if (heightM <= 0) throw new Error(`Roof elevation would overlap supporting wall: ${ref}`); wall.heightM = heightM })
+    }
+
+    segment.type = nextType; segment.pitchDegrees = nextPitch
+    if (command.overhangM !== undefined) segment.overhangM = command.overhangM
+    if (command.footprint) segment.footprint = clone(command.footprint)
+    if (command.ridgeDirection) segment.ridgeDirection = command.ridgeDirection
+    if (command.storeyRef) segment.storeyRef = command.storeyRef
+    if (command.spaceRef) segment.spaceRef = command.spaceRef
+    segment.baseElevationM = nextBase
+    if (command.material) segment.finish.material = command.material
+    if (command.colorHex) segment.finish.colorHex = command.colorHex.toUpperCase()
+  })
+  if (command.junctions) replaceRoofJunctions(building, new Set(targets.map((segment) => segment.ref)), command.junctions)
+  roof.baseElevationM = Math.max(...roof.segments.map((segment) => segment.baseElevationM))
+  if (!segmentRef) {
+    if (command.roofType) roof.type = command.roofType
+    if (command.pitchDegrees !== undefined) roof.pitchDegrees = command.pitchDegrees
+    if (command.overhangM !== undefined) roof.overhangM = command.overhangM
+    if (command.material) roof.finish.material = command.material
+    if (command.colorHex) roof.finish.colorHex = command.colorHex.toUpperCase()
   }
 }
 
@@ -212,6 +385,7 @@ const applyCommandMutable = (project: ProjectV2, command: ProjectCommand) => {
         const spaceRefs = new Set(affected.flatMap((storey) => storey.spaceRefs)); building.platforms.filter((platform) => spaceRefs.has(platform.spaceRef)).forEach((platform) => { platform.elevationM += delta })
         building.ceilingFinishes.filter((finish) => spaceRefs.has(finish.spaceRef)).forEach((finish) => { finish.elevationM += delta })
         building.roof.baseElevationM += delta
+        building.roof.segments.forEach((segment) => { if (affected.some((storey) => storey.ref === segment.storeyRef)) segment.baseElevationM += delta })
       }
     }
   } else if (command.type === 'wall.update') {
@@ -238,10 +412,8 @@ const applyCommandMutable = (project: ProjectV2, command: ProjectCommand) => {
       if (command.offsetM !== undefined) opening.offsetM = command.offsetM; if (command.widthM !== undefined) opening.widthM = command.widthM
       if (command.heightM !== undefined) opening.heightM = command.heightM; if (command.sillM !== undefined) opening.sillM = command.sillM
     }
-  } else if (command.type === 'roof.update') {
-    const roof = getBuilding(project, command.buildingRef).roof
-    if (command.roofType) roof.type = command.roofType; if (command.pitchDegrees !== undefined) roof.pitchDegrees = command.pitchDegrees; if (command.overhangM !== undefined) roof.overhangM = command.overhangM
-  } else if (command.type === 'platform.update') {
+  } else if (command.type === 'roof.update') applyRoof(project, command)
+  else if (command.type === 'platform.update') {
     const building = getBuilding(project, command.buildingRef); const storey = getStorey(building, command.storeyRef)
     if (command.action === 'add') { if (!command.footprint) throw new Error('Platform footprint is required.'); building.platforms.push({ ref: command.platformRef, spaceRef: command.spaceRef, footprint: clone(command.footprint), elevationM: command.elevationM ?? storey.elevationM + 2.2, thicknessM: command.thicknessM ?? 0.18 }); storey.platformRefs.push(command.platformRef) }
     else if (command.action === 'remove') { building.platforms = building.platforms.filter((item) => item.ref !== command.platformRef); storey.platformRefs = storey.platformRefs.filter((ref) => ref !== command.platformRef) }
@@ -287,7 +459,7 @@ export const applyCommand = (source: ProjectV2, command: ProjectCommand): Projec
 }
 export const applyCommands = (source: ProjectV2, commands: ProjectCommand[]) => commands.reduce(applyCommand, source)
 
-const allRefs = (building: BuildingModel) => [building.ref, building.roof.ref, ...building.storeys.map((item) => item.ref), ...building.slabs.map((item) => item.ref), ...building.walls.map((item) => item.ref), ...building.spaces.map((item) => item.ref), ...building.platforms.map((item) => item.ref), ...building.ceilingFinishes.map((item) => item.ref), ...building.walls.flatMap((wall) => wall.openings.map((item) => item.ref))]
+const allRefs = (building: BuildingModel) => [building.ref, building.roof.ref, ...building.roof.segments.map((item) => item.ref), ...building.storeys.map((item) => item.ref), ...building.slabs.map((item) => item.ref), ...building.walls.map((item) => item.ref), ...building.spaces.map((item) => item.ref), ...building.platforms.map((item) => item.ref), ...building.ceilingFinishes.map((item) => item.ref), ...building.walls.flatMap((wall) => wall.openings.map((item) => item.ref))]
 
 export const validateProject = (project: ProjectV2): ProjectIssue[] => {
   const issues: ProjectIssue[] = []
@@ -312,13 +484,50 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
       if (opening.offsetM - opening.widthM / 2 < 0 || opening.offsetM + opening.widthM / 2 > wallLength(wall)) issues.push({ severity: 'error', code: 'opening.bounds', message: `${opening.ref} exceeds its host wall.`, subjectRef: opening.ref })
       if (opening.sillM + opening.heightM > wall.heightM) issues.push({ severity: 'error', code: 'opening.height', message: `${opening.ref} exceeds wall height.`, subjectRef: opening.ref })
     }))
+    if (!building.roof.segments.length) issues.push({ severity: 'error', code: 'roof.segments', message: `${building.name} must have at least one semantic roof segment.`, subjectRef: building.roof.ref })
+    building.roof.segments.forEach((segment) => {
+      const storey = segment.storeyRef ? building.storeys.find((item) => item.ref === segment.storeyRef) : undefined
+      if (segment.storeyRef && !storey) issues.push({ severity: 'error', code: 'roof.storey', message: `${segment.ref} references a missing supporting storey.`, subjectRef: segment.ref })
+      if (segment.spaceRef && !building.spaces.some((space) => space.ref === segment.spaceRef)) issues.push({ severity: 'error', code: 'roof.space', message: `${segment.ref} references a missing supporting space.`, subjectRef: segment.ref })
+      if (!/^#[0-9a-fA-F]{6}$/.test(segment.finish.colorHex)) issues.push({ severity: 'error', code: 'roof.finish', message: `${segment.ref} has an invalid finish colour.`, subjectRef: segment.ref })
+      const supportRefs = supportingWallRefs(building, segment)
+      if (storey && !supportRefs.length) {
+        const supportTop = storey.elevationM + storey.clearHeightM
+        if (segment.baseElevationM < supportTop - 0.02) issues.push({ severity: 'error', code: 'roof.support-overlap', message: `${segment.ref} is below the top of its supporting storey.`, subjectRef: segment.ref })
+        if (segment.baseElevationM > supportTop + 0.02) issues.push({ severity: 'error', code: 'roof.support-gap', message: `${segment.ref} leaves a gap above its supporting storey.`, subjectRef: segment.ref })
+      }
+      supportRefs.forEach((ref) => {
+        const wall = building.walls.find((item) => item.ref === ref); if (!wall) return
+        const wallTop = wall.baseElevationM + wall.heightM
+        if (segment.baseElevationM < wallTop - 0.02) issues.push({ severity: 'error', code: 'roof.wall-overlap', message: `${segment.ref} overlaps supporting wall ${ref}.`, subjectRef: segment.ref })
+        if (segment.baseElevationM > wallTop + 0.02) issues.push({ severity: 'error', code: 'roof.wall-gap', message: `${segment.ref} is separated from supporting wall ${ref}.`, subjectRef: segment.ref })
+      })
+      segment.adjacentSegmentRefs.forEach((ref) => {
+        const adjacent = building.roof.segments.find((item) => item.ref === ref)
+        if (!adjacent) issues.push({ severity: 'error', code: 'roof.junction-ref', message: `${segment.ref} references missing adjacent segment ${ref}.`, subjectRef: segment.ref })
+        else {
+          if (!adjacent.adjacentSegmentRefs.includes(segment.ref)) issues.push({ severity: 'error', code: 'roof.junction-reciprocal', message: `${segment.ref} and ${ref} must declare the same roof junction.`, subjectRef: segment.ref })
+          const touches = segment.footprint.some((point) => adjacent.footprint.some((start, index) => pointOnSegment(point, start, adjacent.footprint[(index + 1) % adjacent.footprint.length])))
+            || adjacent.footprint.some((point) => segment.footprint.some((start, index) => pointOnSegment(point, start, segment.footprint[(index + 1) % segment.footprint.length])))
+          if (!touches) issues.push({ severity: 'error', code: 'roof.junction-geometry', message: `${segment.ref} and ${ref} declare a junction but their footprints do not meet.`, subjectRef: segment.ref })
+        }
+      })
+    })
+    const junctionRefs = new Set<string>()
+    building.roof.junctions.forEach((junction) => {
+      if (junctionRefs.has(junction.ref)) issues.push({ severity: 'error', code: 'roof.junction-duplicate', message: `Duplicate roof junction reference: ${junction.ref}.`, subjectRef: junction.ref })
+      junctionRefs.add(junction.ref)
+      const first = building.roof.segments.find((segment) => segment.ref === junction.segmentRefs[0]); const second = building.roof.segments.find((segment) => segment.ref === junction.segmentRefs[1])
+      if (!first || !second) issues.push({ severity: 'error', code: 'roof.junction-ref', message: `${junction.ref} references a missing roof segment.`, subjectRef: junction.ref })
+      else if (!polygonsTouch(first.footprint, second.footprint)) issues.push({ severity: 'error', code: 'roof.junction-geometry', message: `${junction.ref} connects roof segment footprints that do not meet.`, subjectRef: junction.ref })
+    })
     if (!buildingFootprintsWorld(building).flat().every((point) => constructionParcels.some((parcel) => pointInPolygon(point, parcel.boundary)))) issues.push({ severity: 'error', code: 'building.site', message: `${building.name} is outside the construction parcels.`, subjectRef: building.ref })
   })
   project.landscape.zones.forEach((zone: LandscapeZone) => {
     if (polygonArea(zone.footprint) < 0.01 || polygonSelfIntersects(zone.footprint)) issues.push({ severity: 'error', code: 'landscape.polygon', message: `${zone.name} has an invalid polygon.`, subjectRef: zone.ref })
     if (!zone.footprint.every((point) => pointInPolygon(point, project.site.boundary))) issues.push({ severity: 'error', code: 'landscape.site', message: `${zone.name} extends outside the site.`, subjectRef: zone.ref })
   })
-  const hostRefs = new Set(['site/terrain', ...project.landscape.zones.map((zone) => zone.ref), ...project.buildings.flatMap((building) => [building.roof.ref, ...building.slabs.map((slab) => slab.ref), ...building.walls.map((wall) => wall.ref), ...building.platforms.map((platform) => platform.ref)])])
+  const hostRefs = new Set(['site/terrain', ...project.landscape.zones.map((zone) => zone.ref), ...project.buildings.flatMap((building) => [building.roof.ref, ...building.roof.segments.map((segment) => segment.ref), ...building.slabs.map((slab) => slab.ref), ...building.walls.map((wall) => wall.ref), ...building.platforms.map((platform) => platform.ref)])])
   project.landscape.plants.forEach((plant) => {
     if (!pointInPolygon(plant.position, project.site.boundary)) issues.push({ severity: 'error', code: 'plant.site', message: `${plant.name} is outside the site.`, subjectRef: plant.ref })
     if (plant.attachment && !hostRefs.has(plant.attachment.hostRef)) issues.push({ severity: 'error', code: 'plant.support', message: `${plant.name} has an unknown support surface.`, subjectRef: plant.ref })

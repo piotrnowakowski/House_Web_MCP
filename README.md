@@ -168,25 +168,20 @@ Use **MCP Tools** in the application to inspect the registered catalogue. The pa
 | `propose_wall_opening_layout` | Apply a deterministic opening layout to one wall |
 | `propose_wall_finish_update` | Change one wall or all exterior walls to a material and color |
 | `propose_opening_update` | Add/remove/move/resize a wall-hosted door or window |
-| `propose_roof_update` | Edit flat, gable or hip roof parameters |
+| `propose_roof_update` | Update, add or split semantic roof segments, including footprints, ridge axes and typed junctions |
 | `propose_platform_update` | Edit a space-hosted mezzanine platform |
 | `propose_landscape_update` | Edit a straight-edged landscape polygon |
 | `propose_plant_update` | Edit a terrain-supported plant |
 | `propose_planting_area` | Create one deterministic boundary, line or polygon planting scheme |
 | `list_garden_fixtures` | Read the ready structure and crop-fixture catalogue |
-| `propose_garden_fixture_update` | Add, remove, move or rotate one semantic garden fixture |
-| `propose_garden_fixture_set` | Place the complete kitchen garden or one crop-filled raised bed, including “next to the previous bed” placement |
-| `create_change_set` | Start a transactional draft against an explicit base revision |
-| `add_change_set_operations` | Append typed operations and validate their combined result |
-| `propose_change_set` | Finalize the draft as one ghost variant and one approval |
-| `discard_change_set` | Discard an uncommitted draft |
+| `propose_garden_fixture` | Add, remove, move or rotate one fixture, or place a coordinated garden preset selected by `mode` |
+| `manage_change_set` | Create, populate, finalize or discard a transactional draft selected by `action` |
 | `measure_height` | Read semantic or free vertical height with local and absolute elevations |
 | `propose_climate_update` | Edit one climate month, including night/morning/day/evening averages |
 | `show_structure_views` | Open visible architectural drawings and return placement data |
 | `run_seasonal_analysis` | Return day-part temperature averages and V2 seasonal planning signals |
 | `compare_variants` | Compare ghost metrics and validation issues |
-| `request_apply_variant` | Wait for explicit Apply/Reject confirmation |
-| `discard_variant` | Remove an uncommitted variant |
+| `manage_variant` | Request explicit Apply/Reject review or discard an uncommitted variant selected by `action` |
 | `undo_last_change` | Restore the previous committed V2 project |
 
 Every modifying tool creates an immutable ghost variant. Only explicit human approval commits it. The centralized [WebMCP prompt catalog](prompts/webmcp-tools.ts) uses role, task, input, tools, output and example-output blocks aligned with the runtime Zod schemas. Vite regenerates the JSON manifest during development startup and every production build.

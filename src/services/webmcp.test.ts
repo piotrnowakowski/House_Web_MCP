@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { webMcpToolPrompts } from '../../prompts/webmcp-tools'
+import { applyCommand } from '../domain/commands'
 import { modernBarnProject, sampleProject } from '../domain/sampleProject'
 import { useStudioStore } from '../state/store'
 import { expandStructureViews, registerStructureViewCapture } from './structureViews'
@@ -9,12 +10,17 @@ import { webMcpManifest } from './webmcpDefinitions'
 const tool = (name: string) => webMcpTools.find((item) => item.name === name)!
 const payload = (result: WebMcpToolResult) => JSON.parse(result.content[0].text)
 
-beforeEach(() => useStudioStore.setState({ project: structuredClone(sampleProject), history: [], variants: [], selectedRef: 'space/living', confirmationVariantRef: null, structureReport: null }))
+beforeEach(() => useStudioStore.setState({ project: structuredClone(sampleProject), history: [], variants: [], proposals: [], draftChangeSets: [], selectedRef: 'space/living', repositioningRef: null, confirmationVariantRef: null, structureReport: null }))
 
 describe('ProjectV2 WebMCP surface', () => {
   it('publishes the prompt-aligned V2 tool catalog without export or V1 nouns', () => {
-    expect(webMcpTools.map((item) => item.name)).toEqual(Object.values(webMcpToolPrompts).map((prompt) => prompt.name))
-    expect(new Set(webMcpTools.map((item) => item.name)).size).toBe(webMcpTools.length)
+    const toolNames = webMcpTools.map((item) => item.name)
+    expect(toolNames).toEqual(Object.values(webMcpToolPrompts).map((prompt) => prompt.name))
+    expect(toolNames).toHaveLength(27)
+    expect(toolNames).toEqual(expect.arrayContaining(['propose_garden_fixture', 'manage_change_set', 'manage_variant']))
+    const retiredNames = ['propose_garden_fixture_update', 'propose_garden_fixture_set', 'create_change_set', 'add_change_set_operations', 'propose_change_set', 'discard_change_set', 'request_apply_variant', 'discard_variant']
+    expect(toolNames.filter((name) => retiredNames.includes(name))).toEqual([])
+    expect(new Set(toolNames).size).toBe(webMcpTools.length)
     expect(webMcpTools.some((item) => /floor|room|export/.test(item.name))).toBe(false)
     expect(tool('show_structure_views').annotations?.readOnlyHint).toBe(true)
     expect(tool('list_garden_fixtures').annotations?.readOnlyHint).toBe(true)
@@ -41,6 +47,7 @@ describe('ProjectV2 WebMCP surface', () => {
       expect(manifestTool.resultShape.required).toEqual(expect.arrayContaining(['status', 'projectRevision', 'summary']))
     }
     expect(webMcpManifest.tools.find((item) => item.name === 'show_structure_views')).toMatchObject({ readOnly: true })
+    expect(webMcpManifest.tools.find((item) => item.name === 'get_proposals')).toMatchObject({ readOnly: true })
     expect(webMcpManifest.tools.find((item) => item.name === 'propose_building_update')).toMatchObject({ readOnly: false })
   })
 
@@ -57,7 +64,7 @@ describe('ProjectV2 WebMCP surface', () => {
   it('lists ready fixtures and proposes a complete kitchen garden without committing it', async () => {
     const catalog = payload(await tool('list_garden_fixtures').execute({}))
     expect(catalog.data.map((item: { id: string }) => item.id)).toEqual(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis'])
-    const proposed = payload(await tool('propose_garden_fixture_set').execute({ preset: 'starter-kitchen-garden', setRef: 'fixture-set/webmcp-1', origin: { x: 8.4, z: 5.5 }, rotationDegrees: 0 }))
+    const proposed = payload(await tool('propose_garden_fixture').execute({ mode: 'preset', preset: 'starter-kitchen-garden', setRef: 'fixture-set/webmcp-1', origin: { x: 8.4, z: 5.5 }, rotationDegrees: 0 }))
     expect(proposed.status).toBe('variant_created')
     expect(useStudioStore.getState().project.landscape.fixtures).toHaveLength(0)
     expect(useStudioStore.getState().variants[0].project.landscape.fixtures).toHaveLength(6)
@@ -66,7 +73,7 @@ describe('ProjectV2 WebMCP surface', () => {
 
   it('turns a tomato bed next to the previous beds into one atomic variant', async () => {
     useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [] })
-    const proposed = payload(await tool('propose_garden_fixture_set').execute({ preset: 'tomato-raised-bed', setRef: 'fixture-set/webmcp-tomato-2', placement: 'next-to-existing', rotationDegrees: 0 }))
+    const proposed = payload(await tool('propose_garden_fixture').execute({ mode: 'preset', preset: 'tomato-raised-bed', setRef: 'fixture-set/webmcp-tomato-2', placement: 'next-to-existing', rotationDegrees: 0 }))
     const state = useStudioStore.getState()
     const fixtures = state.variants[0].project.landscape.fixtures
     expect(proposed).toMatchObject({ status: 'variant_created', metrics: { fixtureCount: 8 } })
@@ -76,6 +83,21 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(fixtures.at(-1)?.position.x).toBeCloseTo(17.7)
     expect(fixtures.at(-1)?.position.z).toBeCloseTo(5.5)
     expect(state.variants[0].issues.filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
+  it('routes a single fixture edit through the same mode-discriminated tool', async () => {
+    useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [] })
+    const proposed = payload(await tool('propose_garden_fixture').execute({ mode: 'single', action: 'move', fixtureRef: 'fixture-set/starter-1/bed-tomato', position: { x: 9.2, z: 7.1 } }))
+    expect(proposed.status).toBe('variant_created')
+    expect(useStudioStore.getState().project.landscape.fixtures[0].position).toEqual({ x: 8.4, z: 5.5 })
+    expect(useStudioStore.getState().variants[0].project.landscape.fixtures[0].position).toEqual({ x: 9.2, z: 7.1 })
+  })
+
+  it('rejects incomplete single-fixture actions before creating a variant', async () => {
+    const rejected = payload(await tool('propose_garden_fixture').execute({ mode: 'single', action: 'add', fixtureRef: 'fixture/incomplete', position: { x: 2, z: 3 } }))
+    expect(rejected).toMatchObject({ status: 'error' })
+    expect(rejected.summary).toContain('catalogId is required')
+    expect(useStudioStore.getState().variants).toEqual([])
   })
 
   it('creates a shared-slab storey variant without committing', async () => {
@@ -95,7 +117,7 @@ describe('ProjectV2 WebMCP surface', () => {
       spaceRef: 'house/main/storey-upper/space-wing', spaceName: 'Upper wing', usage: 'living',
     }))
     const state = useStudioStore.getState(); const building = state.variants[0].project.buildings[0]
-    expect(parsed).toMatchObject({ status: 'variant_created', areaAddedM2: 96, buildingHeightM: 14.4, levelCount: 2, metrics: { homeAreaM2: 300 } })
+    expect(parsed).toMatchObject({ status: 'variant_created', areaAddedM2: 96, buildingHeightM: 9.4, levelCount: 2, metrics: { homeAreaM2: 300 } })
     expect(state.project.buildings[0].slabs.find((slab) => slab.ref === 'slab/upper')?.footprint).toHaveLength(4)
     expect(building.storeys).toHaveLength(2)
     expect(building.roof.footprint).toEqual(building.slabs.find((slab) => slab.ref === 'slab/upper')?.footprint)
@@ -119,20 +141,30 @@ describe('ProjectV2 WebMCP surface', () => {
   it('groups all six raised-bed and crop moves into one approval and one revision', async () => {
     useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [] })
     const project = useStudioStore.getState().project
-    const created = payload(await tool('create_change_set').execute({ changeSetRef: 'change-set/garden-relocation-test', label: 'Relocate complete kitchen garden', baseRevision: project.revision }))
+    const created = payload(await tool('manage_change_set').execute({ action: 'create', changeSetRef: 'change-set/garden-relocation-test', label: 'Relocate complete kitchen garden', baseRevision: project.revision }))
     expect(created).toMatchObject({ status: 'draft_created', baseRevision: project.revision, operations: [] })
     const operations = project.landscape.fixtures.map((fixture) => ({ type: 'garden-fixture.update', action: 'move', fixtureRef: fixture.ref, position: { x: fixture.position.x, z: 25.5 } }))
-    const appended = payload(await tool('add_change_set_operations').execute({ changeSetRef: 'change-set/garden-relocation-test', operations }))
+    const appended = payload(await tool('manage_change_set').execute({ action: 'add-operations', changeSetRef: 'change-set/garden-relocation-test', operations }))
     expect(appended.operations).toHaveLength(6)
     expect(useStudioStore.getState().project.landscape.fixtures.every((fixture) => fixture.position.z === 5.5)).toBe(true)
-    const proposed = payload(await tool('propose_change_set').execute({ changeSetRef: 'change-set/garden-relocation-test' }))
+    const proposed = payload(await tool('manage_change_set').execute({ action: 'finalize', changeSetRef: 'change-set/garden-relocation-test' }))
     expect(proposed).toMatchObject({ status: 'variant_created', operations: expect.any(Array) })
     expect(proposed.operations).toHaveLength(6)
     const variantRef = proposed.variantRef as string
-    const waiting = tool('request_apply_variant').execute({ variantRef }, { signal: new AbortController().signal })
+    const waiting = tool('manage_variant').execute({ action: 'request-apply', variantRef }, { signal: new AbortController().signal })
     await Promise.resolve(); resolveVariantConfirmation(true)
     expect(payload(await waiting)).toMatchObject({ status: 'applied', projectRevision: project.revision + 1 })
     expect(useStudioStore.getState().project.landscape.fixtures.map((fixture) => fixture.position.z)).toEqual([25.5, 25.5, 25.5, 25.5, 25.5, 25.5])
+    expect(useStudioStore.getState().proposals.find((proposal) => proposal.ref === variantRef)).toMatchObject({ status: 'approved', resultingRevision: project.revision + 1 })
+  })
+
+  it('discards an unfinalized draft through manage_change_set', async () => {
+    const created = payload(await tool('manage_change_set').execute({ action: 'create', changeSetRef: 'change-set/discard-test', label: 'Temporary draft', baseRevision: 1 }))
+    expect(created.status).toBe('draft_created')
+    expect(useStudioStore.getState().draftChangeSets).toHaveLength(1)
+    const discarded = payload(await tool('manage_change_set').execute({ action: 'discard', changeSetRef: 'change-set/discard-test' }))
+    expect(discarded).toMatchObject({ status: 'ok', changeSetRef: 'change-set/discard-test' })
+    expect(useStudioStore.getState().draftChangeSets).toEqual([])
   })
 
   it('measures semantic heights without creating variants or changing revision', async () => {
@@ -143,6 +175,73 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(parsed.measurement.topPoint.reference).toBe('opening/upper-east-north/head')
     expect(tool('measure_height').annotations?.readOnlyHint).toBe(true)
     expect(useStudioStore.getState().variants).toEqual([])
+  })
+
+  it('keeps proposal decisions discoverable and exposes them through a read-only audit tool', async () => {
+    const proposed = payload(await tool('propose_plant_update').execute({ action: 'move', plantRef: 'plant/hydrangea', position: { x: -7.5, z: 9 } }))
+    const pending = payload(await tool('get_proposals').execute({ status: 'pending', includeDrafts: true }))
+    expect(pending).toMatchObject({ status: 'ok', counts: { pending: 1, approved: 0, rejected: 0, stale: 0 }, proposals: [{ ref: proposed.variantRef, status: 'pending' }] })
+    expect(pending.proposals[0].project).toBeUndefined()
+    expect(tool('get_proposals').annotations?.readOnlyHint).toBe(true)
+    const rejected = payload(await tool('manage_variant').execute({ action: 'discard', variantRef: proposed.variantRef, reason: 'Keep the current planting position.' }))
+    expect(rejected.status).toBe('rejected')
+    const history = payload(await tool('get_proposals').execute({ proposalRef: proposed.variantRef, includeDrafts: false }))
+    expect(history.proposals[0]).toMatchObject({ status: 'rejected', rejectionReason: 'Keep the current planting position.' })
+    expect(useStudioStore.getState().project.landscape.plants.find((plant) => plant.ref === 'plant/hydrangea')?.position).toEqual({ x: -8.5, z: 8 })
+  })
+
+  it('preserves superseded pending proposals as stale history', async () => {
+    const first = payload(await tool('propose_plant_update').execute({ action: 'move', plantRef: 'plant/hydrangea', position: { x: -7.5, z: 9 } }))
+    const second = payload(await tool('propose_plant_update').execute({ action: 'move', plantRef: 'plant/hornbeam-1', position: { x: -12.8, z: 3 } }))
+    const waiting = tool('manage_variant').execute({ action: 'request-apply', variantRef: first.variantRef }, { signal: new AbortController().signal })
+    await Promise.resolve(); resolveVariantConfirmation(true); await waiting
+    expect(useStudioStore.getState().proposals.find((proposal) => proposal.ref === second.variantRef)?.status).toBe('stale')
+    const history = payload(await tool('get_proposals').execute({ includeDrafts: true }))
+    expect(history.counts).toMatchObject({ approved: 1, stale: 1 })
+  })
+
+  it('targets one roof segment with aligned eaves and an exact finish', async () => {
+    useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [], proposals: [] })
+    const parsed = payload(await tool('propose_roof_update').execute({
+      buildingRef: 'house/main', segmentRef: 'roof/main/segment-rear-wing', alignToSegmentRef: 'roof/main/segment-upper-wing', alignEdge: 'eaves',
+      material: 'standing-seam-metal', colorHex: '#2D3435', synchronization: 'roof-and-supporting-walls',
+    }))
+    expect(parsed).toMatchObject({ status: 'variant_created', targetScope: 'segment', buildingHeight: { beforeM: 9.4, afterM: 9.4 }, roofChanges: [{ before: { segmentRef: 'roof/main/segment-rear-wing', eavesElevationM: 3.45 }, after: { segmentRef: 'roof/main/segment-rear-wing', eavesElevationM: 6.55, finish: { colorHex: '#2D3435' } } }] })
+    const variantRoof = useStudioStore.getState().variants[0].project.buildings[0].roof
+    expect(variantRoof.segments.find((segment) => segment.ref === 'roof/main/segment-upper-wing')?.baseElevationM).toBe(6.55)
+    expect(useStudioStore.getState().project.buildings[0].roof.segments.find((segment) => segment.ref === 'roof/main/segment-rear-wing')?.baseElevationM).toBe(3.45)
+  })
+
+  it('proposes an atomic split of one malformed L-shaped segment with a declared valley', async () => {
+    const malformed = applyCommand(modernBarnProject, {
+      type: 'storey.update', action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
+      extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }],
+      spaceRef: 'house/main/storey-upper/space-wing', spaceName: 'Upper wing', usage: 'living',
+    })
+    const malformedRoof = malformed.buildings[0].roof; const source = structuredClone(malformedRoof.segments[0])
+    malformedRoof.segments = [{ ...source, ref: 'roof/main/segment-main', footprint: structuredClone(malformedRoof.footprint!), spaceRef: 'house/main/storey-upper/space-main', ridgeDirection: 'z', adjacentSegmentRefs: [] }]
+    malformedRoof.junctions = []
+    useStudioStore.setState({ project: malformed, variants: [], proposals: [] })
+    const parsed = payload(await tool('propose_roof_update').execute({
+      action: 'split-segment', buildingRef: 'house/main', segmentRef: 'roof/main/segment-main',
+      segments: [
+        { segmentRef: 'roof/main/segment-original-wing', footprint: [{ x: -8, z: 1 }, { x: -2, z: 1 }, { x: -2, z: 10 }, { x: -8, z: 10 }], ridgeDirection: 'z', storeyRef: 'house/main/storey-upper', spaceRef: 'house/main/storey-upper/space-main', baseElevationM: 6.55, material: 'standing-seam-metal', colorHex: '#2D3435' },
+        { segmentRef: 'roof/main/segment-extended-wing', footprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -8, z: 1 }], ridgeDirection: 'x', storeyRef: 'house/main/storey-upper', spaceRef: 'house/main/storey-upper/space-wing', baseElevationM: 6.55, material: 'standing-seam-metal', colorHex: '#2D3435' },
+      ],
+      junctions: [{ ref: 'roof/main/junction-original-extended', type: 'valley', segmentRefs: ['roof/main/segment-original-wing', 'roof/main/segment-extended-wing'] }],
+    }))
+    expect(parsed).toMatchObject({
+      status: 'variant_created', targetScope: 'segment-split', buildingHeightM: 9.4,
+      roofChanges: expect.arrayContaining([
+        expect.objectContaining({ kind: 'removed', before: expect.objectContaining({ segmentRef: 'roof/main/segment-main' }) }),
+        expect.objectContaining({ kind: 'added', after: expect.objectContaining({ segmentRef: 'roof/main/segment-original-wing', ridgeDirection: 'z', eavesElevationM: 6.55 }) }),
+        expect.objectContaining({ kind: 'added', after: expect.objectContaining({ segmentRef: 'roof/main/segment-extended-wing', ridgeDirection: 'x', eavesElevationM: 6.55 }) }),
+      ]),
+      junctions: [{ type: 'valley', segmentRefs: ['roof/main/segment-original-wing', 'roof/main/segment-extended-wing'] }],
+    })
+    expect(useStudioStore.getState().project.buildings[0].roof.segments).toHaveLength(1)
+    expect(useStudioStore.getState().variants[0].project.buildings[0].roof.segments).toHaveLength(2)
+    expect(useStudioStore.getState().variants[0].issues.filter((issue) => issue.severity === 'error')).toEqual([])
   })
 
   it('proposes removing a selected wall window without changing the committed house', async () => {
@@ -182,7 +281,7 @@ describe('ProjectV2 WebMCP surface', () => {
   it('waits for human approval before applying a linked lowered ceiling', async () => {
     await tool('propose_space_update').execute({ action: 'set-lowered-ceiling', buildingRef: 'house/main', storeyRef: 'storey/ground', spaceRef: 'space/living', ceilingElevationM: 3.1 })
     const variantRef = useStudioStore.getState().variants[0].ref
-    const waiting = tool('request_apply_variant').execute({ variantRef }, { signal: new AbortController().signal })
+    const waiting = tool('manage_variant').execute({ action: 'request-apply', variantRef }, { signal: new AbortController().signal })
     await Promise.resolve(); expect(useStudioStore.getState().confirmationVariantRef).toBe(variantRef)
     resolveVariantConfirmation(true)
     expect(payload(await waiting)).toMatchObject({ status: 'applied', projectRevision: 2, variantRef })

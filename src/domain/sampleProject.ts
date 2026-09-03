@@ -30,7 +30,10 @@ const mainHouse: BuildingModel = {
     { ref: 'space/living', name: 'Living room', usage: 'living', boundary: [{ wallRef: 'wall/north-right', direction: 1 }, { wallRef: 'wall/east', direction: 1 }, { wallRef: 'wall/south-right', direction: 1 }, { wallRef: 'wall/partition', direction: -1 }], baseSlabRef: 'slab/ground', topBoundaryRef: 'roof/main', locked: false },
   ],
   platforms: [], ceilingFinishes: [],
-  roof: { ref: 'roof/main', type: 'gable', baseElevationM: 3.45, pitchDegrees: 28, overhangM: 0.45 },
+  roof: {
+    ref: 'roof/main', type: 'gable', baseElevationM: 3.45, pitchDegrees: 28, overhangM: 0.45, finish: { material: 'standing-seam-metal', colorHex: '#3D4648' },
+    segments: [{ ref: 'roof/main/segment-main', footprint: rectangle({ x: 0, z: 0 }, 12, 9), storeyRef: 'storey/ground', baseElevationM: 3.45, type: 'gable', pitchDegrees: 28, overhangM: 0.45, ridgeDirection: 'z', finish: { material: 'standing-seam-metal', colorHex: '#3D4648' }, adjacentSegmentRefs: [] }], junctions: [],
+  },
 }
 
 export const sampleProject: ProjectV2 = {
@@ -182,7 +185,20 @@ const lShapedModernBarn: BuildingModel = {
     },
   ],
   platforms: [], ceilingFinishes: [],
-  roof: { ref: 'roof/main', type: 'gable', baseElevationM: 6.55, pitchDegrees: 45, overhangM: 0.42 },
+  roof: {
+    ref: 'roof/main', type: 'gable', baseElevationM: 6.55, pitchDegrees: 45, overhangM: 0.42, footprint: lBarnFootprint, finish: { material: 'standing-seam-metal', colorHex: '#2D3435' },
+    segments: [
+      {
+        ref: 'roof/main/segment-upper-wing', footprint: [{ x: -8, z: 1 }, { x: -2, z: 1 }, { x: -2, z: 10 }, { x: -8, z: 10 }], storeyRef: 'house/main/storey-upper', spaceRef: 'house/main/storey-upper/space-main',
+        baseElevationM: 6.55, type: 'gable', pitchDegrees: 45, overhangM: 0.42, ridgeDirection: 'z', finish: { material: 'standing-seam-metal', colorHex: '#2D3435' }, adjacentSegmentRefs: ['roof/main/segment-rear-wing'],
+      },
+      {
+        ref: 'roof/main/segment-rear-wing', footprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -8, z: 1 }], storeyRef: 'storey/ground',
+        baseElevationM: 3.45, type: 'gable', pitchDegrees: 45, overhangM: 0.42, ridgeDirection: 'x', finish: { material: 'standing-seam-metal', colorHex: '#596164' }, adjacentSegmentRefs: ['roof/main/segment-upper-wing'],
+      },
+    ],
+    junctions: [{ ref: 'roof/main/junction-upper-rear', type: 'valley', segmentRefs: ['roof/main/segment-upper-wing', 'roof/main/segment-rear-wing'] }],
+  },
 }
 
 export const modernBarnProject: ProjectV2 = {
