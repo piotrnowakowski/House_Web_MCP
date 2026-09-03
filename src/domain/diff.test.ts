@@ -41,7 +41,10 @@ describe('project diff', () => {
 
   it('detects moved fixtures and changed wall finishes by field', () => {
     const moved = applyCommand(modernBarnProject, { type: 'garden-fixture.update', action: 'move', fixtureRef: 'fixture-set/starter-1/bed-tomato', position: { x: 8.4, z: 25.5 } })
-    expect(diffProjects(modernBarnProject, moved).changes).toEqual([{ kind: 'fixture', ref: 'fixture-set/starter-1/bed-tomato', change: 'modified', fields: ['position'] }])
+    expect(diffProjects(modernBarnProject, moved).changes).toEqual([
+      { kind: 'fixture', ref: 'fixture-set/starter-1/bed-tomato', change: 'modified', fields: ['position'] },
+      { kind: 'fixture', ref: 'fixture-set/starter-1/crop-tomato', change: 'modified', fields: ['position'] },
+    ])
     const finished = applyCommand(modernBarnProject, { type: 'wall.finish', buildingRef: 'house/main', wallRef: 'wall/east', material: 'brick', colorHex: '#8B4E3C' })
     expect(diffProjects(modernBarnProject, finished).changes).toEqual([{ kind: 'wall', ref: 'wall/east', change: 'modified', fields: ['finish'] }])
   })

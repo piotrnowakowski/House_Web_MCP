@@ -159,9 +159,34 @@ describe('ProjectV2 command bus', () => {
     expect(sampleProject.landscape.plants.find((plant) => plant.ref === 'plant/apple')?.locked).toBe(true)
   })
 
-  it('reports a crop fixture separated from its linked raised bed', () => {
-    const movedCrop = applyCommand(modernBarnProject, { type: 'garden-fixture.update', action: 'move', fixtureRef: 'fixture-set/starter-1/crop-tomato', position: { x: 8.4, z: 25.5 } })
-    expect(validateProject(movedCrop)).toContainEqual(expect.objectContaining({ severity: 'error', code: 'fixture.crop-host', subjectRef: 'fixture-set/starter-1/crop-tomato' }))
+  it.each(['tomato', 'potato', 'cucumber'])('moves the %s raised bed together with its crop', (crop) => {
+    const movedBed = applyCommand(modernBarnProject, { type: 'garden-fixture.update', action: 'move', fixtureRef: `fixture-set/starter-1/bed-${crop}`, position: { x: 14, z: 9 } })
+    expect(movedBed.landscape.fixtures.find((fixture) => fixture.ref === `fixture-set/starter-1/bed-${crop}`)?.position).toEqual({ x: 14, z: 9 })
+    expect(movedBed.landscape.fixtures.find((fixture) => fixture.ref === `fixture-set/starter-1/crop-${crop}`)?.position).toEqual({ x: 14, z: 9 })
+    expect(validateProject(movedBed).filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
+  it('keeps a raised-bed pair grouped when moving its crop or rotating its bed', () => {
+    const movedBed = applyCommand(modernBarnProject, { type: 'garden-fixture.update', action: 'move', fixtureRef: 'fixture-set/starter-1/bed-potato', position: { x: 14, z: 9 } })
+    const movedCrop = applyCommand(movedBed, { type: 'garden-fixture.update', action: 'move', fixtureRef: 'fixture-set/starter-1/crop-potato', position: { x: 15, z: 10 } })
+    expect(movedCrop.landscape.fixtures.filter((fixture) => fixture.ref.endsWith('-potato')).map((fixture) => fixture.position)).toEqual([{ x: 15, z: 10 }, { x: 15, z: 10 }])
+
+    const rotated = applyCommand(movedCrop, { type: 'garden-fixture.update', action: 'rotate', fixtureRef: 'fixture-set/starter-1/bed-potato', rotationDegrees: 90 })
+    expect(rotated.landscape.fixtures.filter((fixture) => fixture.ref.endsWith('-potato')).map((fixture) => fixture.rotationDegrees)).toEqual([90, 90])
+    expect(validateProject(rotated).filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
+  it('groups individually added raised-bed presets that use bed and crop references', () => {
+    const withBed = applyCommand(modernBarnProject, { type: 'garden-fixture.update', action: 'add', fixtureRef: 'fixture-set/custom-potato/bed', catalogId: 'raised-bed-2x1', position: { x: 18, z: 8 } })
+    const withCrop = applyCommand(withBed, { type: 'garden-fixture.update', action: 'add', fixtureRef: 'fixture-set/custom-potato/crop', catalogId: 'potato-row', position: { x: 18, z: 8 } })
+    const moved = applyCommand(withCrop, { type: 'garden-fixture.update', action: 'move', fixtureRef: 'fixture-set/custom-potato/bed', position: { x: 20, z: 10 } })
+    expect(moved.landscape.fixtures.filter((fixture) => fixture.ref.startsWith('fixture-set/custom-potato/')).map((fixture) => fixture.position)).toEqual([{ x: 20, z: 10 }, { x: 20, z: 10 }])
+  })
+
+  it('still reports an externally separated crop fixture', () => {
+    const separated = structuredClone(modernBarnProject)
+    separated.landscape.fixtures.find((fixture) => fixture.ref === 'fixture-set/starter-1/crop-tomato')!.position = { x: 8.4, z: 25.5 }
+    expect(validateProject(separated)).toContainEqual(expect.objectContaining({ severity: 'error', code: 'fixture.crop-host', subjectRef: 'fixture-set/starter-1/crop-tomato' }))
   })
 
   it('moves the one intermediate slab used as both floor and ceiling', () => {

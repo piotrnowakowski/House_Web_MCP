@@ -30,6 +30,20 @@ export const gardenFixtureById = (id: GardenFixtureCatalogId) => {
   return definition
 }
 
+const groupedFixtureKey = (fixture: GardenFixtureModel): string | null => {
+  const definition = gardenFixtureById(fixture.catalogId)
+  if (fixture.catalogId !== 'raised-bed-2x1' && definition.category !== 'crop') return null
+  const match = fixture.ref.match(/^(.*)\/(?:bed|crop)(?:-([^/]+))?$/)
+  return match ? `${match[1]}/${match[2] ?? ''}` : null
+}
+
+export const groupedGardenFixtures = (fixtures: GardenFixtureModel[], selected: GardenFixtureModel): GardenFixtureModel[] => {
+  const groupKey = groupedFixtureKey(selected)
+  if (!groupKey) return [selected]
+  const grouped = fixtures.filter((fixture) => groupedFixtureKey(fixture) === groupKey)
+  return grouped.length > 1 ? grouped : [selected]
+}
+
 const rotateOffset = (offset: Vec2, rotationDegrees: number): Vec2 => {
   const radians = rotationDegrees * Math.PI / 180; const c = Math.cos(radians); const s = Math.sin(radians)
   return { x: offset.x * c + offset.z * s, z: -offset.x * s + offset.z * c }

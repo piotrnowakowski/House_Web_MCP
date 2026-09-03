@@ -1,6 +1,6 @@
 import { estimateDayPartTemperatures } from './climate'
 import { validateTextureChoice } from './textures'
-import { gardenFixtureById } from './gardenFixtures'
+import { gardenFixtureById, groupedGardenFixtures } from './gardenFixtures'
 import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
 import { decomposeOrthogonalLFootprint, defaultRoofFinish, ridgeDirectionForFootprint, roofSegmentRidgeElevation, segmentContainsFootprint, supportingWallRefs } from './roofs'
 import { sunMismatchIssues } from './sunlight'
@@ -460,8 +460,20 @@ const applyCommandMutable = (project: ProjectV2, command: ProjectCommand) => {
       const fixture = project.landscape.fixtures[index]
       if (fixture.locked) throw new Error(`${fixture.name} is locked.`)
       if (command.action === 'remove') project.landscape.fixtures.splice(index, 1)
-      else if (command.action === 'move') { if (!command.position) throw new Error('Fixture position is required.'); fixture.position = clone(command.position) }
-      else { if (command.rotationDegrees === undefined) throw new Error('Fixture rotation is required.'); fixture.rotationDegrees = command.rotationDegrees }
+      else {
+        const grouped = groupedGardenFixtures(project.landscape.fixtures, fixture)
+        const locked = grouped.find((item) => item.locked)
+        if (locked) throw new Error(`${locked.name} is locked.`)
+        if (command.action === 'move') {
+          if (!command.position) throw new Error('Fixture position is required.')
+          const delta = { x: command.position.x - fixture.position.x, z: command.position.z - fixture.position.z }
+          grouped.forEach((item) => { item.position = { x: item.position.x + delta.x, z: item.position.z + delta.z } })
+        } else {
+          if (command.rotationDegrees === undefined) throw new Error('Fixture rotation is required.')
+          const rotationDegrees = command.rotationDegrees
+          grouped.forEach((item) => { item.rotationDegrees = rotationDegrees })
+        }
+      }
     }
   } else if (command.type === 'climate.update') {
     const month = project.climateProfile.months.find((item) => item.month === command.month); if (!month) throw new Error(`Month not found: ${command.month}`); Object.assign(month, command.values)

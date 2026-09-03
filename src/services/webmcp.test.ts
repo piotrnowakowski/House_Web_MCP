@@ -171,6 +171,8 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(proposed.status).toBe('variant_created')
     expect(useStudioStore.getState().project.landscape.fixtures[0].position).toEqual({ x: 8.4, z: 5.5 })
     expect(useStudioStore.getState().variants[0].project.landscape.fixtures[0].position).toEqual({ x: 9.2, z: 7.1 })
+    expect(useStudioStore.getState().variants[0].project.landscape.fixtures[1].position).toEqual({ x: 9.2, z: 7.1 })
+    expect(useStudioStore.getState().variants[0].issues.filter((issue) => issue.severity === 'error')).toEqual([])
   })
 
   it('rejects incomplete single-fixture actions before creating a variant', async () => {
