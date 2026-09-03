@@ -106,7 +106,7 @@ export interface HeightMeasurement {
   bottomPoint: HeightMeasurementPoint; topPoint: HeightMeasurementPoint
   bottomElevation: { localProjectM: number; absoluteM: number }; topElevation: { localProjectM: number; absoluteM: number }
 }
-export interface SeasonalMonthAnalysis { month: number; temperatureByDayPartC: TemperatureByDayPartC; daylightHours: number; representativeSunHours: number; waterBalanceMm: number; droughtRisk: 'low' | 'moderate' | 'high'; frostRisk: 'low' | 'moderate' | 'high'; activePlants: number; bloomingPlants: number; notes: string[] }
+export interface SeasonalMonthAnalysis { month: number; temperatureByDayPartC: TemperatureByDayPartC; daylightHours: number; sunriseLocal: number | null; sunsetLocal: number | null; solarNoonAltitudeDeg: number; representativeSunHours: number; waterBalanceMm: number; droughtRisk: 'low' | 'moderate' | 'high'; frostRisk: 'low' | 'moderate' | 'high'; activePlants: number; bloomingPlants: number; notes: string[] }
 
 export type StructureViewRequest = { type: 'site-plan' } | { type: 'axonometric' } | { type: 'north-elevation' | 'south-elevation' | 'east-elevation' | 'west-elevation' } | { type: 'storey-plan'; storeyRef: string } | { type: 'section'; axis: 'longitudinal' | 'transverse'; offsetM?: number }
 export interface StructureViewDescriptor { type: StructureViewRequest['type']; title: string; buildingRefs: string[]; storeyRef?: string; presentation: 'visible-in-page'; imageUrl: string }

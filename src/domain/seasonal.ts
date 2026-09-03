@@ -1,18 +1,20 @@
+import { solarPosition, sunriseSunset } from './solar'
 import type { ProjectV2, SeasonalMonthAnalysis } from './types'
 
-const degrees = (value: number) => value * Math.PI / 180
+const MID_MONTH_DAY = 15
+const round = (value: number, digits: number) => Math.round(value * 10 ** digits) / 10 ** digits
 
-export const daylightHours = (latitude: number, month: number) => {
-  const day = Math.round(30.44 * (month - 0.5))
-  const declination = degrees(23.44) * Math.sin((2 * Math.PI / 365) * (day - 81))
-  const hourAngle = Math.acos(Math.max(-1, Math.min(1, -Math.tan(degrees(latitude)) * Math.tan(declination))))
-  return 24 * hourAngle / Math.PI
-}
+/** Daylight duration in the middle of a month. Duration depends on latitude and declination only, so longitude and zone are irrelevant here. */
+export const daylightHours = (latitude: number, month: number) =>
+  sunriseSunset({ latitude, longitude: 0, timezone: 'UTC' }, { month, day: MID_MONTH_DAY, hour: 12 })?.daylightHours ?? 0
 
 export const analyzeSeason = (project: ProjectV2, months: number[] = [1, 4, 7, 10]): SeasonalMonthAnalysis[] => months.map((monthNumber) => {
   const climate = project.climateProfile.months.find((item) => item.month === monthNumber)
   if (!climate) throw new Error(`Missing climate data for month ${monthNumber}`)
-  const daylight = daylightHours(project.climateProfile.latitude, monthNumber)
+  const site = { latitude: project.climateProfile.latitude, longitude: project.climateProfile.longitude, timezone: project.climateProfile.timezone }
+  const events = sunriseSunset(site, { month: monthNumber, day: MID_MONTH_DAY, hour: 12 })
+  const daylight = events?.daylightHours ?? 0
+  const noon = solarPosition(site, { month: monthNumber, day: MID_MONTH_DAY, hour: events?.solarNoonHour ?? 12 })
   const waterBalance = climate.precipitationMm + project.climateProfile.irrigationMm - climate.et0Mm
   const activePlants = project.landscape.plants.filter((plant) => plant.leafMonths.includes(monthNumber)).length
   const bloomingPlants = project.landscape.plants.filter((plant) => plant.bloomMonths.includes(monthNumber)).length
@@ -25,22 +27,11 @@ export const analyzeSeason = (project: ProjectV2, months: number[] = [1, 4, 7, 1
   return {
     month: monthNumber,
     temperatureByDayPartC: { ...climate.temperatureByDayPartC },
-    daylightHours: Math.round(daylight * 10) / 10,
-    representativeSunHours: Math.round(Math.min(daylight, climate.sunshineHours / 30.44) * 10) / 10,
+    daylightHours: round(daylight, 1),
+    sunriseLocal: events ? round(events.sunriseHour, 2) : null,
+    sunsetLocal: events ? round(events.sunsetHour, 2) : null,
+    solarNoonAltitudeDeg: round(noon.altitudeDeg, 1),
+    representativeSunHours: round(Math.min(daylight, climate.sunshineHours / 30.44), 1),
     waterBalanceMm: Math.round(waterBalance), droughtRisk, frostRisk, activePlants, bloomingPlants, notes,
   }
 })
-
-export const sunPositionForMonth = (latitude: number, month: number) => {
-  const seasonal = Math.sin(((month - 1) / 12) * Math.PI * 2 - Math.PI / 2)
-  const elevation = Math.max(12, 48 + seasonal * 24 - Math.abs(latitude - 50) * 0.2)
-  const azimuth = 180 + seasonal * 16
-  const radius = 35
-  const elevationRad = degrees(elevation)
-  const azimuthRad = degrees(azimuth)
-  return {
-    x: Math.sin(azimuthRad) * Math.cos(elevationRad) * radius,
-    y: Math.sin(elevationRad) * radius,
-    z: Math.cos(azimuthRad) * Math.cos(elevationRad) * radius,
-  }
-}
