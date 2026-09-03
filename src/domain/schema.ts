@@ -51,7 +51,7 @@ const OpeningSchema = z.object({
 const WallSchema = z.object({
   ref: z.string().min(1), start: Vec2Schema, end: Vec2Schema, thicknessM: z.number().positive(), baseElevationM: z.number().finite(),
   heightM: z.number().positive(), openings: z.array(OpeningSchema),
-  finish: z.object({ material: z.enum(['charred-timber', 'natural-timber', 'light-render', 'brick', 'metal-panel']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) }).optional(),
+  finish: z.object({ material: z.enum(['charred-timber', 'natural-timber', 'light-render', 'brick', 'metal-panel']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), textureId: z.string().optional() }).optional(),
   locked: z.boolean(),
 }).refine((wall) => Math.hypot(wall.end.x - wall.start.x, wall.end.z - wall.start.z) > 0.1, { message: 'Wall must have length.' })
 const SpaceSchema = z.object({
@@ -107,7 +107,7 @@ export const ProjectSchema = z.object({
     parcels: z.array(ParcelSchema).min(1), entrances: z.array(SiteEntranceSchema).default([]), knowledgeBase: z.custom<SiteKnowledgeBase>((value) => Boolean(value) && typeof value === 'object').transform(hydrateKnowledgeBase),
   }),
   buildings: z.array(BuildingSchema),
-  landscape: z.object({ zones: z.array(z.object({ ref: z.string().min(1), name: z.string().min(1), kind: z.enum(['lawn', 'terrace', 'path', 'driveway', 'bed', 'rain-garden', 'vegetable']), footprint: PolygonSchema, locked: z.boolean() })), plants: z.array(PlantSchema), fixtures: z.array(GardenFixtureSchema).default([]), fixtureCatalogVersion: z.number().int().nonnegative().default(0) }),
+  landscape: z.object({ zones: z.array(z.object({ ref: z.string().min(1), name: z.string().min(1), kind: z.enum(['lawn', 'terrace', 'path', 'driveway', 'bed', 'rain-garden', 'vegetable']), footprint: PolygonSchema, locked: z.boolean(), textureId: z.string().optional() })), plants: z.array(PlantSchema), fixtures: z.array(GardenFixtureSchema).default([]), fixtureCatalogVersion: z.number().int().nonnegative().default(0) }),
   climateProfile: z.object({
     ref: z.string().min(1), name: z.string().min(1), latitude: z.number().min(-90).max(90), longitude: z.number().min(-180).max(180), timezone: z.string().min(1), provenance: z.string().min(1),
     soil: z.object({ texture: z.enum(['sandy', 'loam', 'clay']), ph: z.number().min(0).max(14).nullable(), drainage: z.enum(['fast', 'balanced', 'slow']) }), irrigationMm: z.number().min(0), months: z.array(ClimateMonthSchema).length(12),

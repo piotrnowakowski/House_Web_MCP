@@ -12,6 +12,7 @@ import { analyzeSeason } from '../domain/seasonal'
 import { solarPosition, sunriseSunset } from '../domain/solar'
 import { analyzeSunlight, downsampleSunGrid, formatSunMoment, resolveSunTarget } from '../domain/sunlight'
 import type { ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, VariantModel } from '../domain/types'
+import { textureLibrary, texturesFor } from '../domain/textures'
 import { wallFinishCommands } from '../domain/wallFinishes'
 import { wallOpeningLayoutCommands } from '../domain/wallOpeningLayouts'
 import { useStudioStore } from '../state/store'
@@ -110,6 +111,7 @@ export const webMcpTools: WebMcpTool[] = [
   define({ ...webMcpToolPrompts.propose_space_update, input: webMcpSchemas.propose_space_update, handler: (input) => createVariant('Space update', { type: 'space.update', ...input }) }),
   define({ ...webMcpToolPrompts.propose_wall_update, input: webMcpSchemas.propose_wall_update, handler: (input) => createVariant('Wall update', { type: 'wall.update', ...input }) }),
   define({ ...webMcpToolPrompts.propose_wall_opening_layout, input: webMcpSchemas.propose_wall_opening_layout, handler: ({ buildingRef, wallRef, preset }) => createVariantFromCommands(`${preset.replaceAll('-', ' ')} façade`, wallOpeningLayoutCommands(useStudioStore.getState().project, buildingRef, wallRef, preset)) }),
+  define({ ...webMcpToolPrompts.list_textures, input: webMcpSchemas.list_textures, readOnly: true, handler: (input) => { const scans = (input.surface ? texturesFor(input.surface) : textureLibrary).map(({ id, name, surfaces, tileM }) => ({ id, name, surfaces, tileM })); return { status: 'ok', projectRevision: useStudioStore.getState().project.revision, summary: `Returned ${scans.length} CC0 material scans${input.surface ? ` for ${input.surface} surfaces` : ''}; use none for a flat colour.`, data: scans } } }),
   define({ ...webMcpToolPrompts.propose_wall_finish_update, input: webMcpSchemas.propose_wall_finish_update, handler: (input) => createVariantFromCommands(`${input.material.replaceAll('-', ' ')} wall finish`, wallFinishCommands(useStudioStore.getState().project, input)) }),
   define({ ...webMcpToolPrompts.propose_opening_update, input: webMcpSchemas.propose_opening_update, handler: (input) => createVariant('Opening update', { type: 'opening.update', ...input }) }),
   define({ ...webMcpToolPrompts.propose_roof_update, input: webMcpSchemas.propose_roof_update, handler: (input) => {

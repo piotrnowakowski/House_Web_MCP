@@ -49,13 +49,23 @@ selection; teal remains the keyboard-focus and hover color.
 
 ## Material system
 
-- The scene uses four Poly Haven CC0 scans shipped under `public/textures/`
-  (about 9.5 MB): leafy grass for lawns and the terrain, brick pavers for terrace,
-  path and drive, hinoki planks for natural-timber walls and raised beds, and
-  coated pine for the barn's interior floors. There is a single rendering mode.
-- Textures tile at true physical scale: 1.9 m brick and hinoki tiles, 2.0 m grass,
-  0.7 m pine. Ground polygons already carry metre UVs from ShapeGeometry; the
-  geometry worker emits planar metre UVs for walls and slabs.
+- The scene draws from a texture library of twelve Poly Haven CC0 scans shipped
+  under `public/textures/` (about 21 MB), declared in `src/domain/textures.ts`
+  with id, physical tile width and the surfaces it fits (wall, ground or both).
+  Defaults follow the material or zone kind: red brick, hinoki and corrugated
+  metal for brick, natural-timber and metal-panel walls; grass, concrete slabs,
+  square tiles, brick pavement, mulch, soil and river pebbles for the seven zone
+  kinds. Charred timber and light render stay flat by default.
+- Every wall finish and every landscape zone can override its default through the
+  thumbnail picker in the inspector ("Wall scan", "Ground scan") or through
+  WebMCP (`list_textures`, then `textureId` on a wall finish or a landscape
+  `set-surface`). The choice is stored on the object as `textureId`; `none`
+  means a flat colour, and an absent value keeps following the default.
+- The scans a project draws load first and gate report captures; the rest of the
+  library preloads in idle time so a later pick shows without a network wait.
+- Textures tile at true physical scale from each scan's declared tile width.
+  Ground polygons already carry metre UVs from ShapeGeometry; the geometry
+  worker emits planar metre UVs for walls and slabs.
 - Use mirrored repeat wrapping, mipmaps and anisotropic filtering up to 8x to
   avoid visible seams and oblique-angle shimmer. Diffuse maps are sRGB; normal
   and roughness maps are linear.

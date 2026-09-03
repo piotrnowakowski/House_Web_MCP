@@ -20,7 +20,7 @@ import type { GeneratedSolid } from '../geometry/types'
 import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
 import { roofWings, type RoofWing } from '../domain/roofWings'
 import { CompassRose, SUN_DISTANCE_M, SunHoursOverlay, SunLight, SunPath, sunStateFor } from './sun'
-import { groundTextureFor, groundTintFor, interiorFloorTexture, raisedBedTexture, terrainTexture, tintForTexturedFinish, wallTextureFor } from './materialCatalog'
+import { interiorFloorTexture, raisedBedSoilTexture, raisedBedTexture, resolveWallTexture, resolveZoneTexture, terrainTexture, tintForTexturedFinish, zoneTintFor } from './materialCatalog'
 import { TexturedMaterial, TexturePreloader, waitForTextures } from './materials'
 import { useStudioStore } from '../state/store'
 
@@ -394,9 +394,9 @@ function GeneratedMesh({ solid, selected, buildingRef, style, wall, yOffset, gho
   const isWall = Boolean(wall) || solid.ref.includes('wall'); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
   const palette = style === 'barn' ? BARN : REAL
   const finish = resolveWallFinish(wall, style); const surface = wallSurface[finish.material]
-  const texture = isWall ? wallTextureFor[finish.material] : undefined
+  const texture = isWall ? resolveWallTexture(finish) : undefined
   const material = texture
-    ? <TexturedMaterial asset={texture.asset} rotation={texture.rotation} color={selected ? '#b9e84d' : tintForTexturedFinish(finish.colorHex)} fallbackColor={selected ? '#b9e84d' : finish.colorHex} emissive={selected ? '#6c812f' : '#000000'} emissiveIntensity={selected ? 0.35 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.33 : 1} depthWrite={!ghost} side={DoubleSide} roughness={surface.roughness} metalness={surface.metalness} />
+    ? <TexturedMaterial asset={texture.id} rotation={texture.rotation} color={selected ? '#b9e84d' : tintForTexturedFinish(finish.colorHex)} fallbackColor={selected ? '#b9e84d' : finish.colorHex} emissive={selected ? '#6c812f' : '#000000'} emissiveIntensity={selected ? 0.35 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.33 : 1} depthWrite={!ghost} side={DoubleSide} roughness={surface.roughness} metalness={surface.metalness} />
     : <meshStandardMaterial color={isWall ? finish.colorHex : selected ? '#b9e84d' : palette.slab} emissive={isWall && selected ? '#6c812f' : '#000000'} emissiveIntensity={isWall && selected ? 0.35 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.33 : 1} depthWrite={!ghost} side={isWall ? DoubleSide : undefined} roughness={isWall ? surface.roughness : 0.78} metalness={isWall ? surface.metalness : 0.02} />
   return <mesh geometry={geometry} position={[0, yOffset, 0]} castShadow receiveShadow raycast={acceleratedRaycast} userData={{ semanticRef: solid.ref, buildingRef }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(solid.ref) }}>
     {material}
@@ -435,7 +435,7 @@ function BarnCladding({ building, ghost }: { building: BuildingModel; ghost?: bo
   const internalWalls = new Set(['wall/rear-partition', 'wall/wing-divider', 'wall/upper-north'])
   return <>{building.walls.filter((wall) => !internalWalls.has(wall.ref)).flatMap((wall) => {
     const finish = resolveWallFinish(wall, building.architecturalStyle)
-    if (!['charred-timber', 'metal-panel'].includes(finish.material)) return []
+    if (!['charred-timber', 'metal-panel'].includes(finish.material) || resolveWallTexture(finish)) return []
     const dx = wall.end.x - wall.start.x; const dz = wall.end.z - wall.start.z; const length = Math.hypot(dx, dz)
     const ux = dx / length; const uz = dz / length; const nx = uz; const nz = -ux; const rotation = -Math.atan2(dz, dx)
     const spacing = finish.material === 'metal-panel' ? 0.64 : 0.34
@@ -733,9 +733,9 @@ function ZoneSurface({ zone, project }: { zone: LandscapeZone; project: ProjectV
   const geometry = useMemo(() => localPolygonGeometry(zone.footprint), [zone.footprint])
   useEffect(() => () => geometry.dispose(), [geometry])
   const center = polygonCentroid(zone.footprint); const y = elevationAt(project, center.x, center.z) + 0.02
-  const selected = selectedRef === zone.ref; const texture = groundTextureFor[zone.kind]
+  const selected = selectedRef === zone.ref; const texture = resolveZoneTexture(zone); const grass = texture?.id === 'leafy-grass'
   return <mesh geometry={geometry} position={[0, y, 0]} receiveShadow userData={{ semanticRef: zone.ref }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(zone.ref) }}>{texture
-    ? <TexturedMaterial asset={texture.asset} color={selected ? '#b9e84d' : groundTintFor(zone.kind, month) ?? texture.tint} fallbackColor={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={zone.kind === 'lawn' ? 1 : 0.9} side={DoubleSide} normalScale={zone.kind === 'lawn' ? 0.5 : 0.7} />
+    ? <TexturedMaterial asset={texture.id} color={selected ? '#b9e84d' : zoneTintFor(zone, month)} fallbackColor={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={grass ? 1 : 0.9} side={DoubleSide} normalScale={grass ? 0.5 : 0.7} />
     : <meshStandardMaterial color={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={0.95} side={DoubleSide} />}</mesh>
 }
 
@@ -769,10 +769,18 @@ function TimberBoard({ position, size, selected, ghost, textured }: { position: 
     : fixtureMaterial('#8b623d', selected, ghost)}</mesh>
 }
 
+function SoilFill({ selected, ghost }: { selected: boolean; ghost: boolean }) {
+  const geometry = useMemo(() => metreBoxGeometry(2.16, 0.32, 0.96), [])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  return <mesh geometry={geometry} position={[0, 0.24, 0]} castShadow receiveShadow>{selected
+    ? fixtureMaterial('#473426', selected, ghost)
+    : <TexturedMaterial asset={raisedBedSoilTexture.asset} color={raisedBedSoilTexture.tint} fallbackColor="#473426" roughness={1} transparent={ghost} opacity={ghost ? 0.42 : 1} />}</mesh>
+}
+
 function RaisedBedFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
   const textured = true
   return <group>
-    <mesh position={[0, 0.24, 0]} castShadow receiveShadow><boxGeometry args={[2.16, 0.32, 0.96]} />{fixtureMaterial('#473426', selected, ghost)}</mesh>
+    <SoilFill selected={selected} ghost={ghost} />
     <mesh position={[0, 0.43, 0]} castShadow><boxGeometry args={[2.08, 0.09, 0.88]} />{fixtureMaterial('#5c4936', selected, ghost)}</mesh>
     {([[-1.13, 0], [1.13, 0]] as const).map(([x, z], index) => <TimberBoard key={`end-${index}`} position={[x, 0.28, z]} size={[0.12, 0.46, 1.2]} selected={selected} ghost={ghost} textured={textured} />)}
     {([[-0.54], [0.54]] as const).map(([z], index) => <TimberBoard key={`side-${index}`} position={[0, 0.28, z]} size={[2.4, 0.46, 0.12]} selected={selected} ghost={ghost} textured={textured} />)}

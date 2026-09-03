@@ -48,7 +48,8 @@ export interface SiteModel { boundary: Polygon2; northDegrees: number; terrain: 
 
 export interface OpeningModel { ref: string; kind: 'door' | 'window'; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number }
 export type WallMaterial = 'charred-timber' | 'natural-timber' | 'light-render' | 'brick' | 'metal-panel'
-export interface WallFinish { material: WallMaterial; colorHex: string }
+/** `textureId` picks a scan from the texture library; omit for the material default, `none` for a flat colour. */
+export interface WallFinish { material: WallMaterial; colorHex: string; textureId?: string }
 export interface WallModel { ref: string; start: Vec2; end: Vec2; thicknessM: number; baseElevationM: number; heightM: number; openings: OpeningModel[]; finish?: WallFinish; locked: boolean }
 export interface SpaceBoundaryUse { wallRef: string; direction: 1 | -1 }
 export interface SpaceModel { ref: string; name: string; usage: string; boundary: SpaceBoundaryUse[]; baseSlabRef: string; topBoundaryRef: string; locked: boolean }
@@ -73,7 +74,8 @@ export interface BuildingModel {
   platforms: PlatformModel[]; ceilingFinishes: CeilingFinishModel[]; roof: RoofModel
 }
 
-export interface LandscapeZone { ref: string; name: string; kind: GardenZoneKind; footprint: Polygon2; locked: boolean }
+/** `textureId` picks a ground scan from the texture library; omit for the kind default, `none` for a flat colour. */
+export interface LandscapeZone { ref: string; name: string; kind: GardenZoneKind; footprint: Polygon2; locked: boolean; textureId?: string }
 export interface SurfaceAttachment { hostRef: string; hostFace: 'top' | 'bottom' | 'inside' | 'outside' | 'terrain'; localPosition: Vec3; rotationDegrees: number }
 export interface PlantModel { ref: string; name: string; species: string; kind: PlantKind; position: Vec2; matureHeightM: number; canopyM: number; sunNeed: 'shade' | 'partial' | 'sun'; waterNeed: number; hardinessMinC: number; leafMonths: number[]; bloomMonths: number[]; locked: boolean; attachment?: SurfaceAttachment }
 export interface GardenFixtureModel { ref: string; catalogId: GardenFixtureCatalogId; name: string; position: Vec2; rotationDegrees: number; locked: boolean }
@@ -94,7 +96,7 @@ export type StoreyUpdateCommand = {
 export type SlabUpdateCommand = { type: 'slab.update'; action: 'set-footprint' | 'set-thickness' | 'set-elevation'; buildingRef: string; slabRef: string; footprint?: Polygon2; thicknessM?: number; topElevationM?: number }
 export type SpaceUpdateCommand = { type: 'space.update'; action: 'add' | 'remove' | 'set-footprint' | 'set-usage' | 'set-lowered-ceiling'; buildingRef: string; storeyRef: string; spaceRef: string; name?: string; usage?: string; footprint?: Polygon2; ceilingElevationM?: number }
 export type WallUpdateCommand = { type: 'wall.update'; action: 'move' | 'set-thickness' | 'set-height'; buildingRef: string; wallRef: string; start?: Vec2; end?: Vec2; thicknessM?: number; heightM?: number }
-export type WallFinishUpdateCommand = { type: 'wall.finish'; buildingRef: string; wallRef: string; material: WallMaterial; colorHex: string }
+export type WallFinishUpdateCommand = { type: 'wall.finish'; buildingRef: string; wallRef: string; material: WallMaterial; colorHex: string; textureId?: string }
 export type OpeningUpdateCommand = { type: 'opening.update'; action: 'add' | 'remove' | 'resize' | 'move'; buildingRef: string; wallRef: string; openingRef: string; kind?: OpeningModel['kind']; offsetM?: number; widthM?: number; heightM?: number; sillM?: number }
 export interface RoofSegmentDefinition {
   segmentRef: string; footprint: Polygon2; ridgeDirection: 'x' | 'z'; storeyRef?: string; spaceRef?: string
@@ -108,7 +110,7 @@ export type RoofUpdateCommand = {
   synchronization?: 'roof-only' | 'roof-and-supporting-walls' | 'storey-height'; alignToSegmentRef?: string; alignEdge?: 'eaves' | 'ridge'
 }
 export type PlatformUpdateCommand = { type: 'platform.update'; action: 'add' | 'remove' | 'resize'; buildingRef: string; storeyRef: string; spaceRef: string; platformRef: string; footprint?: Polygon2; elevationM?: number; thicknessM?: number }
-export type LandscapeUpdateCommand = { type: 'landscape.update'; action: 'add' | 'remove' | 'set-footprint' | 'move'; zoneRef: string; name?: string; kind?: GardenZoneKind; footprint?: Polygon2; delta?: Vec2 }
+export type LandscapeUpdateCommand = { type: 'landscape.update'; action: 'add' | 'remove' | 'set-footprint' | 'move' | 'set-surface'; zoneRef: string; name?: string; kind?: GardenZoneKind; footprint?: Polygon2; delta?: Vec2; textureId?: string }
 export type PlantUpdateCommand = { type: 'plant.update'; action: 'add' | 'remove' | 'move'; plantRef: string; name?: string; species?: string; kind?: PlantKind; position?: Vec2 }
 export interface PlantingAreaMetadata {
   plantingRef: string; mode: 'boundary' | 'line' | 'polygon'; sourceRefs: string[]; totalLengthM?: number; areaM2?: number

@@ -17,13 +17,15 @@ request at runtime.
 
 ## Texture scans
 
-The four material scans in `public/textures/` come from [Poly Haven](https://polyhaven.com)
-and are released under CC0 1.0 (public domain): Brick Floor 04 by Dimitrios Savva, Hinoki
-Planks and Leafy Grass by Charlotte Baglioni, and Coated Pine by Charlotte Baglioni and Rico
-Cilliers. They are re-encoded to web sizes (2K JPEG diffuse, 1K JPEG normal, 1K 8-bit PNG
-roughness, about 9.5 MB in total) and mapped at true physical scale from metre-based UVs that
-the geometry worker generates for every wall and slab. Per-asset links and the exact source
-URLs are listed in `public/textures/README.md`.
+The twelve material scans in `public/textures/` come from [Poly Haven](https://polyhaven.com)
+and are released under CC0 1.0 (public domain): Brick Floor 04 by Dimitrios Savva; Hinoki
+Planks, Leafy Grass, Concrete Tiles 02, Brick Pavement and Square Tiles by Charlotte Baglioni;
+Coated Pine by Charlotte Baglioni and Rico Cilliers; Medieval Red Brick and Forest Leaves 02 by
+Rob Tuytel; Rusty Painted Metal and Dry River Pebbles by Amal Kumar; Dirt Floor by
+eye-candy.xyz. They are re-encoded to web sizes (2K or 1K JPEG diffuse, 1K JPEG normal, 1K
+greyscale JPEG roughness, a 256 px preview, about 21 MB in total) and mapped at true physical
+scale from metre-based UVs that the geometry worker generates for every wall and slab.
+Per-asset links and the exact source URLs are listed in `public/textures/README.md`.
 
 ## Runtime libraries
 
