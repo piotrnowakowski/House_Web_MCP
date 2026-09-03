@@ -9,6 +9,7 @@ import { applyModernBarnPreset, isModernBarnPreset } from './domain/presets'
 import type { BuildingModel, ClimateDayPart, GardenFixtureCatalogId, HeightMeasureKind, PlantingGuideCategory, ProjectCommand, WallMaterial, WallModel } from './domain/types'
 import { inferWallOpeningLayout, wallOpeningLayoutCommands, wallOpeningLayoutPresets, type WallOpeningLayoutPreset } from './domain/wallOpeningLayouts'
 import { resolveWallFinish, wallFinishCatalog, wallFinishCommands, type WallFinishScope } from './domain/wallFinishes'
+import { wallTextureFor } from './scene/materialCatalog'
 import { CLEAR_MEASUREMENT_EVENT, StudioScene } from './scene/StudioScene'
 import { loadProject, saveProject } from './services/persistence'
 import { showStructureViews } from './services/structureViews'
@@ -223,11 +224,11 @@ function WallFinishEditor({ building, wall }: { building: BuildingModel; wall: W
       setSelectedRef(wall.ref)
     } catch (error) { setToast(error instanceof Error ? error.message : 'Wall finish could not be applied.') }
   }
-  const validColor = /^#[0-9a-fA-F]{6}$/.test(colorHex)
+  const validColor = /^#[0-9a-fA-F]{6}$/.test(colorHex); const textured = Boolean(wallTextureFor[material])
   return <section className="wall-finish-editor" aria-label={`Wall finish for ${wallLabel(wall)}`}>
-    <header><div><h3>Wall finish</h3><small>Opaque material · selected or all exterior walls</small></div><span className="finish-current" style={{ backgroundColor: validColor ? colorHex : current.colorHex }} /></header>
+    <header><div><h3>Wall finish</h3><small>{textured ? 'Scanned material · colour applied as a light tint' : 'Opaque material · selected or all exterior walls'}</small></div><span className="finish-current" style={{ backgroundColor: validColor ? colorHex : current.colorHex }} /></header>
     <div className="finish-materials" role="group" aria-label="Wall material">{wallFinishCatalog.map((item) => <button key={item.id} className={material === item.id ? 'active' : ''} aria-pressed={material === item.id} onClick={() => chooseMaterial(item.id)}><i style={{ backgroundColor: item.defaultColor }} /><span><strong>{item.label}</strong><small>{item.description}</small></span></button>)}</div>
-    <div className="finish-color"><label><span>Custom color</span><input type="color" value={validColor ? colorHex : current.colorHex} onChange={(event) => setColorHex(event.target.value.toUpperCase())} aria-label="Wall color picker" /></label><input type="text" value={colorHex} onChange={(event) => setColorHex(event.target.value)} pattern="#[0-9a-fA-F]{6}" aria-label="Wall color hex" /></div>
+    <div className="finish-color"><label><span>{textured ? 'Tint over texture' : 'Custom color'}</span><input type="color" value={validColor ? colorHex : current.colorHex} onChange={(event) => setColorHex(event.target.value.toUpperCase())} aria-label="Wall color picker" /></label><input type="text" value={colorHex} onChange={(event) => setColorHex(event.target.value)} pattern="#[0-9a-fA-F]{6}" aria-label="Wall color hex" /></div>
     <div className="finish-actions"><button className="save-finish" disabled={!validColor} onClick={() => applyFinish('wall')}>Apply to this wall</button><button disabled={!validColor} onClick={() => applyFinish('all-exterior')}>Apply to all exterior</button></div>
   </section>
 }

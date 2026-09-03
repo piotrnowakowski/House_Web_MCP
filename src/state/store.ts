@@ -17,6 +17,7 @@ interface StudioState {
   month: number
   explodeStoreys: boolean
   webMcpAvailable: boolean
+  texturesReady: boolean
   hydrated: boolean
   confirmationVariantRef: string | null
   structureReport: StructureReport | null
@@ -33,6 +34,7 @@ interface StudioState {
   setMonth: (month: number) => void
   setExplodeStoreys: (value: boolean) => void
   setWebMcpAvailable: (value: boolean) => void
+  setTexturesReady: (value: boolean) => void
   setHydrated: (value: boolean) => void
   setConfirmationVariantRef: (ref: string | null) => void
   setStructureReport: (report: StructureReport | null) => void
@@ -57,7 +59,7 @@ const revokeReport = (report: StructureReport | null) => report?.views.forEach((
 export const useStudioStore = create<StudioState>((set, get) => ({
   project: structuredClone(modernBarnProject), history: [], variants: [], selectedRef: null,
   viewMode: 'realistic', transformMode: 'translate', viewerMode: 'edit', heightMeasureKind: 'auto', activePlanStoreyRef: null, month: 7,
-  explodeStoreys: false, webMcpAvailable: false, hydrated: false, confirmationVariantRef: null, structureReport: null,
+  explodeStoreys: false, webMcpAvailable: false, texturesReady: false, hydrated: false, confirmationVariantRef: null, structureReport: null,
   toast: 'Loaded the ProjectV2 Zielonki spatial model.', helpOpen: false, cameraRefocusRequest: 0, gardenFocusRequest: { sequence: 0, targetX: 0, targetZ: 0 },
   setSelectedRef: (selectedRef) => set({ selectedRef }),
   setViewMode: (viewMode) => set({ viewMode }),
@@ -68,6 +70,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   setMonth: (month) => set({ month: Math.min(12, Math.max(1, month)) }),
   setExplodeStoreys: (explodeStoreys) => set({ explodeStoreys }),
   setWebMcpAvailable: (webMcpAvailable) => set({ webMcpAvailable }),
+  setTexturesReady: (texturesReady) => set({ texturesReady }),
   setHydrated: (hydrated) => set({ hydrated }),
   setConfirmationVariantRef: (confirmationVariantRef) => set({ confirmationVariantRef }),
   setStructureReport: (structureReport) => { revokeReport(get().structureReport); set({ structureReport }) },
