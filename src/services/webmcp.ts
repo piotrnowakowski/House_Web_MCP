@@ -54,12 +54,18 @@ const requestVariantApproval = (variantRef: string, signal: AbortSignal) => new 
   signal.addEventListener('abort', abort, { once: true }); variantWaiter = { resolve, reject, cleanup: () => signal.removeEventListener('abort', abort) }; state.setConfirmationVariantRef(variantRef)
 })
 
+/** Agents self-correct better from "field: problem" lines than from a serialized issue array. */
+const describeToolError = (error: unknown) => {
+  if (error instanceof z.ZodError) return error.issues.map((issue) => `${issue.path.map(String).join('.') || 'input'}: ${issue.message}`).join('; ')
+  return error instanceof Error ? error.message : 'Tool execution failed.'
+}
+
 type Handler<S extends z.ZodType> = (input: z.infer<S>, options: WebMcpExecuteOptions) => ToolPayload | Promise<ToolPayload>
 const define = <S extends z.ZodType>(definition: { name: string; title: string; runtimeDescription: string; input: S; readOnly?: boolean; handler: Handler<S> }): WebMcpTool => ({
   name: definition.name, title: definition.title, description: definition.runtimeDescription, inputSchema: z.toJSONSchema(definition.input, { target: 'draft-7' }) as Record<string, unknown>, annotations: definition.readOnly ? { readOnlyHint: true } : undefined,
   execute: async (raw, options) => {
     try { const context = { signal: options?.signal ?? new AbortController().signal }; if (context.signal.aborted) throw new DOMException('Tool execution cancelled.', 'AbortError'); return content(await definition.handler(definition.input.parse(raw), context)) }
-    catch (error) { const aborted = error instanceof DOMException && error.name === 'AbortError'; return content({ status: aborted ? 'cancelled' : 'error', projectRevision: useStudioStore.getState().project.revision, summary: error instanceof Error ? error.message : 'Tool execution failed.' }) }
+    catch (error) { const aborted = error instanceof DOMException && error.name === 'AbortError'; return content({ status: aborted ? 'cancelled' : 'error', projectRevision: useStudioStore.getState().project.revision, summary: describeToolError(error) }) }
   },
 })
 
@@ -130,7 +136,9 @@ export const webMcpTools: WebMcpTool[] = [
     return { status: 'ok', projectRevision: project.revision, summary: 'Draft change set discarded.', changeSetRef }
   } }),
   define({ ...webMcpToolPrompts.measure_height, input: webMcpSchemas.measure_height, readOnly: true, handler: (input) => {
-    const project = useStudioStore.getState().project; const measurement = measureHeight(project, input)
+    const project = useStudioStore.getState().project
+    const request = input.mode === 'semantic' ? { mode: 'semantic' as const, objectRef: input.objectRef!, measurement: input.measurement } : { mode: 'free-vertical' as const, startPoint: input.startPoint!, endPoint: input.endPoint! }
+    const measurement = measureHeight(project, request)
     return { status: 'ok', projectRevision: project.revision, summary: `${measurement.label}: ${measurement.heightM.toFixed(2)} m.`, measurement }
   } }),
   define({ ...webMcpToolPrompts.propose_climate_update, input: webMcpSchemas.propose_climate_update, handler: ({ month, ...values }) => createVariant('Climate update', { type: 'climate.update', month, values }) }),

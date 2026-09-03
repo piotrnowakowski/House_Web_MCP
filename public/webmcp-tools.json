@@ -3471,102 +3471,86 @@
       },
       "inputSchema": {
         "$schema": "http://json-schema.org/draft-07/schema#",
-        "oneOf": [
-          {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "semantic",
+              "free-vertical"
+            ],
+            "description": "semantic measures a referenced object; free-vertical compares two picked points."
+          },
+          "objectRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          },
+          "measurement": {
+            "default": "auto",
+            "type": "string",
+            "enum": [
+              "auto",
+              "object-height",
+              "ground-to-eaves",
+              "ground-to-ridge",
+              "clear-height",
+              "opening-height",
+              "terrain-clearance"
+            ]
+          },
+          "startPoint": {
             "type": "object",
             "properties": {
-              "mode": {
-                "type": "string",
-                "const": "semantic"
+              "x": {
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
               },
-              "objectRef": {
-                "type": "string",
-                "minLength": 1,
-                "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+              "z": {
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
               },
-              "measurement": {
-                "default": "auto",
-                "type": "string",
-                "enum": [
-                  "auto",
-                  "object-height",
-                  "ground-to-eaves",
-                  "ground-to-ridge",
-                  "clear-height",
-                  "opening-height",
-                  "terrain-clearance"
-                ]
+              "y": {
+                "type": "number",
+                "description": "Local project elevation in metres."
               }
             },
             "required": [
-              "mode",
-              "objectRef",
-              "measurement"
+              "x",
+              "z",
+              "y"
             ],
             "additionalProperties": false
           },
-          {
+          "endPoint": {
             "type": "object",
             "properties": {
-              "mode": {
-                "type": "string",
-                "const": "free-vertical"
+              "x": {
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
               },
-              "startPoint": {
-                "type": "object",
-                "properties": {
-                  "x": {
-                    "type": "number",
-                    "description": "East-west local model coordinate in metres."
-                  },
-                  "z": {
-                    "type": "number",
-                    "description": "North-south local model coordinate in metres."
-                  },
-                  "y": {
-                    "type": "number",
-                    "description": "Local project elevation in metres."
-                  }
-                },
-                "required": [
-                  "x",
-                  "z",
-                  "y"
-                ],
-                "additionalProperties": false
+              "z": {
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
               },
-              "endPoint": {
-                "type": "object",
-                "properties": {
-                  "x": {
-                    "type": "number",
-                    "description": "East-west local model coordinate in metres."
-                  },
-                  "z": {
-                    "type": "number",
-                    "description": "North-south local model coordinate in metres."
-                  },
-                  "y": {
-                    "type": "number",
-                    "description": "Local project elevation in metres."
-                  }
-                },
-                "required": [
-                  "x",
-                  "z",
-                  "y"
-                ],
-                "additionalProperties": false
+              "y": {
+                "type": "number",
+                "description": "Local project elevation in metres."
               }
             },
             "required": [
-              "mode",
-              "startPoint",
-              "endPoint"
+              "x",
+              "z",
+              "y"
             ],
             "additionalProperties": false
           }
-        ]
+        },
+        "required": [
+          "mode",
+          "measurement"
+        ],
+        "additionalProperties": false
       },
       "exampleInput": {
         "mode": "semantic",

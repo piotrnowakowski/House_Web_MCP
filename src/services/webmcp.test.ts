@@ -28,6 +28,10 @@ describe('ProjectV2 WebMCP surface', () => {
     }
   })
 
+  it('registers every tool with an object root schema so agent browsers can render its parameters', () => {
+    for (const item of webMcpTools) expect(item.inputSchema?.type, item.name).toBe('object')
+  })
+
   it('generates a complete inspectable manifest from runtime schemas and structured prompts', () => {
     expect(webMcpManifest.toolCount).toBe(webMcpTools.length)
     expect(webMcpManifest.tools.map((item) => item.name)).toEqual(webMcpTools.map((item) => item.name))
@@ -205,6 +209,15 @@ describe('ProjectV2 WebMCP surface', () => {
     const tooMany = structuredClone(sampleProject); const base = tooMany.buildings[0].storeys[0]
     tooMany.buildings[0].storeys.push(...Array.from({ length: 4 }, (_, index) => ({ ...structuredClone(base), ref: `storey/${index + 1}`, level: index + 1 })))
     expect(() => expandStructureViews(tooMany, { mode: 'architectural-set' })).toThrow(/contains 13 views/)
+  })
+
+  it('returns validation failures as readable field messages instead of raw issue JSON', async () => {
+    const parsed = payload(await tool('run_sunlight_analysis').execute({ month: 6 }))
+    expect(parsed.status).toBe('error')
+    expect(parsed.summary).toBe('targetRef: targetRef or point is required.')
+    const typed = payload(await tool('propose_roof_update').execute({ buildingRef: 'house/main', pitchDegrees: 95 }))
+    expect(typed.summary).toMatch(/^pitchDegrees: /)
+    expect(typed.summary).not.toMatch(/[{}\[\]]/)
   })
 
   it('honors an already-aborted signal', async () => {

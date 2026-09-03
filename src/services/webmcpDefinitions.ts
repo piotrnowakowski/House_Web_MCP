@@ -71,10 +71,15 @@ export const webMcpSchemas = {
   add_change_set_operations: z.object({ changeSetRef: ref, operations: z.array(changeSetOperationSchema).min(1).max(100) }),
   propose_change_set: z.object({ changeSetRef: ref }),
   discard_change_set: z.object({ changeSetRef: ref }),
-  measure_height: z.discriminatedUnion('mode', [
-    z.object({ mode: z.literal('semantic'), objectRef: ref, measurement: z.enum(['auto', 'object-height', 'ground-to-eaves', 'ground-to-ridge', 'clear-height', 'opening-height', 'terrain-clearance']).default('auto') }),
-    z.object({ mode: z.literal('free-vertical'), startPoint: point3, endPoint: point3 }),
-  ]),
+  measure_height: z.object({
+    mode: z.enum(['semantic', 'free-vertical']).describe('semantic measures a referenced object; free-vertical compares two picked points.'),
+    objectRef: ref.optional(),
+    measurement: z.enum(['auto', 'object-height', 'ground-to-eaves', 'ground-to-ridge', 'clear-height', 'opening-height', 'terrain-clearance']).default('auto'),
+    startPoint: point3.optional(), endPoint: point3.optional(),
+  }).superRefine((value, context) => {
+    if (value.mode === 'semantic' && !value.objectRef) context.addIssue({ code: 'custom', path: ['objectRef'], message: 'objectRef is required in semantic mode.' })
+    if (value.mode === 'free-vertical' && (!value.startPoint || !value.endPoint)) context.addIssue({ code: 'custom', path: ['startPoint'], message: 'startPoint and endPoint are required in free-vertical mode.' })
+  }),
   propose_climate_update: z.object({ month: z.number().int().min(1).max(12), meanMinC: z.number().optional(), meanMaxC: z.number().optional(), temperatureByDayPartC: z.object({ night: z.number(), morning: z.number(), day: z.number(), evening: z.number() }).strict().optional(), precipitationMm: z.number().min(0).optional(), sunshineHours: z.number().min(0).optional(), et0Mm: z.number().min(0).optional(), frostDays: z.number().min(0).max(31).optional(), windKph: z.number().min(0).optional() }),
   show_structure_views: z.object({
     mode: z.enum(['architectural-set', 'custom']).default('architectural-set'), buildingRefs: z.array(ref).optional(), variantRef: ref.optional(),
