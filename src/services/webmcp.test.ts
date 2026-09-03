@@ -6,6 +6,7 @@ import { useStudioStore } from '../state/store'
 import { expandStructureViews, registerStructureViewCapture } from './structureViews'
 import { registerWebMcpTools, resolveVariantConfirmation, webMcpTools } from './webmcp'
 import { webMcpManifest } from './webmcpDefinitions'
+import { registerCameraControl } from './cameraControl'
 
 const tool = (name: string) => webMcpTools.find((item) => item.name === name)!
 const payload = (result: WebMcpToolResult) => JSON.parse(result.content[0].text)
@@ -44,7 +45,7 @@ describe('ProjectV2 WebMCP surface', () => {
   it('publishes the prompt-aligned V2 tool catalog without export or V1 nouns', () => {
     const toolNames = webMcpTools.map((item) => item.name)
     expect(toolNames).toEqual(Object.values(webMcpToolPrompts).map((prompt) => prompt.name))
-    expect(toolNames).toHaveLength(33)
+    expect(toolNames).toHaveLength(34)
     expect(toolNames).toEqual(expect.arrayContaining(['propose_garden_fixture', 'manage_change_set', 'manage_variant']))
     const retiredNames = ['propose_garden_fixture_update', 'propose_garden_fixture_set', 'create_change_set', 'add_change_set_operations', 'propose_change_set', 'discard_change_set', 'request_apply_variant', 'discard_variant']
     expect(toolNames.filter((name) => retiredNames.includes(name))).toEqual([])
@@ -93,6 +94,7 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(webMcpManifest.tools.find((item) => item.name === 'get_proposals')).toMatchObject({ readOnly: true })
     expect(webMcpManifest.tools.find((item) => item.name === 'propose_building_update')).toMatchObject({ readOnly: false })
     expect(webMcpManifest.tools.find((item) => item.name === 'set_viewer_state')).toMatchObject({ readOnly: true })
+    expect(webMcpManifest.tools.find((item) => item.name === 'control_camera')).toMatchObject({ readOnly: true })
     expect(webMcpManifest.tools.find((item) => item.name === 'set_sun_time')).toMatchObject({ readOnly: true })
   })
 
@@ -451,6 +453,29 @@ describe('variant explanation and viewer tools', () => {
 
     expect(parsed).toMatchObject({ status: 'ok', viewer: { selectedRef: 'fixture/target' } })
     expect(useStudioStore.getState().gardenFocusRequest).toMatchObject({ targetX: 20, targetZ: 30 })
+  })
+
+  it('controls the exact live camera pose without touching the project', async () => {
+    const unregister = registerCameraControl(async (input) => input)
+    const parsed = payload(await tool('control_camera').execute({
+      position: { x: 18, y: 12, z: 24 }, target: { x: 0, y: 3, z: 1.5 },
+      projection: 'orthographic', fovDegrees: 44, zoom: 1.8,
+      focalOffset: { x: 0.5, y: 0, z: 0 }, smooth: false,
+    }))
+    unregister()
+
+    expect(tool('control_camera').annotations?.readOnlyHint).toBe(true)
+    expect(parsed).toMatchObject({
+      status: 'ok', projectRevision: 1,
+      camera: {
+        position: { x: 18, y: 12, z: 24 }, target: { x: 0, y: 3, z: 1.5 },
+        projection: 'orthographic', fovDegrees: 44, zoom: 1.8,
+        focalOffset: { x: 0.5, y: 0, z: 0 }, smooth: false,
+      },
+    })
+    expect(useStudioStore.getState().project.revision).toBe(1)
+    expect(useStudioStore.getState().variants).toEqual([])
+    expect(payload(await tool('control_camera').execute({ position: { x: 1, y: 2, z: 3 }, target: { x: 1, y: 2, z: 3 } })).status).toBe('error')
   })
 })
 

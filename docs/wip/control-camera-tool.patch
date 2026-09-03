@@ -1,0 +1,406 @@
+diff --git a/prompts/webmcp-tools.ts b/prompts/webmcp-tools.ts
+index 8bd3fac..41cb082 100644
+--- a/prompts/webmcp-tools.ts
++++ b/prompts/webmcp-tools.ts
+@@ -16,10 +16,6 @@ const define = (blocks: Blocks): WebMcpPromptDefinition => ({
+ })
+ const proposal = (name: string, title: string, task: string, input: string, exampleOutput: string) => define({ name, title, role, task, input, tools: proposalTools, output: proposalOutput, exampleOutput })
+ 
+-export const webMcpFieldPrompts = {
+-  positionX: 'East-west local model coordinate in metres.', positionZ: 'North-south local model coordinate in metres.', semanticRef: 'Stable semantic reference such as building/main, storey/ground or wall/east.',
+-} as const
+-
+ /** Fallback descriptions for tool input fields, keyed by property name; a field's own describe() wins when present. Keep each under 150 characters. */
+ export const webMcpFieldDescriptions: Record<string, string> = {
+   detail: 'Slice to return: summary, site, structure, landscape or full. objectRef overrides it.',
+@@ -164,6 +160,7 @@ export const webMcpToolPrompts = {
+   run_seasonal_analysis: define({ name: 'run_seasonal_analysis', title: 'Run seasonal analysis', role, task: 'Estimate monthly night, morning, day and evening temperatures alongside NOAA daylight, local sunrise and sunset, solar-noon altitude, water balance, frost, foliage and bloom from V2 climate and landscape state.', input: '`months` is an array of integers from 1–12 and defaults to `[1,4,7,10]`; optional string `variantRef`.', tools: 'Read-only; do not present conceptual climate values as professional weather or horticultural advice.', output: `${result} Each month includes \`temperatureByDayPartC\` with numeric \`night\`, \`morning\`, \`day\`, and \`evening\` averages in °C for the local-time windows 00–06, 06–12, 12–18, and 18–24, plus \`daylightHours\`, \`sunriseLocal\`, \`sunsetLocal\` and \`solarNoonAltitudeDeg\` for the 15th.`, exampleOutput: '{"months":[1,4,7,10]}' }),
+   run_sunlight_analysis: define({ name: 'run_sunlight_analysis', title: 'Analyse sun hours', role, task: 'Compute direct sun hours for one landscape zone, plant, garden fixture, point or the whole site on a given date by casting rays toward the real NOAA sun against walls, roofs, tree canopies and fixtures. Works on the committed project or on an uncommitted ghost variant, so a proposal can be checked for the shade it adds before approval.', input: 'Pass `targetRef` (a zone, plant or fixture ref, or `site`) or `point` `{x,z}`; `month` 1–12; optional `day` (default 21), `stepMinutes` 15–60, `hours` `{from,to}` local-time window, `includeGrid` for a coarse cell grid, and `variantRef`.', tools: 'Read-only. Call get_project_state first to resolve refs. To judge a proposal, call once without and once with its variantRef and compare. Report geometric hours and the cloud-adjusted expectedSunHours separately.', output: `${result} Returns analysis with sunriseLocal, sunsetLocal, daylightHours, window, sunHours {mean,min,max}, firstSunLocal, lastSunLocal, shadedFraction, expectedSunHours, sampleCount and, on request, a grid of hours per cell (-1 outside the target).`, exampleOutput: '{"targetRef":"zone/terrace","month":9,"day":21,"hours":{"from":13,"to":18}}' }),
+   set_viewer_state: define({ name: 'set_viewer_state', title: 'Set viewer state', role, task: 'Show the person something in the scene: explode the rooms and roof apart, open a storey plan, or select and highlight one object by ref. Changes only the viewer; the committed project and its revision stay untouched.', input: 'All fields optional: `explode` (boolean), `planStoreyRef` (storey ref or null), `focusRef` (object ref to select, or null to clear).', tools: 'Use after a proposal or analysis to point at what you mean, for example focusRef on the wall you changed. Changes only viewer state and never creates or applies a project proposal.', output: `${result} Returns viewer with viewMode, explode, viewerMode, activePlanStoreyRef and selectedRef.`, exampleOutput: '{"viewMode":"realistic","focusRef":"wall/courtyard-living"}' }),
++  control_camera: define({ name: 'control_camera', title: 'Control the 3D camera', role, task: 'Move the live 3D camera to an exact project-space position and look-at target, with explicit projection, lens, zoom, focal offset and transition behavior.', input: 'Required `position` and `target` are `{x,y,z}` local project metres. Optional `projection` is `perspective` or `orthographic`; `fovDegrees` is 10–120, `zoom` is 0.1–20, `focalOffset` is `{x,y,z}`, and `smooth` animates the move.', tools: 'Use exact coordinates to compose any exterior, interior, bird\'s-eye or detail view. This controls only the live viewer and never changes the project revision or creates a proposal.', output: `${result} Returns camera with the actual position and target plus projection, fovDegrees, zoom, focalOffset and smooth.`, exampleOutput: '{"position":{"x":18,"y":12,"z":24},"target":{"x":0,"y":3,"z":1.5},"projection":"perspective","fovDegrees":38,"zoom":1,"focalOffset":{"x":0,"y":0,"z":0},"smooth":true}' }),
+   set_sun_time: define({ name: 'set_sun_time', title: 'Set viewer sun time', role, task: 'Move the scene sun to a local date and time so the person sees the real shadows for that moment. This changes only the viewer; the committed project and its revision stay untouched.', input: '`month` 1–12; optional `day` (default 15); `hour` 0–24 as a local fractional hour, so 15.5 means 15:30.', tools: 'Use before or after run_sunlight_analysis to show the person what the numbers mean. Changes only viewer state and never creates or applies a project proposal.', output: `${result} Returns sunTime, altitudeDeg, azimuthDeg (compass, 0 north), sunriseLocal and sunsetLocal for that moment.`, exampleOutput: '{"month":12,"day":21,"hour":15}' }),
+   compare_variants: define({ name: 'compare_variants', title: 'Compare variants', role, task: 'Compare metrics and validation issues for one to four ghost variants.', input: '`variantRefs` is an array of one to four refs.', tools: 'Read-only. Apply separately with request_apply_variant.', output: result, exampleOutput: '{"variantRefs":["variant/a","variant/b"]}' }),
+   diff_variant: define({ name: 'diff_variant', title: 'Explain variant changes', role, task: 'List exactly which objects a ghost variant adds, removes or modifies compared with the committed project or another variant, with changed field names and metric deltas, so the change can be explained before approval.', input: '`variantRef` is required; optional `baseVariantRef` compares two variants.', tools: 'Read-only. Call after creating a variant and before request_apply_variant; quote the counts and metric deltas to the person.', output: `${result} Returns diff with counts, up to 40 changes {kind, ref, change, fields}, omittedChanges and metricDeltas {before, after, delta}.`, exampleOutput: '{"variantRef":"variant/storey-footprint-extension-r1-1"}' }),
+diff --git a/src/scene/StudioScene.tsx b/src/scene/StudioScene.tsx
+index b9edb25..3b62e52 100644
+--- a/src/scene/StudioScene.tsx
++++ b/src/scene/StudioScene.tsx
+@@ -18,6 +18,7 @@ import { resolveWallFinish } from '../domain/wallFinishes'
+ import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
+ import type { GeneratedSolid } from '../geometry/types'
+ import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
++import { registerCameraControl } from '../services/cameraControl'
+ import { roofWings, type RoofWing } from '../domain/roofWings'
+ import { CompassRose, SUN_DISTANCE_M, SunHoursOverlay, SunLight, SunPath, sunStateFor } from './sun'
+ import { interiorFloorTexture, raisedBedSoilTexture, raisedBedTexture, resolveWallTexture, resolveZoneTexture, terrainTexture, tintForTexturedFinish, zoneTintFor } from './materialCatalog'
+@@ -269,7 +270,32 @@ function ThatOpenBridge() {
+     const clipper = components.get(OBC.Clipper); clipper.enabled = false; clipper.setup({})
+     components.init()
+     bridge.current = { components, world, camera, renderer, clipper }
++    const unregisterCameraControl = registerCameraControl(async (input, signal) => {
++      if (signal.aborted) throw new DOMException('Camera control cancelled.', 'AbortError')
++      camera.set('Orbit')
++      camera.controls.maxDistance = SCENE_FAR - 1
++      await camera.projection.set(input.projection === 'orthographic' ? 'Orthographic' : 'Perspective')
++      camera.threePersp.fov = input.fovDegrees
++      camera.threePersp.updateProjectionMatrix()
++      camera.threeOrtho.zoom = input.zoom
++      camera.threeOrtho.updateProjectionMatrix()
++      await camera.controls.setFocalOffset(input.focalOffset.x, input.focalOffset.y, input.focalOffset.z, false)
++      await camera.controls.setLookAt(
++        input.position.x, input.position.y, input.position.z,
++        input.target.x, input.target.y, input.target.z,
++        input.smooth,
++      )
++      if (signal.aborted) throw new DOMException('Camera control cancelled.', 'AbortError')
++      const position = camera.controls.getPosition(new Vector3())
++      const target = camera.controls.getTarget(new Vector3())
++      return {
++        ...input,
++        position: { x: position.x, y: position.y, z: position.z },
++        target: { x: target.x, y: target.y, z: target.z },
++      }
++    })
+     return () => {
++      unregisterCameraControl()
+       clipper.dispose(); camera.dispose()
+       world.enabled = false; renderer.dispose(); components.enabled = false; bridge.current = null
+     }
+@@ -319,11 +345,19 @@ function ThatOpenBridge() {
+     if (handledRefocusRequest.current === refocusRequest) return
+     handledRefocusRequest.current = refocusRequest
+     const current = bridge.current; const building = project.buildings[0]
+-    if (!current || !building) return
+-    const targetX = building.position.x; const targetY = isLShapedBarn(building) ? 3 : 1.4; const targetZ = building.position.z + (isLShapedBarn(building) ? 2.5 : 0)
++    if (!current) return
+     const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+     current.camera.set('Orbit'); current.camera.controls.maxDistance = MAX_ORBIT_DISTANCE; void current.camera.projection.set('Perspective')
+     void current.camera.controls.setFocalOffset(0, 0, 0, smooth)
++    if (!building) {
++      // An empty plot: frame the site boundary from the south-east so the whole rectangle and the compass are in view.
++      const xs = project.site.boundary.map((point) => point.x); const zs = project.site.boundary.map((point) => point.z)
++      const centerX = (Math.min(...xs) + Math.max(...xs)) / 2; const centerZ = (Math.min(...zs) + Math.max(...zs)) / 2
++      const extent = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs), 12)
++      void current.camera.controls?.setLookAt(centerX + extent * 0.7, extent * 0.75 + 6, centerZ + extent * 0.85, centerX, 0, centerZ, smooth)
++      return
++    }
++    const targetX = building.position.x; const targetY = isLShapedBarn(building) ? 3 : 1.4; const targetZ = building.position.z + (isLShapedBarn(building) ? 2.5 : 0)
+     void current.camera.controls?.setLookAt(targetX + 22, targetY + 10, targetZ + 25, targetX, targetY, targetZ, smooth)
+   }, [project, refocusRequest])
+   useEffect(() => {
+@@ -707,7 +741,7 @@ function RoadEntranceMarker({ entrance }: { entrance: SiteEntranceModel }) {
+   return <group position={[centerX, TERRAIN_SURFACE_Y + 0.055, centerZ]} rotation={[0, angle, 0]} userData={{ semanticRef: entrance.ref }}>
+     <mesh renderOrder={5} receiveShadow><boxGeometry args={[length, 0.07, 0.72]} /><meshStandardMaterial color={markerColor} emissive={markerColor} emissiveIntensity={0.14} roughness={0.72} /></mesh>
+     {[-length / 2, length / 2].map((offset, index) => <mesh key={index} position={[offset, 0.43, 0]} castShadow><cylinderGeometry args={[0.09, 0.11, 0.86, 10]} /><meshStandardMaterial color="#f7d568" roughness={0.62} /></mesh>)}
+-    <Html center position={[0, 1.25, 0]} distanceFactor={15} style={{ pointerEvents: 'none' }}>
++    <Html zIndexRange={[9, 0]} center position={[0, 1.25, 0]} distanceFactor={15} style={{ pointerEvents: 'none' }}>
+       <span className="site-entrance-label">{entrance.name}</span>
+     </Html>
+   </group>
+diff --git a/src/services/cameraControl.ts b/src/services/cameraControl.ts
+new file mode 100644
+index 0000000..a76e1e8
+--- /dev/null
++++ b/src/services/cameraControl.ts
+@@ -0,0 +1,27 @@
++import type { Vec3 } from '../domain/types'
++
++export interface CameraControlInput {
++  position: Vec3
++  target: Vec3
++  projection: 'perspective' | 'orthographic'
++  fovDegrees: number
++  zoom: number
++  focalOffset: Vec3
++  smooth: boolean
++}
++
++export interface CameraControlResult extends CameraControlInput {}
++
++export type CameraControlHandler = (input: CameraControlInput, signal: AbortSignal) => Promise<CameraControlResult>
++
++let cameraControlHandler: CameraControlHandler | null = null
++
++export const registerCameraControl = (handler: CameraControlHandler) => {
++  cameraControlHandler = handler
++  return () => { if (cameraControlHandler === handler) cameraControlHandler = null }
++}
++
++export const controlCamera = (input: CameraControlInput, signal: AbortSignal) => {
++  if (!cameraControlHandler) throw new Error('The 3D camera is not ready. Wait for the visible editor to finish loading and try again.')
++  return cameraControlHandler(input, signal)
++}
+diff --git a/src/services/webmcp.test.ts b/src/services/webmcp.test.ts
+index fc75015..5ddcdff 100644
+--- a/src/services/webmcp.test.ts
++++ b/src/services/webmcp.test.ts
+@@ -6,6 +6,7 @@ import { useStudioStore } from '../state/store'
+ import { expandStructureViews, registerStructureViewCapture } from './structureViews'
+ import { resolveVariantConfirmation, webMcpTools } from './webmcp'
+ import { webMcpManifest } from './webmcpDefinitions'
++import { registerCameraControl } from './cameraControl'
+ 
+ const tool = (name: string) => webMcpTools.find((item) => item.name === name)!
+ const payload = (result: WebMcpToolResult) => JSON.parse(result.content[0].text)
+@@ -16,7 +17,7 @@ describe('ProjectV2 WebMCP surface', () => {
+   it('publishes the prompt-aligned V2 tool catalog without export or V1 nouns', () => {
+     const toolNames = webMcpTools.map((item) => item.name)
+     expect(toolNames).toEqual(Object.values(webMcpToolPrompts).map((prompt) => prompt.name))
+-    expect(toolNames).toHaveLength(33)
++    expect(toolNames).toHaveLength(34)
+     expect(toolNames).toEqual(expect.arrayContaining(['propose_garden_fixture', 'manage_change_set', 'manage_variant']))
+     const retiredNames = ['propose_garden_fixture_update', 'propose_garden_fixture_set', 'create_change_set', 'add_change_set_operations', 'propose_change_set', 'discard_change_set', 'request_apply_variant', 'discard_variant']
+     expect(toolNames.filter((name) => retiredNames.includes(name))).toEqual([])
+@@ -65,6 +66,7 @@ describe('ProjectV2 WebMCP surface', () => {
+     expect(webMcpManifest.tools.find((item) => item.name === 'get_proposals')).toMatchObject({ readOnly: true })
+     expect(webMcpManifest.tools.find((item) => item.name === 'propose_building_update')).toMatchObject({ readOnly: false })
+     expect(webMcpManifest.tools.find((item) => item.name === 'set_viewer_state')).toMatchObject({ readOnly: true })
++    expect(webMcpManifest.tools.find((item) => item.name === 'control_camera')).toMatchObject({ readOnly: true })
+     expect(webMcpManifest.tools.find((item) => item.name === 'set_sun_time')).toMatchObject({ readOnly: true })
+   })
+ 
+@@ -413,6 +415,29 @@ describe('variant explanation and viewer tools', () => {
+     expect(parsed).toMatchObject({ status: 'ok', viewer: { selectedRef: 'fixture/target' } })
+     expect(useStudioStore.getState().gardenFocusRequest).toMatchObject({ targetX: 20, targetZ: 30 })
+   })
++
++  it('controls the exact live camera pose without touching the project', async () => {
++    const unregister = registerCameraControl(async (input) => input)
++    const parsed = payload(await tool('control_camera').execute({
++      position: { x: 18, y: 12, z: 24 }, target: { x: 0, y: 3, z: 1.5 },
++      projection: 'orthographic', fovDegrees: 44, zoom: 1.8,
++      focalOffset: { x: 0.5, y: 0, z: 0 }, smooth: false,
++    }))
++    unregister()
++
++    expect(tool('control_camera').annotations?.readOnlyHint).toBe(true)
++    expect(parsed).toMatchObject({
++      status: 'ok', projectRevision: 1,
++      camera: {
++        position: { x: 18, y: 12, z: 24 }, target: { x: 0, y: 3, z: 1.5 },
++        projection: 'orthographic', fovDegrees: 44, zoom: 1.8,
++        focalOffset: { x: 0.5, y: 0, z: 0 }, smooth: false,
++      },
++    })
++    expect(useStudioStore.getState().project.revision).toBe(1)
++    expect(useStudioStore.getState().variants).toEqual([])
++    expect(payload(await tool('control_camera').execute({ position: { x: 1, y: 2, z: 3 }, target: { x: 1, y: 2, z: 3 } })).status).toBe('error')
++  })
+ })
+ 
+ describe('sunlight WebMCP surface', () => {
+diff --git a/src/services/webmcp.ts b/src/services/webmcp.ts
+index 9c29291..bb8ae5a 100644
+--- a/src/services/webmcp.ts
++++ b/src/services/webmcp.ts
+@@ -17,6 +17,7 @@ import { wallFinishCommands } from '../domain/wallFinishes'
+ import { wallOpeningLayoutCommands } from '../domain/wallOpeningLayouts'
+ import { useStudioStore } from '../state/store'
+ import { showStructureViews } from './structureViews'
++import { controlCamera } from './cameraControl'
+ import { inputSchemaFor, untrustedContentTools, webMcpSchemas, type WebMcpToolName } from './webmcpDefinitions'
+ 
+ type ToolPayload = { status: string; projectRevision: number; summary: string; variantRef?: string; issues?: ProjectIssue[]; metrics?: ProjectMetrics; data?: unknown; [key: string]: unknown }
+@@ -207,6 +208,20 @@ export const webMcpTools: WebMcpTool[] = [
+     const next = useStudioStore.getState()
+     return { status: 'ok', projectRevision: next.project.revision, summary: `Viewer: ${next.explodeStoreys ? 'exploded' : 'assembled'}${next.selectedRef ? `, selected ${next.selectedRef}` : ''}.`, viewer: { explode: next.explodeStoreys, viewerMode: next.viewerMode, activePlanStoreyRef: next.activePlanStoreyRef, selectedRef: next.selectedRef } }
+   } }),
++  define({ ...webMcpToolPrompts.control_camera, input: webMcpSchemas.control_camera, readOnly: true, handler: async (input, { signal }) => {
++    const state = useStudioStore.getState()
++    if (state.viewerMode !== 'edit') {
++      state.setViewerMode('edit')
++      if (typeof requestAnimationFrame === 'function') await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
++    }
++    const camera = await controlCamera(input, signal)
++    const roundPoint = ({ x, y, z }: typeof camera.position) => ({ x: Number(x.toFixed(4)), y: Number(y.toFixed(4)), z: Number(z.toFixed(4)) })
++    return {
++      status: 'ok', projectRevision: state.project.revision,
++      summary: `Camera moved to (${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}) looking at (${camera.target.x.toFixed(2)}, ${camera.target.y.toFixed(2)}, ${camera.target.z.toFixed(2)}).`,
++      camera: { ...camera, position: roundPoint(camera.position), target: roundPoint(camera.target), focalOffset: roundPoint(camera.focalOffset) },
++    }
++  } }),
+   define({ ...webMcpToolPrompts.set_sun_time, input: webMcpSchemas.set_sun_time, readOnly: true, handler: ({ month, day, hour }) => {
+     const state = useStudioStore.getState(); state.setSunTime({ month, day, hour })
+     const sunTime = useStudioStore.getState().sunTime
+diff --git a/src/services/webmcpDefinitions.ts b/src/services/webmcpDefinitions.ts
+index 9a8d308..b822ae1 100644
+--- a/src/services/webmcpDefinitions.ts
++++ b/src/services/webmcpDefinitions.ts
+@@ -1,11 +1,11 @@
+ import { z } from 'zod'
+-import { webMcpFieldDescriptions, webMcpFieldPrompts, webMcpToolPrompts, type WebMcpPromptBlocks } from '../../prompts/webmcp-tools'
++import { webMcpFieldDescriptions, webMcpToolPrompts, type WebMcpPromptBlocks } from '../../prompts/webmcp-tools'
+ 
+-const point = z.object({ x: z.number().describe(webMcpFieldPrompts.positionX), z: z.number().describe(webMcpFieldPrompts.positionZ) }).strict()
+-const point3 = point.extend({ y: z.number().describe('Local project elevation in metres.') }).strict()
++const point = z.object({ x: z.number(), z: z.number() }).strict()
++const point3 = point.extend({ y: z.number() }).strict()
+ const polygon = z.array(point).min(3).max(64)
+ const polyline = z.array(point).min(2).max(128)
+-const ref = z.string().min(1).describe(webMcpFieldPrompts.semanticRef)
++const ref = z.string().min(1)
+ const roofMaterial = z.enum(['standing-seam-metal', 'tile', 'slate', 'membrane'])
+ const roofJunction = z.object({ ref, type: z.enum(['valley', 'intersection']), segmentRefs: z.tuple([ref, ref]) }).strict()
+ const roofSegmentDefinition = z.object({
+@@ -148,6 +148,18 @@ export const webMcpSchemas = {
+     explode: z.boolean().optional(),
+     planStoreyRef: z.string().min(1).nullable().optional(), focusRef: z.string().min(1).nullable().optional(),
+   }),
++  control_camera: z.object({
++    position: point3.describe('Exact camera position in local project metres.'),
++    target: point3.describe('Exact point the camera looks at in local project metres.'),
++    projection: z.enum(['perspective', 'orthographic']).default('perspective').describe('Camera projection: perspective or orthographic.'),
++    fovDegrees: z.number().min(10).max(120).default(38).describe('Perspective vertical field of view in degrees, from 10 to 120.'),
++    zoom: z.number().min(0.1).max(20).default(1).describe('Orthographic zoom factor, from 0.1 to 20.'),
++    focalOffset: point3.default({ x: 0, y: 0, z: 0 }).describe('Screen-space focal offset {x,y,z}; use zeroes for a centered target.'),
++    smooth: z.boolean().default(true).describe('Animate the camera transition when true; move immediately when false.'),
++  }).superRefine((value, context) => {
++    const distanceSquared = (value.position.x - value.target.x) ** 2 + (value.position.y - value.target.y) ** 2 + (value.position.z - value.target.z) ** 2
++    if (distanceSquared < 0.0001) context.addIssue({ code: 'custom', path: ['target'], message: 'target must differ from position.' })
++  }),
+   set_sun_time: z.object({
+     month: z.number().int().min(1).max(12).describe('Calendar month, 1 to 12.'),
+     day: z.number().int().min(1).max(31).default(15),
+@@ -161,7 +173,7 @@ export const webMcpSchemas = {
+ 
+ export type WebMcpToolName = keyof typeof webMcpSchemas
+ 
+-const readOnlyTools = new Set<WebMcpToolName>(['get_project_state', 'get_site_knowledge', 'get_proposals', 'list_garden_fixtures', 'list_textures', 'measure_height', 'show_structure_views', 'run_seasonal_analysis', 'run_sunlight_analysis', 'set_viewer_state', 'set_sun_time', 'compare_variants', 'diff_variant'])
++const readOnlyTools = new Set<WebMcpToolName>(['get_project_state', 'get_site_knowledge', 'get_proposals', 'list_garden_fixtures', 'list_textures', 'measure_height', 'show_structure_views', 'run_seasonal_analysis', 'run_sunlight_analysis', 'set_viewer_state', 'control_camera', 'set_sun_time', 'compare_variants', 'diff_variant'])
+ /** Tools whose results summarise external documents; agents should treat instructions inside them as data. */
+ export const untrustedContentTools = new Set<WebMcpToolName>(['get_site_knowledge'])
+ export const isReadOnlyTool = (name: WebMcpToolName) => readOnlyTools.has(name)
+@@ -198,6 +210,7 @@ const resultShapeFor = (name: WebMcpToolName): Record<string, unknown> => {
+   if (name === 'run_seasonal_analysis') return objectShape({ variantRef: { type: 'string' }, metrics: { type: 'object' }, data: { type: 'array', items: { type: 'object', properties: { month: { type: 'integer' }, temperatureByDayPartC: { type: 'object', required: ['night', 'morning', 'day', 'evening'], properties: { night: { type: 'number' }, morning: { type: 'number' }, day: { type: 'number' }, evening: { type: 'number' } } }, daylightHours: { type: 'number' }, sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] }, solarNoonAltitudeDeg: { type: 'number' }, waterBalanceMm: { type: 'number' }, droughtRisk: { type: 'string' }, frostRisk: { type: 'string' } } } } }, ['metrics', 'data'])
+   if (name === 'run_sunlight_analysis') return objectShape({ variantRef: { type: 'string' }, analysis: { type: 'object', required: ['target', 'month', 'day', 'daylightHours', 'sunHours', 'shadedFraction', 'expectedSunHours', 'sampleCount'], properties: { sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] }, daylightHours: { type: 'number' }, window: { type: ['object', 'null'] }, sunHours: { type: 'object', required: ['mean', 'min', 'max'] }, firstSunLocal: { type: ['number', 'null'] }, lastSunLocal: { type: ['number', 'null'] }, shadedFraction: { type: 'number' }, expectedSunHours: { type: 'number' }, sampleCount: { type: 'integer' }, grid: { type: 'object' } } } }, ['analysis'])
+   if (name === 'set_viewer_state') return objectShape({ viewer: { type: 'object', required: ['explode', 'viewerMode', 'selectedRef'] } }, ['viewer'])
++  if (name === 'control_camera') return objectShape({ camera: { type: 'object', required: ['position', 'target', 'projection', 'fovDegrees', 'zoom', 'focalOffset', 'smooth'] } }, ['camera'])
+   if (name === 'diff_variant') return objectShape({ variantRef: { type: 'string' }, baseVariantRef: { type: 'string' }, diff: { type: 'object', required: ['counts', 'changes', 'omittedChanges', 'metricDeltas'] } }, ['variantRef', 'diff'])
+   if (name === 'set_sun_time') return objectShape({ sunTime: { type: 'object', required: ['month', 'day', 'hour'] }, altitudeDeg: { type: 'number' }, azimuthDeg: { type: 'number' }, sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] } }, ['sunTime', 'altitudeDeg', 'azimuthDeg'])
+   if (name === 'compare_variants') return objectShape({ data: { type: 'array', items: { type: 'object' } } }, ['data'])
+diff --git a/tests/browser-v2.spec.ts b/tests/browser-v2.spec.ts
+index 526cd74..c8b87f6 100644
+--- a/tests/browser-v2.spec.ts
++++ b/tests/browser-v2.spec.ts
+@@ -14,6 +14,10 @@ test('ProjectV2 editor and architectural report work in one real canvas', async
+   const textureLoads: string[] = []
+   page.on('response', (response) => { if (response.url().includes('/textures/') && response.ok()) textureLoads.push(new URL(response.url()).pathname) })
+   await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' })
++  const startScreen = page.getByRole('dialog', { name: 'Where do you want to plan today?' })
++  await expect(startScreen).toBeVisible()
++  await startScreen.getByRole('button', { name: /Zielonki house study/ }).click()
++  await expect(startScreen).toBeHidden()
+ 
+   await expect(page.locator('canvas')).toHaveCount(1)
+   await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/leafy_grass/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
+@@ -200,7 +204,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async
+   await page.getByRole('button', { name: 'MCP Tools' }).click()
+   const catalog = page.getByRole('region', { name: 'WebMCP tool catalog' })
+   await expect(catalog).toBeVisible()
+-  await expect(catalog.locator('.tool-browser nav button')).toHaveCount(33)
++  await expect(catalog.locator('.tool-browser nav button')).toHaveCount(34)
+   await expect(catalog.getByRole('link', { name: 'Open JSON' })).toHaveAttribute('href', /webmcp-tools\.json$/)
+   await catalog.getByRole('searchbox', { name: 'Search tools' }).fill('run_seasonal_analysis')
+   await expect(catalog.locator('.tool-browser nav button')).toHaveCount(1)
+@@ -219,14 +223,14 @@ test('ProjectV2 editor and architectural report work in one real canvas', async
+       toolCount: value.toolCount,
+       source: value.source,
+       gardenTools: value.tools.map((tool) => tool.name).filter((name) => name.includes('garden_fixture')),
+-      adjustmentTools: value.tools.map((tool) => tool.name).filter((name) => ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height', 'run_sunlight_analysis', 'set_sun_time'].includes(name)),
++      adjustmentTools: value.tools.map((tool) => tool.name).filter((name) => ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height', 'run_sunlight_analysis', 'control_camera', 'set_sun_time'].includes(name)),
+     }
+   })
+   expect(manifestSummary).toEqual({
+-    toolCount: 33,
++    toolCount: 34,
+     source: 'runtime-zod-and-structured-prompts',
+     gardenTools: ['list_garden_fixtures', 'propose_garden_fixture'],
+-    adjustmentTools: ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height', 'run_sunlight_analysis', 'set_sun_time'],
++    adjustmentTools: ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height', 'run_sunlight_analysis', 'control_camera', 'set_sun_time'],
+   })
+   await page.waitForFunction(() => Boolean((window as unknown as { __projectV2WebMcpTools?: Record<string, unknown> }).__projectV2WebMcpTools?.propose_wall_opening_layout))
+   const liveFacadeProof = await page.evaluate(async () => {
+@@ -293,6 +297,17 @@ test('ProjectV2 editor and architectural report work in one real canvas', async
+     return { analysisStatus: analysis.status, meanIsNumber: typeof analysis.analysis.sunHours.mean === 'number', expectedBelowMean: analysis.analysis.expectedSunHours <= analysis.analysis.sunHours.mean, sunStatus: sun.status, revision: sun.projectRevision, altitude: Math.round(sun.altitudeDeg) }
+   })
+   expect(liveSunProof).toEqual({ analysisStatus: 'ok', meanIsNumber: true, expectedBelowMean: true, sunStatus: 'ok', revision: 1, altitude: 16 })
++  const liveCameraProof = await page.evaluate(async () => {
++    const tools = (window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }> }).__projectV2WebMcpTools
++    return JSON.parse((await tools.control_camera.execute({
++      position: { x: 18, y: 12, z: 24 }, target: { x: 0, y: 3, z: 1.5 },
++      projection: 'perspective', fovDegrees: 38, zoom: 1, focalOffset: { x: 0, y: 0, z: 0 }, smooth: false,
++    })).content[0].text) as { status: string; projectRevision: number; camera: { position: { x: number; y: number; z: number }; target: { x: number; y: number; z: number }; projection: string } }
++  })
++  expect(liveCameraProof).toMatchObject({
++    status: 'ok', projectRevision: 1,
++    camera: { position: { x: 18, y: 12, z: 24 }, target: { x: 0, y: 3, z: 1.5 }, projection: 'perspective' },
++  })
+   await page.evaluate(async () => {
+     const browserWindow = window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }>; __pendingAdjustmentApproval?: Promise<unknown> }
+     const proposal = JSON.parse((await browserWindow.__projectV2WebMcpTools.propose_storey_update.execute({ action: 'set-height', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper', clearHeightM: 3.2 })).content[0].text) as { variantRef: string }
+@@ -338,6 +353,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async
+   await expect(proposalsPanel).toContainText('Delete Hydrangea group')
+   await page.waitForTimeout(500)
+   await page.reload()
++  await page.getByRole('dialog', { name: 'Where do you want to plan today?' }).getByRole('button', { name: /Continue · / }).click()
+   await expect(page.locator('.connection')).toContainText('WebMCP ready')
+   await page.getByRole('button', { name: /Proposals/ }).click()
+   proposalsPanel = page.getByRole('region', { name: 'Proposal review and history' })
+@@ -390,6 +406,7 @@ test('house remains visible when zoomed out across the long plot', async ({ page
+   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()) })
+   await page.setViewportSize({ width: 1059, height: 1270 })
+   await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' })
++  await page.getByRole('dialog', { name: 'Where do you want to plan today?' }).getByRole('button', { name: /Zielonki house study/ }).click()
+   const viewport = page.locator('.viewport'); await expect(viewport).toBeVisible()
+   await expect(viewport.locator('canvas')).toHaveCount(1)
+   const box = await viewport.boundingBox(); if (!box) throw new Error('Viewport bounds unavailable.')
+@@ -419,3 +436,49 @@ test('house remains visible when zoomed out across the long plot', async ({ page
+   await expect(page.getByRole('button', { name: 'Refocus on Main house' })).toBeVisible()
+   expect(errors).toEqual([])
+ })
++
++test('creates a blank terrain from the start screen and returns to it after a reload', async ({ page }) => {
++  const errors: string[] = []
++  page.on('pageerror', (error) => errors.push(error.message))
++  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()) })
++  await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' })
++  const startScreen = page.getByRole('dialog', { name: 'Where do you want to plan today?' })
++  await expect(startScreen).toBeVisible()
++  await expect(startScreen.getByRole('button', { name: /Continue/ })).toHaveCount(0)
++  await startScreen.getByRole('button', { name: /New terrain/ }).click()
++  const form = startScreen.getByRole('form', { name: 'New terrain' })
++  await form.getByLabel('Plot name').fill('Test plot')
++  await form.getByLabel('Width (m)').fill('30')
++  await form.getByLabel('Depth (m)').fill('40')
++  await form.getByLabel('North (°)').fill('15')
++  await form.getByLabel('Latitude').fill('52.23')
++  await form.getByLabel('Longitude').fill('21.01')
++  await form.getByLabel('Timezone').selectOption('Europe/Warsaw')
++  await form.getByRole('button', { name: 'Create terrain' }).click()
++  await expect(startScreen).toBeHidden()
++  await expect(page.locator('.brand')).toContainText('Test plot')
++  await expect(page.getByRole('status')).toContainText('Test plot created')
++  await expect(page.locator('.inspector')).toContainText('No buildings yet')
++  await expect(page.getByRole('region', { name: 'Sun controls' })).toContainText('sunrise')
++  await page.getByRole('button', { name: 'Add a house' }).click()
++  await expect(page.getByRole('status')).toContainText('House added')
++  await expect(page.locator('.wall-tree button')).toHaveCount(4)
++  await expect(page.getByRole('button', { name: /Modern barn/ })).toBeVisible()
++  // the autosave keeps the new plot; a reload offers to continue it
++  await expect.poll(async () => page.evaluate(() => new Promise<string[]>((resolve) => { const request = indexedDB.open('house-web-mcp'); request.onsuccess = () => { const keys = request.result.transaction('projects').objectStore('projects').getAllKeys(); keys.onsuccess = () => resolve(keys.result.map(String)) } })), { timeout: 10_000 }).toContain('active')
++  await page.reload({ waitUntil: 'networkidle' })
++  const again = page.getByRole('dialog', { name: 'Where do you want to plan today?' })
++  await expect(again).toBeVisible()
++  await again.getByRole('button', { name: /Continue.*Test plot/ }).click()
++  await expect(again).toBeHidden()
++  await expect(page.locator('.brand')).toContainText('Test plot')
++  await expect(page.locator('.wall-tree button')).toHaveCount(4)
++  // the Projects button reopens the start screen and the bundled study resets the demo
++  await page.getByRole('button', { name: 'Projects' }).click()
++  await expect(again).toBeVisible()
++  await expect(again).toContainText('Test plot')
++  await again.getByRole('button', { name: /Zielonki house study/ }).click()
++  await expect(page.getByText('L-shaped modern barn')).toBeVisible()
++  await expect(page.getByRole('button', { name: 'Open garden fixtures' })).toContainText('6 placed')
++  expect(errors).toEqual([])
++})

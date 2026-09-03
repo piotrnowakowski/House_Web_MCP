@@ -17,6 +17,7 @@ import { wallFinishCommands } from '../domain/wallFinishes'
 import { wallOpeningLayoutCommands } from '../domain/wallOpeningLayouts'
 import { useStudioStore } from '../state/store'
 import { showStructureViews } from './structureViews'
+import { controlCamera } from './cameraControl'
 import { inputSchemaFor, untrustedContentTools, webMcpSchemas, type WebMcpToolName } from './webmcpDefinitions'
 
 type ToolPayload = { status: string; projectRevision: number; summary: string; variantRef?: string; issues?: ProjectIssue[]; metrics?: ProjectMetrics; data?: unknown; [key: string]: unknown }
@@ -206,6 +207,20 @@ export const webMcpTools: WebMcpTool[] = [
     }
     const next = useStudioStore.getState()
     return { status: 'ok', projectRevision: next.project.revision, summary: `Viewer: ${next.explodeStoreys ? 'exploded' : 'assembled'}${next.selectedRef ? `, selected ${next.selectedRef}` : ''}.`, viewer: { explode: next.explodeStoreys, viewerMode: next.viewerMode, activePlanStoreyRef: next.activePlanStoreyRef, selectedRef: next.selectedRef } }
+  } }),
+  define({ ...webMcpToolPrompts.control_camera, input: webMcpSchemas.control_camera, readOnly: true, handler: async (input, { signal }) => {
+    const state = useStudioStore.getState()
+    if (state.viewerMode !== 'edit') {
+      state.setViewerMode('edit')
+      if (typeof requestAnimationFrame === 'function') await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
+    }
+    const camera = await controlCamera(input, signal)
+    const roundPoint = ({ x, y, z }: typeof camera.position) => ({ x: Number(x.toFixed(4)), y: Number(y.toFixed(4)), z: Number(z.toFixed(4)) })
+    return {
+      status: 'ok', projectRevision: state.project.revision,
+      summary: `Camera moved to (${camera.position.x.toFixed(2)}, ${camera.position.y.toFixed(2)}, ${camera.position.z.toFixed(2)}) looking at (${camera.target.x.toFixed(2)}, ${camera.target.y.toFixed(2)}, ${camera.target.z.toFixed(2)}).`,
+      camera: { ...camera, position: roundPoint(camera.position), target: roundPoint(camera.target), focalOffset: roundPoint(camera.focalOffset) },
+    }
   } }),
   define({ ...webMcpToolPrompts.set_sun_time, input: webMcpSchemas.set_sun_time, readOnly: true, handler: ({ month, day, hour }) => {
     const state = useStudioStore.getState(); state.setSunTime({ month, day, hour })
