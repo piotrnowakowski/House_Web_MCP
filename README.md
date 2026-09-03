@@ -10,7 +10,7 @@ No account, credentials or paid service is required. The project was created dur
 
 Early house and garden planning is spatial: people need to see the building, terrain, rooms, openings, planting and seasonal effects together. A normal chat can describe a change, but it cannot safely understand or edit the exact objects in a live 3D design.
 
-This editor gives both the person and their browser agent access to one semantic `ProjectV2` model. A person can navigate and edit the 3D scene directly. An agent can inspect the same project through 31 schema-described WebMCP tools, propose coordinated changes and open visible architectural reports. The result remains an uncommitted ghost variant until the person explicitly applies or rejects it.
+This editor gives both the person and their browser agent access to one semantic `ProjectV2` model. A person can navigate and edit the 3D scene directly. An agent can inspect the same project through 33 schema-described WebMCP tools, propose coordinated changes and open visible architectural reports. The result remains an uncommitted ghost variant until the person explicitly applies or rejects it.
 
 The bundled Zielonki project demonstrates:
 
@@ -90,7 +90,7 @@ Read tools return structured state or open a visible in-page report. Modifying t
 
 | Criterion | Evidence in this project |
 | --- | --- |
-| WebMCP leverage | 31 non-trivial, schema-validated tools operate on live semantic spatial state; read, proposal, comparison, grouped transaction, approval and undo flows are all implemented. |
+| WebMCP leverage | 33 non-trivial, schema-validated tools operate on live semantic spatial state; read, proposal, comparison, grouped transaction, approval and undo flows are all implemented. |
 | Execution | Public no-login deployment, one coherent 3D editor, real geometry, local persistence, visible reports and automated browser coverage. |
 | Potential impact | Helps homeowners and early-stage design collaborators turn broad intent into inspectable house-and-garden alternatives before engaging professional design and engineering services. |
 | Creativity and ambition | Combines a semantic building model, landscape and seasonal context, agent-authored spatial variants and explicit human approval in one browser-native workspace. |
@@ -99,7 +99,7 @@ Read tools return structured state or open a visible in-page report. Modifying t
 
 The bundled demo uses the Zielonki site evidence for parcels `54/3 + 55/3 + 58/3`, agricultural context, terrain, geotechnical constraints, climate and planting guidance. See the [Zielonki knowledge bank](knowledge-bank/zielonki/README.md).
 
-The climate panel shows representative temperature averages for every month split into local-time night (00–06), morning (06–12), day (12–18) and evening (18–24). These conceptual day-part values are derived from the editable monthly mean minimum and maximum; they are not hourly weather-station observations. Selecting a month also changes the scene's seasonal lighting.
+The climate panel shows representative temperature averages for every month split into local-time night (00–06), morning (06–12), day (12–18) and evening (18–24). These conceptual day-part values are derived from the editable monthly mean minimum and maximum; they are not hourly weather-station observations. Selecting a month also moves the scene sun to the middle of that month; the sun widget in the viewport scrubs through the day and the year.
 
 The planting guide separates productive and landscape recommendations. Its productive catalogue includes tomatoes, potatoes, cucumbers, apples, sour cherries, pears and plums, with planting/harvest windows and site-specific cautions. A dedicated soil-analysis section distinguishes documented ground observations from unknown horticultural properties, lists the laboratory and drainage checks still needed, and gives conservative raised-bed and orchard-mound preparation principles.
 
@@ -109,6 +109,7 @@ The default project includes three timber raised beds planted with tomatoes, pot
 
 - React Three Fiber is the only renderer and render loop.
 - That Open Components uses the existing R3F scene, WebGL renderer and canvas through a non-owning world bridge. Its `OrthoPerspectiveCamera` is the active camera. Length uses two ground-point clicks; area uses a drag-sized rectangular ground overlay. Edit, length, area, section and plan modes are mutually exclusive; the unused angle mode is excluded.
+- The sun is a real solar position (NOAA formulas) for the site's latitude, longitude, timezone and true north. The directional light, the sun-path arc, the compass rose, the sun-hours heatmap, the `sun-study` report view and the `run_sunlight_analysis` tool all derive from the same functions, so shadows on screen and numbers returned to agents agree. Sun hours are computed analytically against walls, slabs, roof wings, tree canopies and garden fixtures, and a `planting.sun-mismatch` warning flags sun-loving planting that gets under six hours of direct sun between 09:00 and 17:00 on 21 June.
 - Manifold runs in a Web Worker and generates semantic slab and wall meshes. Door/window boxes are subtracted as real voids. Results are revision-checked, transferable and cached by semantic input.
 - `three-mesh-bvh` builds and disposes acceleration structures with generated geometry.
 - Rapier supplies fixed semantic colliders and constrained editing previews; it is not used for structural analysis or falling buildings.
@@ -127,6 +128,8 @@ There is no project-file import, download/export, IFC exchange or Fragments exch
 - axonometric view;
 - every selected-building storey plan;
 - longitudinal and transverse centreline sections.
+
+A custom `sun-study` view renders a shadow plan for a local date and time.
 
 Each drawing is rendered sequentially at 960×640, annotated with title, north, scale and building labels, and displayed from an in-memory PNG Blob. Object URLs are revoked when a report is replaced, closed or the app unmounts. The WebMCP JSON contains only view descriptors and local-metre placement numbers—never data URLs, Blob URLs or binary image content. Reports do not change the project revision and can target an uncommitted ghost variant.
 
@@ -149,7 +152,7 @@ npm run build
 npm run test:e2e
 ```
 
-The browser test uses installed Chrome. It checks one canvas, runtime WASM, length/area/semantic-height measurement, the ready garden-fixture set, live WebMCP storey-extension, planting-area, grouped-change and height calls, the climate day-part view, the planting and soil guide, the ten-sheet architectural set, placement data, report cleanup, zero page/console errors, and the same report against an uncommitted moved-building variant.
+The browser test uses installed Chrome. It checks one canvas, runtime WASM, length/area/semantic-height measurement, the ready garden-fixture set, live WebMCP storey-extension, planting-area, grouped-change and height calls, the climate day-part view, the planting and soil guide, the sun widget and sun-hours heatmap, live sunlight and sun-study tool calls, the ten-sheet architectural set, placement data, report cleanup, zero page/console errors, and the same report against an uncommitted moved-building variant.
 
 ## WebMCP tools
 
@@ -183,7 +186,9 @@ Use **MCP Tools** in the application to inspect the registered catalogue. The pa
 | `measure_height` | Read semantic or free vertical height with local and absolute elevations |
 | `propose_climate_update` | Edit one climate month, including night/morning/day/evening averages |
 | `show_structure_views` | Open visible architectural drawings and return placement data |
-| `run_seasonal_analysis` | Return day-part temperature averages and V2 seasonal planning signals |
+| `run_seasonal_analysis` | Return day-part temperature averages, sunrise, sunset, daylight and V2 seasonal planning signals |
+| `run_sunlight_analysis` | Compute direct sun hours for a zone, plant, fixture, point or the site on a date, for the committed project or a ghost variant |
+| `set_sun_time` | Move the viewer sun to a local date and time without touching the revision |
 | `compare_variants` | Compare ghost metrics and validation issues |
 | `request_apply_variant` | Wait for explicit Apply/Reject confirmation |
 | `discard_variant` | Remove an uncommitted variant |

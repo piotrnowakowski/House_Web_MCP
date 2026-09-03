@@ -10,6 +10,9 @@ import type { BuildingModel, ClimateDayPart, GardenFixtureCatalogId, HeightMeasu
 import { inferWallOpeningLayout, wallOpeningLayoutCommands, wallOpeningLayoutPresets, type WallOpeningLayoutPreset } from './domain/wallOpeningLayouts'
 import { resolveWallFinish, wallFinishCatalog, wallFinishCommands, type WallFinishScope } from './domain/wallFinishes'
 import { CLEAR_MEASUREMENT_EVENT, StudioScene } from './scene/StudioScene'
+import { sunHoursColor } from './scene/sun'
+import { solarPosition, sunriseSunset } from './domain/solar'
+import { formatSunMoment } from './domain/sunlight'
 import { loadProject, saveProject } from './services/persistence'
 import { showStructureViews } from './services/structureViews'
 import { registerWebMcpTools, resolveVariantConfirmation } from './services/webmcp'
@@ -342,6 +345,56 @@ function VariantApproval() {
     <div className="approval-actions"><button className="report-button" disabled={blocking.length > 0} onClick={() => resolveVariantConfirmation(true)}>Apply complete variant</button><button onClick={() => resolveVariantConfirmation(false)}>Reject all</button></div></div>
 }
 
+const monthDays = (month: number) => new Date(Date.UTC(2026, month, 0)).getUTCDate()
+const clockLabel = (hour: number) => { const minutes = Math.round(hour * 60); return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}` }
+
+function SunWidget() {
+  const project = useStudioStore((state) => state.project); const sunTime = useStudioStore((state) => state.sunTime); const setSunTime = useStudioStore((state) => state.setSunTime)
+  const sunAnimation = useStudioStore((state) => state.sunAnimation); const setSunAnimation = useStudioStore((state) => state.setSunAnimation)
+  const sunOverlay = useStudioStore((state) => state.sunOverlay); const setSunOverlay = useStudioStore((state) => state.setSunOverlay)
+  const selectedRef = useStudioStore((state) => state.selectedRef); const viewMode = useStudioStore((state) => state.viewMode)
+  const { latitude, longitude, timezone } = project.climateProfile
+  const events = sunriseSunset({ latitude, longitude, timezone }, sunTime); const sun = solarPosition({ latitude, longitude, timezone }, sunTime)
+  const min = events ? Math.floor(events.sunriseHour * 4) / 4 : 0; const max = events ? Math.ceil(events.sunsetHour * 4) / 4 : 24
+  useEffect(() => {
+    if (sunAnimation === 'none') return
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const timer = window.setInterval(() => {
+      const state = useStudioStore.getState(); const current = state.sunTime
+      if (sunAnimation === 'day') {
+        const bounds = sunriseSunset({ latitude, longitude, timezone }, current); const low = bounds ? bounds.sunriseHour : 0; const high = bounds ? bounds.sunsetHour : 24
+        const next = current.hour + (reduced ? 1 : 0.25); state.setSunTime({ hour: next > high ? low : next })
+      } else {
+        const nextDay = current.day + (reduced ? 30 : 3); const days = monthDays(current.month)
+        if (nextDay > days) state.setSunTime({ month: current.month === 12 ? 1 : current.month + 1, day: nextDay - days }); else state.setSunTime({ day: nextDay })
+      }
+    }, reduced ? 1000 : 120)
+    return () => window.clearInterval(timer)
+  }, [latitude, longitude, sunAnimation, timezone])
+  const targetRef = project.landscape.zones.find((zone) => zone.ref === selectedRef)?.ref ?? 'site'
+  const legendTop = sunOverlay.result ? Math.max(sunOverlay.result.sunHours.max, sunOverlay.result.daylightHours * 0.999) : 0
+  return <section className="sun-widget" aria-label="Sun controls">
+    <header><span className="eyebrow">SUN / LOCAL TIME</span><strong>{formatSunMoment(sunTime.month, sunTime.day, sunTime.hour)}</strong></header>
+    <div className="sun-fields">
+      <label><span>Month</span><select aria-label="Sun month" value={sunTime.month} onChange={(event) => setSunTime({ month: Number(event.target.value) })}>{monthNames.map((name, index) => <option key={name} value={index + 1}>{name}</option>)}</select></label>
+      <label><span>Day</span><input type="number" aria-label="Sun day" min={1} max={monthDays(sunTime.month)} value={sunTime.day} onChange={(event) => setSunTime({ day: Number(event.target.value) })} /></label>
+    </div>
+    <label className="sun-slider"><span>Local time</span><input type="range" aria-label="Local time" min={min} max={max} step={0.25} value={Math.min(max, Math.max(min, sunTime.hour))} onChange={(event) => setSunTime({ hour: Number(event.target.value) })} /><small>{events ? `${clockLabel(events.sunriseHour)} sunrise · ${clockLabel(events.sunsetHour)} sunset` : 'No sunrise or sunset on this date'}</small></label>
+    <dl className="sun-readout"><div><dt>Altitude</dt><dd>{sun.altitudeDeg.toFixed(1)}°</dd></div><div><dt>Azimuth</dt><dd>{sun.azimuthDeg.toFixed(0)}°</dd></div><div><dt>Daylight</dt><dd>{events ? `${events.daylightHours.toFixed(1)} h` : '—'}</dd></div></dl>
+    <div className="sun-actions">
+      <button className={sunAnimation === 'day' ? 'active' : ''} aria-pressed={sunAnimation === 'day'} onClick={() => setSunAnimation(sunAnimation === 'day' ? 'none' : 'day')}>Play day</button>
+      <button className={sunAnimation === 'year' ? 'active' : ''} aria-pressed={sunAnimation === 'year'} onClick={() => setSunAnimation(sunAnimation === 'year' ? 'none' : 'year')}>Play year</button>
+      <button className={sunOverlay.enabled ? 'active' : ''} aria-pressed={sunOverlay.enabled} onClick={() => setSunOverlay({ enabled: !sunOverlay.enabled, targetRef, result: null })}>Sun hours</button>
+    </div>
+    {viewMode === 'technical' && <small className="sun-note">Technical mode keeps a neutral studio light; sun-hours analysis still uses the real sun.</small>}
+    {sunOverlay.enabled && sunOverlay.result && <div className="sun-legend" aria-label="Sun hours legend">
+      <i style={{ background: `linear-gradient(90deg, ${sunHoursColor(0)}, ${sunHoursColor(0.5)}, ${sunHoursColor(1)})` }} />
+      <div><span>0 h</span><span>{legendTop.toFixed(1)} h direct sun</span></div>
+      <small>{sunOverlay.targetRef ?? 'site'} · mean {sunOverlay.result.sunHours.mean.toFixed(1)} h · {sunOverlay.result.expectedSunHours.toFixed(1)} h expected after typical cloud</small>
+    </div>}
+  </section>
+}
+
 export function App() {
   const project = useStudioStore((state) => state.project); const toast = useStudioStore((state) => state.toast); const hydrated = useStudioStore((state) => state.hydrated); const viewerMode = useStudioStore((state) => state.viewerMode); const explode = useStudioStore((state) => state.explodeStoreys)
   const heightMeasureKind = useStudioStore((state) => state.heightMeasureKind); const setHeightMeasureKind = useStudioStore((state) => state.setHeightMeasureKind)
@@ -379,6 +432,7 @@ export function App() {
         <span>EXPLODED ROOMS</span>
         <strong>{project.buildings.reduce((sum, building) => sum + building.spaces.length, 0)} rooms · {project.buildings.reduce((sum, building) => sum + building.storeys.length, 0)} levels · roof separated</strong>
       </section>}
+      <SunWidget />
       <div className="land-legend" aria-label="Land-use legend"><span><i className="construction" />House land</span><span><i className="garden" />Garden / agricultural land</span><span><i className="entrance" />Road entrance</span></div>
     </div>
     {dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}<ReportPanel /><VariantApproval />{toast && <div className="toast" role="status">{toast}</div>}

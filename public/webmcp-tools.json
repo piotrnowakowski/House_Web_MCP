@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "source": "runtime-zod-and-structured-prompts",
-  "toolCount": 31,
+  "toolCount": 33,
   "tools": [
     {
       "name": "get_project_state",
@@ -3744,7 +3744,7 @@
       "prompt": {
         "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
         "task": "Open an ephemeral visible in-page architectural report with rendered images and return structured building placement numbers. Architectural-set expands to site plan, four site-north elevations, axonometric, selected storey plans and two centreline sections.",
-        "input": "`mode` defaults to `architectural-set`; optional `buildingRefs`, `variantRef`, custom `views`, and `includeAnnotations`. Maximum 12 expanded views.",
+        "input": "`mode` defaults to `architectural-set`; optional `buildingRefs`, `variantRef`, custom `views`, and `includeAnnotations`. Custom views include `{type:\"sun-study\",month,day,hour}` for a shadow plan at a local time. Maximum 12 expanded views.",
         "tools": "Use get_project_state for refs. This is read-only. Images appear in the page; the JSON result contains no data URL, Blob URL or binary content.",
         "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns reportRef, views with presentation \"visible-in-page\", and selected building placement in local model metres.",
         "exampleOutput": "{\"mode\":\"architectural-set\",\"buildingRefs\":[\"house/main\"],\"includeAnnotations\":true}"
@@ -3865,6 +3865,37 @@
                     "axis"
                   ],
                   "additionalProperties": false
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "sun-study"
+                    },
+                    "month": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 12
+                    },
+                    "day": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 31
+                    },
+                    "hour": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 24
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "month",
+                    "day",
+                    "hour"
+                  ],
+                  "additionalProperties": false
                 }
               ]
             }
@@ -3958,13 +3989,13 @@
       "name": "run_seasonal_analysis",
       "title": "Run seasonal analysis",
       "readOnly": true,
-      "description": "Estimate monthly night, morning, day and evening temperatures alongside daylight, water balance, frost, foliage and bloom from V2 climate and landscape state.",
+      "description": "Estimate monthly night, morning, day and evening temperatures alongside NOAA daylight, local sunrise and sunset, solar-noon altitude, water balance, frost, foliage and bloom from V2 climate and landscape state.",
       "prompt": {
         "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
-        "task": "Estimate monthly night, morning, day and evening temperatures alongside daylight, water balance, frost, foliage and bloom from V2 climate and landscape state.",
+        "task": "Estimate monthly night, morning, day and evening temperatures alongside NOAA daylight, local sunrise and sunset, solar-noon altitude, water balance, frost, foliage and bloom from V2 climate and landscape state.",
         "input": "`months` is an array of integers from 1–12 and defaults to `[1,4,7,10]`; optional string `variantRef`.",
         "tools": "Read-only; do not present conceptual climate values as professional weather or horticultural advice.",
-        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Each month includes `temperatureByDayPartC` with numeric `night`, `morning`, `day`, and `evening` averages in °C for the local-time windows 00–06, 06–12, 12–18, and 18–24.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Each month includes `temperatureByDayPartC` with numeric `night`, `morning`, `day`, and `evening` averages in °C for the local-time windows 00–06, 06–12, 12–18, and 18–24, plus `daylightHours`, `sunriseLocal`, `sunsetLocal` and `solarNoonAltitudeDeg` for the 15th.",
         "exampleOutput": "{\"months\":[1,4,7,10]}"
       },
       "inputSchema": {
@@ -4068,6 +4099,21 @@
                 "daylightHours": {
                   "type": "number"
                 },
+                "sunriseLocal": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "sunsetLocal": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "solarNoonAltitudeDeg": {
+                  "type": "number"
+                },
                 "waterBalanceMm": {
                   "type": "number"
                 },
@@ -4079,6 +4125,310 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    {
+      "name": "run_sunlight_analysis",
+      "title": "Analyse sun hours",
+      "readOnly": true,
+      "description": "Compute direct sun hours for one landscape zone, plant, garden fixture, point or the whole site on a given date by casting rays toward the real NOAA sun against walls, roofs, tree canopies and fixtures. Works on the committed project or on an uncommitted ghost variant, so a proposal can be checked for the shade it adds before approval.",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Compute direct sun hours for one landscape zone, plant, garden fixture, point or the whole site on a given date by casting rays toward the real NOAA sun against walls, roofs, tree canopies and fixtures. Works on the committed project or on an uncommitted ghost variant, so a proposal can be checked for the shade it adds before approval.",
+        "input": "Pass `targetRef` (a zone, plant or fixture ref, or `site`) or `point` `{x,z}`; `month` 1–12; optional `day` (default 21), `stepMinutes` 15–60, `hours` `{from,to}` local-time window, `includeGrid` for a coarse cell grid, and `variantRef`.",
+        "tools": "Read-only. Call get_project_state first to resolve refs. To judge a proposal, call once without and once with its variantRef and compare. Report geometric hours and the cloud-adjusted expectedSunHours separately.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns analysis with sunriseLocal, sunsetLocal, daylightHours, window, sunHours {mean,min,max}, firstSunLocal, lastSunLocal, shadedFraction, expectedSunHours, sampleCount and, on request, a grid of hours per cell (-1 outside the target).",
+        "exampleOutput": "{\"targetRef\":\"zone/terrace\",\"month\":9,\"day\":21,\"hours\":{\"from\":13,\"to\":18}}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "targetRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Landscape zone, plant or garden fixture ref, or `site` for the whole plot."
+          },
+          "point": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number",
+                "description": "East-west local model coordinate in metres."
+              },
+              "z": {
+                "type": "number",
+                "description": "North-south local model coordinate in metres."
+              }
+            },
+            "required": [
+              "x",
+              "z"
+            ],
+            "additionalProperties": false
+          },
+          "month": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12,
+            "description": "Calendar month, 1 to 12."
+          },
+          "day": {
+            "default": 21,
+            "description": "Day of month; 21 gives solstice and equinox dates.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 31
+          },
+          "stepMinutes": {
+            "default": 30,
+            "description": "Sampling interval through the day in minutes.",
+            "type": "integer",
+            "minimum": 15,
+            "maximum": 60
+          },
+          "hours": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 24
+              },
+              "to": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 24
+              }
+            },
+            "required": [
+              "from",
+              "to"
+            ],
+            "additionalProperties": false,
+            "description": "Optional local-time window, e.g. 13 to 18 for afternoon sun."
+          },
+          "includeGrid": {
+            "default": false,
+            "description": "Return a coarse grid of sun hours per cell; -1 marks cells outside the target.",
+            "type": "boolean"
+          },
+          "variantRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
+          }
+        },
+        "required": [
+          "month",
+          "day",
+          "stepMinutes",
+          "includeGrid"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "targetRef": "zone/terrace",
+        "month": 9,
+        "day": 21,
+        "hours": {
+          "from": 13,
+          "to": 18
+        }
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "analysis"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "variantRef": {
+            "type": "string"
+          },
+          "analysis": {
+            "type": "object",
+            "required": [
+              "target",
+              "month",
+              "day",
+              "daylightHours",
+              "sunHours",
+              "shadedFraction",
+              "expectedSunHours",
+              "sampleCount"
+            ],
+            "properties": {
+              "sunriseLocal": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "sunsetLocal": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "daylightHours": {
+                "type": "number"
+              },
+              "window": {
+                "type": [
+                  "object",
+                  "null"
+                ]
+              },
+              "sunHours": {
+                "type": "object",
+                "required": [
+                  "mean",
+                  "min",
+                  "max"
+                ]
+              },
+              "firstSunLocal": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "lastSunLocal": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "shadedFraction": {
+                "type": "number"
+              },
+              "expectedSunHours": {
+                "type": "number"
+              },
+              "sampleCount": {
+                "type": "integer"
+              },
+              "grid": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "set_sun_time",
+      "title": "Set viewer sun time",
+      "readOnly": true,
+      "description": "Move the scene sun to a local date and time so the person sees the real shadows for that moment. This changes only the viewer; the committed project and its revision stay untouched.",
+      "prompt": {
+        "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
+        "task": "Move the scene sun to a local date and time so the person sees the real shadows for that moment. This changes only the viewer; the committed project and its revision stay untouched.",
+        "input": "`month` 1–12; optional `day` (default 15); `hour` 0–24 as a local fractional hour, so 15.5 means 15:30.",
+        "tools": "Use before or after run_sunlight_analysis to show the person what the numbers mean. It is not a proposal and needs no approval.",
+        "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns sunTime, altitudeDeg, azimuthDeg (compass, 0 north), sunriseLocal and sunsetLocal for that moment.",
+        "exampleOutput": "{\"month\":12,\"day\":21,\"hour\":15}"
+      },
+      "inputSchema": {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "type": "object",
+        "properties": {
+          "month": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12,
+            "description": "Calendar month, 1 to 12."
+          },
+          "day": {
+            "default": 15,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 31
+          },
+          "hour": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 24,
+            "description": "Local fractional hour; 15.5 means 15:30."
+          }
+        },
+        "required": [
+          "month",
+          "day",
+          "hour"
+        ],
+        "additionalProperties": false
+      },
+      "exampleInput": {
+        "month": 12,
+        "day": 21,
+        "hour": 15
+      },
+      "resultShape": {
+        "type": "object",
+        "required": [
+          "status",
+          "projectRevision",
+          "summary",
+          "sunTime",
+          "altitudeDeg",
+          "azimuthDeg"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "Execution outcome."
+          },
+          "projectRevision": {
+            "type": "integer",
+            "description": "Committed ProjectV2 revision."
+          },
+          "summary": {
+            "type": "string",
+            "description": "Short human-readable outcome."
+          },
+          "sunTime": {
+            "type": "object",
+            "required": [
+              "month",
+              "day",
+              "hour"
+            ]
+          },
+          "altitudeDeg": {
+            "type": "number"
+          },
+          "azimuthDeg": {
+            "type": "number"
+          },
+          "sunriseLocal": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "sunsetLocal": {
+            "type": [
+              "number",
+              "null"
+            ]
           }
         }
       }
