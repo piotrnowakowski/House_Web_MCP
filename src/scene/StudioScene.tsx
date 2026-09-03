@@ -6,7 +6,7 @@ import CameraControls from 'camera-controls'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Box3, BoxGeometry, BufferAttribute, BufferGeometry, Color, DirectionalLight, DoubleSide, EdgesGeometry, Group, LinearFilter, MathUtils, Mesh, MeshStandardMaterial, Object3D,
-  OrthographicCamera, PerspectiveCamera, Plane, PlaneGeometry, Raycaster, Scene, Shape, ShapeGeometry, Vector2, Vector3, WebGLRenderTarget, WebGLRenderer,
+  OrthographicCamera, PerspectiveCamera, Plane, PlaneGeometry, Raycaster, Scene, Shape, ShapeGeometry, SRGBColorSpace, Vector2, Vector3, WebGLRenderTarget, WebGLRenderer,
 } from 'three'
 import { acceleratedRaycast, computeBoundsTree, disposeBoundsTree } from 'three-mesh-bvh'
 import { buildingGroundOffset, buildingLocalBounds, elevationAt, pointInPolygon, polygonBounds, polygonCentroid, spaceFootprint } from '../domain/geometry'
@@ -973,6 +973,9 @@ function StructureCaptureController() {
   useEffect(() => registerStructureViewCapture(async (project, views, includeAnnotations, signal) => {
     await waitForTextures()
     const width = 960; const height = 640; const target = new WebGLRenderTarget(width, height, { minFilter: LinearFilter, magFilter: LinearFilter })
+    // readRenderTargetPixels returns the target bytes verbatim. Mark the target as sRGB so the
+    // renderer applies the same display transform as the live canvas before those bytes become PNGs.
+    target.texture.colorSpace = SRGBColorSpace
     const previousTarget = gl.getRenderTarget(); const previousClipping = [...gl.clippingPlanes]; const previousLocal = gl.localClippingEnabled; const visibility = new Map<Object3D, boolean>(); const materialState = new Map<MeshStandardMaterial, { transparent: boolean; opacity: number }>(); const results: StructureReport['views'] = []
     const source = project === useStudioStore.getState().project ? 'committed' : 'ghost'
     scene.traverse((object) => { if (object.userData.editorOnly) { visibility.set(object, object.visible); object.visible = false } })
