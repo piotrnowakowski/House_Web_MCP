@@ -4928,14 +4928,14 @@
     {
       "name": "set_viewer_state",
       "title": "Set viewer state",
-      "readOnly": true,
+      "readOnly": false,
       "untrustedContent": false,
       "description": "Show the person something in the scene: switch realistic or technical mode, explode the rooms and roof apart, open a storey plan, or select and highlight one object by ref. Changes only the viewer; the committed project and its revision stay untouched.",
       "prompt": {
         "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
         "task": "Show the person something in the scene: switch realistic or technical mode, explode the rooms and roof apart, open a storey plan, or select and highlight one object by ref. Changes only the viewer; the committed project and its revision stay untouched.",
         "input": "All fields optional: `viewMode` (`realistic`|`technical`), `explode` (boolean), `planStoreyRef` (storey ref or null), `focusRef` (object ref to select, or null to clear).",
-        "tools": "Use after a proposal or analysis to point at what you mean, for example focusRef on the wall you changed. Not a proposal; no approval is involved.",
+        "tools": "Use after a proposal or analysis to point at what you mean, for example focusRef on the wall you changed. Changes only viewer state and never creates or applies a project proposal.",
         "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns viewer with viewMode, explode, viewerMode, activePlanStoreyRef and selectedRef.",
         "exampleOutput": "{\"viewMode\":\"realistic\",\"focusRef\":\"wall/courtyard-living\"}"
       },
@@ -5022,14 +5022,14 @@
     {
       "name": "set_sun_time",
       "title": "Set viewer sun time",
-      "readOnly": true,
+      "readOnly": false,
       "untrustedContent": false,
       "description": "Move the scene sun to a local date and time so the person sees the real shadows for that moment. This changes only the viewer; the committed project and its revision stay untouched.",
       "prompt": {
         "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
         "task": "Move the scene sun to a local date and time so the person sees the real shadows for that moment. This changes only the viewer; the committed project and its revision stay untouched.",
         "input": "`month` 1–12; optional `day` (default 15); `hour` 0–24 as a local fractional hour, so 15.5 means 15:30.",
-        "tools": "Use before or after run_sunlight_analysis to show the person what the numbers mean. It is not a proposal and needs no approval.",
+        "tools": "Use before or after run_sunlight_analysis to show the person what the numbers mean. Changes only viewer state and never creates or applies a project proposal.",
         "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns sunTime, altitudeDeg, azimuthDeg (compass, 0 north), sunriseLocal and sunsetLocal for that moment.",
         "exampleOutput": "{\"month\":12,\"day\":21,\"hour\":15}"
       },

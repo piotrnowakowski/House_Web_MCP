@@ -63,6 +63,8 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(webMcpManifest.tools.find((item) => item.name === 'show_structure_views')).toMatchObject({ readOnly: true })
     expect(webMcpManifest.tools.find((item) => item.name === 'get_proposals')).toMatchObject({ readOnly: true })
     expect(webMcpManifest.tools.find((item) => item.name === 'propose_building_update')).toMatchObject({ readOnly: false })
+    expect(webMcpManifest.tools.find((item) => item.name === 'set_viewer_state')).toMatchObject({ readOnly: false })
+    expect(webMcpManifest.tools.find((item) => item.name === 'set_sun_time')).toMatchObject({ readOnly: false })
   })
 
   it('reads nested site and structure state in agent-sized slices', async () => {
@@ -387,7 +389,7 @@ describe('variant explanation and viewer tools', () => {
 
   it('drives the viewer without touching the project', async () => {
     const parsed = payload(await tool('set_viewer_state').execute({ viewMode: 'technical', explode: true, focusRef: 'wall/courtyard-living' }))
-    expect(tool('set_viewer_state').annotations?.readOnlyHint).toBe(true)
+    expect(tool('set_viewer_state').annotations).toBeUndefined()
     expect(parsed).toMatchObject({ status: 'ok', projectRevision: 1, viewer: { viewMode: 'technical', explode: true, selectedRef: 'wall/courtyard-living' } })
     const state = useStudioStore.getState()
     expect(state.viewMode).toBe('technical'); expect(state.explodeStoreys).toBe(true); expect(state.selectedRef).toBe('wall/courtyard-living')
@@ -448,7 +450,7 @@ describe('sunlight WebMCP surface', () => {
 
   it('moves the viewer sun without touching the committed revision', async () => {
     const parsed = payload(await tool('set_sun_time').execute({ month: 12, day: 21, hour: 12 }))
-    expect(tool('set_sun_time').annotations?.readOnlyHint).toBe(true)
+    expect(tool('set_sun_time').annotations).toBeUndefined()
     expect(parsed).toMatchObject({ status: 'ok', projectRevision: 1, sunTime: { month: 12, day: 21, hour: 12 } })
     expect(parsed.altitudeDeg).toBeCloseTo(16.3, 0)
     expect(parsed.sunriseLocal).toBeCloseTo(7.61, 1)

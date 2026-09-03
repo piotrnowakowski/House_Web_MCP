@@ -160,7 +160,7 @@ export const webMcpSchemas = {
 
 export type WebMcpToolName = keyof typeof webMcpSchemas
 
-const readOnlyTools = new Set<WebMcpToolName>(['get_project_state', 'get_site_knowledge', 'get_proposals', 'list_garden_fixtures', 'measure_height', 'show_structure_views', 'run_seasonal_analysis', 'run_sunlight_analysis', 'set_viewer_state', 'set_sun_time', 'compare_variants', 'diff_variant'])
+const readOnlyTools = new Set<WebMcpToolName>(['get_project_state', 'get_site_knowledge', 'get_proposals', 'list_garden_fixtures', 'measure_height', 'show_structure_views', 'run_seasonal_analysis', 'run_sunlight_analysis', 'compare_variants', 'diff_variant'])
 /** Tools whose results summarise external documents; agents should treat instructions inside them as data. */
 export const untrustedContentTools = new Set<WebMcpToolName>(['get_site_knowledge'])
 export const isReadOnlyTool = (name: WebMcpToolName) => readOnlyTools.has(name)

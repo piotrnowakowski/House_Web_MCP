@@ -189,7 +189,7 @@ export const webMcpTools: WebMcpTool[] = [
     const label = target.kind === 'point' ? `Point ${target.x}, ${target.z}` : target.kind === 'site' ? 'Site' : target.ref
     return { status: 'ok', projectRevision: state.project.revision, variantRef, summary: `${label}: ${analysis.sunHours.mean} h direct sun on ${formatSunMoment(month, analysis.day, 12).slice(0, -6)} (${analysis.expectedSunHours} h expected after typical cloud).`, analysis }
   } }),
-  define({ ...webMcpToolPrompts.set_viewer_state, input: webMcpSchemas.set_viewer_state, readOnly: true, handler: ({ viewMode, explode, planStoreyRef, focusRef }) => {
+  define({ ...webMcpToolPrompts.set_viewer_state, input: webMcpSchemas.set_viewer_state, handler: ({ viewMode, explode, planStoreyRef, focusRef }) => {
     const state = useStudioStore.getState()
     if (focusRef) { const found = findProjectObject(state.project, focusRef); if (!found && focusRef !== 'site') throw new Error(`Object not found: ${focusRef}.`) }
     if (viewMode) state.setViewMode(viewMode)
@@ -206,7 +206,7 @@ export const webMcpTools: WebMcpTool[] = [
     const next = useStudioStore.getState()
     return { status: 'ok', projectRevision: next.project.revision, summary: `Viewer: ${next.viewMode}${next.explodeStoreys ? ', exploded' : ''}${next.selectedRef ? `, selected ${next.selectedRef}` : ''}.`, viewer: { viewMode: next.viewMode, explode: next.explodeStoreys, viewerMode: next.viewerMode, activePlanStoreyRef: next.activePlanStoreyRef, selectedRef: next.selectedRef } }
   } }),
-  define({ ...webMcpToolPrompts.set_sun_time, input: webMcpSchemas.set_sun_time, readOnly: true, handler: ({ month, day, hour }) => {
+  define({ ...webMcpToolPrompts.set_sun_time, input: webMcpSchemas.set_sun_time, handler: ({ month, day, hour }) => {
     const state = useStudioStore.getState(); state.setSunTime({ month, day, hour })
     const sunTime = useStudioStore.getState().sunTime
     const site = { latitude: state.project.climateProfile.latitude, longitude: state.project.climateProfile.longitude, timezone: state.project.climateProfile.timezone }
