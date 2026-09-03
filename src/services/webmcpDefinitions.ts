@@ -83,9 +83,25 @@ export const webMcpSchemas = {
       z.object({ type: z.enum(['north-elevation', 'south-elevation', 'east-elevation', 'west-elevation']) }),
       z.object({ type: z.literal('storey-plan'), storeyRef: ref }),
       z.object({ type: z.literal('section'), axis: z.enum(['longitudinal', 'transverse']), offsetM: z.number().optional() }),
+      z.object({ type: z.literal('sun-study'), month: z.number().int().min(1).max(12), day: z.number().int().min(1).max(31), hour: z.number().min(0).max(24) }),
     ])).max(12).optional(), includeAnnotations: z.boolean().default(true),
   }),
   run_seasonal_analysis: z.object({ months: z.array(z.number().int().min(1).max(12)).min(1).max(12).default([1, 4, 7, 10]), variantRef: ref.optional() }),
+  run_sunlight_analysis: z.object({
+    targetRef: z.string().min(1).describe('Landscape zone, plant or garden fixture ref, or `site` for the whole plot.').optional(),
+    point: point.optional(),
+    month: z.number().int().min(1).max(12).describe('Calendar month, 1 to 12.'),
+    day: z.number().int().min(1).max(31).default(21).describe('Day of month; 21 gives solstice and equinox dates.'),
+    stepMinutes: z.number().int().min(15).max(60).default(30).describe('Sampling interval through the day in minutes.'),
+    hours: z.object({ from: z.number().min(0).max(24), to: z.number().min(0).max(24) }).strict().describe('Optional local-time window, e.g. 13 to 18 for afternoon sun.').optional(),
+    includeGrid: z.boolean().default(false).describe('Return a coarse grid of sun hours per cell; -1 marks cells outside the target.'),
+    variantRef: ref.optional(),
+  }).superRefine((value, context) => { if (!value.targetRef && !value.point) context.addIssue({ code: 'custom', path: ['targetRef'], message: 'targetRef or point is required.' }) }),
+  set_sun_time: z.object({
+    month: z.number().int().min(1).max(12).describe('Calendar month, 1 to 12.'),
+    day: z.number().int().min(1).max(31).default(15),
+    hour: z.number().min(0).max(24).describe('Local fractional hour; 15.5 means 15:30.'),
+  }),
   compare_variants: z.object({ variantRefs: z.array(ref).min(1).max(4) }),
   request_apply_variant: z.object({ variantRef: ref }),
   discard_variant: z.object({ variantRef: ref }),
@@ -94,7 +110,7 @@ export const webMcpSchemas = {
 
 export type WebMcpToolName = keyof typeof webMcpSchemas
 
-const readOnlyTools = new Set<WebMcpToolName>(['get_project_state', 'list_garden_fixtures', 'measure_height', 'show_structure_views', 'run_seasonal_analysis', 'compare_variants'])
+const readOnlyTools = new Set<WebMcpToolName>(['get_project_state', 'list_garden_fixtures', 'measure_height', 'show_structure_views', 'run_seasonal_analysis', 'run_sunlight_analysis', 'set_sun_time', 'compare_variants'])
 const standardProperties = {
   status: { type: 'string', description: 'Execution outcome.' },
   projectRevision: { type: 'integer', description: 'Committed ProjectV2 revision.' },
@@ -109,7 +125,9 @@ const resultShapeFor = (name: WebMcpToolName): Record<string, unknown> => {
   if (name === 'measure_height') return objectShape({ measurement: { type: 'object', required: ['kind', 'label', 'heightM', 'bottomPoint', 'topPoint', 'bottomElevation', 'topElevation'] } }, ['measurement'])
   if (name === 'create_change_set' || name === 'add_change_set_operations') return objectShape({ changeSetRef: { type: 'string' }, baseRevision: { type: 'integer' }, operations: { type: 'array', items: { type: 'object' } }, issues: { type: 'array', items: { type: 'object' } }, metrics: { type: 'object' } }, ['changeSetRef', 'baseRevision', 'operations'])
   if (name === 'show_structure_views') return objectShape({ reportRef: { type: 'string' }, views: { type: 'array', items: { type: 'object', required: ['type', 'title', 'buildingRefs', 'presentation'], properties: { type: { type: 'string' }, title: { type: 'string' }, buildingRefs: { type: 'array', items: { type: 'string' } }, storeyRef: { type: 'string' }, presentation: { const: 'visible-in-page' } } } }, buildings: { type: 'array', items: { type: 'object' } } }, ['reportRef', 'views', 'buildings'])
-  if (name === 'run_seasonal_analysis') return objectShape({ variantRef: { type: 'string' }, metrics: { type: 'object' }, data: { type: 'array', items: { type: 'object', properties: { month: { type: 'integer' }, temperatureByDayPartC: { type: 'object', required: ['night', 'morning', 'day', 'evening'], properties: { night: { type: 'number' }, morning: { type: 'number' }, day: { type: 'number' }, evening: { type: 'number' } } }, daylightHours: { type: 'number' }, waterBalanceMm: { type: 'number' }, droughtRisk: { type: 'string' }, frostRisk: { type: 'string' } } } } }, ['metrics', 'data'])
+  if (name === 'run_seasonal_analysis') return objectShape({ variantRef: { type: 'string' }, metrics: { type: 'object' }, data: { type: 'array', items: { type: 'object', properties: { month: { type: 'integer' }, temperatureByDayPartC: { type: 'object', required: ['night', 'morning', 'day', 'evening'], properties: { night: { type: 'number' }, morning: { type: 'number' }, day: { type: 'number' }, evening: { type: 'number' } } }, daylightHours: { type: 'number' }, sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] }, solarNoonAltitudeDeg: { type: 'number' }, waterBalanceMm: { type: 'number' }, droughtRisk: { type: 'string' }, frostRisk: { type: 'string' } } } } }, ['metrics', 'data'])
+  if (name === 'run_sunlight_analysis') return objectShape({ variantRef: { type: 'string' }, analysis: { type: 'object', required: ['target', 'month', 'day', 'daylightHours', 'sunHours', 'shadedFraction', 'expectedSunHours', 'sampleCount'], properties: { sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] }, daylightHours: { type: 'number' }, window: { type: ['object', 'null'] }, sunHours: { type: 'object', required: ['mean', 'min', 'max'] }, firstSunLocal: { type: ['number', 'null'] }, lastSunLocal: { type: ['number', 'null'] }, shadedFraction: { type: 'number' }, expectedSunHours: { type: 'number' }, sampleCount: { type: 'integer' }, grid: { type: 'object' } } } }, ['analysis'])
+  if (name === 'set_sun_time') return objectShape({ sunTime: { type: 'object', required: ['month', 'day', 'hour'] }, altitudeDeg: { type: 'number' }, azimuthDeg: { type: 'number' }, sunriseLocal: { type: ['number', 'null'] }, sunsetLocal: { type: ['number', 'null'] } }, ['sunTime', 'altitudeDeg', 'azimuthDeg'])
   if (name === 'compare_variants') return objectShape({ data: { type: 'array', items: { type: 'object' } } }, ['data'])
   if (name === 'request_apply_variant') return objectShape({ variantRef: { type: 'string' }, metrics: { type: 'object' } }, ['variantRef'])
   if (name === 'discard_variant') return objectShape({ variantRef: { type: 'string' } }, ['variantRef'])

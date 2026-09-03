@@ -255,3 +255,39 @@ export const sunMismatchIssues = (project: ProjectV2) => {
     return []
   })
 }
+
+const MONTH_ABBREVIATIONS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+export const formatSunMoment = (month: number, day: number, hour: number) => {
+  const minutes = Math.round(hour * 60)
+  return `${day} ${MONTH_ABBREVIATIONS[month - 1] ?? month} ${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+}
+
+/** Resolves an agent-supplied reference or point into a sun target, rejecting refs that are not sun-analysable. */
+export const resolveSunTarget = (project: ProjectV2, targetRef: string | undefined, point: Vec2 | undefined): SunTarget => {
+  if (point) return { kind: 'point', x: point.x, z: point.z }
+  if (!targetRef) throw new Error('Provide a targetRef (zone, plant, fixture or site) or a point.')
+  if (targetRef === 'site') return { kind: 'site' }
+  if (project.landscape.zones.some((zone) => zone.ref === targetRef)) return { kind: 'zone', ref: targetRef }
+  if (project.landscape.plants.some((plant) => plant.ref === targetRef)) return { kind: 'plant', ref: targetRef }
+  if (project.landscape.fixtures.some((fixture) => fixture.ref === targetRef)) return { kind: 'fixture', ref: targetRef }
+  throw new Error(`Sun analysis target not found: ${targetRef}. Use a landscape zone, plant or garden fixture ref, or site.`)
+}
+
+/** Averages the grid down so neither side exceeds `maxCells`, keeping -1 for cells with no covered samples. */
+export const downsampleSunGrid = (grid: SunlightGrid, maxCells: number): SunlightGrid => {
+  const factor = Math.ceil(Math.max(grid.width, grid.height) / maxCells)
+  if (factor <= 1) return grid
+  const width = Math.ceil(grid.width / factor); const height = Math.ceil(grid.height / factor)
+  const hours = new Array<number>(width * height).fill(-1)
+  for (let row = 0; row < height; row += 1) for (let column = 0; column < width; column += 1) {
+    let sum = 0; let count = 0
+    for (let dz = 0; dz < factor; dz += 1) for (let dx = 0; dx < factor; dx += 1) {
+      const sourceRow = row * factor + dz; const sourceColumn = column * factor + dx
+      if (sourceRow >= grid.height || sourceColumn >= grid.width) continue
+      const value = grid.hours[sourceRow * grid.width + sourceColumn]
+      if (value >= 0) { sum += value; count += 1 }
+    }
+    if (count) hours[row * width + column] = round(sum / count, 2)
+  }
+  return { width, height, originX: grid.originX, originZ: grid.originZ, cellM: round(grid.cellM * factor, 3), hours }
+}

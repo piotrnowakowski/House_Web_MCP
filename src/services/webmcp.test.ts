@@ -220,3 +220,64 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(useStudioStore.getState().variants[0].project.climateProfile.months[6].temperatureByDayPartC).toEqual({ night: 15, morning: 19, day: 24, evening: 20 })
   })
 })
+
+describe('sunlight WebMCP surface', () => {
+  beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), history: [], variants: [], sunTime: { month: 7, day: 15, hour: 14 } }))
+
+  it('analyses sun hours for a zone without creating variants and within the output budget', async () => {
+    const result = await tool('run_sunlight_analysis').execute({ targetRef: 'zone/lawn', month: 6, day: 21 })
+    const parsed = payload(result)
+    expect(tool('run_sunlight_analysis').annotations?.readOnlyHint).toBe(true)
+    expect(parsed.status).toBe('ok')
+    expect(typeof parsed.analysis.sunHours.mean).toBe('number')
+    expect(parsed.analysis.grid).toBeUndefined()
+    expect(result.content[0].text.length).toBeLessThan(1500)
+    expect(useStudioStore.getState().variants).toEqual([])
+  })
+
+  it('returns a downsampled grid only on request and analyses a ghost variant when given its ref', async () => {
+    const gridded = payload(await tool('run_sunlight_analysis').execute({ targetRef: 'zone/lawn', month: 6, includeGrid: true }))
+    expect(gridded.analysis.grid.width).toBeLessThanOrEqual(24)
+    expect(gridded.analysis.grid.height).toBeLessThanOrEqual(24)
+    expect(gridded.analysis.grid.hours).toHaveLength(gridded.analysis.grid.width * gridded.analysis.grid.height)
+    const proposal = payload(await tool('propose_storey_update').execute({
+      action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
+      extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }],
+    }))
+    const committed = payload(await tool('run_sunlight_analysis').execute({ targetRef: 'zone/terrace', month: 9 }))
+    const ghost = payload(await tool('run_sunlight_analysis').execute({ targetRef: 'zone/terrace', month: 9, variantRef: proposal.variantRef }))
+    expect(ghost.variantRef).toBe(proposal.variantRef)
+    expect(ghost.analysis.sunHours.mean).toBeLessThan(committed.analysis.sunHours.mean)
+  })
+
+  it('accepts a point target and rejects a call with neither target nor point', async () => {
+    const point = payload(await tool('run_sunlight_analysis').execute({ point: { x: 3, z: 2 }, month: 6, hours: { from: 9, to: 17 } }))
+    expect(point.status).toBe('ok')
+    expect(point.analysis.window).toEqual({ fromLocal: 9, toLocal: 17 })
+    expect(payload(await tool('run_sunlight_analysis').execute({ month: 6 })).status).toBe('error')
+  })
+
+  it('moves the viewer sun without touching the committed revision', async () => {
+    const parsed = payload(await tool('set_sun_time').execute({ month: 12, day: 21, hour: 12 }))
+    expect(tool('set_sun_time').annotations?.readOnlyHint).toBe(true)
+    expect(parsed).toMatchObject({ status: 'ok', projectRevision: 1, sunTime: { month: 12, day: 21, hour: 12 } })
+    expect(parsed.altitudeDeg).toBeCloseTo(16.3, 0)
+    expect(parsed.sunriseLocal).toBeCloseTo(7.61, 1)
+    expect(useStudioStore.getState().sunTime).toEqual({ month: 12, day: 21, hour: 12 })
+    expect(useStudioStore.getState().project.revision).toBe(1)
+    expect(useStudioStore.getState().variants).toEqual([])
+  })
+
+  it('expands a sun-study view with a dated title', () => {
+    const { views } = expandStructureViews(sampleProject, { mode: 'custom', views: [{ type: 'sun-study', month: 6, day: 21, hour: 15 }] })
+    expect(views).toHaveLength(1)
+    expect(views[0].title).toBe('Sun study, 21 Jun 15:00')
+  })
+
+  it('adds local sunrise, sunset and noon altitude to the seasonal analysis', async () => {
+    const parsed = payload(await tool('run_seasonal_analysis').execute({ months: [7] }))
+    expect(parsed.data[0].sunriseLocal).toBeCloseTo(4.79, 1)
+    expect(parsed.data[0].sunsetLocal).toBeCloseTo(20.75, 1)
+    expect(parsed.data[0].solarNoonAltitudeDeg).toBeCloseTo(61.4, 0)
+  })
+})

@@ -6,6 +6,8 @@ import { buildingPlacement } from '../domain/roofWings'
 import { measureHeight } from '../domain/heightMeasurements'
 import { createPlantingAreaPlan } from '../domain/plantingAreas'
 import { analyzeSeason } from '../domain/seasonal'
+import { solarPosition, sunriseSunset } from '../domain/solar'
+import { analyzeSunlight, downsampleSunGrid, formatSunMoment, resolveSunTarget } from '../domain/sunlight'
 import type { ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, VariantModel } from '../domain/types'
 import { wallFinishCommands } from '../domain/wallFinishes'
 import { wallOpeningLayoutCommands } from '../domain/wallOpeningLayouts'
@@ -134,6 +136,21 @@ export const webMcpTools: WebMcpTool[] = [
   define({ ...webMcpToolPrompts.propose_climate_update, input: webMcpSchemas.propose_climate_update, handler: ({ month, ...values }) => createVariant('Climate update', { type: 'climate.update', month, values }) }),
   define({ ...webMcpToolPrompts.show_structure_views, input: webMcpSchemas.show_structure_views, readOnly: true, handler: (input, { signal }) => showStructureViews(input, signal) }),
   define({ ...webMcpToolPrompts.run_seasonal_analysis, input: webMcpSchemas.run_seasonal_analysis, readOnly: true, handler: ({ months, variantRef }) => { const state = useStudioStore.getState(); const project = projectForVariant(state.project, state.variants, variantRef); return { status: 'ok', projectRevision: state.project.revision, variantRef, summary: `Seasonal analysis completed for ${months.length} month(s).`, metrics: calculateMetrics(project), data: analyzeSeason(project, months) } } }),
+  define({ ...webMcpToolPrompts.run_sunlight_analysis, input: webMcpSchemas.run_sunlight_analysis, readOnly: true, handler: ({ targetRef, point, variantRef, includeGrid, month, day, stepMinutes, hours }) => {
+    const state = useStudioStore.getState(); const project = projectForVariant(state.project, state.variants, variantRef)
+    const target = resolveSunTarget(project, targetRef, point)
+    const analysis = analyzeSunlight(project, { target, month, day, stepMinutes, hours, includeGrid })
+    if (analysis.grid) analysis.grid = downsampleSunGrid(analysis.grid, 24)
+    const label = target.kind === 'point' ? `Point ${target.x}, ${target.z}` : target.kind === 'site' ? 'Site' : target.ref
+    return { status: 'ok', projectRevision: state.project.revision, variantRef, summary: `${label}: ${analysis.sunHours.mean} h direct sun on ${formatSunMoment(month, analysis.day, 12).slice(0, -6)} (${analysis.expectedSunHours} h expected after typical cloud).`, analysis }
+  } }),
+  define({ ...webMcpToolPrompts.set_sun_time, input: webMcpSchemas.set_sun_time, readOnly: true, handler: ({ month, day, hour }) => {
+    const state = useStudioStore.getState(); state.setSunTime({ month, day, hour })
+    const sunTime = useStudioStore.getState().sunTime
+    const site = { latitude: state.project.climateProfile.latitude, longitude: state.project.climateProfile.longitude, timezone: state.project.climateProfile.timezone }
+    const sun = solarPosition(site, sunTime); const events = sunriseSunset(site, sunTime)
+    return { status: 'ok', projectRevision: state.project.revision, summary: `Viewer sun set to ${formatSunMoment(sunTime.month, sunTime.day, sunTime.hour)}: altitude ${sun.altitudeDeg.toFixed(1)}°, azimuth ${sun.azimuthDeg.toFixed(0)}°.`, sunTime, altitudeDeg: Number(sun.altitudeDeg.toFixed(2)), azimuthDeg: Number(sun.azimuthDeg.toFixed(2)), sunriseLocal: events ? Number(events.sunriseHour.toFixed(2)) : null, sunsetLocal: events ? Number(events.sunsetHour.toFixed(2)) : null }
+  } }),
   define({ ...webMcpToolPrompts.compare_variants, input: webMcpSchemas.compare_variants, readOnly: true, handler: ({ variantRefs }) => { const state = useStudioStore.getState(); const variants = variantRefs.map((variantRef) => state.variants.find((variant) => variant.ref === variantRef) ?? (() => { throw new Error(`Variant not found: ${variantRef}`) })()); return { status: 'ok', projectRevision: state.project.revision, summary: `Compared ${variants.length} variants.`, data: variants.map(({ ref: variantRef, label, baseRevision, metrics, issues }) => ({ variantRef, label, baseRevision, metrics, issues })) } } }),
   define({ ...webMcpToolPrompts.request_apply_variant, input: webMcpSchemas.request_apply_variant, handler: ({ variantRef }, { signal }) => requestVariantApproval(variantRef, signal) }),
   define({ ...webMcpToolPrompts.discard_variant, input: webMcpSchemas.discard_variant, handler: ({ variantRef }) => { const state = useStudioStore.getState(); state.discardVariant(variantRef); return { status: 'ok', projectRevision: state.project.revision, variantRef, summary: 'Variant discarded.' } } }),

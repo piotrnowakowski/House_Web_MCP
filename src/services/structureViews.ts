@@ -1,4 +1,5 @@
 import { buildingPlacement } from '../domain/roofWings'
+import { formatSunMoment } from '../domain/sunlight'
 import type { ProjectV2, StructureReport, StructureViewRequest } from '../domain/types'
 import { useStudioStore } from '../state/store'
 
@@ -25,6 +26,7 @@ const titleFor = (view: StructureViewRequest, project: ProjectV2) => {
   if (view.type.endsWith('-elevation')) return `${view.type.split('-')[0][0].toUpperCase()}${view.type.split('-')[0].slice(1)} elevation`
   if (view.type === 'storey-plan') return `${project.buildings.flatMap((building) => building.storeys).find((storey) => storey.ref === view.storeyRef)?.name ?? view.storeyRef} plan`
   if (view.type === 'section') return `${view.axis[0].toUpperCase()}${view.axis.slice(1)} section`
+  if (view.type === 'sun-study') return `Sun study, ${formatSunMoment(view.month, view.day, view.hour)}`
   return 'Architectural view'
 }
 

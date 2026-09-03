@@ -2,6 +2,8 @@ import { create } from 'zustand'
 import { applyCommand, applyCommands, calculateMetrics, validateProject } from '../domain/commands'
 import { applyModernBarnPreset, isModernBarnPreset } from '../domain/presets'
 import { modernBarnProject } from '../domain/sampleProject'
+import { REFERENCE_YEAR, type SunTime } from '../domain/solar'
+import type { SunlightAnalysis } from '../domain/sunlight'
 import type { HeightMeasureKind, ProjectCommand, ProjectV2, StructureReport, TransformMode, VariantModel, ViewerMode, ViewMode } from '../domain/types'
 
 interface StudioState {
@@ -15,6 +17,9 @@ interface StudioState {
   heightMeasureKind: HeightMeasureKind
   activePlanStoreyRef: string | null
   month: number
+  sunTime: SunTime
+  sunAnimation: 'none' | 'day' | 'year'
+  sunOverlay: { enabled: boolean; targetRef: string | null; result: SunlightAnalysis | null }
   explodeStoreys: boolean
   webMcpAvailable: boolean
   hydrated: boolean
@@ -31,6 +36,9 @@ interface StudioState {
   setHeightMeasureKind: (kind: HeightMeasureKind) => void
   setActivePlanStoreyRef: (ref: string | null) => void
   setMonth: (month: number) => void
+  setSunTime: (time: Partial<SunTime>) => void
+  setSunAnimation: (mode: 'none' | 'day' | 'year') => void
+  setSunOverlay: (overlay: Partial<{ enabled: boolean; targetRef: string | null; result: SunlightAnalysis | null }>) => void
   setExplodeStoreys: (value: boolean) => void
   setWebMcpAvailable: (value: boolean) => void
   setHydrated: (value: boolean) => void
@@ -53,10 +61,16 @@ interface StudioState {
 let variantSequence = 0
 const slug = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)
 const revokeReport = (report: StructureReport | null) => report?.views.forEach((view) => URL.revokeObjectURL(view.imageUrl))
+const daysInMonth = (month: number) => new Date(Date.UTC(REFERENCE_YEAR, month, 0)).getUTCDate()
+const clampSunTime = (time: SunTime): SunTime => {
+  const month = Math.min(12, Math.max(1, Math.round(time.month)))
+  return { month, day: Math.min(daysInMonth(month), Math.max(1, Math.round(time.day))), hour: Math.min(24, Math.max(0, time.hour)) }
+}
 
 export const useStudioStore = create<StudioState>((set, get) => ({
   project: structuredClone(modernBarnProject), history: [], variants: [], selectedRef: null,
   viewMode: 'realistic', transformMode: 'translate', viewerMode: 'edit', heightMeasureKind: 'auto', activePlanStoreyRef: null, month: 7,
+  sunTime: { month: 7, day: 15, hour: 14 }, sunAnimation: 'none', sunOverlay: { enabled: false, targetRef: null, result: null },
   explodeStoreys: false, webMcpAvailable: false, hydrated: false, confirmationVariantRef: null, structureReport: null,
   toast: 'Loaded the ProjectV2 Zielonki spatial model.', helpOpen: false, cameraRefocusRequest: 0, gardenFocusRequest: { sequence: 0, targetX: 0, targetZ: 0 },
   setSelectedRef: (selectedRef) => set({ selectedRef }),
@@ -65,7 +79,10 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   setViewerMode: (viewerMode) => set({ viewerMode, activePlanStoreyRef: viewerMode === 'plan' ? get().activePlanStoreyRef : null }),
   setHeightMeasureKind: (heightMeasureKind) => set({ heightMeasureKind }),
   setActivePlanStoreyRef: (activePlanStoreyRef) => set({ activePlanStoreyRef, viewerMode: activePlanStoreyRef ? 'plan' : 'edit' }),
-  setMonth: (month) => set({ month: Math.min(12, Math.max(1, month)) }),
+  setMonth: (month) => set((state) => { const time = clampSunTime({ ...state.sunTime, month, day: 15 }); return { month: time.month, sunTime: time } }),
+  setSunTime: (time) => set((state) => { const next = clampSunTime({ ...state.sunTime, ...time }); return { sunTime: next, month: next.month } }),
+  setSunAnimation: (sunAnimation) => set({ sunAnimation }),
+  setSunOverlay: (overlay) => set((state) => ({ sunOverlay: { ...state.sunOverlay, ...overlay } })),
   setExplodeStoreys: (explodeStoreys) => set({ explodeStoreys }),
   setWebMcpAvailable: (webMcpAvailable) => set({ webMcpAvailable }),
   setHydrated: (hydrated) => set({ hydrated }),
@@ -100,7 +117,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     set({ project: next, history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], selectedRef: houseRef, cameraRefocusRequest: state.cameraRefocusRequest + 1, toast: 'Modern barn preset applied: two levels and a 45° gable.' })
     return next
   },
-  replaceProject: (project) => { revokeReport(get().structureReport); set({ project, variants: [], history: [], structureReport: null, toast: `Loaded ${project.name}.` }) },
+  replaceProject: (project) => { revokeReport(get().structureReport); set((state) => ({ project, variants: [], history: [], structureReport: null, sunOverlay: { ...state.sunOverlay, result: null }, toast: `Loaded ${project.name}.` })) },
   createVariant: (label, commands) => {
     const current = get().project
     const preview = applyCommands(current, commands)
