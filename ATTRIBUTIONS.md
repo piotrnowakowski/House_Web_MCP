@@ -29,5 +29,12 @@ URLs are listed in `public/textures/README.md`.
 
 This project uses React, Three.js, React Three Fiber, Drei, Rapier, That Open
 Components, Manifold, Zustand, Zod, and Vite under their respective open-source
-licenses. No third-party 3D models, photos, logos, or music are bundled. The
-garden geometry is generated procedurally at runtime.
+licenses. Garden crop geometry is generated procedurally at runtime.
+
+## Garden models
+
+Four deciduous tree meshes are adapted from Quaternius' Stylized Nature MegaKit,
+released under CC0 1.0 Universal. They are bundled as optimized GLB files and used
+as the visual bases for apple, sour cherry, pear, and plum trees. Species-specific
+fruit and blossom details remain procedural. Full source and processing notes are
+in `public/models/garden/README.md`.

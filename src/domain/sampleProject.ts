@@ -2,6 +2,7 @@ import { zielonkiClimate, zielonkiKnowledgeBase, zielonkiPlot } from '../../know
 import { rectangle } from './geometry'
 import { ensureStarterGarden } from './gardenFixtures'
 import { applyModernBarnPreset } from './presets'
+import { ensureStarterOrchard } from './orchard'
 import type { BuildingModel, ProjectV2, WallModel } from './types'
 
 const wall = (ref: string, start: { x: number; z: number }, end: { x: number; z: number }, openings: WallModel['openings'] = []): WallModel => ({
@@ -64,7 +65,7 @@ export const sampleProject: ProjectV2 = {
       { ref: 'plant/hornbeam-1', name: 'Hornbeam hedge', species: 'Carpinus betulus', kind: 'hedge', position: { x: -13.8, z: 2 }, matureHeightM: 2.2, canopyM: 7, sunNeed: 'partial', waterNeed: 0.65, hardinessMinC: -28, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [], locked: false },
       { ref: 'plant/hydrangea', name: 'Hydrangea group', species: 'Hydrangea paniculata', kind: 'shrub', position: { x: -8.5, z: 8 }, matureHeightM: 1.8, canopyM: 2.4, sunNeed: 'partial', waterNeed: 1.15, hardinessMinC: -25, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [7,8,9], locked: false },
       { ref: 'plant/sedge', name: 'Rain garden sedge', species: 'Carex spp.', kind: 'wetland', position: { x: -10, z: 12 }, matureHeightM: 0.7, canopyM: 2.4, sunNeed: 'sun', waterNeed: 1.2, hardinessMinC: -25, leafMonths: [3,4,5,6,7,8,9,10,11], bloomMonths: [5,6], locked: false },
-    ], fixtures: [], fixtureCatalogVersion: 0,
+    ], fixtures: [], fixtureCatalogVersion: 0, orchardCatalogVersion: 0,
   },
   climateProfile: zielonkiClimate,
 }
@@ -203,7 +204,7 @@ const lShapedModernBarn: BuildingModel = {
 }
 
 export const partialUpperModernBarnProject: ProjectV2 = {
-  ...ensureStarterGarden({
+  ...ensureStarterOrchard(ensureStarterGarden({
     ...structuredClone(sampleProject),
     name: 'Zielonki L-shaped barn study',
     buildings: [lShapedModernBarn],
@@ -218,7 +219,7 @@ export const partialUpperModernBarnProject: ProjectV2 = {
         ? { ...structuredClone(plant), position: { x: -14, z: 12 }, attachment: plant.attachment ? { ...structuredClone(plant.attachment), localPosition: { x: -14, y: 0, z: 12 } } : undefined }
         : structuredClone(plant)),
     },
-  }),
+  })),
   revision: sampleProject.revision,
   updatedAt: sampleProject.updatedAt,
 }

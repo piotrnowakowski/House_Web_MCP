@@ -3,7 +3,7 @@ import type { GardenFixtureCatalogId, GardenFixtureModel, GardenFixtureUpdateCom
 export interface GardenFixtureDefinition {
   id: GardenFixtureCatalogId
   name: string
-  category: 'structure' | 'crop'
+  category: 'furniture' | 'structure' | 'crop'
   description: string
   widthM: number
   depthM: number
@@ -13,6 +13,11 @@ export interface GardenFixtureDefinition {
 export const GARDEN_FIXTURE_CATALOG_VERSION = 1
 
 export const gardenFixtureCatalog: GardenFixtureDefinition[] = [
+  { id: 'outdoor-dining-set', name: 'Teak dining set', category: 'furniture', description: 'Six-seat slatted table for long outdoor lunches.', widthM: 3.4, depthM: 2.5, heightM: 0.82 },
+  { id: 'garden-lounge-set', name: 'Garden lounge set', category: 'furniture', description: 'Low sofa, two armchairs and a coffee table in charcoal and canvas.', widthM: 3.8, depthM: 3.1, heightM: 0.82 },
+  { id: 'slatted-bench', name: 'Slatted garden bench', category: 'furniture', description: 'Quiet two-seat timber bench with a supportive angled back.', widthM: 1.8, depthM: 0.68, heightM: 0.9 },
+  { id: 'sun-lounger', name: 'Canvas sun lounger', category: 'furniture', description: 'Reclined timber lounger with a warm natural-canvas cushion.', widthM: 0.78, depthM: 2.05, heightM: 0.82 },
+  { id: 'cantilever-parasol', name: 'Cantilever parasol', category: 'furniture', description: 'Three-metre shade canopy with an offset charcoal frame.', widthM: 3, depthM: 3, heightM: 2.55 },
   { id: 'raised-bed-2x1', name: 'Raised bed', category: 'structure', description: 'Timber 2.4 × 1.2 m bed with a deep soil layer.', widthM: 2.4, depthM: 1.2, heightM: 0.42 },
   { id: 'tomato-row', name: 'Tomato row', category: 'crop', description: 'Four staked tomato plants for a raised bed.', widthM: 2.15, depthM: 0.72, heightM: 1.55 },
   { id: 'potato-row', name: 'Potato row', category: 'crop', description: 'Five compact potato plants in a productive row.', widthM: 2.1, depthM: 0.78, heightM: 0.58 },

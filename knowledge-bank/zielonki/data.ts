@@ -95,7 +95,7 @@ export const zielonkiPlot: PlotModel = {
 }
 
 export const zielonkiKnowledgeBase: SiteKnowledgeBase = {
-  datasetVersion: 'zielonki-knowledge-bank-2026-09-03-outline-v3',
+  datasetVersion: 'zielonki-knowledge-bank-2026-09-03-outline-v4',
   locality: 'Zielonki, Małopolskie, Poland',
   addressContext: 'Krakowskie Przedmieście, third line of development',
   cadastralDistrict: '120617_2.0018 Zielonki',
@@ -137,6 +137,21 @@ export const zielonkiKnowledgeBase: SiteKnowledgeBase = {
       ref: 'source/planting-guidance', title: 'Conceptual planting guidance for the Zielonki demo', date: '2026-09-02',
       kind: 'horticultural-guidance', authority: 'working',
       summary: 'A conservative palette inferred from the local climate preset, clay-like slow drainage, shallow groundwater and the geotechnical profile; not a horticultural survey.',
+    },
+    {
+      ref: 'source/rhs-blackcurrant', title: "RHS plant profile: blackcurrant 'Ben Alder'", date: '2026-09-03',
+      kind: 'horticultural-guidance', authority: 'official', url: 'https://www.rhs.org.uk/plants/72030/ribes-nigrum-ben-alder-b/details',
+      summary: 'RHS records clay tolerance, moist but well-drained soil, sun or partial shade, broad pH tolerance and H6 hardiness for this late-flowering blackcurrant.',
+    },
+    {
+      ref: 'source/rhs-aronia', title: 'RHS plant profile: black chokeberry', date: '2026-09-03',
+      kind: 'horticultural-guidance', authority: 'official', url: 'https://www.rhs.org.uk/plants/1610/aronia-melanocarpa-michx-elliott/details',
+      summary: 'RHS records edible fruit, clay tolerance, moist but well-drained soil, sun or partial shade and H6 hardiness for Aronia melanocarpa.',
+    },
+    {
+      ref: 'source/rhs-elder', title: 'RHS growing guide: Sambucus', date: '2026-09-03',
+      kind: 'horticultural-guidance', authority: 'official', url: 'https://www.rhs.org.uk/plants/sambucus/growing-guide',
+      summary: 'RHS describes elder as cold-hardy, adaptable to most soils and tolerant of wet conditions; ripe berries are edible only when cooked.',
     },
     {
       ref: 'source/user-land-role', title: 'Owner design brief', date: '2026-09-02',
@@ -242,6 +257,27 @@ export const zielonkiKnowledgeBase: SiteKnowledgeBase = {
       ],
     },
     recommendations: [
+      {
+        ref: 'plant-guide/blackcurrant-ben-alder', commonName: "Blackcurrant 'Ben Alder'", botanicalName: "Ribes nigrum 'Ben Alder'", kind: 'shrub', category: 'fruit-shrub', priority: 'best-fit',
+        preferredMoisture: 'moist', sunNeed: 'partial', minHardinessC: -20,
+        placement: 'Moist, moisture-retentive upper garden in sun or partial shade, clear of any pocket that holds standing water.',
+        siteFit: 'A late-flowering, H6-hardy fruit shrub explicitly suited to clay and moisture-retentive soil, matching the documented cool, heavy ground.',
+        caution: 'Mulch with compost, maintain airflow and confirm food-growing soil safety before relying on native topsoil.', plantingWindow: 'Oct–Mar in frost-free soil', harvestWindow: 'Jul–Aug', sourceRefs: ['source/climate-preset', 'source/geotechnical-opinion', 'source/rhs-blackcurrant'],
+      },
+      {
+        ref: 'plant-guide/aronia', commonName: 'Black chokeberry', botanicalName: 'Aronia melanocarpa', kind: 'shrub', category: 'fruit-shrub', priority: 'best-fit',
+        preferredMoisture: 'moist', sunNeed: 'partial', minHardinessC: -20,
+        placement: 'Sunny or partly shaded moist-clay edge, outside permanently flooded ground and with space for a suckering shrub.',
+        siteFit: 'H6-hardy and suited to moist but drained clay; its edible crop and strong autumn colour make it productive and structural.',
+        caution: 'Best on acid-to-neutral soil, so confirm pH; berries are very astringent raw and are normally processed.', plantingWindow: 'Oct–Mar in frost-free soil', harvestWindow: 'Aug–Sep', sourceRefs: ['source/climate-preset', 'source/geotechnical-opinion', 'source/rhs-aronia'],
+      },
+      {
+        ref: 'plant-guide/elderberry', commonName: 'Common elder', botanicalName: 'Sambucus nigra', kind: 'shrub', category: 'fruit-shrub', priority: 'best-fit',
+        preferredMoisture: 'moist', sunNeed: 'partial', minHardinessC: -28,
+        placement: 'Wide agricultural-edge hedge or moist outer garden in sun or partial shade, away from foundations, drains and utilities.',
+        siteFit: 'A vigorous cold-climate shrub that tolerates difficult wet or dry soils and supplies edible flowers and cooked fruit.',
+        caution: 'Allow for 4–6 m mature size; all parts are poisonous and ripe berries must be cooked before eating.', plantingWindow: 'Oct–Mar in frost-free soil', harvestWindow: 'Flowers Jun; berries Aug–Sep', sourceRefs: ['source/climate-preset', 'source/geotechnical-opinion', 'source/rhs-elder'],
+      },
       {
         ref: 'plant-guide/hornbeam', commonName: 'European hornbeam', botanicalName: 'Carpinus betulus', kind: 'hedge', category: 'structure', priority: 'best-fit',
         preferredMoisture: 'moist', sunNeed: 'partial', minHardinessC: -28,

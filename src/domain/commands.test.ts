@@ -140,6 +140,25 @@ describe('ProjectV2 command bus', () => {
     expect(validateProject(moved).filter((issue) => issue.severity === 'error')).toEqual([])
   })
 
+  it('moves a landscape zone by translating its complete footprint', () => {
+    const source = sampleProject.landscape.zones.find((zone) => zone.ref === 'zone/driveway')!
+    const moved = applyCommand(sampleProject, { type: 'landscape.update', action: 'move', zoneRef: source.ref, delta: { x: 1, z: 0.5 } })
+    const result = moved.landscape.zones.find((zone) => zone.ref === source.ref)!
+    expect(result.footprint).toEqual(source.footprint.map((point) => ({ x: point.x + 1, z: point.z + 0.5 })))
+    expect(sampleProject.landscape.zones.find((zone) => zone.ref === source.ref)?.footprint).toEqual(source.footprint)
+    expect(validateProject(moved).filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
+  it('requires the retained apple tree to be explicitly unlocked before editing', () => {
+    expect(() => applyCommand(sampleProject, { type: 'plant.update', action: 'move', plantRef: 'plant/apple', position: { x: 10, z: 10 } })).toThrow('Old apple tree is locked')
+    expect(() => applyCommand(sampleProject, { type: 'plant.update', action: 'remove', plantRef: 'plant/apple' })).toThrow('Old apple tree is locked')
+    const unlocked = applyCommand(sampleProject, { type: 'plant.update', action: 'unlock', plantRef: 'plant/apple' })
+    const moved = applyCommand(unlocked, { type: 'plant.update', action: 'move', plantRef: 'plant/apple', position: { x: 10, z: 10 } })
+    expect(unlocked.landscape.plants.find((plant) => plant.ref === 'plant/apple')?.locked).toBe(false)
+    expect(moved.landscape.plants.find((plant) => plant.ref === 'plant/apple')?.position).toEqual({ x: 10, z: 10 })
+    expect(sampleProject.landscape.plants.find((plant) => plant.ref === 'plant/apple')?.locked).toBe(true)
+  })
+
   it('reports a crop fixture separated from its linked raised bed', () => {
     const movedCrop = applyCommand(modernBarnProject, { type: 'garden-fixture.update', action: 'move', fixtureRef: 'fixture-set/starter-1/crop-tomato', position: { x: 8.4, z: 25.5 } })
     expect(validateProject(movedCrop)).toContainEqual(expect.objectContaining({ severity: 'error', code: 'fixture.crop-host', subjectRef: 'fixture-set/starter-1/crop-tomato' }))
@@ -191,10 +210,11 @@ describe('ProjectV2 command bus', () => {
   it('hydrates planting categories and soil guidance for an earlier ProjectV2 autosave', () => {
     const earlierV2 = structuredClone(sampleProject) as unknown as { site: { knowledgeBase: { planting: { soilAnalysis?: unknown; recommendations: Array<Record<string, unknown>> } } } }
     delete earlierV2.site.knowledgeBase.planting.soilAnalysis
-    delete earlierV2.site.knowledgeBase.planting.recommendations[0].category
+    const legacyHornbeam = earlierV2.site.knowledgeBase.planting.recommendations.find((plant) => plant.ref === 'plant-guide/hornbeam')!
+    delete legacyHornbeam.category
     const parsed = ProjectSchema.parse(earlierV2)
     expect(parsed.site.knowledgeBase.planting.soilAnalysis.testsNeeded.length).toBeGreaterThan(0)
-    expect(parsed.site.knowledgeBase.planting.recommendations[0].category).toBe('structure')
+    expect(parsed.site.knowledgeBase.planting.recommendations.find((plant) => plant.ref === 'plant-guide/hornbeam')?.category).toBe('structure')
   })
 
   it('hydrates an empty fixture collection for an earlier ProjectV2 autosave', () => {

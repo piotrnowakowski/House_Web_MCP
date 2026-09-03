@@ -230,10 +230,18 @@ export const webMcpTools: WebMcpTool[] = [
   define({ ...webMcpToolPrompts.undo_last_change, input: webMcpSchemas.undo_last_change, handler: () => { const project = useStudioStore.getState().undo(); return { status: 'ok', projectRevision: project.revision, summary: 'Last committed change was undone.', metrics: calculateMetrics(project) } } }),
 ]
 
+type WebMcpRegistrationHost = typeof globalThis & { __projectV2WebMcpRegistrationController?: AbortController }
+
 export const registerWebMcpTools = () => {
   const modelContext = document.modelContext; const available = Boolean(modelContext?.registerTool); useStudioStore.getState().setWebMcpAvailable(available)
   if (!modelContext) return () => undefined
+  const registrationHost = globalThis as WebMcpRegistrationHost
+  registrationHost.__projectV2WebMcpRegistrationController?.abort()
   const controller = new AbortController()
+  registrationHost.__projectV2WebMcpRegistrationController = controller
   Promise.all(webMcpTools.map((tool) => modelContext.registerTool(tool, { signal: controller.signal }))).catch((error) => { if (!controller.signal.aborted) useStudioStore.getState().setToast(`WebMCP registration failed: ${error instanceof Error ? error.message : 'unknown error'}`) })
-  return () => controller.abort()
+  return () => {
+    controller.abort()
+    if (registrationHost.__projectV2WebMcpRegistrationController === controller) delete registrationHost.__projectV2WebMcpRegistrationController
+  }
 }

@@ -52,12 +52,12 @@ const changeSetOperationSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('platform.update'), action: z.enum(['add', 'remove', 'resize']), buildingRef: ref, storeyRef: ref, spaceRef: ref, platformRef: ref, footprint: polygon.optional(), elevationM: z.number().optional(), thicknessM: z.number().optional() }),
   z.object({ type: z.literal('landscape.update'), action: z.enum(['add', 'remove', 'set-footprint', 'move']), zoneRef: ref, name: z.string().optional(), kind: z.enum(['lawn', 'terrace', 'path', 'driveway', 'bed', 'rain-garden', 'vegetable']).optional(), footprint: polygon.optional(), delta: point.optional() }),
   z.object({ type: z.literal('plant.update'), action: z.enum(['add', 'remove', 'move']), plantRef: ref, name: z.string().optional(), species: z.string().optional(), kind: z.enum(['tree', 'hedge', 'shrub', 'perennial', 'grass', 'crop', 'wetland']).optional(), position: point.optional() }),
-  z.object({ type: z.literal('garden-fixture.update'), action: z.enum(['add', 'remove', 'move', 'rotate']), fixtureRef: ref, catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis']).optional(), name: z.string().optional(), position: point.optional(), rotationDegrees: z.number().optional() }),
+  z.object({ type: z.literal('garden-fixture.update'), action: z.enum(['add', 'remove', 'move', 'rotate']), fixtureRef: ref, catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol']).optional(), name: z.string().optional(), position: point.optional(), rotationDegrees: z.number().optional() }),
   z.object({ type: z.literal('climate.update'), month: z.number().int().min(1).max(12), values: z.record(z.string(), z.unknown()) }),
 ])
 const proposeGardenFixtureSchema = z.object({
   mode: z.enum(['single', 'preset']).describe('single edits one fixture with action and fixtureRef; preset places a complete set.'),
-  action: z.enum(['add', 'remove', 'move', 'rotate']).optional(), fixtureRef: ref.optional(), catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis']).optional(),
+  action: z.enum(['add', 'remove', 'move', 'rotate']).optional(), fixtureRef: ref.optional(), catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol']).optional(),
   name: z.string().optional(), position: point.optional(), rotationDegrees: z.number().optional(),
   preset: z.enum(['starter-kitchen-garden', 'tomato-raised-bed', 'potato-raised-bed', 'cucumber-raised-bed']).optional(), setRef: ref.optional(), origin: point.optional(), placement: z.enum(['at-origin', 'next-to-existing']).optional(),
 }).superRefine((value, context) => {
