@@ -162,45 +162,48 @@ The browser test uses installed Chrome. It checks the start screen (Zielonki stu
 
 ## WebMCP tools
 
-Use **MCP Tools** in the application to inspect the registered catalogue. The panel loads the generated [`webmcp-tools.json`](public/webmcp-tools.json) manifest and supports full-text search across tool names, titles and prompts. Each tool exposes its complete structured prompt, the exact Draft-7 input schema generated from runtime Zod validation, a valid example input and its documented result shape. The same schema registry drives runtime registration and manifest generation.
+Use **MCP Tools** in the application to inspect the registered catalogue. The panel loads the generated [`webmcp-tools.json`](public/webmcp-tools.json) manifest, which is rebuilt from the runtime Zod schemas and the structured prompts on every build, and shows the catalogue budget.
+
+ChatGPT's browser accepts at most **5000 tokens** for a site's whole tool catalogue (names, descriptions and input schemas together), so the catalogue is eleven tools whose registered schemas stay compact (about 12.6k characters, about 3.6k tokens). Every operation that used to have its own tool is now an operation type of `propose_change`; Zod still validates every field at execution and returns `field: problem` messages, only the JSON Schema sent to the browser is lighter.
 
 | Tool | Purpose |
 | --- | --- |
 | `get_project_state` | Read summary, site, structure, landscape, one object by ref, or full V2 state |
-| `get_site_knowledge` | Read the Zielonki evidence bank by section; flagged as untrusted content because it summarises external documents |
-| `propose_site_update` | Change site boundary or north |
-| `propose_terrain_update` | Change terrain elevation controls |
-| `propose_building_update` | Add, remove, move, rotate or restyle a building |
-| `propose_storey_update` | Add/remove/resize a storey, including an atomic existing-footprint extension |
-| `propose_slab_update` | Edit one shared slab identity |
-| `propose_space_update` | Edit a polygonal space or linked lowered ceiling |
-| `propose_wall_update` | Edit a shared wall graph edge |
-| `propose_wall_opening_layout` | Apply a deterministic opening layout to one wall |
-| `propose_wall_finish_update` | Change one wall or all exterior walls to a material and color |
-| `propose_opening_update` | Add/remove/move/resize a wall-hosted door or window |
-| `propose_roof_update` | Update, add or split semantic roof segments, including footprints, ridge axes and typed junctions |
-| `propose_platform_update` | Edit a space-hosted mezzanine platform |
-| `propose_landscape_update` | Edit a straight-edged landscape polygon |
-| `propose_plant_update` | Edit a terrain-supported plant |
-| `propose_planting_area` | Create one deterministic boundary, line or polygon planting scheme |
-| `list_garden_fixtures` | Read the outdoor-furniture, structure and crop-fixture catalogue |
-| `list_textures` | Read the CC0 material scan library for walls and ground zones |
-| `propose_garden_fixture` | Add, remove, move or rotate one fixture, or place a coordinated garden preset selected by `mode` |
-| `manage_change_set` | Create, populate, finalize or discard a transactional draft selected by `action` |
+| `get_site_knowledge` | Read the site evidence bank by section; flagged as untrusted content because it summarises external documents |
+| `get_proposals` | List proposal history and drafts, diff one ghost variant against the project, or compare up to four variants |
+| `list_catalog` | Read the garden-fixture catalogue, the CC0 texture library, or the operation reference with required and optional fields per type |
 | `measure_height` | Read semantic or free vertical height with local and absolute elevations |
-| `propose_climate_update` | Edit one climate month, including night/morning/day/evening averages |
-| `show_structure_views` | Open visible architectural drawings and return placement data |
-| `run_seasonal_analysis` | Return day-part temperature averages, sunrise, sunset, daylight and V2 seasonal planning signals |
-| `run_sunlight_analysis` | Compute direct sun hours for a zone, plant, fixture, point or the site on a date, for the committed project or a ghost variant |
-| `set_viewer_state` | Explode rooms, open a storey plan or select an object, without touching the revision |
-| `control_camera` | Move the live 3D camera to an exact position and target with projection, lens, zoom, focal offset and transition control |
-| `set_sun_time` | Move the viewer sun to a local date and time without touching the revision |
-| `compare_variants` | Compare ghost metrics and validation issues |
-| `diff_variant` | List the objects a ghost variant adds, removes or modifies, with changed fields and metric deltas |
-| `manage_variant` | Request explicit Apply/Reject review or discard an uncommitted variant selected by `action` |
-| `undo_last_change` | Restore the previous committed V2 project |
+| `run_analysis` | Seasonal day-part temperatures, daylight, sunrise and sunset, or direct sun hours for a zone, plant, fixture, point or the site, on the committed project or a ghost variant |
+| `show_structure_views` | Open visible architectural drawings, including sun studies, and return placement data |
+| `set_viewer_state` | Explode rooms, open a storey plan, select an object or move the viewer sun, without touching the revision |
+| `propose_change` | Create one ghost variant from a list of typed operations (see below) |
+| `manage_change_set` | Create, populate, finalize or discard a transactional draft selected by `action` |
+| `manage_variant` | Request explicit Apply/Reject review, discard an uncommitted variant, or undo the last committed change, selected by `action` |
 
-Every modifying tool creates an immutable ghost variant. Only explicit human approval commits it. The centralized [WebMCP prompt catalog](prompts/webmcp-tools.ts) uses role, task, input, tools, output and example-output blocks aligned with the runtime Zod schemas. Vite regenerates the JSON manifest during development startup and every production build.
+Operation types accepted by `propose_change` and `manage_change_set` (`list_catalog` with `catalog: operations` returns the same reference with every field):
+
+| Operation | What it does |
+| --- | --- |
+| `site.update` | Change site boundary or north |
+| `terrain.update` | Change terrain elevation controls |
+| `building.update` | Add, remove, move, rotate or restyle a building |
+| `storey.update` | Add/remove/resize a storey, including an atomic existing-footprint extension |
+| `slab.update` | Edit one shared slab identity |
+| `space.update` | Edit a polygonal space or linked lowered ceiling |
+| `wall.update` | Edit a shared wall graph edge |
+| `wall.finish` | Change one wall, one gable wall or all exterior walls to a material, colour and optional scan |
+| `wall.opening-layout` | Apply a deterministic façade preset to one wall |
+| `opening.update` | Add/remove/move/resize a wall-hosted door or window |
+| `roof.update` | Update, add or split semantic roof segments, including footprints, ridge axes and typed junctions |
+| `platform.update` | Edit a space-hosted mezzanine platform |
+| `landscape.update` | Edit a straight-edged landscape polygon or set its ground scan |
+| `plant.update` | Edit a terrain-supported plant |
+| `planting.area` | Create one deterministic boundary, line or polygon planting scheme |
+| `garden-fixture.update` | Add, remove, move or rotate one fixture |
+| `garden-fixture.preset` | Place a coordinated raised-bed preset |
+| `climate.update` | Edit one climate month, including night/morning/day/evening averages |
+
+Every modifying tool creates an immutable ghost variant. Only explicit human approval commits it. The centralized [WebMCP prompt catalog](prompts/webmcp-tools.ts) holds every tool prompt, field description and the operation reference; the manifest test keeps the registered catalogue, the prompts and the budget in step.
 
 ## Scope
 
