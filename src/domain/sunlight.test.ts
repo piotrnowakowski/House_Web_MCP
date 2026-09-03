@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { applyCommand, validateProject } from './commands'
-import { modernBarnProject, sampleProject } from './sampleProject'
+import { modernBarnProject, partialUpperModernBarnProject, sampleProject } from './sampleProject'
 import { analyzeSunlight, collectOccluders, isLitAt } from './sunlight'
 import type { BuildingModel, ProjectV2 } from './types'
 
@@ -28,7 +28,7 @@ const noon = { month: 6, day: 21, hour: 12.7 }
 
 describe('sunlight occluders', () => {
   it('collects walls, slabs, roof wings, canopies and fixtures from the barn project', () => {
-    const occluders = collectOccluders(modernBarnProject)
+    const occluders = collectOccluders(partialUpperModernBarnProject)
     const kinds = occluders.map((occluder) => occluder.ref.split('/')[0])
     expect(occluders).toHaveLength(15 + 2 + 2 + 4 + 6)
     expect(kinds.filter((kind) => kind === 'wall')).toHaveLength(15)
@@ -84,11 +84,11 @@ describe('sun-hours analysis', () => {
   })
 
   it('shows the upper-storey extension taking morning sun from the courtyard terrace', () => {
-    const extended = applyCommand(modernBarnProject, {
+    const extended = applyCommand(partialUpperModernBarnProject, {
       type: 'storey.update', action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
       extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }],
     })
-    const before = analyzeSunlight(modernBarnProject, { target: { kind: 'zone', ref: 'zone/terrace' }, month: 9, day: 21 })
+    const before = analyzeSunlight(partialUpperModernBarnProject, { target: { kind: 'zone', ref: 'zone/terrace' }, month: 9, day: 21 })
     const after = analyzeSunlight(extended, { target: { kind: 'zone', ref: 'zone/terrace' }, month: 9, day: 21 })
     expect(after.sunHours.mean).toBeLessThan(before.sunHours.mean)
   })

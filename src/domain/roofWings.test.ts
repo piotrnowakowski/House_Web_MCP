@@ -3,10 +3,10 @@ import { applyCommand } from './commands'
 import { buildingPlacement, polygonBounds } from './geometry'
 import { measureHeight } from './heightMeasurements'
 import { roofRidgeElevation, roofWings } from './roofWings'
-import { modernBarnProject, sampleProject } from './sampleProject'
+import { modernBarnProject, partialUpperModernBarnProject, sampleProject } from './sampleProject'
 
 const tan = (degrees: number) => Math.tan(degrees * Math.PI / 180)
-const extendUpperStorey = () => applyCommand(modernBarnProject, {
+const extendUpperStorey = () => applyCommand(partialUpperModernBarnProject, {
   type: 'storey.update', action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
   extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }],
 })
@@ -23,7 +23,7 @@ describe('roof wings', () => {
   })
 
   it('splits the L-shaped barn into a full-width rear wing and a projecting wing rising from the storeys that cover them', () => {
-    const building = modernBarnProject.buildings[0]
+    const building = partialUpperModernBarnProject.buildings[0]
     const wings = roofWings(building)
     expect(wings).toHaveLength(2)
     const rear = wings.find((wing) => wing.ridgeAxis === 'x')!

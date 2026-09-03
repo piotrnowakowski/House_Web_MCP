@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { applyCommand } from './commands'
 import { diffProjects } from './diff'
 import { createPlantingAreaPlan } from './plantingAreas'
-import { modernBarnProject } from './sampleProject'
+import { modernBarnProject, partialUpperModernBarnProject } from './sampleProject'
 
-const extension = () => applyCommand(modernBarnProject, {
+const extension = () => applyCommand(partialUpperModernBarnProject, {
   type: 'storey.update', action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
   extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }], spaceRef: 'house/main/storey-upper/space-wing',
 })
@@ -18,7 +18,7 @@ describe('project diff', () => {
   })
 
   it('lists the storey extension as a modified slab, new space and walls, a modified roof and an area delta', () => {
-    const diff = diffProjects(modernBarnProject, extension())
+    const diff = diffProjects(partialUpperModernBarnProject, extension())
     expect(diff.changes).toContainEqual({ kind: 'slab', ref: 'slab/upper', change: 'modified', fields: ['footprint'] })
     expect(diff.changes).toContainEqual(expect.objectContaining({ kind: 'space', ref: 'house/main/storey-upper/space-wing', change: 'added' }))
     expect(diff.changes.filter((change) => change.kind === 'wall' && change.change === 'added').length).toBeGreaterThan(0)

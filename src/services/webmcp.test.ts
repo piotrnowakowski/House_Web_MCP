@@ -375,6 +375,7 @@ describe('variant explanation and viewer tools', () => {
   beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), history: [], variants: [], selectedRef: null, viewMode: 'realistic', explodeStoreys: false, confirmationVariantRef: null }))
 
   it('explains a ghost variant as compact object changes and metric deltas', async () => {
+    useStudioStore.setState({ project: structuredClone(partialUpperModernBarnProject), variants: [] })
     const proposal = payload(await tool('propose_storey_update').execute({
       action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
       extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }], spaceRef: 'house/main/storey-upper/space-wing',
@@ -431,6 +432,7 @@ describe('sunlight WebMCP surface', () => {
     expect(gridded.analysis.grid.height).toBeLessThanOrEqual(12)
     expect(griddedResult.content[0].text.length).toBeLessThan(1500)
     expect(gridded.analysis.grid.hours).toHaveLength(gridded.analysis.grid.width * gridded.analysis.grid.height)
+    useStudioStore.setState({ project: structuredClone(partialUpperModernBarnProject), variants: [] })
     const proposal = payload(await tool('propose_storey_update').execute({
       action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
       extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }],
