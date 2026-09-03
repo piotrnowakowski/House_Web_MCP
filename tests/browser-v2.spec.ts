@@ -1,5 +1,8 @@
 import { expect, test, type Page } from '@playwright/test'
 
+const appUrl = process.env.APP_URL ?? 'http://127.0.0.1:5173'
+const appBasePath = new URL(appUrl).pathname.replace(/\/$/, '')
+
 test('ProjectV2 editor and architectural report work in one real canvas', async ({ page }) => {
   test.setTimeout(240_000)
   const errors: string[] = []
@@ -13,14 +16,21 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
     Object.defineProperty(document, 'modelContext', { configurable: true, value: { registerTool: async (tool: { name: string; execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }) => { tools[tool.name] = tool } } })
   })
   const textureLoads: string[] = []
-  page.on('response', (response) => { if (response.url().includes('/textures/') && response.ok()) textureLoads.push(new URL(response.url()).pathname) })
-  await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' })
+  const modelLoads: Array<{ path: string; status: number }> = []
+  page.on('response', (response) => {
+    const path = new URL(response.url()).pathname
+    if (path.includes('/textures/') && response.ok()) textureLoads.push(path)
+    if (path.includes('/models/')) modelLoads.push({ path, status: response.status() })
+  })
+  await page.goto(appUrl, { waitUntil: 'networkidle' })
   const startScreen = page.getByRole('dialog', { name: 'Where do you want to plan today?' })
   await expect(startScreen).toBeVisible()
   await startScreen.getByRole('button', { name: /Zielonki house study/ }).click()
   await expect(startScreen).toBeHidden()
 
   await expect(page.locator('canvas')).toHaveCount(1)
+  await expect.poll(() => modelLoads.length, { timeout: 20_000 }).toBeGreaterThan(0)
+  expect(modelLoads.every(({ path, status }) => path.startsWith(`${appBasePath}/models/`) && status === 200)).toBe(true)
   await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/leafy_grass/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
   await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/concrete_tiles_02/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
   // The whole library preloads after the scene's own scans, so a later pick is instant: red brick is not drawn by default.
@@ -264,7 +274,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await catalog.getByRole('button', { name: 'Result shape' }).click()
   await expect(catalog.locator('.tool-document')).toContainText('temperatureByDayPartC')
   const manifestSummary = await page.evaluate(async () => {
-    const value = await fetch('/webmcp-tools.json').then((response) => response.json()) as { toolCount: number; source: string; tools: Array<{ name: string }> }
+    const value = await fetch(new URL('webmcp-tools.json', document.baseURI)).then((response) => response.json()) as { toolCount: number; source: string; tools: Array<{ name: string }> }
     return {
       toolCount: value.toolCount,
       source: value.source,
@@ -442,7 +452,7 @@ test('house remains visible when zoomed out across the long plot', async ({ page
   page.on('pageerror', (error) => errors.push(error.message))
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()) })
   await page.setViewportSize({ width: 1059, height: 1270 })
-  await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' })
+  await page.goto(appUrl, { waitUntil: 'networkidle' })
   await page.getByRole('dialog', { name: 'Where do you want to plan today?' }).getByRole('button', { name: /Zielonki house study/ }).click()
   const viewport = page.locator('.viewport'); await expect(viewport).toBeVisible()
   await expect(viewport.locator('canvas')).toHaveCount(1)
@@ -474,6 +484,22 @@ test('house remains visible when zoomed out across the long plot', async ({ page
   expect(errors).toEqual([])
 })
 
+test('editor remains usable when optional garden models cannot be loaded', async ({ page }) => {
+  const pageErrors: string[] = []
+  page.on('pageerror', (error) => pageErrors.push(error.message))
+  await page.route('**/models/garden/*.glb', (route) => route.abort('failed'))
+  await page.goto(appUrl, { waitUntil: 'networkidle' })
+  const startScreen = page.getByRole('dialog', { name: 'Where do you want to plan today?' })
+  await startScreen.getByRole('button', { name: /Zielonki house study/ }).click()
+  await expect(startScreen).toBeHidden()
+  await expect(page.locator('canvas')).toHaveCount(1)
+  await expect(page.getByText('Spatial Editor', { exact: true })).toBeVisible()
+  await page.getByRole('button', { name: 'Open garden fixtures' }).click()
+  await expect(page.getByRole('region', { name: 'Garden fixture library' })).toBeVisible()
+  expect(pageErrors.length).toBeGreaterThan(0)
+  expect(pageErrors.every((message) => /^Could not load \/.*\/models\/garden\/.*\.glb: Failed to fetch$/.test(message))).toBe(true)
+})
+
 const savedBuildingCount = (page: Page, name: string) => page.evaluate((projectName) => new Promise<number>((resolve) => {
   const request = indexedDB.open('house-web-mcp')
   request.onsuccess = () => {
@@ -486,7 +512,7 @@ test('creates a blank terrain from the start screen and returns to it after a re
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()) })
-  await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' })
+  await page.goto(appUrl, { waitUntil: 'networkidle' })
   const startScreen = page.getByRole('dialog', { name: 'Where do you want to plan today?' })
   await expect(startScreen).toBeVisible()
   await expect(startScreen.getByRole('button', { name: /Continue/ })).toHaveCount(0)
@@ -507,7 +533,7 @@ test('creates a blank terrain from the start screen and returns to it after a re
   await expect(page.getByRole('region', { name: 'Sun controls' })).toContainText('sunrise')
   await page.getByRole('button', { name: 'Add a house' }).click()
   await expect(page.getByRole('status')).toContainText('House added')
-  await expect(page.locator('.wall-tree button')).toHaveCount(4)
+  await expect(page.locator('.wall-tree button')).toHaveCount(6)
   await expect(page.getByRole('button', { name: /Modern barn/ })).toBeVisible()
   // the autosave must hold the house before the page goes away
   await expect.poll(() => savedBuildingCount(page, 'Test plot'), { timeout: 10_000 }).toBe(1)
@@ -517,7 +543,7 @@ test('creates a blank terrain from the start screen and returns to it after a re
   await again.getByRole('button', { name: /Continue · Test plot/ }).click()
   await expect(again).toBeHidden()
   await expect(page.locator('.brand')).toContainText('Test plot')
-  await expect(page.locator('.wall-tree button')).toHaveCount(4)
+  await expect(page.locator('.wall-tree button')).toHaveCount(6)
   await page.getByRole('button', { name: 'Projects' }).click()
   await expect(again).toBeVisible()
   await expect(again).toContainText('Test plot')
