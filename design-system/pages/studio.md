@@ -74,7 +74,7 @@ selection; teal remains the keyboard-focus and hover color.
   kinds. Charred timber and light render stay flat by default.
 - Every wall finish and every landscape zone can override its default through the
   thumbnail picker in the inspector ("Wall scan", "Ground scan") or through
-  WebMCP (`list_textures`, then `textureId` on a wall finish or a landscape
+  WebMCP (`list_catalog` textures, then `textureId` on a wall finish or a landscape
   `set-surface`). The choice is stored on the object as `textureId`; `none`
   means a flat colour, and an absent value keeps following the default.
 - The scans a project draws load first and gate report captures; the rest of the

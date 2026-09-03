@@ -155,7 +155,7 @@ function McpToolsPanel({ onClose }: { onClose: () => void }) {
   const selected = tools.find((tool) => tool.name === selectedName) ?? tools[0] ?? null
   const choose = (name: string) => { setSelectedName(name); setTab('prompt') }
   return <section className="mcp-tools-panel" aria-label="WebMCP tool catalog">
-    <header><div><p className="eyebrow">GENERATED MANIFEST / WEBMCP</p><h2>MCP Tools</h2><small>{manifest ? `${manifest.toolCount} registered tools · runtime Zod schemas` : 'Loading generated manifest…'}</small></div><div className="mcp-header-actions"><a href={`${import.meta.env.BASE_URL}webmcp-tools.json`} target="_blank" rel="noreferrer">Open JSON</a><button className="close" onClick={onClose} aria-label="Close MCP tools">×</button></div></header>
+    <header><div><p className="eyebrow">GENERATED MANIFEST / WEBMCP</p><h2>MCP Tools</h2><small>{manifest ? `${manifest.toolCount} registered tools · ${manifest.operations.length} operation types · ${(manifest.budget.chars / 1000).toFixed(1)}k chars, about ${manifest.budget.estimatedTokens} of ${manifest.budget.tokenLimit} tokens ChatGPT allows` : 'Loading generated manifest…'}</small></div><div className="mcp-header-actions"><a href={`${import.meta.env.BASE_URL}webmcp-tools.json`} target="_blank" rel="noreferrer">Open JSON</a><button className="close" onClick={onClose} aria-label="Close MCP tools">×</button></div></header>
     {error ? <div className="manifest-error"><strong>Manifest unavailable</strong><p>{error}</p></div> : <div className="mcp-tools-body">
       <aside className="tool-browser"><label htmlFor="tool-search">Search tools</label><input id="tool-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Name, title or prompt text" autoFocus /><div className="tool-count">{tools.length} of {manifest?.toolCount ?? 0}</div><nav aria-label="WebMCP tools">{tools.map((tool) => <button key={tool.name} className={selected?.name === tool.name ? 'active' : ''} onClick={() => choose(tool.name)}><span>{tool.title}</span><code>{tool.name}</code><small className={tool.readOnly ? 'read-only' : 'mutating'}>{tool.readOnly ? 'Read only' : 'Creates or changes state'}</small></button>)}</nav></aside>
       <article className="tool-detail">{selected ? <>
@@ -198,7 +198,7 @@ function GardenFixturesPanel({ onClose }: { onClose: () => void }) {
     <header><div><p className="eyebrow">SEMANTIC GARDEN / FIXTURES</p><h2>Garden fixtures</h2><small>{project.landscape.fixtures.length} placed · shared by editor and WebMCP</small></div><button className="close" onClick={onClose} aria-label="Close garden fixtures">×</button></header>
     <div className="fixture-starter"><div><span>READY SET</span><h3>Starter kitchen garden</h3><p>Three raised beds with tomatoes, potatoes and a cucumber trellis.</p></div><div className="fixture-starter-actions"><button onClick={viewPlaced}>View placed</button><button onClick={placeStarter}>Place another set</button></div></div>
     <div className="fixture-library"><section><h2>Outdoor furniture</h2>{fixtureRows(furniture)}</section><section><h2>Garden structures</h2>{fixtureRows(structures)}</section><section><h2>Standard crops</h2>{fixtureRows(crops)}</section></div>
-    <footer><span>WebMCP</span><code>list_garden_fixtures</code><code>propose_garden_fixture</code></footer>
+    <footer><span>WebMCP</span><code>list_catalog garden-fixtures</code><code>propose_change garden-fixture.preset</code></footer>
   </section>
 }
 
