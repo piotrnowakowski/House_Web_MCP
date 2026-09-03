@@ -1,6 +1,7 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type Page } from '@playwright/test'
 
 test('ProjectV2 editor and architectural report work in one real canvas', async ({ page }) => {
+  test.setTimeout(240_000)
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()) })
@@ -14,6 +15,10 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   const textureLoads: string[] = []
   page.on('response', (response) => { if (response.url().includes('/textures/') && response.ok()) textureLoads.push(new URL(response.url()).pathname) })
   await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' })
+  const startScreen = page.getByRole('dialog', { name: 'Where do you want to plan today?' })
+  await expect(startScreen).toBeVisible()
+  await startScreen.getByRole('button', { name: /Zielonki house study/ }).click()
+  await expect(startScreen).toBeHidden()
 
   await expect(page.locator('canvas')).toHaveCount(1)
   await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/leafy_grass/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
@@ -383,6 +388,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await expect(proposalsPanel).toContainText('Delete Hydrangea group')
   await page.waitForTimeout(500)
   await page.reload()
+  await page.getByRole('dialog', { name: 'Where do you want to plan today?' }).getByRole('button', { name: /Continue · / }).click()
   await expect(page.locator('.connection')).toContainText('WebMCP ready')
   await page.getByRole('button', { name: /Proposals/ }).click()
   proposalsPanel = page.getByRole('region', { name: 'Proposal review and history' })
@@ -437,6 +443,7 @@ test('house remains visible when zoomed out across the long plot', async ({ page
   page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()) })
   await page.setViewportSize({ width: 1059, height: 1270 })
   await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' })
+  await page.getByRole('dialog', { name: 'Where do you want to plan today?' }).getByRole('button', { name: /Zielonki house study/ }).click()
   const viewport = page.locator('.viewport'); await expect(viewport).toBeVisible()
   await expect(viewport.locator('canvas')).toHaveCount(1)
   const box = await viewport.boundingBox(); if (!box) throw new Error('Viewport bounds unavailable.')
@@ -464,5 +471,59 @@ test('house remains visible when zoomed out across the long plot', async ({ page
   await expect(page.getByLabel('Land-use legend')).toContainText('Road entrance')
   await expect(page.locator('.site-entrance-label')).toHaveCount(2)
   await expect(page.getByRole('button', { name: 'Refocus on Main house' })).toBeVisible()
+  expect(errors).toEqual([])
+})
+
+const savedBuildingCount = (page: Page, name: string) => page.evaluate((projectName) => new Promise<number>((resolve) => {
+  const request = indexedDB.open('house-web-mcp')
+  request.onsuccess = () => {
+    const database = request.result; const all = database.transaction('projects').objectStore('projects').getAll()
+    all.onsuccess = () => { database.close(); const record = (all.result as Array<{ project?: { name: string; buildings: unknown[] } }>).find((item) => item?.project?.name === projectName); resolve(record?.project?.buildings.length ?? -1) }
+  }
+}), name)
+
+test('creates a blank terrain from the start screen and returns to it after a reload', async ({ page }) => {
+  const errors: string[] = []
+  page.on('pageerror', (error) => errors.push(error.message))
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()) })
+  await page.goto('http://127.0.0.1:5173', { waitUntil: 'networkidle' })
+  const startScreen = page.getByRole('dialog', { name: 'Where do you want to plan today?' })
+  await expect(startScreen).toBeVisible()
+  await expect(startScreen.getByRole('button', { name: /Continue/ })).toHaveCount(0)
+  await startScreen.getByRole('button', { name: /New terrain/ }).click()
+  const form = startScreen.getByRole('form', { name: 'New terrain' })
+  await form.getByLabel('Plot name').fill('Test plot')
+  await form.getByLabel('Width (m)').fill('30')
+  await form.getByLabel('Depth (m)').fill('40')
+  await form.getByLabel('North (°)').fill('15')
+  await form.getByLabel('Latitude').fill('52.23')
+  await form.getByLabel('Longitude').fill('21.01')
+  await form.getByLabel('Timezone').selectOption('Europe/Warsaw')
+  await form.getByRole('button', { name: 'Create terrain' }).click()
+  await expect(startScreen).toBeHidden()
+  await expect(page.locator('.brand')).toContainText('Test plot')
+  await expect(page.getByRole('status')).toContainText('Test plot created')
+  await expect(page.locator('.inspector')).toContainText('No buildings yet')
+  await expect(page.getByRole('region', { name: 'Sun controls' })).toContainText('sunrise')
+  await page.getByRole('button', { name: 'Add a house' }).click()
+  await expect(page.getByRole('status')).toContainText('House added')
+  await expect(page.locator('.wall-tree button')).toHaveCount(4)
+  await expect(page.getByRole('button', { name: /Modern barn/ })).toBeVisible()
+  // the autosave must hold the house before the page goes away
+  await expect.poll(() => savedBuildingCount(page, 'Test plot'), { timeout: 10_000 }).toBe(1)
+  await page.reload({ waitUntil: 'networkidle' })
+  const again = page.getByRole('dialog', { name: 'Where do you want to plan today?' })
+  await expect(again).toBeVisible()
+  await again.getByRole('button', { name: /Continue · Test plot/ }).click()
+  await expect(again).toBeHidden()
+  await expect(page.locator('.brand')).toContainText('Test plot')
+  await expect(page.locator('.wall-tree button')).toHaveCount(4)
+  await page.getByRole('button', { name: 'Projects' }).click()
+  await expect(again).toBeVisible()
+  await expect(again).toContainText('Test plot')
+  await again.getByRole('button', { name: /Zielonki house study/ }).click()
+  await expect(again).toBeHidden()
+  await expect(page.getByText('L-shaped modern barn')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Open garden fixtures' })).toContainText('6 placed')
   expect(errors).toEqual([])
 })

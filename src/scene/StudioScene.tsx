@@ -319,11 +319,19 @@ function ThatOpenBridge() {
     if (handledRefocusRequest.current === refocusRequest) return
     handledRefocusRequest.current = refocusRequest
     const current = bridge.current; const building = project.buildings[0]
-    if (!current || !building) return
-    const targetX = building.position.x; const targetY = isLShapedBarn(building) ? 3 : 1.4; const targetZ = building.position.z + (isLShapedBarn(building) ? 2.5 : 0)
+    if (!current) return
     const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
     current.camera.set('Orbit'); current.camera.controls.maxDistance = MAX_ORBIT_DISTANCE; void current.camera.projection.set('Perspective')
     void current.camera.controls.setFocalOffset(0, 0, 0, smooth)
+    if (!building) {
+      // An empty plot: frame the site boundary from the south-east so the whole rectangle and the compass are in view.
+      const xs = project.site.boundary.map((point) => point.x); const zs = project.site.boundary.map((point) => point.z)
+      const centerX = (Math.min(...xs) + Math.max(...xs)) / 2; const centerZ = (Math.min(...zs) + Math.max(...zs)) / 2
+      const extent = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs), 12)
+      void current.camera.controls?.setLookAt(centerX + extent * 0.7, extent * 0.75 + 6, centerZ + extent * 0.85, centerX, 0, centerZ, smooth)
+      return
+    }
+    const targetX = building.position.x; const targetY = isLShapedBarn(building) ? 3 : 1.4; const targetZ = building.position.z + (isLShapedBarn(building) ? 2.5 : 0)
     void current.camera.controls?.setLookAt(targetX + 22, targetY + 10, targetZ + 25, targetX, targetY, targetZ, smooth)
   }, [project, refocusRequest])
   useEffect(() => {

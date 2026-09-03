@@ -2,6 +2,9 @@ import type { ProjectV2 } from './types'
 import { gableWallsForBuilding } from './roofWings'
 import { resolveGableWallFinish } from './wallFinishes'
 
+/** Lower-case, hyphenated, at most 30 characters; used for variant refs and terrain refs. */
+export const slugify = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)
+
 export type ProjectObjectKind = 'building' | 'storey' | 'slab' | 'wall' | 'opening' | 'space' | 'roof' | 'roof-segment' | 'platform' | 'ceiling-finish' | 'zone' | 'plant' | 'fixture' | 'parcel' | 'entrance'
 export interface ProjectObjectLookup { kind: ProjectObjectKind; buildingRef?: string; storeyRef?: string; wallRef?: string; object: unknown }
 

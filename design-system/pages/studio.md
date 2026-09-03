@@ -47,6 +47,22 @@ selection; teal remains the keyboard-focus and hover color.
 - Respect `prefers-reduced-motion`; hover and lighting states may snap when it
   is enabled.
 
+## Start screen
+
+- The page opens on a modal start screen (`role="dialog"`, `aria-modal`, focus
+  cycles inside, Escape returns from the terrain form or, once a project is
+  active, closes the screen). It lists saved projects newest first with a small
+  SVG outline of each plot, a lime **Continue · name** for the last active one,
+  then two start cards: **Zielonki house study** (resets the bundled demo) and
+  **New terrain** (a two-column form: name, width, depth, north, timezone,
+  latitude, longitude, with inline field errors from the shared Zod schema).
+- **Projects** in the top bar reopens the screen; "Keep working on …" closes it.
+- Scene labels drawn with drei `Html` carry `zIndexRange={[9, 0]}` so panels
+  (z 40 and up) and the start screen (z 70) always cover them.
+- An empty plot shows an **Add a house** card in place of the house preset and
+  "No buildings / walls / plants yet" in the model trees; the camera frames the
+  site boundary when there is nothing else to look at.
+
 ## Material system
 
 - The scene draws from a texture library of twelve Poly Haven CC0 scans shipped

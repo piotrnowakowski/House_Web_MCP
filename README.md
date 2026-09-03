@@ -10,7 +10,9 @@ No account, credentials or paid service is required. The project was created dur
 
 Early house and garden planning is spatial: people need to see the building, terrain, rooms, openings, planting and seasonal effects together. A normal chat can describe a change, but it cannot safely understand or edit the exact objects in a live 3D design.
 
-This editor gives both the person and their browser agent access to one semantic `ProjectV2` model. A person can navigate and edit the 3D scene directly. An agent can inspect the same project through 33 schema-described WebMCP tools, propose coordinated changes and open visible architectural reports. The result remains an uncommitted ghost variant until the person explicitly applies or rejects it.
+This editor gives both the person and their browser agent access to one semantic `ProjectV2` model. A person can navigate and edit the 3D scene directly. An agent can inspect the same project through 34 schema-described WebMCP tools, propose coordinated changes and open visible architectural reports. The result remains an uncommitted ghost variant until the person explicitly applies or rejects it.
+
+The page opens on a start screen. Continue the last saved session, load the bundled Zielonki house study, or create a new terrain from a short form (name, width and depth in metres, north angle, coordinates and timezone). A new terrain is an empty plot: the inspector offers **Add a house**, the modern barn preset and every WebMCP proposal then work on it, and each project is autosaved separately so the **Projects** button in the top bar switches between them.
 
 The bundled Zielonki project demonstrates:
 
@@ -91,12 +93,14 @@ Read tools return structured state or open a visible in-page report. Modifying t
 
 | Criterion | Evidence in this project |
 | --- | --- |
-| WebMCP leverage | 33 non-trivial, schema-validated tools operate on live semantic spatial state; read, proposal, comparison, grouped transaction, approval and undo flows are all implemented. |
+| WebMCP leverage | 34 non-trivial, schema-validated tools operate on live semantic spatial state; read, proposal, comparison, grouped transaction, approval and undo flows are all implemented. |
 | Execution | Public no-login deployment, one coherent 3D editor, real geometry, local persistence, visible reports and automated browser coverage. |
 | Potential impact | Helps homeowners and early-stage design collaborators turn broad intent into inspectable house-and-garden alternatives before engaging professional design and engineering services. |
 | Creativity and ambition | Combines a semantic building model, landscape and seasonal context, agent-authored spatial variants and explicit human approval in one browser-native workspace. |
 
 ## Zielonki demonstration data
+
+New terrains created from the start screen reuse the Zielonki monthly climate normal with the coordinates and timezone entered by the person (the sun position follows those), and start with an empty knowledge base that says so.
 
 The bundled demo uses the Zielonki site evidence for parcels `54/3 + 55/3 + 58/3`, agricultural context, terrain, geotechnical constraints, climate and planting guidance. See the [Zielonki knowledge bank](knowledge-bank/zielonki/README.md).
 
@@ -144,7 +148,7 @@ npm ci
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
-Open `http://127.0.0.1:5173`. WebMCP is available when the page runs in ChatGPT's in-app Browser or in Chrome 149+ with `chrome://flags/#enable-webmcp-testing` enabled.
+Open `http://127.0.0.1:5173`, then pick **Zielonki house study** on the start screen (or **New terrain** to plan your own plot). WebMCP is available when the page runs in ChatGPT's in-app Browser or in Chrome 149+ with `chrome://flags/#enable-webmcp-testing` enabled.
 
 Verification:
 
@@ -154,7 +158,7 @@ npm run build
 npm run test:e2e
 ```
 
-The browser test uses installed Chrome. It checks one canvas, runtime WASM, length/area/semantic-height measurement, the ready garden-fixture set, live WebMCP storey-extension, planting-area, grouped-change and height calls, the climate day-part view, the planting and soil guide, the sun widget and sun-hours heatmap, live sunlight and sun-study tool calls, the ten-sheet architectural set, placement data, report cleanup, zero page/console errors, and the same report against an uncommitted moved-building variant.
+The browser test uses installed Chrome. It checks the start screen (Zielonki study, new terrain with add-a-house, continue after reload, switching projects), one canvas, runtime WASM, length/area/semantic-height measurement, the ready garden-fixture set, live WebMCP storey-extension, planting-area, grouped-change and height calls, the climate day-part view, the planting and soil guide, the sun widget and sun-hours heatmap, live sunlight and sun-study tool calls, the ten-sheet architectural set, placement data, report cleanup, zero page/console errors, and the same report against an uncommitted moved-building variant.
 
 ## WebMCP tools
 
@@ -189,6 +193,7 @@ Use **MCP Tools** in the application to inspect the registered catalogue. The pa
 | `run_seasonal_analysis` | Return day-part temperature averages, sunrise, sunset, daylight and V2 seasonal planning signals |
 | `run_sunlight_analysis` | Compute direct sun hours for a zone, plant, fixture, point or the site on a date, for the committed project or a ghost variant |
 | `set_viewer_state` | Explode rooms, open a storey plan or select an object, without touching the revision |
+| `control_camera` | Move the live 3D camera to an exact position and target with projection, lens, zoom, focal offset and transition control |
 | `set_sun_time` | Move the viewer sun to a local date and time without touching the revision |
 | `compare_variants` | Compare ghost metrics and validation issues |
 | `diff_variant` | List the objects a ghost variant adds, removes or modifies, with changed fields and metric deltas |
