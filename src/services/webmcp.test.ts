@@ -76,6 +76,9 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(landscape.data.landscape.zones.length).toBeGreaterThan(0)
     expect(landscape.data.plantingGuidance).toBeUndefined()
     expect(landscapeResult.content[0].text.length).toBeLessThan(8000)
+    const full = payload(await tool('get_project_state').execute({ detail: 'full' }))
+    expect(full.data.site.knowledgeBase).toBeUndefined()
+    expect(full.data).toMatchObject({ site: { parcels: expect.any(Array) }, buildings: expect.any(Array), landscape: { zones: expect.any(Array) } })
   })
 
   it('serves the knowledge bank through its own untrusted-content tool and single objects by ref', async () => {

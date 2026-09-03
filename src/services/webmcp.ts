@@ -81,8 +81,9 @@ export const webMcpTools: WebMcpTool[] = [
       return { status: 'ok', projectRevision: project.revision, summary: `Returned ${found.kind} ${objectRef}.`, metrics, data: found }
     }
     const { knowledgeBase: _knowledgeBase, ...siteWithoutKnowledge } = project.site
+    const projectWithoutKnowledge = { ...project, site: siteWithoutKnowledge }
     const data = detail === 'summary' ? { schemaVersion: 2, name: project.name, revision: project.revision, metrics, buildingRefs: project.buildings.map((building) => building.ref), variantRefs: state.variants.map((variant) => variant.ref) }
-      : detail === 'site' ? siteWithoutKnowledge : detail === 'structure' ? { buildings: project.buildings } : detail === 'landscape' ? { landscape: project.landscape, climateProfile: project.climateProfile } : project
+      : detail === 'site' ? siteWithoutKnowledge : detail === 'structure' ? { buildings: project.buildings } : detail === 'landscape' ? { landscape: project.landscape, climateProfile: project.climateProfile } : projectWithoutKnowledge
     return { status: 'ok', projectRevision: project.revision, summary: `Returned ${detail} ProjectV2 state.`, metrics, data }
   } }),
   define({ ...webMcpToolPrompts.get_site_knowledge, input: webMcpSchemas.get_site_knowledge, readOnly: true, handler: ({ section }) => {
