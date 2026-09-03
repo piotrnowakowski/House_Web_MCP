@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import { webMcpToolPrompts } from '../../prompts/webmcp-tools'
 import { applyCommand } from '../domain/commands'
-import { modernBarnProject, sampleProject } from '../domain/sampleProject'
+import { modernBarnProject, partialUpperModernBarnProject, sampleProject } from '../domain/sampleProject'
 import { useStudioStore } from '../state/store'
 import { expandStructureViews, registerStructureViewCapture } from './structureViews'
 import { resolveVariantConfirmation, webMcpTools } from './webmcp'
@@ -110,7 +110,7 @@ describe('ProjectV2 WebMCP surface', () => {
   })
 
   it('previews a 96 m² upper-storey wing extension without creating a third level', async () => {
-    useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [] })
+    useStudioStore.setState({ project: structuredClone(partialUpperModernBarnProject), variants: [] })
     const parsed = payload(await tool('propose_storey_update').execute({
       action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
       extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }],
@@ -201,7 +201,7 @@ describe('ProjectV2 WebMCP surface', () => {
   })
 
   it('targets one roof segment with aligned eaves and an exact finish', async () => {
-    useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [], proposals: [] })
+    useStudioStore.setState({ project: structuredClone(partialUpperModernBarnProject), variants: [], proposals: [] })
     const parsed = payload(await tool('propose_roof_update').execute({
       buildingRef: 'house/main', segmentRef: 'roof/main/segment-rear-wing', alignToSegmentRef: 'roof/main/segment-upper-wing', alignEdge: 'eaves',
       material: 'standing-seam-metal', colorHex: '#2D3435', synchronization: 'roof-and-supporting-walls',
@@ -213,7 +213,7 @@ describe('ProjectV2 WebMCP surface', () => {
   })
 
   it('proposes an atomic split of one malformed L-shaped segment with a declared valley', async () => {
-    const malformed = applyCommand(modernBarnProject, {
+    const malformed = applyCommand(partialUpperModernBarnProject, {
       type: 'storey.update', action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
       extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }],
       spaceRef: 'house/main/storey-upper/space-wing', spaceName: 'Upper wing', usage: 'living',

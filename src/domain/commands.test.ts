@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { applyCommand, calculateMetrics, polygonArea, validateProject } from './commands'
-import { modernBarnProject, sampleProject } from './sampleProject'
+import { applyModernBarnPreset, isModernBarnPreset } from './presets'
+import { modernBarnProject, partialUpperModernBarnProject, sampleProject } from './sampleProject'
 import { ProjectSchema } from './schema'
 
 describe('ProjectV2 command bus', () => {
@@ -34,21 +35,35 @@ describe('ProjectV2 command bus', () => {
     })
     expect(modernBarnProject.buildings[0].storeys).toHaveLength(2)
     expect(modernBarnProject.buildings[0].slabs[0].footprint).toHaveLength(6)
-    expect(calculateMetrics(modernBarnProject).homeAreaM2).toBe(204)
+    expect(calculateMetrics(modernBarnProject).homeAreaM2).toBe(300)
+    expect(modernBarnProject.buildings[0].roof.segments.map((segment) => segment.ridgeDirection)).toEqual(expect.arrayContaining(['x', 'z']))
+    expect(modernBarnProject.buildings[0].roof.segments.every((segment) => segment.storeyRef === 'house/main/storey-upper' && Math.abs(segment.baseElevationM - 6.55) < 0.001)).toBe(true)
+    expect(modernBarnProject.buildings[0].walls.filter((wall) => wall.baseElevationM === 3.45).every((wall) => wall.finish?.material === 'charred-timber' && wall.finish?.colorHex === '#242927')).toBe(true)
     expect(calculateMetrics(modernBarnProject).fixtureCount).toBe(6)
     expect(modernBarnProject.landscape.fixtures.map((fixture) => fixture.catalogId)).toEqual(['raised-bed-2x1', 'tomato-row', 'raised-bed-2x1', 'potato-row', 'raised-bed-2x1', 'cucumber-trellis'])
     expect(validateProject(modernBarnProject).filter((issue) => issue.severity === 'error')).toEqual([])
   })
 
+  it('repairs the legacy partial barn during hydration', () => {
+    const migrated = applyModernBarnPreset(partialUpperModernBarnProject)
+    expect(isModernBarnPreset(migrated)).toBe(true)
+    expect(calculateMetrics(migrated).homeAreaM2).toBe(300)
+    expect(migrated.buildings[0].walls.filter((wall) => wall.ref.startsWith('house/main/storey-upper/space-wing/wall-')).every((wall) => wall.finish?.material === 'charred-timber')).toBe(true)
+    const missingValley = structuredClone(migrated)
+    missingValley.buildings[0].roof.junctions = []
+    missingValley.buildings[0].roof.segments.forEach((segment) => { segment.adjacentSegmentRefs = [] })
+    expect(applyModernBarnPreset(missingValley).buildings[0].roof.junctions).toEqual([expect.objectContaining({ type: 'valley' })])
+  })
+
   it('extends the existing upper barn storey over the 16 × 6 m wing atomically', () => {
-    const result = applyCommand(modernBarnProject, {
+    const result = applyCommand(partialUpperModernBarnProject, {
       type: 'storey.update', action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
       extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }],
       spaceRef: 'house/main/storey-upper/space-wing', spaceName: 'Upper wing', usage: 'living',
     })
     const building = result.buildings[0]; const upper = building.storeys.find((storey) => storey.ref === 'house/main/storey-upper')!
     const slab = building.slabs.find((item) => item.ref === upper.baseSlabRef)!
-    expect(modernBarnProject.buildings[0].storeys).toHaveLength(2)
+    expect(partialUpperModernBarnProject.buildings[0].storeys).toHaveLength(2)
     expect(building.storeys).toHaveLength(2)
     expect(polygonArea(slab.footprint)).toBe(150)
     expect(calculateMetrics(result).homeAreaM2).toBe(300)
@@ -59,7 +74,7 @@ describe('ProjectV2 command bus', () => {
   })
 
   it('decomposes a complete concave upper-storey footprint into perpendicular roof wings', () => {
-    const starting = structuredClone(modernBarnProject)
+    const starting = structuredClone(partialUpperModernBarnProject)
     const building = starting.buildings[0]
     building.roof.segments = [structuredClone(building.roof.segments.find((segment) => segment.ref === 'roof/main/segment-upper-wing')!)]
     building.roof.junctions = []
@@ -78,7 +93,7 @@ describe('ProjectV2 command bus', () => {
   })
 
   it('atomically splits a malformed L-shaped roof segment into two declared gables', () => {
-    const extended = applyCommand(modernBarnProject, {
+    const extended = applyCommand(partialUpperModernBarnProject, {
       type: 'storey.update', action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
       extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }],
       spaceRef: 'house/main/storey-upper/space-wing', spaceName: 'Upper wing', usage: 'living',
@@ -106,8 +121,8 @@ describe('ProjectV2 command bus', () => {
   })
 
   it('raises and restyles one semantic roof segment without changing its neighbour', () => {
-    const originalUpper = modernBarnProject.buildings[0].roof.segments.find((segment) => segment.ref === 'roof/main/segment-upper-wing')!
-    const result = applyCommand(modernBarnProject, {
+    const originalUpper = partialUpperModernBarnProject.buildings[0].roof.segments.find((segment) => segment.ref === 'roof/main/segment-upper-wing')!
+    const result = applyCommand(partialUpperModernBarnProject, {
       type: 'roof.update', buildingRef: 'house/main', segmentRef: 'roof/main/segment-rear-wing', alignToSegmentRef: originalUpper.ref, alignEdge: 'eaves',
       material: 'standing-seam-metal', colorHex: '#2D3435', synchronization: 'roof-and-supporting-walls',
     })

@@ -1,6 +1,7 @@
 import { zielonkiClimate, zielonkiKnowledgeBase, zielonkiPlot } from '../../knowledge-bank/zielonki/data'
 import { rectangle } from './geometry'
 import { ensureStarterGarden } from './gardenFixtures'
+import { applyModernBarnPreset } from './presets'
 import type { BuildingModel, ProjectV2, WallModel } from './types'
 
 const wall = (ref: string, start: { x: number; z: number }, end: { x: number; z: number }, openings: WallModel['openings'] = []): WallModel => ({
@@ -201,7 +202,7 @@ const lShapedModernBarn: BuildingModel = {
   },
 }
 
-export const modernBarnProject: ProjectV2 = {
+export const partialUpperModernBarnProject: ProjectV2 = {
   ...ensureStarterGarden({
     ...structuredClone(sampleProject),
     name: 'Zielonki L-shaped barn study',
@@ -221,3 +222,10 @@ export const modernBarnProject: ProjectV2 = {
   revision: sampleProject.revision,
   updatedAt: sampleProject.updatedAt,
 }
+
+export const modernBarnProject: ProjectV2 = (() => {
+  const project = applyModernBarnPreset(partialUpperModernBarnProject)
+  project.revision = partialUpperModernBarnProject.revision
+  project.updatedAt = partialUpperModernBarnProject.updatedAt
+  return project
+})()

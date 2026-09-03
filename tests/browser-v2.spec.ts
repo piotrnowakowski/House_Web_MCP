@@ -57,12 +57,15 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   const explode = page.getByRole('button', { name: 'Explode', exact: true })
   await explode.click()
   await expect(explode).toHaveAttribute('aria-pressed', 'true')
-  await expect(page.getByLabel('Exploded room view')).toContainText('4 rooms · 2 levels · roof separated')
-  await expect(page.locator('.exploded-room-label')).toHaveCount(4)
+  await expect(page.getByLabel('Exploded room view')).toContainText('5 rooms · 2 levels · roof separated')
+  await expect(page.locator('.exploded-room-label')).toHaveCount(5)
   await expect(page.locator('.exploded-room-label').nth(0)).toContainText('Kitchen and studio')
   await expect(page.locator('.exploded-room-label').nth(1)).toContainText('Dining and family room')
   await expect(page.locator('.exploded-room-label').nth(2)).toContainText('Double-height living room')
-  await expect(page.locator('.exploded-room-label[data-storey-ref="house/main/storey-upper"]')).toContainText('Upper gallery')
+  const upperRoomLabels = page.locator('.exploded-room-label[data-storey-ref="house/main/storey-upper"]')
+  await expect(upperRoomLabels).toHaveCount(2)
+  await expect(upperRoomLabels.nth(0)).toContainText('Upper gallery')
+  await expect(upperRoomLabels.nth(1)).toContainText('Upper wing')
   await page.waitForTimeout(900)
   await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-exploded-rooms.png' })
   await explode.click()
@@ -214,8 +217,8 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   })
   const liveAdjustmentProof = await page.evaluate(async () => {
     const tools = (window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }> }).__projectV2WebMcpTools
-    const extension = JSON.parse((await tools.propose_storey_update.execute({ action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper', extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }], spaceRef: 'house/main/storey-upper/space-browser-wing' })).content[0].text) as { status: string; variantRef: string; areaAddedM2: number; levelCount: number }
-    await tools.manage_variant.execute({ action: 'discard', variantRef: extension.variantRef })
+    const storeyUpdate = JSON.parse((await tools.propose_storey_update.execute({ action: 'set-height', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper', clearHeightM: 3.2 })).content[0].text) as { status: string; variantRef: string; areaAddedM2: number; levelCount: number }
+    await tools.manage_variant.execute({ action: 'discard', variantRef: storeyUpdate.variantRef })
     const planting = JSON.parse((await tools.propose_planting_area.execute({ plantingRef: 'planting/browser-hornbeam', mode: 'boundary', sourceRefs: ['site'], inwardOffsetM: 1.2, spacingM: 5, rowCount: 1, rowSpacingM: 0.6, cornerTreatment: 'distribute', plantingPaletteRef: 'plant-guide/hornbeam', clearanceM: 1 })).content[0].text) as { status: string; variantRef: string; plantCount: number; affectedParcelRefs: string[] }
     await tools.manage_variant.execute({ action: 'discard', variantRef: planting.variantRef })
     await tools.manage_change_set.execute({ action: 'create', changeSetRef: 'change-set/browser-six-moves', label: 'Move complete kitchen garden', baseRevision: 1 })
@@ -224,29 +227,29 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
     const grouped = JSON.parse((await tools.manage_change_set.execute({ action: 'finalize', changeSetRef: 'change-set/browser-six-moves' })).content[0].text) as { status: string; variantRef: string; operations: unknown[] }
     await tools.manage_variant.execute({ action: 'discard', variantRef: grouped.variantRef })
     const height = JSON.parse((await tools.measure_height.execute({ mode: 'semantic', objectRef: 'opening/upper-east-north', measurement: 'opening-height' })).content[0].text) as { status: string; measurement: { heightM: number; bottomPoint: { reference: string }; topPoint: { reference: string } } }
-    const roof = JSON.parse((await tools.propose_roof_update.execute({ buildingRef: 'house/main', segmentRef: 'roof/main/segment-rear-wing', alignToSegmentRef: 'roof/main/segment-upper-wing', alignEdge: 'eaves', material: 'standing-seam-metal', colorHex: '#2D3435', synchronization: 'roof-and-supporting-walls' })).content[0].text) as { status: string; variantRef: string; targetScope: string; roofChanges: Array<{ after: { eavesElevationM: number; finish: { colorHex: string } } }> }
+    const roof = JSON.parse((await tools.propose_roof_update.execute({ buildingRef: 'house/main', segmentRef: 'roof/main/segment-rear-wing', material: 'standing-seam-metal', colorHex: '#364044', synchronization: 'roof-only' })).content[0].text) as { status: string; variantRef: string; targetScope: string; roofChanges: Array<{ after: { eavesElevationM: number; finish: { colorHex: string } } }> }
     await tools.manage_variant.execute({ action: 'discard', variantRef: roof.variantRef })
-    return { extension: { status: extension.status, area: extension.areaAddedM2, levels: extension.levelCount }, planting: { status: planting.status, count: planting.plantCount, parcels: planting.affectedParcelRefs.length }, changeSet: { draftOps: draft.operations.length, variantOps: grouped.operations.length, status: grouped.status }, height, roof }
+    return { storeyUpdate: { status: storeyUpdate.status, area: storeyUpdate.areaAddedM2, levels: storeyUpdate.levelCount }, planting: { status: planting.status, count: planting.plantCount, parcels: planting.affectedParcelRefs.length }, changeSet: { draftOps: draft.operations.length, variantOps: grouped.operations.length, status: grouped.status }, height, roof }
   })
   expect(liveAdjustmentProof).toMatchObject({
-    extension: { status: 'variant_created', area: 96, levels: 2 },
+    storeyUpdate: { status: 'variant_created', area: 0, levels: 2 },
     planting: { status: 'variant_created', count: expect.any(Number), parcels: 6 },
     changeSet: { draftOps: 6, variantOps: 6, status: 'variant_created' },
     height: { status: 'ok', measurement: { heightM: 1.55, bottomPoint: { reference: 'opening/upper-east-north/sill' }, topPoint: { reference: 'opening/upper-east-north/head' } } },
-    roof: { status: 'variant_created', targetScope: 'segment', roofChanges: [{ after: { eavesElevationM: 6.55, finish: { colorHex: '#2D3435' } } }] },
+    roof: { status: 'variant_created', targetScope: 'segment', roofChanges: [{ after: { eavesElevationM: 6.55, finish: { colorHex: '#364044' } } }] },
   })
   expect(liveAdjustmentProof.planting.count).toBeGreaterThan(40)
   await page.evaluate(async () => {
     const browserWindow = window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<{ content: Array<{ text: string }> }> }>; __pendingAdjustmentApproval?: Promise<unknown> }
-    const proposal = JSON.parse((await browserWindow.__projectV2WebMcpTools.propose_storey_update.execute({ action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper', extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }], spaceRef: 'house/main/storey-upper/space-approval-proof' })).content[0].text) as { variantRef: string }
+    const proposal = JSON.parse((await browserWindow.__projectV2WebMcpTools.propose_storey_update.execute({ action: 'set-height', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper', clearHeightM: 3.2 })).content[0].text) as { variantRef: string }
     browserWindow.__pendingAdjustmentApproval = browserWindow.__projectV2WebMcpTools.manage_variant.execute({ action: 'request-apply', variantRef: proposal.variantRef })
   })
   const approval = page.locator('.approval')
   await expect(approval).toBeVisible()
-  await expect(approval).toContainText('Storey footprint extension')
+  await expect(approval).toContainText('Storey update')
   await expect(approval).toContainText('300.0 m²')
   await expect(approval.getByLabel('Variant operation audit').locator('li')).toHaveCount(1)
-  await approval.screenshot({ path: 'test-results/project-v2-storey-extension-approval.png' })
+  await approval.screenshot({ path: 'test-results/project-v2-storey-update-approval.png' })
   await approval.getByRole('button', { name: 'Reject all' }).click()
   await expect(approval).toBeHidden()
   await catalog.screenshot({ path: 'test-results/project-v2-mcp-tools.png' })
