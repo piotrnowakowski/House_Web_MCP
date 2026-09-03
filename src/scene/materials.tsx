@@ -3,7 +3,7 @@ import { useThree } from '@react-three/fiber'
 import { Component, Suspense, useEffect, useMemo, type ReactNode } from 'react'
 import { MirroredRepeatWrapping, SRGBColorSpace, type Side, type Texture } from 'three'
 import { useStudioStore } from '../state/store'
-import { textureAssets, textureFilesFor, type TextureAssetKey } from './materialCatalog'
+import { textureAssets, textureFilesFor, textureIdsInUse, type TextureAssetKey } from './materialCatalog'
 
 const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path}`
 export const textureUrlsFor = (key: TextureAssetKey) => { const files = textureFilesFor(key); return [assetUrl(files.map), assetUrl(files.normalMap), assetUrl(files.roughnessMap)] }
@@ -54,10 +54,10 @@ export function TexturedMaterial(props: TexturedMaterialProps) {
   return <TextureErrorBoundary fallback={fallback}><Suspense fallback={fallback}><TexturedStandardMaterial {...props} /></Suspense></TextureErrorBoundary>
 }
 
-function TexturePreloadInner() {
-  useTexture(allTextureUrls())
+function TexturePreloadInner({ urls }: { urls: string[] }) {
+  useTexture(urls)
   const setTexturesReady = useStudioStore((state) => state.setTexturesReady)
-  useEffect(() => { setTexturesReady(true) }, [setTexturesReady])
+  useEffect(() => { setTexturesReady(true) }, [setTexturesReady, urls])
   return null
 }
 class ReadyOnError extends Component<{ children: ReactNode }, { failed: boolean }> {
@@ -66,10 +66,26 @@ class ReadyOnError extends Component<{ children: ReactNode }, { failed: boolean 
   componentDidCatch() { useStudioStore.getState().setTexturesReady(true) }
   render() { return this.state.failed ? null : this.props.children }
 }
-/** Warms the texture cache so report captures and the first realistic frame do not wait on the network; marks textures ready either way. */
+/**
+ * Loads the scans the project draws first (report captures wait on these), then warms the rest of the library
+ * in idle time so a later pick from the texture picker or a WebMCP proposal shows without a network round trip.
+ */
 export function TexturePreloader() {
-  useEffect(() => { useTexture.preload(allTextureUrls()) }, [])
-  return <ReadyOnError><Suspense fallback={null}><TexturePreloadInner /></Suspense></ReadyOnError>
+  const project = useStudioStore((state) => state.project); const texturesReady = useStudioStore((state) => state.texturesReady)
+  const inUse = useMemo(() => textureIdsInUse(project).flatMap(textureUrlsFor), [project])
+  useEffect(() => { useTexture.preload(inUse) }, [inUse])
+  useEffect(() => {
+    if (!texturesReady) return
+    const rest = allTextureUrls().filter((url) => !inUse.includes(url))
+    if (!rest.length) return
+    if (window.requestIdleCallback) {
+      const handle = window.requestIdleCallback(() => useTexture.preload(rest), { timeout: 1500 })
+      return () => window.cancelIdleCallback?.(handle)
+    }
+    const handle = window.setTimeout(() => useTexture.preload(rest), 400)
+    return () => window.clearTimeout(handle)
+  }, [inUse, texturesReady])
+  return <ReadyOnError><Suspense fallback={null}><TexturePreloadInner urls={inUse} /></Suspense></ReadyOnError>
 }
 
 /** Resolves when textures are ready or after the timeout, so a capture never blocks on a slow network. */

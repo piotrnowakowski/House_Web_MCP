@@ -17,7 +17,9 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
 
   await expect(page.locator('canvas')).toHaveCount(1)
   await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/leafy_grass/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
-  await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/brick_floor_04/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
+  await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/concrete_tiles_02/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
+  // The whole library preloads after the scene's own scans, so a later pick is instant: red brick is not drawn by default.
+  await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/medieval_red_brick/diff_2k.jpg')).length, { timeout: 30_000 }).toBeGreaterThan(0)
   await page.waitForTimeout(1200)
   await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-textured-realistic.png' })
   await expect(page.getByText('Spatial Editor', { exact: true })).toBeVisible()
@@ -50,6 +52,27 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-natural-timber-wall.png' })
   await page.keyboard.press('Control+z')
   await expect(page.getByRole('status')).toContainText('Last change undone.')
+  const wallScans = finishEditor.getByRole('group', { name: 'Wall scan' })
+  await expect(wallScans.getByRole('button')).toHaveCount(6)
+  await finishEditor.getByRole('button', { name: /^Brick/ }).click()
+  await expect(wallScans.getByRole('button', { name: /Red brick/ })).toHaveAttribute('aria-pressed', 'true')
+  await wallScans.getByRole('button', { name: /Dark brick pavers/ }).click()
+  await expect(wallScans.getByRole('button', { name: /Dark brick pavers/ })).toHaveAttribute('aria-pressed', 'true')
+  await finishEditor.getByRole('button', { name: 'Apply to this wall' }).click()
+  await expect(page.getByRole('status')).toContainText('Brick applied to selected wall.')
+  await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-brick-pavers-wall.png' })
+  await page.keyboard.press('Control+z')
+  await expect(page.getByRole('status')).toContainText('Last change undone.')
+  await page.evaluate(async () => { await (window as unknown as { __projectV2WebMcpTools: Record<string, { execute: (input: unknown) => Promise<unknown> }> }).__projectV2WebMcpTools.set_viewer_state.execute({ focusRef: 'zone/lawn' }) })
+  const groundScans = page.getByRole('group', { name: 'Ground scan for Open courtyard lawn' })
+  await expect(groundScans.getByRole('button', { name: /Leafy grass/ })).toHaveAttribute('aria-pressed', 'true')
+  await groundScans.getByRole('button', { name: /River pebbles/ }).click()
+  await expect(page.getByRole('status')).toContainText('Open courtyard lawn now wears River pebbles.')
+  await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/dry_river_pebbles/diff_1k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
+  await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-pebble-lawn.png' })
+  await page.keyboard.press('Control+z')
+  await expect(page.getByRole('status')).toContainText('Last change undone.')
+  await page.getByRole('button', { name: 'Edit openings on courtyard living' }).click()
   await openingEditor.getByRole('button', { name: /Center window/ }).click()
   await expect(openingEditor.locator('.opening-row')).toHaveCount(1)
   await expect(openingEditor.getByRole('button', { name: /Center window/ })).toHaveAttribute('aria-pressed', 'true')
@@ -88,8 +111,8 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await expect(explode).toHaveAttribute('aria-pressed', 'false')
   await expect(page.locator('.exploded-room-label')).toHaveCount(0)
 
-  await page.getByRole('button', { name: 'Realistic' }).click()
-  await expect(page.getByRole('button', { name: 'Technical' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Realistic' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Technical' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Angle', exact: true })).toHaveCount(0)
   const canvas = page.getByRole('application', { name: 'Interactive ProjectV2 spatial editor' })
   const canvasBounds = await canvas.boundingBox(); if (!canvasBounds) throw new Error('Canvas bounds unavailable.')
@@ -222,7 +245,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await page.getByRole('button', { name: 'MCP Tools' }).click()
   const catalog = page.getByRole('region', { name: 'WebMCP tool catalog' })
   await expect(catalog).toBeVisible()
-  await expect(catalog.locator('.tool-browser nav button')).toHaveCount(32)
+  await expect(catalog.locator('.tool-browser nav button')).toHaveCount(33)
   await expect(catalog.getByRole('link', { name: 'Open JSON' })).toHaveAttribute('href', /webmcp-tools\.json$/)
   await catalog.getByRole('searchbox', { name: 'Search tools' }).fill('run_seasonal_analysis')
   await expect(catalog.locator('.tool-browser nav button')).toHaveCount(1)
@@ -245,7 +268,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
     }
   })
   expect(manifestSummary).toEqual({
-    toolCount: 32,
+    toolCount: 33,
     source: 'runtime-zod-and-structured-prompts',
     gardenTools: ['list_garden_fixtures', 'propose_garden_fixture'],
     adjustmentTools: ['get_proposals', 'propose_planting_area', 'manage_change_set', 'measure_height', 'run_sunlight_analysis', 'set_sun_time'],

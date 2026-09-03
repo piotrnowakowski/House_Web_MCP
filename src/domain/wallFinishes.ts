@@ -1,3 +1,4 @@
+import { validateTextureChoice } from './textures'
 import type { BuildingModel, ProjectV2, WallFinish, WallFinishUpdateCommand, WallMaterial, WallModel } from './types'
 
 export type WallFinishScope = 'wall' | 'all-exterior'
@@ -18,12 +19,13 @@ export const resolveWallFinish = (wall: WallModel | undefined, style: BuildingMo
 
 export const exteriorWallsForBuilding = (building: BuildingModel) => building.walls.filter((wall) => building.spaces.filter((space) => space.boundary.some((boundary) => boundary.wallRef === wall.ref)).length <= 1)
 
-export const wallFinishCommands = (project: ProjectV2, input: { buildingRef: string; scope: WallFinishScope; wallRef?: string; material: WallMaterial; colorHex: string }): WallFinishUpdateCommand[] => {
+export const wallFinishCommands = (project: ProjectV2, input: { buildingRef: string; scope: WallFinishScope; wallRef?: string; material: WallMaterial; colorHex: string; textureId?: string }): WallFinishUpdateCommand[] => {
   const building = project.buildings.find((item) => item.ref === input.buildingRef)
   if (!building) throw new Error(`Building not found: ${input.buildingRef}`)
   if (!/^#[0-9a-fA-F]{6}$/.test(input.colorHex)) throw new Error('Wall color must be a six-digit hex value such as #242927.')
+  if (input.textureId !== undefined) validateTextureChoice('wall', input.textureId)
   const walls = input.scope === 'all-exterior'
     ? exteriorWallsForBuilding(building)
     : [building.walls.find((wall) => wall.ref === input.wallRef) ?? (() => { throw new Error(`Wall not found: ${input.wallRef ?? 'missing wallRef'}`) })()]
-  return walls.map((wall) => ({ type: 'wall.finish', buildingRef: building.ref, wallRef: wall.ref, material: input.material, colorHex: input.colorHex.toUpperCase() }))
+  return walls.map((wall) => ({ type: 'wall.finish', buildingRef: building.ref, wallRef: wall.ref, material: input.material, colorHex: input.colorHex.toUpperCase(), ...(input.textureId !== undefined ? { textureId: input.textureId } : {}) }))
 }

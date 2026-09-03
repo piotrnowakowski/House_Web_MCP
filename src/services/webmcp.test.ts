@@ -44,7 +44,7 @@ describe('ProjectV2 WebMCP surface', () => {
   it('publishes the prompt-aligned V2 tool catalog without export or V1 nouns', () => {
     const toolNames = webMcpTools.map((item) => item.name)
     expect(toolNames).toEqual(Object.values(webMcpToolPrompts).map((prompt) => prompt.name))
-    expect(toolNames).toHaveLength(32)
+    expect(toolNames).toHaveLength(33)
     expect(toolNames).toEqual(expect.arrayContaining(['propose_garden_fixture', 'manage_change_set', 'manage_variant']))
     const retiredNames = ['propose_garden_fixture_update', 'propose_garden_fixture_set', 'create_change_set', 'add_change_set_operations', 'propose_change_set', 'discard_change_set', 'request_apply_variant', 'discard_variant']
     expect(toolNames.filter((name) => retiredNames.includes(name))).toEqual([])
@@ -52,6 +52,7 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(webMcpTools.some((item) => /floor|room|export/.test(item.name))).toBe(false)
     expect(tool('show_structure_views').annotations?.readOnlyHint).toBe(true)
     expect(tool('list_garden_fixtures').annotations?.readOnlyHint).toBe(true)
+    expect(tool('list_textures').annotations?.readOnlyHint).toBe(true)
     for (const item of webMcpTools) {
       const prompt = Object.values(webMcpToolPrompts).find((candidate) => candidate.name === item.name)!
       expect(item.description).toBe(prompt.runtimeDescription)
@@ -91,8 +92,8 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(webMcpManifest.tools.find((item) => item.name === 'show_structure_views')).toMatchObject({ readOnly: true })
     expect(webMcpManifest.tools.find((item) => item.name === 'get_proposals')).toMatchObject({ readOnly: true })
     expect(webMcpManifest.tools.find((item) => item.name === 'propose_building_update')).toMatchObject({ readOnly: false })
-    expect(webMcpManifest.tools.find((item) => item.name === 'set_viewer_state')).toMatchObject({ readOnly: false })
-    expect(webMcpManifest.tools.find((item) => item.name === 'set_sun_time')).toMatchObject({ readOnly: false })
+    expect(webMcpManifest.tools.find((item) => item.name === 'set_viewer_state')).toMatchObject({ readOnly: true })
+    expect(webMcpManifest.tools.find((item) => item.name === 'set_sun_time')).toMatchObject({ readOnly: true })
   })
 
   it('reads nested site and structure state in agent-sized slices', async () => {
@@ -409,7 +410,7 @@ describe('ProjectV2 WebMCP surface', () => {
 })
 
 describe('variant explanation and viewer tools', () => {
-  beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), history: [], variants: [], selectedRef: null, viewMode: 'realistic', explodeStoreys: false, confirmationVariantRef: null }))
+  beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), history: [], variants: [], selectedRef: null, explodeStoreys: false, confirmationVariantRef: null }))
 
   it('explains a ghost variant as compact object changes and metric deltas', async () => {
     useStudioStore.setState({ project: structuredClone(partialUpperModernBarnProject), variants: [] })
@@ -426,11 +427,13 @@ describe('variant explanation and viewer tools', () => {
   })
 
   it('drives the viewer without touching the project', async () => {
-    const parsed = payload(await tool('set_viewer_state').execute({ viewMode: 'technical', explode: true, focusRef: 'wall/courtyard-living' }))
-    expect(tool('set_viewer_state').annotations).toBeUndefined()
-    expect(parsed).toMatchObject({ status: 'ok', projectRevision: 1, viewer: { viewMode: 'technical', explode: true, selectedRef: 'wall/courtyard-living' } })
+    const parsed = payload(await tool('set_viewer_state').execute({ explode: true, focusRef: 'wall/courtyard-living' }))
+    expect(tool('set_viewer_state').annotations?.readOnlyHint).toBe(true)
+    expect((tool('set_viewer_state').inputSchema?.properties as Record<string, unknown>).viewMode).toBeUndefined()
+    expect(parsed).toMatchObject({ status: 'ok', projectRevision: 1, viewer: { explode: true, selectedRef: 'wall/courtyard-living' } })
+    expect(parsed.viewer.viewMode).toBeUndefined()
     const state = useStudioStore.getState()
-    expect(state.viewMode).toBe('technical'); expect(state.explodeStoreys).toBe(true); expect(state.selectedRef).toBe('wall/courtyard-living')
+    expect('viewMode' in state).toBe(false); expect(state.explodeStoreys).toBe(true); expect(state.selectedRef).toBe('wall/courtyard-living')
     expect(state.project.revision).toBe(1); expect(state.variants).toEqual([])
     expect(payload(await tool('set_viewer_state').execute({ focusRef: 'nothing/here' })).status).toBe('error')
     const cleared = payload(await tool('set_viewer_state').execute({ focusRef: null, explode: false }))
@@ -489,7 +492,7 @@ describe('sunlight WebMCP surface', () => {
 
   it('moves the viewer sun without touching the committed revision', async () => {
     const parsed = payload(await tool('set_sun_time').execute({ month: 12, day: 21, hour: 12 }))
-    expect(tool('set_sun_time').annotations).toBeUndefined()
+    expect(tool('set_sun_time').annotations?.readOnlyHint).toBe(true)
     expect(parsed).toMatchObject({ status: 'ok', projectRevision: 1, sunTime: { month: 12, day: 21, hour: 12 } })
     expect(parsed.altitudeDeg).toBeCloseTo(16.3, 0)
     expect(parsed.sunriseLocal).toBeCloseTo(7.61, 1)
@@ -509,5 +512,49 @@ describe('sunlight WebMCP surface', () => {
     expect(parsed.data[0].sunriseLocal).toBeCloseTo(4.79, 1)
     expect(parsed.data[0].sunsetLocal).toBeCloseTo(20.75, 1)
     expect(parsed.data[0].solarNoonAltitudeDeg).toBeCloseTo(61.4, 0)
+  })
+})
+
+describe('texture library over WebMCP', () => {
+  it('lists the scan library compactly and filters it by surface', async () => {
+    const result = await tool('list_textures').execute({})
+    const listed = payload(result)
+    expect(listed.status).toBe('ok')
+    expect(listed.data).toHaveLength(12)
+    expect(listed.data[0]).toMatchObject({ id: expect.any(String), name: expect.any(String), tileM: expect.any(Number), surfaces: expect.any(Array) })
+    expect(result.content[0].text.length).toBeLessThan(1500)
+    const ground = payload(await tool('list_textures').execute({ surface: 'ground' }))
+    expect(ground.data.map((item: { id: string }) => item.id)).toContain('dirt')
+    expect(ground.data.map((item: { id: string }) => item.id)).not.toContain('hinoki')
+  })
+
+  it('proposes a wall scan choice and rejects scans that are not made for walls', async () => {
+    useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [] })
+    const proposed = payload(await tool('propose_wall_finish_update').execute({ buildingRef: 'house/main', scope: 'wall', wallRef: 'wall/courtyard-right', material: 'brick', colorHex: '#8B4E3C', textureId: 'brick-floor' }))
+    expect(proposed.status).toBe('variant_created')
+    expect(useStudioStore.getState().variants[0].project.buildings[0].walls.find((wall) => wall.ref === 'wall/courtyard-right')?.finish).toEqual({ material: 'brick', colorHex: '#8B4E3C', textureId: 'brick-floor' })
+    const rejected = await tool('propose_wall_finish_update').execute({ buildingRef: 'house/main', scope: 'wall', wallRef: 'wall/courtyard-right', material: 'brick', colorHex: '#8B4E3C', textureId: 'leafy-grass' })
+    expect(payload(rejected).status).not.toBe('variant_created')
+    expect(rejected.content[0].text).toMatch(/wall/)
+    expect(useStudioStore.getState().variants).toHaveLength(1)
+  })
+
+  it('proposes a zone surface through the landscape tool and accepts scan choices inside a change set', async () => {
+    const proposed = payload(await tool('propose_landscape_update').execute({ action: 'set-surface', zoneRef: 'zone/lawn', textureId: 'forest-floor' }))
+    expect(proposed.status).toBe('variant_created')
+    expect(useStudioStore.getState().variants[0].project.landscape.zones.find((zone) => zone.ref === 'zone/lawn')?.textureId).toBe('forest-floor')
+    expect(useStudioStore.getState().project.landscape.zones.find((zone) => zone.ref === 'zone/lawn')?.textureId).toBeUndefined()
+    const project = useStudioStore.getState().project
+    payload(await tool('manage_change_set').execute({ action: 'create', changeSetRef: 'change-set/surfaces', label: 'Surfaces', baseRevision: project.revision }))
+    const appended = payload(await tool('manage_change_set').execute({ action: 'add-operations', changeSetRef: 'change-set/surfaces', operations: [
+      { type: 'landscape.update', action: 'set-surface', zoneRef: 'zone/path', textureId: 'brick-pavement' },
+      { type: 'wall.finish', buildingRef: project.buildings[0].ref, wallRef: project.buildings[0].walls[0].ref, material: 'brick', colorHex: '#8B4E3C', textureId: 'none' },
+    ] }))
+    expect(appended.operations).toHaveLength(2)
+    const finalized = payload(await tool('manage_change_set').execute({ action: 'finalize', changeSetRef: 'change-set/surfaces' }))
+    expect(finalized.status).toBe('variant_created')
+    const variant = useStudioStore.getState().variants.find((item) => item.ref === finalized.variantRef)!.project
+    expect(variant.landscape.zones.find((zone) => zone.ref === 'zone/path')?.textureId).toBe('brick-pavement')
+    expect(variant.buildings[0].walls[0].finish?.textureId).toBe('none')
   })
 })
