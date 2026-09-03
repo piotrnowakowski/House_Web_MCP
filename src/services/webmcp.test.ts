@@ -18,7 +18,14 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(webMcpTools.some((item) => /floor|room|export/.test(item.name))).toBe(false)
     expect(tool('show_structure_views').annotations?.readOnlyHint).toBe(true)
     expect(tool('list_garden_fixtures').annotations?.readOnlyHint).toBe(true)
-    for (const item of webMcpTools) expect(['<role>', '<task>', '<input>', '<tools>', '<output>', '<example_output>'].every((tag) => item.description.includes(tag))).toBe(true)
+    for (const item of webMcpTools) {
+      const prompt = Object.values(webMcpToolPrompts).find((candidate) => candidate.name === item.name)!
+      expect(item.description).toBe(prompt.runtimeDescription)
+      expect(item.description.length).toBeLessThanOrEqual(500)
+    }
+    for (const prompt of Object.values(webMcpToolPrompts)) {
+      expect(['<role>', '<task>', '<input>', '<tools>', '<output>', '<example_output>'].every((tag) => prompt.description.includes(tag))).toBe(true)
+    }
   })
 
   it('generates a complete inspectable manifest from runtime schemas and structured prompts', () => {
@@ -26,6 +33,7 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(webMcpManifest.tools.map((item) => item.name)).toEqual(webMcpTools.map((item) => item.name))
     for (const manifestTool of webMcpManifest.tools) {
       const runtimeTool = tool(manifestTool.name)
+      expect(manifestTool.description).toBe(runtimeTool.description)
       expect(manifestTool.inputSchema).toEqual(runtimeTool.inputSchema)
       expect(manifestTool.prompt).toEqual(webMcpToolPrompts[manifestTool.name].blocks)
       expect(manifestTool.exampleInput).toEqual(webMcpToolPrompts[manifestTool.name].exampleInput)

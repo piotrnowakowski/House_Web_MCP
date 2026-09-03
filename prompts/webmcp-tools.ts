@@ -1,5 +1,5 @@
 export interface WebMcpPromptBlocks { role: string; task: string; input: string; tools: string; output: string; exampleOutput: string }
-export interface WebMcpPromptDefinition { name: string; title: string; description: string; blocks: WebMcpPromptBlocks; exampleInput: unknown }
+export interface WebMcpPromptDefinition { name: string; title: string; description: string; runtimeDescription: string; blocks: WebMcpPromptBlocks; exampleInput: unknown }
 type Blocks = { name: string; title: string } & WebMcpPromptBlocks
 const role = 'You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.'
 const result = 'Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output.'
@@ -10,6 +10,7 @@ const define = (blocks: Blocks): WebMcpPromptDefinition => ({
   name: blocks.name,
   title: blocks.title,
   description: format(blocks),
+  runtimeDescription: blocks.task,
   blocks: { role: blocks.role, task: blocks.task, input: blocks.input, tools: blocks.tools, output: blocks.output, exampleOutput: blocks.exampleOutput },
   exampleInput: JSON.parse(blocks.exampleOutput),
 })

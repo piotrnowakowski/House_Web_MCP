@@ -128,6 +128,14 @@ function PlantingGuidePanel({ onClose }: { onClose: () => void }) {
 
 type ToolDetailTab = 'prompt' | 'input' | 'example' | 'result'
 const prettyJson = (value: unknown) => JSON.stringify(value, null, 2)
+const promptText = (prompt: WebMcpManifest['tools'][number]['prompt']) => [
+  `<role>\n${prompt.role}\n</role>`,
+  `<task>\n${prompt.task}\n</task>`,
+  `<input>\n${prompt.input}\n</input>`,
+  `<tools>\n${prompt.tools}\n</tools>`,
+  `<output>\n${prompt.output}\n</output>`,
+  `<example_output>\n${prompt.exampleOutput}\n</example_output>`,
+].join('\n\n')
 
 function McpToolsPanel({ onClose }: { onClose: () => void }) {
   const [manifest, setManifest] = useState<WebMcpManifest | null>(null); const [error, setError] = useState<string | null>(null); const [query, setQuery] = useState(''); const [selectedName, setSelectedName] = useState<string | null>(null); const [tab, setTab] = useState<ToolDetailTab>('prompt')
@@ -140,7 +148,7 @@ function McpToolsPanel({ onClose }: { onClose: () => void }) {
     return () => controller.abort()
   }, [])
   const normalized = query.trim().toLowerCase()
-  const tools = manifest?.tools.filter((tool) => !normalized || `${tool.name} ${tool.title} ${tool.description}`.toLowerCase().includes(normalized)) ?? []
+  const tools = manifest?.tools.filter((tool) => !normalized || `${tool.name} ${tool.title} ${tool.description} ${promptText(tool.prompt)}`.toLowerCase().includes(normalized)) ?? []
   const selected = tools.find((tool) => tool.name === selectedName) ?? tools[0] ?? null
   const choose = (name: string) => { setSelectedName(name); setTab('prompt') }
   return <section className="mcp-tools-panel" aria-label="WebMCP tool catalog">
@@ -149,7 +157,7 @@ function McpToolsPanel({ onClose }: { onClose: () => void }) {
       <aside className="tool-browser"><label htmlFor="tool-search">Search tools</label><input id="tool-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Name, title or prompt text" autoFocus /><div className="tool-count">{tools.length} of {manifest?.toolCount ?? 0}</div><nav aria-label="WebMCP tools">{tools.map((tool) => <button key={tool.name} className={selected?.name === tool.name ? 'active' : ''} onClick={() => choose(tool.name)}><span>{tool.title}</span><code>{tool.name}</code><small className={tool.readOnly ? 'read-only' : 'mutating'}>{tool.readOnly ? 'Read only' : 'Creates or changes state'}</small></button>)}</nav></aside>
       <article className="tool-detail">{selected ? <>
         <header><div><span className={selected.readOnly ? 'read-only' : 'mutating'}>{selected.readOnly ? 'READ ONLY' : 'STATEFUL'}</span><h3>{selected.title}</h3><code>{selected.name}</code></div><nav aria-label="Tool detail sections">{(['prompt', 'input', 'example', 'result'] as const).map((value) => <button key={value} className={tab === value ? 'active' : ''} onClick={() => setTab(value)}>{value === 'input' ? 'Input schema' : value === 'result' ? 'Result shape' : value}</button>)}</nav></header>
-        <div className="tool-document">{tab === 'prompt' ? <><p className="tool-intro">Complete registered description, assembled from the structured role, task, input, tools, output and example-output blocks.</p><pre>{selected.description}</pre></> : <><p className="tool-intro">{tab === 'input' ? 'Draft-7 JSON Schema generated from the exact Zod schema used during tool execution.' : tab === 'example' ? 'Valid example arguments extracted from the prompt definition.' : 'Documented JSON result contract for successful execution.'}</p><pre>{prettyJson(tab === 'input' ? selected.inputSchema : tab === 'example' ? selected.exampleInput : selected.resultShape)}</pre></>}</div>
+        <div className="tool-document">{tab === 'prompt' ? <><p className="tool-intro">Complete structured role, task, input, tools, output and example-output contract. Runtime registration uses its concise task block as the tool description.</p><pre>{promptText(selected.prompt)}</pre></> : <><p className="tool-intro">{tab === 'input' ? 'Draft-7 JSON Schema generated from the exact Zod schema used during tool execution.' : tab === 'example' ? 'Valid example arguments extracted from the prompt definition.' : 'Documented JSON result contract for successful execution.'}</p><pre>{prettyJson(tab === 'input' ? selected.inputSchema : tab === 'example' ? selected.exampleInput : selected.resultShape)}</pre></>}</div>
       </> : <div className="no-tools"><strong>No matching tools</strong><p>Try a broader name or prompt term.</p></div>}</article>
     </div>}
   </section>

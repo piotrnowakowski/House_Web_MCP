@@ -139,7 +139,7 @@ export const createWebMcpManifest = (): WebMcpManifest => {
   const tools = (Object.keys(webMcpSchemas) as WebMcpToolName[]).map((name) => {
     const prompt = webMcpToolPrompts[name]
     return {
-      name, title: prompt.title, readOnly: readOnlyTools.has(name), description: prompt.description, prompt: prompt.blocks,
+      name, title: prompt.title, readOnly: readOnlyTools.has(name), description: prompt.runtimeDescription, prompt: prompt.blocks,
       inputSchema: z.toJSONSchema(webMcpSchemas[name], { target: 'draft-7' }) as Record<string, unknown>,
       exampleInput: prompt.exampleInput, resultShape: resultShapeFor(name),
     }

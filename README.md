@@ -82,7 +82,7 @@ Promise.all(
 return () => controller.abort()
 ```
 
-The implementation lives in [`src/services/webmcp.ts`](src/services/webmcp.ts). A centralized Zod registry in [`src/services/webmcpDefinitions.ts`](src/services/webmcpDefinitions.ts) generates the exact Draft-7 input schemas used by both runtime registration and the public [`webmcp-tools.json`](public/webmcp-tools.json) manifest.
+The implementation lives in [`src/services/webmcp.ts`](src/services/webmcp.ts). A centralized Zod registry in [`src/services/webmcpDefinitions.ts`](src/services/webmcpDefinitions.ts) generates the exact Draft-7 input schemas used by both runtime registration and the public [`webmcp-tools.json`](public/webmcp-tools.json) manifest. Runtime descriptions use the concise task block so every tool stays within [Chrome's recommended description budget](https://developer.chrome.com/docs/ai/webmcp/secure-tools#set-character-budgets); the public manifest retains the complete role, task, input, tools, output and example contract for inspection.
 
 Read tools return structured state or open a visible in-page report. Modifying tools call the same commands used by the interface and return an immutable variant reference. Transactional tools stage several typed operations against an explicit base revision before finalizing one reviewable variant. An `AbortController` removes registrations when the application unmounts.
 
