@@ -35,7 +35,7 @@ const modeTitles = {
 
 function Toolbar({ onOpenClimate, onOpenPlanting, onOpenMcpTools, onOpenProposals }: { onOpenClimate: () => void; onOpenPlanting: () => void; onOpenMcpTools: () => void; onOpenProposals: () => void }) {
   const project = useStudioStore((state) => state.project); const viewerMode = useStudioStore((state) => state.viewerMode); const setViewerMode = useStudioStore((state) => state.setViewerMode)
-  const viewMode = useStudioStore((state) => state.viewMode); const setViewMode = useStudioStore((state) => state.setViewMode); const explode = useStudioStore((state) => state.explodeStoreys); const setExplode = useStudioStore((state) => state.setExplodeStoreys)
+  const explode = useStudioStore((state) => state.explodeStoreys); const setExplode = useStudioStore((state) => state.setExplodeStoreys)
   const setActivePlan = useStudioStore((state) => state.setActivePlanStoreyRef); const webMcp = useStudioStore((state) => state.webMcpAvailable); const setToast = useStudioStore((state) => state.setToast)
   const proposals = useStudioStore((state) => state.proposals); const proposalCounts = { pending: proposals.filter((proposal) => proposal.status === 'pending').length, approved: proposals.filter((proposal) => proposal.status === 'approved').length, rejected: proposals.filter((proposal) => proposal.status === 'rejected').length, stale: proposals.filter((proposal) => proposal.status === 'stale').length }
   const [busy, setBusy] = useState(false)
@@ -52,7 +52,6 @@ function Toolbar({ onOpenClimate, onOpenPlanting, onOpenMcpTools, onOpenProposal
       else setViewerMode(value)
     }} title={modeTitles[value]}>{label}</button>)}</nav>
     <div className="top-actions">
-      <button onClick={() => setViewMode(viewMode === 'technical' ? 'realistic' : 'technical')}>{viewMode === 'technical' ? 'Technical' : 'Realistic'}</button>
       <button className={explode ? 'active' : ''} aria-pressed={explode} title="Separate every room, storey and the roof" onClick={() => {
         const next = !explode; setViewerMode('edit'); setExplode(next)
         const rooms = project.buildings.reduce((sum, building) => sum + building.spaces.length, 0)
@@ -408,7 +407,7 @@ function SunWidget() {
   const project = useStudioStore((state) => state.project); const sunTime = useStudioStore((state) => state.sunTime); const setSunTime = useStudioStore((state) => state.setSunTime)
   const sunAnimation = useStudioStore((state) => state.sunAnimation); const setSunAnimation = useStudioStore((state) => state.setSunAnimation)
   const sunOverlay = useStudioStore((state) => state.sunOverlay); const setSunOverlay = useStudioStore((state) => state.setSunOverlay)
-  const selectedRef = useStudioStore((state) => state.selectedRef); const viewMode = useStudioStore((state) => state.viewMode)
+  const selectedRef = useStudioStore((state) => state.selectedRef)
   const { latitude, longitude, timezone } = project.climateProfile
   const events = sunriseSunset({ latitude, longitude, timezone }, sunTime); const sun = solarPosition({ latitude, longitude, timezone }, sunTime)
   const min = events ? Math.floor(events.sunriseHour * 4) / 4 : 0; const max = events ? Math.ceil(events.sunsetHour * 4) / 4 : 24
@@ -442,7 +441,6 @@ function SunWidget() {
       <button className={sunAnimation === 'year' ? 'active' : ''} aria-pressed={sunAnimation === 'year'} onClick={() => setSunAnimation(sunAnimation === 'year' ? 'none' : 'year')}>Play year</button>
       <button className={sunOverlay.enabled ? 'active' : ''} aria-pressed={sunOverlay.enabled} onClick={() => setSunOverlay({ enabled: !sunOverlay.enabled, targetRef, result: null })}>Sun hours</button>
     </div>
-    {viewMode === 'technical' && <small className="sun-note">Technical mode keeps a neutral studio light; sun-hours analysis still uses the real sun.</small>}
     {sunOverlay.enabled && sunOverlay.result && <div className="sun-legend" aria-label="Sun hours legend">
       <i style={{ background: `linear-gradient(90deg, ${sunHoursColor(0)}, ${sunHoursColor(0.5)}, ${sunHoursColor(1)})` }} />
       <div><span>0 h</span><span>{legendTop.toFixed(1)} h direct sun</span></div>

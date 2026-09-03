@@ -49,10 +49,10 @@ selection; teal remains the keyboard-focus and hover color.
 
 ## Material system
 
-- Realistic mode uses four Poly Haven CC0 scans shipped under `public/textures/`
+- The scene uses four Poly Haven CC0 scans shipped under `public/textures/`
   (about 9.5 MB): leafy grass for lawns and the terrain, brick pavers for terrace,
   path and drive, hinoki planks for natural-timber walls and raised beds, and
-  coated pine for the barn's interior floors. Technical mode remains texture-free.
+  coated pine for the barn's interior floors. There is a single rendering mode.
 - Textures tile at true physical scale: 1.9 m brick and hinoki tiles, 2.0 m grass,
   0.7 m pine. Ground polygons already carry metre UVs from ShapeGeometry; the
   geometry worker emits planar metre UVs for walls and slabs.

@@ -1,7 +1,6 @@
 export type Vec2 = { x: number; z: number }
 export type Vec3 = { x: number; y: number; z: number }
 export type Polygon2 = Vec2[]
-export type ViewMode = 'technical' | 'realistic'
 export type TransformMode = 'translate' | 'scale' | 'rotate'
 export type ViewerMode = 'edit' | 'measure-length' | 'measure-area' | 'measure-height' | 'section' | 'plan'
 export type HeightMeasureKind = 'auto' | 'object-height' | 'ground-to-eaves' | 'ground-to-ridge' | 'clear-height' | 'opening-height' | 'terrain-clearance'

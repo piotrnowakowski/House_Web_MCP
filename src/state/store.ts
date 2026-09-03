@@ -4,7 +4,7 @@ import { applyModernBarnPreset, isModernBarnPreset } from '../domain/presets'
 import { modernBarnProject } from '../domain/sampleProject'
 import { REFERENCE_YEAR, type SunTime } from '../domain/solar'
 import type { SunlightAnalysis } from '../domain/sunlight'
-import type { DraftChangeSetModel, HeightMeasureKind, PersistedWorkspace, ProjectCommand, ProjectV2, ProposalRecord, StructureReport, TransformMode, VariantModel, ViewerMode, ViewMode } from '../domain/types'
+import type { DraftChangeSetModel, HeightMeasureKind, PersistedWorkspace, ProjectCommand, ProjectV2, ProposalRecord, StructureReport, TransformMode, VariantModel, ViewerMode } from '../domain/types'
 
 interface StudioState {
   project: ProjectV2
@@ -14,7 +14,6 @@ interface StudioState {
   draftChangeSets: DraftChangeSetModel[]
   selectedRef: string | null
   repositioningRef: string | null
-  viewMode: ViewMode
   transformMode: TransformMode
   viewerMode: ViewerMode
   heightMeasureKind: HeightMeasureKind
@@ -34,7 +33,6 @@ interface StudioState {
   cameraRefocusRequest: number
   gardenFocusRequest: { sequence: number; targetX: number; targetZ: number }
   setSelectedRef: (ref: string | null) => void
-  setViewMode: (mode: ViewMode) => void
   setTransformMode: (mode: TransformMode) => void
   setViewerMode: (mode: ViewerMode) => void
   setHeightMeasureKind: (kind: HeightMeasureKind) => void
@@ -91,12 +89,11 @@ const staleDrafts = (drafts: DraftChangeSetModel[], revision: number) => drafts.
 
 export const useStudioStore = create<StudioState>((set, get) => ({
   project: structuredClone(modernBarnProject), history: [], variants: [], proposals: [], draftChangeSets: [], selectedRef: null, repositioningRef: null,
-  viewMode: 'realistic', transformMode: 'translate', viewerMode: 'edit', heightMeasureKind: 'auto', activePlanStoreyRef: null, month: 7,
+  transformMode: 'translate', viewerMode: 'edit', heightMeasureKind: 'auto', activePlanStoreyRef: null, month: 7,
   sunTime: { month: 7, day: 15, hour: 14 }, sunAnimation: 'none', sunOverlay: { enabled: false, targetRef: null, result: null },
   explodeStoreys: false, webMcpAvailable: false, texturesReady: false, hydrated: false, confirmationVariantRef: null, structureReport: null,
   toast: 'Loaded the ProjectV2 Zielonki spatial model.', helpOpen: false, cameraRefocusRequest: 0, gardenFocusRequest: { sequence: 0, targetX: 0, targetZ: 0 },
   setSelectedRef: (selectedRef) => set({ selectedRef }),
-  setViewMode: (viewMode) => set({ viewMode }),
   setTransformMode: (transformMode) => set({ transformMode }),
   setViewerMode: (viewerMode) => set({ viewerMode, activePlanStoreyRef: viewerMode === 'plan' ? get().activePlanStoreyRef : null }),
   setHeightMeasureKind: (heightMeasureKind) => set({ heightMeasureKind }),

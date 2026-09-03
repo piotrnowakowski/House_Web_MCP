@@ -78,8 +78,8 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await expect(explode).toHaveAttribute('aria-pressed', 'false')
   await expect(page.locator('.exploded-room-label')).toHaveCount(0)
 
-  await page.getByRole('button', { name: 'Realistic' }).click()
-  await expect(page.getByRole('button', { name: 'Technical' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Realistic' })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Technical' })).toHaveCount(0)
   await expect(page.getByRole('button', { name: 'Angle', exact: true })).toHaveCount(0)
   const canvas = page.getByRole('application', { name: 'Interactive ProjectV2 spatial editor' })
   const canvasBounds = await canvas.boundingBox(); if (!canvasBounds) throw new Error('Canvas bounds unavailable.')

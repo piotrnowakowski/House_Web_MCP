@@ -4928,13 +4928,13 @@
     {
       "name": "set_viewer_state",
       "title": "Set viewer state",
-      "readOnly": false,
+      "readOnly": true,
       "untrustedContent": false,
-      "description": "Show the person something in the scene: switch realistic or technical mode, explode the rooms and roof apart, open a storey plan, or select and highlight one object by ref. Changes only the viewer; the committed project and its revision stay untouched.",
+      "description": "Show the person something in the scene: explode the rooms and roof apart, open a storey plan, or select and highlight one object by ref. Changes only the viewer; the committed project and its revision stay untouched.",
       "prompt": {
         "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
-        "task": "Show the person something in the scene: switch realistic or technical mode, explode the rooms and roof apart, open a storey plan, or select and highlight one object by ref. Changes only the viewer; the committed project and its revision stay untouched.",
-        "input": "All fields optional: `viewMode` (`realistic`|`technical`), `explode` (boolean), `planStoreyRef` (storey ref or null), `focusRef` (object ref to select, or null to clear).",
+        "task": "Show the person something in the scene: explode the rooms and roof apart, open a storey plan, or select and highlight one object by ref. Changes only the viewer; the committed project and its revision stay untouched.",
+        "input": "All fields optional: `explode` (boolean), `planStoreyRef` (storey ref or null), `focusRef` (object ref to select, or null to clear).",
         "tools": "Use after a proposal or analysis to point at what you mean, for example focusRef on the wall you changed. Changes only viewer state and never creates or applies a project proposal.",
         "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. Returns viewer with viewMode, explode, viewerMode, activePlanStoreyRef and selectedRef.",
         "exampleOutput": "{\"viewMode\":\"realistic\",\"focusRef\":\"wall/courtyard-living\"}"
@@ -4943,14 +4943,6 @@
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "properties": {
-          "viewMode": {
-            "type": "string",
-            "enum": [
-              "technical",
-              "realistic"
-            ],
-            "description": "realistic shows materials and the real sun; technical shows flat colours with a neutral studio light."
-          },
           "explode": {
             "type": "boolean",
             "description": "true separates every room, storey and the roof so the person can see the interior structure."
@@ -5010,7 +5002,6 @@
           "viewer": {
             "type": "object",
             "required": [
-              "viewMode",
               "explode",
               "viewerMode",
               "selectedRef"
@@ -5022,7 +5013,7 @@
     {
       "name": "set_sun_time",
       "title": "Set viewer sun time",
-      "readOnly": false,
+      "readOnly": true,
       "untrustedContent": false,
       "description": "Move the scene sun to a local date and time so the person sees the real shadows for that moment. This changes only the viewer; the committed project and its revision stay untouched.",
       "prompt": {
