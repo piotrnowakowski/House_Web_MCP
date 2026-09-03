@@ -1,4 +1,4 @@
-import { buildingPlacement } from '../domain/roofWings'
+import { buildingPlacement } from '../domain/geometry'
 import { formatSunMoment } from '../domain/sunlight'
 import type { ProjectV2, StructureReport, StructureViewRequest } from '../domain/types'
 import { useStudioStore } from '../state/store'

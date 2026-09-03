@@ -6,6 +6,7 @@ export type TransformMode = 'translate' | 'scale' | 'rotate'
 export type ViewerMode = 'edit' | 'measure-length' | 'measure-area' | 'measure-height' | 'section' | 'plan'
 export type HeightMeasureKind = 'auto' | 'object-height' | 'ground-to-eaves' | 'ground-to-ridge' | 'clear-height' | 'opening-height' | 'terrain-clearance'
 export type RoofType = 'flat' | 'gable' | 'hip'
+export type RoofMaterial = 'standing-seam-metal' | 'tile' | 'slate' | 'membrane'
 export type BuildingKind = 'house' | 'garage'
 export type ArchitecturalStyle = 'classic' | 'futuristic' | 'barn'
 export type GardenZoneKind = 'lawn' | 'terrace' | 'path' | 'driveway' | 'bed' | 'rain-garden' | 'vegetable'
@@ -56,7 +57,17 @@ export interface SlabModel { ref: string; footprint: Polygon2; topElevationM: nu
 export interface CeilingFinishModel { ref: string; spaceRef: string; hostBoundaryRef: string; elevationM: number; thicknessM: number }
 export interface PlatformModel { ref: string; spaceRef: string; footprint: Polygon2; elevationM: number; thicknessM: number }
 export interface StoreyModel { ref: string; name: string; level: number; elevationM: number; clearHeightM: number; baseSlabRef: string; topBoundaryRef: string; wallRefs: string[]; spaceRefs: string[]; platformRefs: string[]; ceilingFinishRefs: string[] }
-export interface RoofModel { ref: string; type: RoofType; baseElevationM: number; pitchDegrees: number; overhangM: number; footprint?: Polygon2 }
+export interface RoofFinish { material: RoofMaterial; colorHex: string }
+export type RoofJunctionType = 'valley' | 'intersection'
+export interface RoofJunctionModel { ref: string; type: RoofJunctionType; segmentRefs: [string, string] }
+export interface RoofSegmentModel {
+  ref: string; footprint: Polygon2; storeyRef?: string; spaceRef?: string; baseElevationM: number; type: RoofType; pitchDegrees: number; overhangM: number
+  ridgeDirection: 'x' | 'z'; finish: RoofFinish; adjacentSegmentRefs: string[]
+}
+export interface RoofModel {
+  ref: string; type: RoofType; baseElevationM: number; pitchDegrees: number; overhangM: number; footprint?: Polygon2
+  finish: RoofFinish; segments: RoofSegmentModel[]; junctions: RoofJunctionModel[]
+}
 export interface BuildingModel {
   ref: string; name: string; kind: BuildingKind; architecturalStyle: ArchitecturalStyle; garageMode?: 'integrated' | 'attached'
   position: Vec2; rotationDegrees: number; storeys: StoreyModel[]; slabs: SlabModel[]; walls: WallModel[]; spaces: SpaceModel[]
@@ -86,7 +97,17 @@ export type SpaceUpdateCommand = { type: 'space.update'; action: 'add' | 'remove
 export type WallUpdateCommand = { type: 'wall.update'; action: 'move' | 'set-thickness' | 'set-height'; buildingRef: string; wallRef: string; start?: Vec2; end?: Vec2; thicknessM?: number; heightM?: number }
 export type WallFinishUpdateCommand = { type: 'wall.finish'; buildingRef: string; wallRef: string; material: WallMaterial; colorHex: string }
 export type OpeningUpdateCommand = { type: 'opening.update'; action: 'add' | 'remove' | 'resize' | 'move'; buildingRef: string; wallRef: string; openingRef: string; kind?: OpeningModel['kind']; offsetM?: number; widthM?: number; heightM?: number; sillM?: number }
-export type RoofUpdateCommand = { type: 'roof.update'; buildingRef: string; roofType?: RoofType; pitchDegrees?: number; overhangM?: number }
+export interface RoofSegmentDefinition {
+  segmentRef: string; footprint: Polygon2; ridgeDirection: 'x' | 'z'; storeyRef?: string; spaceRef?: string
+  roofType?: RoofType; pitchDegrees?: number; overhangM?: number; baseElevationM?: number; material?: RoofMaterial; colorHex?: string
+}
+export type RoofUpdateCommand = {
+  type: 'roof.update'; action?: 'update' | 'add-segment' | 'split-segment'; buildingRef: string; roofRef?: string; segmentRef?: string
+  footprint?: Polygon2; ridgeDirection?: 'x' | 'z'; storeyRef?: string; spaceRef?: string; segments?: RoofSegmentDefinition[]; junctions?: RoofJunctionModel[]
+  roofType?: RoofType; pitchDegrees?: number; overhangM?: number
+  baseElevationM?: number; targetEavesElevationM?: number; verticalDeltaM?: number; material?: RoofMaterial; colorHex?: string
+  synchronization?: 'roof-only' | 'roof-and-supporting-walls' | 'storey-height'; alignToSegmentRef?: string; alignEdge?: 'eaves' | 'ridge'
+}
 export type PlatformUpdateCommand = { type: 'platform.update'; action: 'add' | 'remove' | 'resize'; buildingRef: string; storeyRef: string; spaceRef: string; platformRef: string; footprint?: Polygon2; elevationM?: number; thicknessM?: number }
 export type LandscapeUpdateCommand = { type: 'landscape.update'; action: 'add' | 'remove' | 'set-footprint' | 'move'; zoneRef: string; name?: string; kind?: GardenZoneKind; footprint?: Polygon2; delta?: Vec2 }
 export type PlantUpdateCommand = { type: 'plant.update'; action: 'add' | 'remove' | 'move'; plantRef: string; name?: string; species?: string; kind?: PlantKind; position?: Vec2 }
@@ -100,6 +121,12 @@ export type ClimateUpdateCommand = { type: 'climate.update'; month: number; valu
 export type ProjectCommand = SiteUpdateCommand | TerrainUpdateCommand | BuildingUpdateCommand | StoreyUpdateCommand | SlabUpdateCommand | SpaceUpdateCommand | WallUpdateCommand | WallFinishUpdateCommand | OpeningUpdateCommand | RoofUpdateCommand | PlatformUpdateCommand | LandscapeUpdateCommand | PlantUpdateCommand | PlantingAreaUpdateCommand | GardenFixtureUpdateCommand | ClimateUpdateCommand
 
 export interface VariantModel { ref: string; label: string; baseRevision: number; createdAt: string; commands: ProjectCommand[]; project: ProjectV2; issues: ProjectIssue[]; metrics: ProjectMetrics }
+export type ProposalStatus = 'pending' | 'approved' | 'rejected' | 'stale'
+export interface ProposalRecord extends VariantModel {
+  status: ProposalStatus; decisionAt?: string; resultingRevision?: number; rejectionReason?: string; sourceChangeSetRef?: string; recreatedFromRef?: string
+}
+export interface DraftChangeSetModel { ref: string; label: string; baseRevision: number; createdAt: string; commands: ProjectCommand[]; status: 'draft' | 'stale' }
+export interface PersistedWorkspace { version: 1; project: ProjectV2; proposals: ProposalRecord[]; draftChangeSets: DraftChangeSetModel[] }
 export interface HeightMeasurementPoint { x: number; y: number; z: number; reference: string }
 export interface HeightMeasurement {
   objectRef?: string; buildingRef?: string; kind: HeightMeasureKind | 'free-vertical'; label: string; heightM: number

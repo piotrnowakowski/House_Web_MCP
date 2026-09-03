@@ -1,7 +1,9 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { applyCommand, calculateMetrics, validateProject } from '../domain/commands'
 import { sampleProject } from '../domain/sampleProject'
-import { loadProject, saveProject } from './persistence'
+import type { ProposalRecord } from '../domain/types'
+import { loadProject, loadWorkspace, saveProject, saveWorkspace } from './persistence'
 
 const deleteDatabase = () => new Promise<void>((resolve, reject) => {
   const request = indexedDB.deleteDatabase('house-web-mcp'); request.onsuccess = () => resolve(); request.onerror = () => reject(request.error)
@@ -52,6 +54,8 @@ describe('ProjectV2 persistence boundary', () => {
   it('migrates saved Zielonki site geometry to the corrected subdivision outline', async () => {
     const stale = structuredClone(sampleProject)
     stale.site.knowledgeBase.datasetVersion = 'zielonki-knowledge-bank-2026-09-03'
+    delete (stale.buildings[0].roof as Partial<typeof stale.buildings[0]['roof']>).segments
+    delete (stale.buildings[0].roof as Partial<typeof stale.buildings[0]['roof']>).finish
     const parcel55 = stale.site.parcels.find((parcel) => parcel.cadastralNumber === '55/4')!
     parcel55.boundary = [{ x: -9.246, z: 15.882 }, { x: 0.8, z: 15.882 }, { x: 0.8, z: 161.017 }, { x: -9.246, z: 161.017 }]
     await putCurrentRecord(stale)
@@ -59,7 +63,19 @@ describe('ProjectV2 persistence boundary', () => {
     const restored = await loadProject()
     const corrected55 = restored!.site.parcels.find((parcel) => parcel.cadastralNumber === '55/4')!
     expect(restored!.site.knowledgeBase.datasetVersion).toBe('zielonki-knowledge-bank-2026-09-03-outline-v3')
+    expect(restored!.buildings[0].roof.segments).toHaveLength(1)
+    expect(restored!.buildings[0].roof.segments[0].ref).toBe('roof/main/segment-main')
     expect(Math.max(...corrected55.boundary.map((point) => point.z))).toBeCloseTo(186.012, 3)
     expect(corrected55.boundary.some((point) => point.x === -2.152166)).toBe(true)
+  })
+
+  it('restores pending proposal audits and drafts alongside the project', async () => {
+    const command = { type: 'plant.update', action: 'move', plantRef: 'plant/hydrangea', position: { x: -7.5, z: 9 } } as const
+    const preview = applyCommand(sampleProject, command)
+    const proposal: ProposalRecord = { ref: 'variant/persisted', label: 'Move hydrangea', baseRevision: 1, createdAt: '2026-09-03T12:00:00.000Z', commands: [command], project: preview, issues: validateProject(preview), metrics: calculateMetrics(preview), status: 'pending' }
+    await saveWorkspace({ version: 1, project: sampleProject, proposals: [proposal], draftChangeSets: [{ ref: 'change-set/persisted', label: 'Garden revision', baseRevision: 1, createdAt: '2026-09-03T12:01:00.000Z', commands: [], status: 'draft' }] })
+    const restored = await loadWorkspace()
+    expect(restored?.proposals[0]).toMatchObject({ ref: 'variant/persisted', status: 'pending', project: { buildings: [{ roof: { segments: expect.any(Array) } }] } })
+    expect(restored?.draftChangeSets).toEqual([expect.objectContaining({ ref: 'change-set/persisted', status: 'draft' })])
   })
 })

@@ -111,3 +111,105 @@ Add a height measurement mode to the human interface and a matching read-only We
 ### Acceptance scenario
 
 The user should be able to select one wing or wall of the L-shaped barn and measure ground-to-eaves height, ground-to-ridge height, storey clear height, wall height and individual opening height. The visible annotation and WebMCP result should agree and identify the exact semantic segment and reference points used.
+
+# Part 2 — Persistent proposal review and history
+
+## Store proposals and their decisions in one visible place
+
+### Observed request
+
+The user could not find the grouped garage-and-driveway proposal even though the ghost variant still existed. The user asked for a dedicated place where proposals remain visible and where pending, approved and rejected decisions are stored.
+
+### Previous limitation
+
+The current approval card is a temporary overlay tied to the active confirmation flow. It does not provide a persistent proposal inbox or history. A proposal can therefore be difficult to rediscover after the approval request times out, the overlay is dismissed, the browser reloads or another panel takes focus. Applied and rejected variants also disappear from the active variant list, so the user cannot review the decision trail later.
+
+### Implementation contract
+
+Add a persistent proposal review area shared by the human interface and WebMCP. It should:
+
+1. Provide an always-discoverable **Proposals** entry showing counts for pending, approved, rejected and stale proposals.
+2. Persist every proposal with its stable reference, label, base revision, creation time, complete operation audit, metrics, warnings and validation errors.
+3. Allow a pending proposal to be reopened, refocused in the scene and returned to the approval card without recreating it.
+4. Store the final decision, decision time and resulting project revision for approved proposals; rejected proposals should remain visible as read-only history and may include an optional rejection reason.
+5. Clearly distinguish draft change sets, review-ready ghost variants and completed decisions.
+6. Prevent stale proposals from being applied while preserving them for inspection and offering an explicit recreate-from-current-revision action.
+7. Persist proposal history across reloads and sessions, while keeping undo history and proposal history conceptually separate.
+8. Expose read-only WebMCP tools to list and inspect proposals, plus a safe action to reopen a pending proposal for human review.
+
+### Acceptance scenario
+
+After the garage-and-driveway change set is proposed, the user can leave the approval card, reload the app and later open **Proposals**. The proposal is listed as pending with its garage and driveway operations, preview, metrics and warning. Approving or rejecting it moves the same record into the corresponding history section without deleting the audit trail.
+
+Implemented in the current project with persistent proposal and draft records, status counts, reload-safe review, stale-proposal recreation and the read-only `get_proposals` WebMCP tool.
+
+## Add move and delete controls to the selected-object inspector
+
+### Observed request
+
+When a semantic object such as `plant/hydrangea` is selected, the user wants **Move** and **Delete** buttons directly in the right-hand inspector beneath the selected object's identity.
+
+### Requested adjustment
+
+Add contextual **Move** and **Delete** actions to the selected-object inspector for objects that support those operations. **Move** should enter the existing repositioning workflow for the selected object. **Delete** should clearly identify the object, require confirmation, and preserve the normal proposal, approval and undo safeguards. Hide or disable either action when the selected object is locked or does not support that operation.
+
+Implemented in the current project for buildings, plants, garden fixtures and landscape zones. Move is shown only for objects with an interactive repositioning workflow; Delete creates a confirmed ghost proposal before approval.
+
+## Raise and restyle individual roof segments through WebMCP
+
+### Observed request
+
+After the existing upper storey was extended over the previously single-storey wing, the user asked for that wing's roof to move up with the new level and visually match the original modern-barn roof. The walls could be changed to charred timber, but the rear roof remained visually different and could not be repositioned independently through WebMCP.
+
+### Current limitation
+
+`propose_roof_update` currently exposes only `buildingRef`, `roofType`, `pitchDegrees` and `overhangM`. It cannot set roof elevation or finish. The building model also stores one `roof` object for the complete L-shaped building, so the separately rendered roof planes have no stable semantic references of their own.
+
+Adding only `baseElevationM` to the existing command would allow the complete `roof/main` object to move vertically, but it would move every roof plane together. It would not raise only the newly extended wing, align one ridge or eaves line with another, or correct the grey-versus-black finish difference. Moving a roof without coordinating its supporting walls could also leave a physical gap or overlap.
+
+The existing storey-footprint extension updates the shared slab, walls, space and overall roof footprint, but it does not create or preserve independently targetable roof segments with their own elevation and finish properties.
+
+### Required domain-model adjustment
+
+Represent a building roof as one or more semantic roof segments while preserving a parent roof reference for whole-roof operations. Each segment should have:
+
+1. A stable `roofRef` or `segmentRef`.
+2. Its own footprint and relationship to the storey or space below it.
+3. Base or eaves elevation, pitch, roof type and overhang.
+4. Ridge direction or other orientation data needed for deterministic gable geometry.
+5. Finish information such as material and opaque colour.
+6. Explicit adjacency or junction information so valleys, ridges and intersections between segments remain valid.
+
+Existing single-roof projects should remain compatible by treating their current roof as one default segment until it is split by an architectural operation.
+
+### Required `propose_roof_update` adjustment
+
+Extend the existing tool instead of adding another top-level WebMCP tool. The command should support:
+
+1. `buildingRef` plus an optional `roofRef` or `segmentRef`; omitting the segment should explicitly mean the complete roof.
+2. `baseElevationM`, `targetEavesElevationM` or a clearly named vertical delta for direct vertical positioning.
+3. Existing roof type, pitch and overhang updates at either whole-roof or segment scope.
+4. Roof finish properties, including material and colour, so a new segment can match the original roof.
+5. An explicit synchronization mode that distinguishes moving only the roof from raising the roof together with supporting upper walls or changing the associated storey height.
+6. Optional target alignment, such as matching another segment's eaves or ridge elevation, without requiring the agent to infer a fragile numeric offset.
+
+The input schema, project command type, command handler, ghost-variant output and audit description must all expose the same fields. This capability is unrelated to the WebMCP tool-count limit because it extends the existing roof-update tool.
+
+### Validation and review contract
+
+A proposed roof update should:
+
+1. Reject a roof below the highest supporting wall or report the resulting overlap.
+2. Detect gaps between the roof and supporting walls unless the proposal also extends those walls atomically.
+3. Validate ridge, valley and intersection geometry between adjacent roof segments.
+4. Preserve connected segments unless the proposal explicitly changes their junction.
+5. Report old and new eaves, ridge and overall building heights.
+6. Produce axonometric, elevation and section previews in which the targeted segment is visibly identified.
+7. Show finish changes in the same preview rather than reporting only semantic values.
+8. Apply the roof, wall, storey and finish operations as one grouped variant with one approval and one undo step.
+
+### Acceptance scenario
+
+For the current L-shaped modern barn, WebMCP should identify the roof segment above the newly extended upper wing, raise or align its eaves with the top of the new upper-storey walls, preserve a valid junction with the original perpendicular gable, and apply the same dark modern-barn roof finish. The original roof segment must remain at its existing elevation unless included explicitly. Before approval, the architectural preview and height measurements should make the two segment elevations, ridge relationship and matching finish unambiguous.
+
+Implemented in the current project with parent-and-segment roof semantics, per-segment elevation and finish, alignment and synchronization modes, support/junction validation, structured before/after metrics and visibly selectable segment previews. The same tool can now add a segment or atomically replace one malformed concave segment with multiple footprint-bounded segments, independent ridge directions, support links and explicitly typed valley/intersection junctions. Complete orthogonal L-shaped top-storey extensions are decomposed into perpendicular roof wings instead of being assigned to one concave gable.

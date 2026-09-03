@@ -58,6 +58,65 @@ describe('ProjectV2 command bus', () => {
     expect(validateProject(result).filter((issue) => issue.severity === 'error')).toEqual([])
   })
 
+  it('decomposes a complete concave upper-storey footprint into perpendicular roof wings', () => {
+    const starting = structuredClone(modernBarnProject)
+    const building = starting.buildings[0]
+    building.roof.segments = [structuredClone(building.roof.segments.find((segment) => segment.ref === 'roof/main/segment-upper-wing')!)]
+    building.roof.junctions = []
+    const completeFootprint = structuredClone(building.slabs[0].footprint)
+    const result = applyCommand(starting, {
+      type: 'storey.update', action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper', footprint: completeFootprint,
+      spaceRef: 'house/main/storey-upper/space-wing', spaceName: 'Upper wing', usage: 'living',
+    })
+    const roof = result.buildings[0].roof
+    expect(roof.segments).toHaveLength(2)
+    expect(roof.segments.map((segment) => segment.ridgeDirection)).toEqual(expect.arrayContaining(['z', 'x']))
+    expect(roof.segments.every((segment) => Math.abs(segment.baseElevationM - 6.55) < 0.001 && segment.finish.colorHex === '#2D3435')).toBe(true)
+    expect(roof.segments.find((segment) => segment.ridgeDirection === 'x')?.spaceRef).toBe('house/main/storey-upper/space-wing')
+    expect(roof.junctions).toEqual([expect.objectContaining({ type: 'valley', segmentRefs: expect.arrayContaining(roof.segments.map((segment) => segment.ref)) })])
+    expect(validateProject(result).filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
+  it('atomically splits a malformed L-shaped roof segment into two declared gables', () => {
+    const extended = applyCommand(modernBarnProject, {
+      type: 'storey.update', action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
+      extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }],
+      spaceRef: 'house/main/storey-upper/space-wing', spaceName: 'Upper wing', usage: 'living',
+    })
+    const malformed = structuredClone(extended); const roof = malformed.buildings[0].roof; const source = structuredClone(roof.segments[0])
+    roof.segments = [{ ...source, ref: 'roof/main/segment-main', footprint: structuredClone(roof.footprint!), spaceRef: 'house/main/storey-upper/space-main', ridgeDirection: 'z', adjacentSegmentRefs: [] }]
+    roof.junctions = []
+    const result = applyCommand(malformed, {
+      type: 'roof.update', action: 'split-segment', buildingRef: 'house/main', segmentRef: 'roof/main/segment-main',
+      segments: [
+        { segmentRef: 'roof/main/segment-original-wing', footprint: [{ x: -8, z: 1 }, { x: -2, z: 1 }, { x: -2, z: 10 }, { x: -8, z: 10 }], ridgeDirection: 'z', storeyRef: 'house/main/storey-upper', spaceRef: 'house/main/storey-upper/space-main' },
+        { segmentRef: 'roof/main/segment-extended-wing', footprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -8, z: 1 }], ridgeDirection: 'x', storeyRef: 'house/main/storey-upper', spaceRef: 'house/main/storey-upper/space-wing' },
+      ],
+      junctions: [{ ref: 'roof/main/junction-original-extended', type: 'valley', segmentRefs: ['roof/main/segment-original-wing', 'roof/main/segment-extended-wing'] }],
+    })
+    const repaired = result.buildings[0].roof
+    expect(repaired.segments).toHaveLength(2)
+    expect(repaired.segments.map((segment) => ({ ref: segment.ref, ridgeDirection: segment.ridgeDirection, baseElevationM: segment.baseElevationM, finish: segment.finish }))).toEqual([
+      { ref: 'roof/main/segment-original-wing', ridgeDirection: 'z', baseElevationM: 6.55, finish: { material: 'standing-seam-metal', colorHex: '#2D3435' } },
+      { ref: 'roof/main/segment-extended-wing', ridgeDirection: 'x', baseElevationM: 6.55, finish: { material: 'standing-seam-metal', colorHex: '#2D3435' } },
+    ])
+    expect(repaired.junctions).toEqual([{ ref: 'roof/main/junction-original-extended', type: 'valley', segmentRefs: ['roof/main/segment-original-wing', 'roof/main/segment-extended-wing'] }])
+    expect(repaired.segments[0].adjacentSegmentRefs).toEqual(['roof/main/segment-extended-wing'])
+    expect(validateProject(result).filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
+  it('raises and restyles one semantic roof segment without changing its neighbour', () => {
+    const originalUpper = modernBarnProject.buildings[0].roof.segments.find((segment) => segment.ref === 'roof/main/segment-upper-wing')!
+    const result = applyCommand(modernBarnProject, {
+      type: 'roof.update', buildingRef: 'house/main', segmentRef: 'roof/main/segment-rear-wing', alignToSegmentRef: originalUpper.ref, alignEdge: 'eaves',
+      material: 'standing-seam-metal', colorHex: '#2D3435', synchronization: 'roof-and-supporting-walls',
+    })
+    const roof = result.buildings[0].roof; const rear = roof.segments.find((segment) => segment.ref === 'roof/main/segment-rear-wing')!; const upper = roof.segments.find((segment) => segment.ref === originalUpper.ref)!
+    expect(rear).toMatchObject({ baseElevationM: originalUpper.baseElevationM, finish: { material: 'standing-seam-metal', colorHex: '#2D3435' } })
+    expect(upper).toEqual(originalUpper)
+    expect(validateProject(result).filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
   it('adds and moves a semantic garden fixture without mutating the source', () => {
     const added = applyCommand(sampleProject, { type: 'garden-fixture.update', action: 'add', fixtureRef: 'fixture/test-bed', catalogId: 'raised-bed-2x1', position: { x: 8.4, z: 5.5 } })
     const moved = applyCommand(added, { type: 'garden-fixture.update', action: 'move', fixtureRef: 'fixture/test-bed', position: { x: 9, z: 6 } })

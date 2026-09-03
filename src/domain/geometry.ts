@@ -148,6 +148,20 @@ export const buildingFootprintsWorld = (building: BuildingModel) => {
   })))
 }
 
+export const buildingPlacement = (building: BuildingModel) => {
+  const bounds = buildingLocalBounds(building)
+  const baseElevationM = buildingBaseElevation(building)
+  const roofTop = Math.max(...building.roof.segments.map((segment) => {
+    const roofBounds = polygonBounds(segment.footprint); const span = segment.ridgeDirection === 'z' ? roofBounds.maxX - roofBounds.minX : roofBounds.maxZ - roofBounds.minZ
+    return segment.baseElevationM + (segment.type === 'flat' ? 0.24 : Math.tan(segment.pitchDegrees * Math.PI / 180) * span / 2)
+  }))
+  return {
+    ref: building.ref, name: building.name, positionM: building.position, rotationDegrees: building.rotationDegrees,
+    widthM: bounds.maxX - bounds.minX, depthM: bounds.maxZ - bounds.minZ,
+    heightM: roofTop - baseElevationM, baseElevationM,
+  }
+}
+
 export const elevationAt = (project: ProjectV2, x: number, z: number) => {
   const points = project.site.terrain.elevationPoints
   const weighted = points.reduce((result, point) => {

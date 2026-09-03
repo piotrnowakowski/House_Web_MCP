@@ -74,7 +74,9 @@ const slopePlane = (axis: 'x' | 'z', from: number, fromY: number, to: number, to
 const roofOccluders = (building: BuildingModel, frame: Frame): Occluder[] => roofWings(building).map((wing, index) => {
   const bounds = polygonBounds(wing.footprint); const over = wing.overhangM
   const x0 = bounds.minX - over; const x1 = bounds.maxX + over; const z0 = bounds.minZ - over; const z1 = bounds.maxZ + over
-  const cx = (x0 + x1) / 2; const cz = (z0 + z1) / 2; const base = wing.baseElevationM; const ridge = wing.ridgeElevationM
+  const cx = (x0 + x1) / 2; const cz = (z0 + z1) / 2; const ridge = wing.ridgeElevationM
+  const span = wing.ridgeAxis === 'z' ? bounds.maxX - bounds.minX : bounds.maxZ - bounds.minZ
+  const pitchRise = Math.max(0, ridge - wing.baseElevationM); const base = wing.type === 'flat' ? wing.baseElevationM : wing.baseElevationM - (span > 0 ? pitchRise / (span / 2) : 0) * over
   const ref = `${building.roof.ref}/wing-${index + 1}`
   if (wing.type === 'flat') return boxOccluder(ref, { x: cx, y: (base + ridge) / 2, z: cz }, { x: (x1 - x0) / 2, y: (ridge - base) / 2, z: (z1 - z0) / 2 }, 0, frame)
   const bottom: Plane = { normal: { x: 0, y: -1, z: 0 }, d: -base }

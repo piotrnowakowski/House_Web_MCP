@@ -15,7 +15,11 @@ const wallOnlyProject = (heightM = 3, lengthM = 6): ProjectV2 => {
     slabs: [{ ref: 'slab/w', footprint: [{ x: -0.1, z: -0.1 }, { x: 0.1, z: -0.1 }, { x: 0.1, z: 0.1 }, { x: -0.1, z: 0.1 }], topElevationM: 0, thicknessM: 0.1, locked: false }],
     walls: [{ ref: 'wall/w', start: { x: -lengthM / 2, z: 0 }, end: { x: lengthM / 2, z: 0 }, thicknessM: 0.2, baseElevationM: 0, heightM, openings: [], locked: false }],
     spaces: [], platforms: [], ceilingFinishes: [],
-    roof: { ref: 'roof/w', type: 'flat', baseElevationM: 0, pitchDegrees: 0, overhangM: 0, footprint: [{ x: -0.1, z: -0.1 }, { x: 0.1, z: -0.1 }, { x: 0.1, z: 0.1 }, { x: -0.1, z: 0.1 }] },
+    roof: {
+      ref: 'roof/w', type: 'flat', baseElevationM: 0, pitchDegrees: 0, overhangM: 0, footprint: [{ x: -0.1, z: -0.1 }, { x: 0.1, z: -0.1 }, { x: 0.1, z: 0.1 }, { x: -0.1, z: 0.1 }], finish: { material: 'membrane', colorHex: '#333333' },
+      segments: [{ ref: 'roof/w/segment-main', footprint: [{ x: -0.1, z: -0.1 }, { x: 0.1, z: -0.1 }, { x: 0.1, z: 0.1 }, { x: -0.1, z: 0.1 }], storeyRef: 'storey/w', baseElevationM: 0, type: 'flat', pitchDegrees: 0, overhangM: 0, ridgeDirection: 'z', finish: { material: 'membrane', colorHex: '#333333' }, adjacentSegmentRefs: [] }],
+      junctions: [],
+    },
   }
   project.buildings = [building]
   return project

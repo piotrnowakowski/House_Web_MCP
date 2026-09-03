@@ -1,6 +1,6 @@
 import type { ProjectV2 } from './types'
 
-export type ProjectObjectKind = 'building' | 'storey' | 'slab' | 'wall' | 'opening' | 'space' | 'roof' | 'platform' | 'ceiling-finish' | 'zone' | 'plant' | 'fixture' | 'parcel' | 'entrance'
+export type ProjectObjectKind = 'building' | 'storey' | 'slab' | 'wall' | 'opening' | 'space' | 'roof' | 'roof-segment' | 'platform' | 'ceiling-finish' | 'zone' | 'plant' | 'fixture' | 'parcel' | 'entrance'
 export interface ProjectObjectLookup { kind: ProjectObjectKind; buildingRef?: string; storeyRef?: string; wallRef?: string; object: unknown }
 
 /** Compact building card: identity, placement and child references, without the child geometry. */
@@ -18,6 +18,7 @@ export const findProjectObject = (project: ProjectV2, ref: string): ProjectObjec
   for (const building of project.buildings) {
     if (building.ref === ref) return { kind: 'building', buildingRef: building.ref, object: buildingCard(project, ref) }
     if (building.roof.ref === ref) return { kind: 'roof', buildingRef: building.ref, object: building.roof }
+    const segment = building.roof.segments.find((item) => item.ref === ref); if (segment) return { kind: 'roof-segment', buildingRef: building.ref, object: segment }
     const storey = building.storeys.find((item) => item.ref === ref); if (storey) return { kind: 'storey', buildingRef: building.ref, object: storey }
     const slab = building.slabs.find((item) => item.ref === ref); if (slab) return { kind: 'slab', buildingRef: building.ref, object: slab }
     const wall = building.walls.find((item) => item.ref === ref)

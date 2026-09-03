@@ -1,6 +1,6 @@
 import { buildingGroundOffset, elevationAt, polygonCentroid, spaceFootprint } from './geometry'
-import { roofRidgeElevation } from './roofWings'
-import type { BuildingModel, HeightMeasureKind, HeightMeasurement, HeightMeasurementPoint, ProjectV2, Vec3 } from './types'
+import { roofSegmentRidgeElevation, roofSegmentRise } from './roofs'
+import type { BuildingModel, HeightMeasureKind, HeightMeasurement, HeightMeasurementPoint, ProjectV2, RoofSegmentModel, Vec3 } from './types'
 
 export type HeightMeasurementRequest =
   | { mode: 'semantic'; objectRef: string; measurement?: HeightMeasureKind }
@@ -12,6 +12,8 @@ const localToProject = (building: BuildingModel, x: number, z: number) => {
   const angle = building.rotationDegrees * Math.PI / 180; const cosine = Math.cos(angle); const sine = Math.sin(angle)
   return { x: building.position.x + x * cosine + z * sine, z: building.position.z - x * sine + z * cosine }
 }
+
+const highestSegment = (building: BuildingModel): RoofSegmentModel => [...building.roof.segments].sort((a, b) => roofSegmentRidgeElevation(b) - roofSegmentRidgeElevation(a))[0]
 
 const measured = (project: ProjectV2, input: {
   objectRef?: string; buildingRef?: string; kind: HeightMeasurement['kind']; label: string
@@ -39,21 +41,23 @@ export const measureHeight = (project: ProjectV2, request: HeightMeasurementRequ
   const requestedKind = request.measurement ?? 'auto'
   for (const building of project.buildings) {
     const offsetY = buildingGroundOffset(building, 0)
-    const roofFootprint = building.roof.footprint ?? building.slabs.at(-1)?.footprint ?? building.slabs[0]?.footprint
+    const selectedSegment = building.roof.segments.find((segment) => segment.ref === request.objectRef)
+    const measuredSegment = selectedSegment ?? highestSegment(building)
+    const roofFootprint = measuredSegment.footprint ?? building.roof.footprint ?? building.slabs.at(-1)?.footprint ?? building.slabs[0]?.footprint
     const roofCenterLocal = roofFootprint ? polygonCentroid(roofFootprint) : { x: 0, z: 0 }
     const roofCenter = localToProject(building, roofCenterLocal.x, roofCenterLocal.z)
     const terrainY = elevationAt(project, roofCenter.x, roofCenter.z)
-    const eavesY = building.roof.baseElevationM + offsetY; const ridgeY = roofRidgeElevation(building) + offsetY
+    const eavesY = measuredSegment.baseElevationM + offsetY; const ridgeY = eavesY + roofSegmentRise(measuredSegment)
     const groundTo = (kind: 'ground-to-eaves' | 'ground-to-ridge') => measured(project, {
       objectRef: request.objectRef, buildingRef: building.ref, kind, label: kind === 'ground-to-eaves' ? 'Ground to eaves' : 'Ground to ridge',
       bottom: point(roofCenter.x, terrainY, roofCenter.z, 'terrain/surface'),
-      top: point(roofCenter.x, kind === 'ground-to-eaves' ? eavesY : ridgeY, roofCenter.z, `${building.roof.ref}/${kind === 'ground-to-eaves' ? 'eaves' : 'ridge'}`),
+      top: point(roofCenter.x, kind === 'ground-to-eaves' ? eavesY : ridgeY, roofCenter.z, `${selectedSegment?.ref ?? building.roof.ref}/${kind === 'ground-to-eaves' ? 'eaves' : 'ridge'}`),
     })
     const terrainClearance = (label: string, x: number, z: number, targetY: number, targetRef: string) => measured(project, {
       objectRef: request.objectRef, buildingRef: building.ref, kind: 'terrain-clearance', label,
       bottom: point(x, elevationAt(project, x, z), z, 'terrain/surface'), top: point(x, targetY, z, targetRef),
     })
-    const ownsRef = building.ref === request.objectRef || building.roof.ref === request.objectRef
+    const ownsRef = building.ref === request.objectRef || building.roof.ref === request.objectRef || building.roof.segments.some((segment) => segment.ref === request.objectRef)
       || building.storeys.some((item) => item.ref === request.objectRef) || building.slabs.some((item) => item.ref === request.objectRef)
       || building.walls.some((item) => item.ref === request.objectRef || item.openings.some((opening) => opening.ref === request.objectRef))
       || building.spaces.some((item) => item.ref === request.objectRef) || building.platforms.some((item) => item.ref === request.objectRef)
@@ -66,9 +70,10 @@ export const measureHeight = (project: ProjectV2, request: HeightMeasurementRequ
       if (requestedKind === 'terrain-clearance') return terrainClearance('Terrain to building base', roofCenter.x, roofCenter.z, bottomY, `${building.ref}/base`)
       return measured(project, { objectRef: building.ref, buildingRef: building.ref, kind: requestedKind, label: 'Building height', bottom: point(roofCenter.x, bottomY, roofCenter.z, `${building.ref}/base`), top: point(roofCenter.x, ridgeY, roofCenter.z, `${building.roof.ref}/ridge`) })
     }
-    if (building.roof.ref === request.objectRef) {
+    if (building.roof.ref === request.objectRef || selectedSegment) {
       if (requestedKind === 'terrain-clearance') return terrainClearance('Terrain to roof eaves', roofCenter.x, roofCenter.z, eavesY, `${building.roof.ref}/eaves`)
-      return measured(project, { objectRef: building.roof.ref, buildingRef: building.ref, kind: requestedKind, label: 'Roof rise', bottom: point(roofCenter.x, eavesY, roofCenter.z, `${building.roof.ref}/eaves`), top: point(roofCenter.x, ridgeY, roofCenter.z, `${building.roof.ref}/ridge`) })
+      const ref = selectedSegment?.ref ?? building.roof.ref
+      return measured(project, { objectRef: ref, buildingRef: building.ref, kind: requestedKind, label: selectedSegment ? 'Roof segment rise' : 'Roof rise', bottom: point(roofCenter.x, eavesY, roofCenter.z, `${ref}/eaves`), top: point(roofCenter.x, ridgeY, roofCenter.z, `${ref}/ridge`) })
     }
     const storey = building.storeys.find((item) => item.ref === request.objectRef || item.spaceRefs.includes(request.objectRef) || item.wallRefs.includes(request.objectRef) || item.platformRefs.includes(request.objectRef) || item.ceilingFinishRefs.includes(request.objectRef))
     const storeyFootprint = building.slabs.find((slab) => slab.ref === storey?.baseSlabRef)?.footprint

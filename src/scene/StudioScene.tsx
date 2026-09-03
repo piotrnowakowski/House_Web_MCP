@@ -12,7 +12,7 @@ import { acceleratedRaycast, computeBoundsTree, disposeBoundsTree } from 'three-
 import { buildingGroundOffset, buildingLocalBounds, elevationAt, pointInPolygon, polygonBounds, polygonCentroid, spaceFootprint } from '../domain/geometry'
 import { gardenFixtureById } from '../domain/gardenFixtures'
 import { measureHeight } from '../domain/heightMeasurements'
-import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, SiteEntranceModel, StructureReport, Vec2, ViewMode, WallModel, WallMaterial } from '../domain/types'
+import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, RoofSegmentModel, SiteEntranceModel, StructureReport, Vec2, ViewMode, WallModel, WallMaterial } from '../domain/types'
 import { inferWallOpeningLayout } from '../domain/wallOpeningLayouts'
 import { resolveWallFinish } from '../domain/wallFinishes'
 import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
@@ -477,38 +477,43 @@ function BarnInteriorWarmth({ mode, ghost }: { mode: ViewMode; ghost?: boolean }
   </group>
 }
 
+function roofSurfaceMaterial(segment: RoofSegmentModel, selected: boolean, mode: ViewMode, ghost?: boolean) {
+  const metallic = segment.finish.material === 'standing-seam-metal'
+  return <meshStandardMaterial color={selected ? '#b9e84d' : mode === 'technical' ? TECH.roof : segment.finish.colorHex} roughness={mode === 'technical' ? 0.88 : metallic ? 0.42 : 0.78} metalness={mode === 'technical' ? 0.04 : metallic ? 0.58 : 0.04} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />
+}
+
 const gableEndIsGlass = (building: BuildingModel, wing: RoofWing, axis: 'x' | 'z', value: number) => building.architecturalStyle === 'barn' && building.walls.some((wall) => {
   const onLine = (point: Vec2) => Math.abs((axis === 'x' ? point.x : point.z) - value) < 0.05
   return onLine(wall.start) && onLine(wall.end) && wall.baseElevationM + wall.heightM > wing.baseElevationM - 0.05 && inferWallOpeningLayout(wall) === 'full-glass'
 })
 
-function GableWing({ building, wing, mode, ghost, roofColor, wallColor }: { building: BuildingModel; wing: RoofWing; mode: ViewMode; ghost?: boolean; roofColor: string; wallColor: string }) {
-  const bounds = polygonBounds(wing.footprint); const over = wing.overhangM; const pitch = MathUtils.degToRad(building.roof.pitchDegrees)
-  const base = wing.baseElevationM; const rise = wing.ridgeElevationM - base; const alongZ = wing.ridgeAxis === 'z'
+/** One gable roof segment: two slopes whose ridge sits at the shared segment ridge elevation and whose eaves drop past the wall line by the overhang. */
+function GableWing({ building, wing, segment, mode, ghost, selected, wallColor }: { building: BuildingModel; wing: RoofWing; segment: RoofSegmentModel; mode: ViewMode; ghost?: boolean; selected: boolean; wallColor: string }) {
+  const bounds = polygonBounds(wing.footprint); const over = wing.overhangM; const pitch = MathUtils.degToRad(segment.pitchDegrees)
+  const base = wing.baseElevationM; const ridge = wing.ridgeElevationM; const alongZ = wing.ridgeAxis === 'z'
   const width = bounds.maxX - bounds.minX; const depth = bounds.maxZ - bounds.minZ
   const cx = (bounds.minX + bounds.maxX) / 2; const cz = (bounds.minZ + bounds.maxZ) / 2
-  const half = (alongZ ? width : depth) / 2 + over; const slope = half / Math.cos(pitch)
-  const gableWidth = alongZ ? width : depth; const apex = base + Math.tan(pitch) * gableWidth / 2
-  const barn = building.architecturalStyle === 'barn'
-  const roofMaterial = <meshStandardMaterial color={roofColor} roughness={mode === 'technical' ? 0.88 : barn ? 0.46 : 0.88} metalness={mode === 'technical' ? 0.04 : barn ? 0.58 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />
+  const span = alongZ ? width : depth; const eaveY = base - Math.tan(pitch) * over
+  const half = span / 2 + over; const slope = half / Math.cos(pitch); const midY = (eaveY + ridge) / 2
+  const roofMaterial = roofSurfaceMaterial(segment, selected, mode, ghost)
   const gable = useMemo(() => {
     const value = new BufferGeometry()
-    const positions = alongZ ? [bounds.minX, base, 0, bounds.maxX, base, 0, cx, apex, 0] : [0, base, bounds.minZ, 0, base, bounds.maxZ, 0, apex, cz]
+    const positions = alongZ ? [bounds.minX, base, 0, bounds.maxX, base, 0, cx, ridge, 0] : [0, base, bounds.minZ, 0, base, bounds.maxZ, 0, ridge, cz]
     value.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3)); value.setIndex([0, 1, 2]); value.computeVertexNormals(); return value
-  }, [alongZ, apex, base, bounds.maxX, bounds.maxZ, bounds.minX, bounds.minZ, cx, cz])
+  }, [alongZ, base, bounds.maxX, bounds.maxZ, bounds.minX, bounds.minZ, cx, cz, ridge])
   useEffect(() => () => gable.dispose(), [gable])
   const ends = alongZ ? [bounds.minZ, bounds.maxZ] : [bounds.minX, bounds.maxX]
   const seamSpacing = alongZ ? 0.72 : 0.78
-  const seams = mode === 'realistic' && barn ? Array.from({ length: Math.max(2, Math.floor((alongZ ? depth : width) / seamSpacing)) }, (_, index) => (alongZ ? bounds.minZ : bounds.minX) + seamSpacing / 2 + index * seamSpacing) : []
+  const seams = mode === 'realistic' && segment.finish.material === 'standing-seam-metal' ? Array.from({ length: Math.max(2, Math.floor((alongZ ? depth : width) / seamSpacing)) }, (_, index) => (alongZ ? bounds.minZ : bounds.minX) + seamSpacing / 2 + index * seamSpacing) : []
   const seamMaterial = <meshStandardMaterial color="#151b1c" metalness={0.7} roughness={0.35} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />
   const frameMaterial = <meshStandardMaterial color="#111716" roughness={0.48} />
   return <group>
     {alongZ ? <>
-      <mesh position={[cx - half / 2, base + rise / 2, cz]} rotation={[0, 0, pitch]} castShadow><boxGeometry args={[slope, 0.2, depth + over * 2]} />{roofMaterial}</mesh>
-      <mesh position={[cx + half / 2, base + rise / 2, cz]} rotation={[0, 0, -pitch]} castShadow><boxGeometry args={[slope, 0.2, depth + over * 2]} />{roofMaterial}</mesh>
+      <mesh position={[cx - half / 2, midY, cz]} rotation={[0, 0, pitch]} castShadow><boxGeometry args={[slope, 0.2, depth + over * 2]} />{roofMaterial}</mesh>
+      <mesh position={[cx + half / 2, midY, cz]} rotation={[0, 0, -pitch]} castShadow><boxGeometry args={[slope, 0.2, depth + over * 2]} />{roofMaterial}</mesh>
     </> : <>
-      <mesh position={[cx, base + rise / 2, cz - half / 2]} rotation={[-pitch, 0, 0]} castShadow><boxGeometry args={[width + over * 2, 0.2, slope]} />{roofMaterial}</mesh>
-      <mesh position={[cx, base + rise / 2, cz + half / 2]} rotation={[pitch, 0, 0]} castShadow><boxGeometry args={[width + over * 2, 0.2, slope]} />{roofMaterial}</mesh>
+      <mesh position={[cx, midY, cz - half / 2]} rotation={[-pitch, 0, 0]} castShadow><boxGeometry args={[width + over * 2, 0.2, slope]} />{roofMaterial}</mesh>
+      <mesh position={[cx, midY, cz + half / 2]} rotation={[pitch, 0, 0]} castShadow><boxGeometry args={[width + over * 2, 0.2, slope]} />{roofMaterial}</mesh>
     </>}
     {ends.map((value, index) => {
       const outward = index === 0 ? -1 : 1; const offset = value + outward * 0.02; const frameOffset = value + outward * 0.06
@@ -518,57 +523,56 @@ function GableWing({ building, wing, mode, ghost, roofColor, wallColor }: { buil
         <mesh geometry={gable} position={alongZ ? [0, 0, offset] : [offset, 0, 0]} castShadow>{glass
           ? <meshPhysicalMaterial color={mode === 'technical' ? '#9bc7d2' : '#7e999c'} transparent opacity={ghost ? 0.2 : 0.43} transmission={mode === 'technical' ? 0.1 : 0.58} roughness={0.08} side={DoubleSide} depthWrite={false} />
           : <meshStandardMaterial color={wallColor} roughness={0.92} side={DoubleSide} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />}</mesh>
-        {glass && [-gableWidth / 4, 0, gableWidth / 4].map((mullion, mullionIndex) => {
-          const height = mullion === 0 ? apex - base : (apex - base) / 2
+        {glass && [-span / 4, 0, span / 4].map((mullion, mullionIndex) => {
+          const height = mullion === 0 ? ridge - base : (ridge - base) / 2
           return <mesh key={mullionIndex} position={at((alongZ ? cx : cz) + mullion, base + height / 2, frameOffset)}><boxGeometry args={alongZ ? [0.075, height, 0.1] : [0.1, height, 0.075]} />{frameMaterial}</mesh>
         })}
-        {glass && <mesh position={at(alongZ ? cx : cz, base, frameOffset)}><boxGeometry args={alongZ ? [gableWidth, 0.09, 0.1] : [0.1, 0.09, gableWidth]} />{frameMaterial}</mesh>}
+        {glass && <mesh position={at(alongZ ? cx : cz, base, frameOffset)}><boxGeometry args={alongZ ? [span, 0.09, 0.1] : [0.1, 0.09, span]} />{frameMaterial}</mesh>}
       </group>
     })}
     {seams.flatMap((along) => alongZ ? [
-      <mesh key={`a-${along}`} position={[cx - half / 2, base + rise / 2 + 0.12, along]} rotation={[0, 0, pitch]}><boxGeometry args={[slope, 0.025, 0.032]} />{seamMaterial}</mesh>,
-      <mesh key={`b-${along}`} position={[cx + half / 2, base + rise / 2 + 0.12, along]} rotation={[0, 0, -pitch]}><boxGeometry args={[slope, 0.025, 0.032]} />{seamMaterial}</mesh>,
+      <mesh key={`a-${along}`} position={[cx - half / 2, midY + 0.12, along]} rotation={[0, 0, pitch]}><boxGeometry args={[slope, 0.025, 0.032]} />{seamMaterial}</mesh>,
+      <mesh key={`b-${along}`} position={[cx + half / 2, midY + 0.12, along]} rotation={[0, 0, -pitch]}><boxGeometry args={[slope, 0.025, 0.032]} />{seamMaterial}</mesh>,
     ] : [
-      <mesh key={`a-${along}`} position={[along, base + rise / 2 + 0.12, cz - half / 2]} rotation={[-pitch, 0, 0]}><boxGeometry args={[0.032, 0.025, slope]} />{seamMaterial}</mesh>,
-      <mesh key={`b-${along}`} position={[along, base + rise / 2 + 0.12, cz + half / 2]} rotation={[pitch, 0, 0]}><boxGeometry args={[0.032, 0.025, slope]} />{seamMaterial}</mesh>,
+      <mesh key={`a-${along}`} position={[along, midY + 0.12, cz - half / 2]} rotation={[-pitch, 0, 0]}><boxGeometry args={[0.032, 0.025, slope]} />{seamMaterial}</mesh>,
+      <mesh key={`b-${along}`} position={[along, midY + 0.12, cz + half / 2]} rotation={[pitch, 0, 0]}><boxGeometry args={[0.032, 0.025, slope]} />{seamMaterial}</mesh>,
     ])}
   </group>
 }
 
-function GableWings({ building, mode, selected, yOffset, ghost }: { building: BuildingModel; mode: ViewMode; selected: boolean; yOffset: number; ghost?: boolean }) {
-  const wings = useMemo(() => roofWings(building), [building]); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
-  const barn = building.architecturalStyle === 'barn'; const palette = mode === 'technical' ? TECH : barn ? BARN : REAL
-  const roofColor = selected ? '#b9e84d' : mode === 'technical' ? TECH.roof : barn ? '#2d3435' : palette.roof
-  const wallColor = mode === 'technical' ? TECH.wall : barn ? '#242927' : palette.wall
-  return <group position={[0, yOffset, 0]} userData={{ semanticRef: building.roof.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(building.roof.ref) }}>
-    {wings.map((wing, index) => <GableWing key={`${wing.ridgeAxis}-${index}`} building={building} wing={wing} mode={mode} ghost={ghost} roofColor={roofColor} wallColor={wallColor} />)}
-  </group>
-}
-
-function HipOrFlatRoof({ building, mode, selected, yOffset, ghost }: { building: BuildingModel; mode: ViewMode; selected: boolean; yOffset: number; ghost?: boolean }) {
-  const bounds = building.roof.footprint ? polygonBounds(building.roof.footprint) : buildingLocalBounds(building); const width = bounds.maxX - bounds.minX; const depth = bounds.maxZ - bounds.minZ
-  const cx = (bounds.minX + bounds.maxX) / 2; const cz = (bounds.minZ + bounds.maxZ) / 2; const over = building.roof.overhangM; const pitch = MathUtils.degToRad(building.roof.pitchDegrees)
-  const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
-  const palette = mode === 'technical' ? TECH : building.architecturalStyle === 'barn' ? BARN : REAL
-  const material = <meshStandardMaterial color={selected ? '#b9e84d' : palette.roof} roughness={0.88} transparent={ghost} opacity={ghost ? 0.35 : 1} />
-  const rise = Math.tan(pitch) * (width / 2 + over)
+/** Flat or hip roof segment drawn from the same segment numbers the height tools report. */
+function SegmentRoof({ wing, segment, mode, ghost, selected }: { wing: RoofWing; segment: RoofSegmentModel; mode: ViewMode; ghost?: boolean; selected: boolean }) {
+  const bounds = polygonBounds(wing.footprint); const width = bounds.maxX - bounds.minX; const depth = bounds.maxZ - bounds.minZ
+  const cx = (bounds.minX + bounds.maxX) / 2; const cz = (bounds.minZ + bounds.maxZ) / 2; const over = wing.overhangM; const pitch = MathUtils.degToRad(segment.pitchDegrees)
+  const eaveY = wing.baseElevationM - Math.tan(pitch) * over
   const hipGeometry = useMemo(() => {
-    const value = new BufferGeometry(); const apexY = building.roof.baseElevationM + rise
+    const value = new BufferGeometry()
     value.setAttribute('position', new BufferAttribute(new Float32Array([
-      bounds.minX - over, building.roof.baseElevationM, bounds.minZ - over, bounds.maxX + over, building.roof.baseElevationM, bounds.minZ - over,
-      bounds.maxX + over, building.roof.baseElevationM, bounds.maxZ + over, bounds.minX - over, building.roof.baseElevationM, bounds.maxZ + over,
-      cx, apexY, cz,
+      bounds.minX - over, eaveY, bounds.minZ - over, bounds.maxX + over, eaveY, bounds.minZ - over,
+      bounds.maxX + over, eaveY, bounds.maxZ + over, bounds.minX - over, eaveY, bounds.maxZ + over,
+      cx, wing.ridgeElevationM, cz,
     ]), 3)); value.setIndex([0, 1, 4, 1, 2, 4, 2, 3, 4, 3, 0, 4]); value.computeVertexNormals(); return value
-  }, [bounds.maxX, bounds.maxZ, bounds.minX, bounds.minZ, building.roof.baseElevationM, cx, cz, over, rise])
+  }, [bounds.maxX, bounds.maxZ, bounds.minX, bounds.minZ, cx, cz, eaveY, over, wing.ridgeElevationM])
   useEffect(() => () => hipGeometry.dispose(), [hipGeometry])
-  if (building.roof.type === 'flat') return <mesh position={[cx, building.roof.baseElevationM + 0.12 + yOffset, cz]} castShadow userData={{ semanticRef: building.roof.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(building.roof.ref) }}><boxGeometry args={[width + over * 2, 0.24, depth + over * 2]} />{material}</mesh>
-  return <mesh geometry={hipGeometry} position={[0, yOffset, 0]} castShadow userData={{ semanticRef: building.roof.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(building.roof.ref) }}>{material}</mesh>
+  if (segment.type === 'flat') return <mesh position={[cx, wing.baseElevationM + 0.12, cz]} castShadow><boxGeometry args={[width + over * 2, 0.24, depth + over * 2]} />{roofSurfaceMaterial(segment, selected, mode, ghost)}</mesh>
+  return <mesh geometry={hipGeometry} castShadow>{roofSurfaceMaterial(segment, selected, mode, ghost)}</mesh>
 }
 
-/** Gable roofs are drawn wing by wing from the shared roofWings model, so the picture matches heights and sun occlusion. */
-function Roof(props: { building: BuildingModel; mode: ViewMode; selected: boolean; yOffset: number; ghost?: boolean }) {
-  if (props.building.roof.type === 'gable') return <GableWings {...props} />
-  return <HipOrFlatRoof {...props} />
+/** Roofs are drawn segment by segment from the roofWings adapter over roof.segments, so the picture matches heights and sun occlusion. */
+function Roof({ building, mode, selected, yOffset, ghost }: { building: BuildingModel; mode: ViewMode; selected: boolean; yOffset: number; ghost?: boolean }) {
+  const wings = useMemo(() => roofWings(building), [building])
+  const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  const barn = building.architecturalStyle === 'barn'; const palette = mode === 'technical' ? TECH : barn ? BARN : REAL
+  const wallColor = mode === 'technical' ? TECH.wall : barn ? '#242927' : palette.wall
+  return <group position={[0, yOffset, 0]} userData={{ semanticRef: building.roof.ref, buildingRef: building.ref }}>
+    {wings.map((wing) => {
+      const segment = building.roof.segments.find((item) => item.ref === wing.ref) ?? building.roof.segments[0]
+      const highlighted = selected || selectedRef === wing.ref
+      return <group key={wing.ref} userData={{ semanticRef: wing.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(wing.ref) }}>
+        {segment.type === 'gable' ? <GableWing building={building} wing={wing} segment={segment} mode={mode} ghost={ghost} selected={highlighted} wallColor={wallColor} /> : <SegmentRoof wing={wing} segment={segment} mode={mode} ghost={ghost} selected={highlighted} />}
+      </group>
+    })}
+  </group>
 }
 
 function FinishSurface({ footprint, y, refValue, buildingRef, color }: { footprint: Polygon2; y: number; refValue: string; buildingRef: string; color: string }) {
@@ -643,7 +647,7 @@ const placementValid = (project: ProjectV2, building: BuildingModel, position: {
 function Building({ project, building, mode, ghost }: { project: ProjectV2; building: BuildingModel; mode: ViewMode; ghost?: boolean }) {
   const solids = useGeneratedSolids(project, building); const selectedRef = useStudioStore((state) => state.selectedRef); const transformMode = useStudioStore((state) => state.transformMode)
   const viewerMode = useStudioStore((state) => state.viewerMode); const explode = useStudioStore((state) => state.explodeStoreys)
-  const commitCommand = useStudioStore((state) => state.commitCommand); const setToast = useStudioStore((state) => state.setToast)
+  const commitCommand = useStudioStore((state) => state.commitCommand); const setToast = useStudioStore((state) => state.setToast); const repositioningRef = useStudioStore((state) => state.repositioningRef); const endReposition = useStudioStore((state) => state.endReposition)
   const group = useRef<Group>(null); const invalid = useRef(false); const selected = selectedRef === building.ref
   const explodedOffset = explode ? STOREY_EXPLODE_GAP_M : 0
   const terrainOffset = buildingGroundOffset(building, TERRAIN_SURFACE_Y)
@@ -663,7 +667,7 @@ function Building({ project, building, mode, ghost }: { project: ProjectV2; buil
       {!ghost && <><SpaceOverlays building={building} explodedOffset={explodedOffset} explode={explode} /><PlatformsAndFinishes building={building} explodeOffset={explodedOffset} /></>}
       {!ghost && <RigidBody type="fixed" colliders={false}>{solids.map((solid) => <CuboidCollider key={solid.ref} args={solid.collider.halfExtents} position={[solid.collider.center[0], solid.collider.center[1] + offsetFor(solid.ref), solid.collider.center[2]]} rotation={[0, solid.collider.rotationY, 0]} />)}<CuboidCollider args={[roofWidth / 2, 0.2, roofDepth / 2]} position={[(roofBounds.minX + roofBounds.maxX) / 2, building.roof.baseElevationM + 0.2 + roofOffset, (roofBounds.minZ + roofBounds.maxZ) / 2]} /></RigidBody>}
     </group>
-    {selected && !ghost && viewerMode === 'edit' && group.current && <TransformControls object={group.current} mode={transformMode === 'scale' ? 'translate' : transformMode} showY={false} userData={{ editorOnly: true }}
+    {selected && repositioningRef === building.ref && !ghost && viewerMode === 'edit' && group.current && <TransformControls object={group.current} mode={transformMode === 'scale' ? 'translate' : transformMode} showY={false} userData={{ editorOnly: true }}
       onObjectChange={() => {
         if (!group.current) return
         invalid.current = !placementValid(project, building, { x: group.current.position.x, z: group.current.position.z })
@@ -673,6 +677,7 @@ function Building({ project, building, mode, ghost }: { project: ProjectV2; buil
         if (!group.current) return
         if (invalid.current) { group.current.position.set(building.position.x, terrainOffset, building.position.z); setToast('Placement reverted: collision, missing site support, or out-of-site footprint.') }
         else commitCommand({ type: 'building.update', action: 'move', buildingRef: building.ref, position: { x: group.current.position.x, z: group.current.position.z }, rotationDegrees: MathUtils.radToDeg(-group.current.rotation.y) })
+        endReposition()
       }} />}
   </>
 }
@@ -744,11 +749,17 @@ function Landscape({ project, mode }: { project: ProjectV2; mode: ViewMode }) {
 }
 
 function Plant({ plant, project, selected, onSelect, ghost = false }: { plant: PlantModel; project: ProjectV2; selected: boolean; onSelect: () => void; ghost?: boolean }) {
-  const month = useStudioStore((state) => state.month); const y = elevationAt(project, plant.position.x, plant.position.z); const canopy = Math.max(0.25, plant.canopyM / 2); const visibleLeaf = plant.leafMonths.includes(month)
-  return <group position={[plant.position.x, y, plant.position.z]} userData={{ semanticRef: plant.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) onSelect() }}>
+  const month = useStudioStore((state) => state.month); const repositioningRef = useStudioStore((state) => state.repositioningRef); const commitCommand = useStudioStore((state) => state.commitCommand); const endReposition = useStudioStore((state) => state.endReposition); const setToast = useStudioStore((state) => state.setToast)
+  const y = elevationAt(project, plant.position.x, plant.position.z); const canopy = Math.max(0.25, plant.canopyM / 2); const visibleLeaf = plant.leafMonths.includes(month); const group = useRef<Group>(null)
+  return <><group ref={group} position={[plant.position.x, y, plant.position.z]} userData={{ semanticRef: plant.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) onSelect() }}>
     <mesh position={[0, plant.matureHeightM * 0.28, 0]} castShadow={!ghost}><cylinderGeometry args={[0.1, 0.15, plant.matureHeightM * 0.56, 8]} /><meshStandardMaterial color="#584434" transparent={ghost} opacity={ghost ? 0.42 : 1} /></mesh>
     <mesh position={[0, plant.matureHeightM * 0.72, 0]} castShadow={!ghost}><sphereGeometry args={[canopy, 12, 9]} /><meshStandardMaterial color={selected ? '#b9e84d' : ghost ? '#b9e84d' : visibleLeaf ? '#477348' : '#756955'} transparent opacity={ghost ? 0.38 : visibleLeaf ? 0.92 : 0.52} depthWrite={!ghost} /></mesh>
-  </group>
+  </group>{selected && !ghost && repositioningRef === plant.ref && group.current && <TransformControls object={group.current} mode="translate" showY={false} userData={{ editorOnly: true }} onMouseUp={() => {
+    if (!group.current) return
+    try { commitCommand({ type: 'plant.update', action: 'move', plantRef: plant.ref, position: { x: group.current.position.x, z: group.current.position.z } }) }
+    catch (error) { group.current.position.set(plant.position.x, y, plant.position.z); setToast(error instanceof Error ? error.message : 'Plant move could not be applied.') }
+    finally { endReposition() }
+  }} />}</>
 }
 
 const fixtureMaterial = (color: string, selected: boolean, ghost: boolean) => <meshStandardMaterial color={selected ? '#b9e84d' : color} roughness={0.82} transparent={ghost} opacity={ghost ? 0.42 : 1} />
@@ -800,13 +811,19 @@ function CucumberTrellisFixture({ selected, ghost }: { selected: boolean; ghost:
 
 function GardenFixture({ fixture, project, ghost = false }: { fixture: GardenFixtureModel; project: ProjectV2; ghost?: boolean }) {
   const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  const repositioningRef = useStudioStore((state) => state.repositioningRef); const commitCommand = useStudioStore((state) => state.commitCommand); const endReposition = useStudioStore((state) => state.endReposition); const setToast = useStudioStore((state) => state.setToast)
   const definition = gardenFixtureById(fixture.catalogId)
   const hostedInBed = definition.category === 'crop' && project.landscape.fixtures.some((candidate) => candidate.catalogId === 'raised-bed-2x1' && Math.hypot(candidate.position.x - fixture.position.x, candidate.position.z - fixture.position.z) < 0.15)
   const y = elevationAt(project, fixture.position.x, fixture.position.z) + (hostedInBed ? 0.43 : 0.02)
-  const selected = selectedRef === fixture.ref
-  return <group position={[fixture.position.x, y, fixture.position.z]} rotation={[0, -MathUtils.degToRad(fixture.rotationDegrees), 0]} userData={{ semanticRef: fixture.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(fixture.ref) }}>
+  const selected = selectedRef === fixture.ref; const group = useRef<Group>(null)
+  return <><group ref={group} position={[fixture.position.x, y, fixture.position.z]} rotation={[0, -MathUtils.degToRad(fixture.rotationDegrees), 0]} userData={{ semanticRef: fixture.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(fixture.ref) }}>
     {fixture.catalogId === 'raised-bed-2x1' ? <RaisedBedFixture selected={selected} ghost={ghost} /> : fixture.catalogId === 'tomato-row' ? <TomatoRowFixture selected={selected} ghost={ghost} /> : fixture.catalogId === 'potato-row' ? <PotatoRowFixture selected={selected} ghost={ghost} /> : <CucumberTrellisFixture selected={selected} ghost={ghost} />}
-  </group>
+  </group>{selected && !ghost && repositioningRef === fixture.ref && group.current && <TransformControls object={group.current} mode="translate" showY={false} userData={{ editorOnly: true }} onMouseUp={() => {
+    if (!group.current) return
+    try { commitCommand({ type: 'garden-fixture.update', action: 'move', fixtureRef: fixture.ref, position: { x: group.current.position.x, z: group.current.position.z } }) }
+    catch (error) { group.current.position.set(fixture.position.x, y, fixture.position.z); setToast(error instanceof Error ? error.message : 'Fixture move could not be applied.') }
+    finally { endReposition() }
+  }} />}</>
 }
 
 function GardenFixtures({ project, fixtures = project.landscape.fixtures, ghost = false }: { project: ProjectV2; fixtures?: GardenFixtureModel[]; ghost?: boolean }) {
