@@ -6,10 +6,10 @@ import { calculateMetrics } from './domain/commands'
 import { ensureStarterGarden, gardenFixtureCatalog, nextFixturePosition, starterGardenCommands } from './domain/gardenFixtures'
 import { wallLength } from './domain/geometry'
 import { applyModernBarnPreset, isModernBarnPreset } from './domain/presets'
-import type { BuildingModel, ClimateDayPart, GardenFixtureCatalogId, HeightMeasureKind, PlantingGuideCategory, ProjectCommand, ProposalStatus, WallMaterial, WallModel } from './domain/types'
+import type { BuildingModel, ClimateDayPart, GardenFixtureCatalogId, HeightMeasureKind, LandscapeZone, PlantingGuideCategory, ProjectCommand, ProposalStatus, WallMaterial, WallModel } from './domain/types'
 import { inferWallOpeningLayout, wallOpeningLayoutCommands, wallOpeningLayoutPresets, type WallOpeningLayoutPreset } from './domain/wallOpeningLayouts'
 import { resolveWallFinish, wallFinishCatalog, wallFinishCommands, type WallFinishScope } from './domain/wallFinishes'
-import { wallTextureFor } from './scene/materialCatalog'
+import { FLAT_TEXTURE, defaultGroundTexture, defaultWallTexture, resolveWallTexture, texturePreviewFor, texturesFor, textureById, type TextureId, type TextureSurface } from './scene/materialCatalog'
 import { CLEAR_MEASUREMENT_EVENT, StudioScene } from './scene/StudioScene'
 import { sunHoursColor } from './scene/sun'
 import { solarPosition, sunriseSunset } from './domain/solar'
@@ -216,22 +216,48 @@ const nextOpeningSlot = (wall: WallModel) => {
   return { offsetM: (gap.start + gap.end) / 2, widthM }
 }
 
+/** Thumbnail picker over the CC0 scan library for one surface; the default entry follows the material or zone kind, "Flat colour" stores `none`. */
+function TexturePicker({ surface, label, value, defaultId, disabled, onChange }: { surface: TextureSurface; label: string; value: string | undefined; defaultId: TextureId | undefined; disabled?: boolean; onChange: (next: string) => void }) {
+  const effective = value ?? defaultId ?? FLAT_TEXTURE
+  return <div className="texture-picker" role="group" aria-label={label}>
+    {texturesFor(surface).map((item) => <button key={item.id} type="button" disabled={disabled} className={effective === item.id ? 'active' : ''} aria-pressed={effective === item.id} onClick={() => onChange(item.id)} title={`${item.description} · ${item.tileM} m tile · CC0 by ${item.author}`}>
+      <i style={{ backgroundImage: `url(${import.meta.env.BASE_URL}${texturePreviewFor(item.id)})` }} /><span>{item.name}{item.id === defaultId ? ' · default' : ''}</span>
+    </button>)}
+    <button type="button" disabled={disabled} className={effective === FLAT_TEXTURE ? 'active' : ''} aria-pressed={effective === FLAT_TEXTURE} onClick={() => onChange(FLAT_TEXTURE)} title="Plain colour without a scan"><i className="flat" /><span>Flat colour{defaultId ? '' : ' · default'}</span></button>
+  </div>
+}
+
+function ZoneSurfaceEditor({ zone }: { zone: LandscapeZone }) {
+  const commitCommand = useStudioStore((state) => state.commitCommand); const setToast = useStudioStore((state) => state.setToast)
+  const choose = (textureId: string) => {
+    try {
+      commitCommand({ type: 'landscape.update', action: 'set-surface', zoneRef: zone.ref, textureId })
+      setToast(`${zone.name} now wears ${textureId === FLAT_TEXTURE ? 'a flat colour' : textureById(textureId as TextureId).name}. Ctrl+Z to undo.`)
+    } catch (error) { setToast(error instanceof Error ? error.message : 'Surface could not be changed.') }
+  }
+  return <section className="zone-surface-editor" aria-label={`Surface for ${zone.name}`}>
+    <header><div><h3>Ground scan</h3><small>{zone.kind} zone · {zone.locked ? 'locked, surface fixed' : 'applies at once · agents use landscape set-surface'}</small></div></header>
+    <TexturePicker surface="ground" label={`Ground scan for ${zone.name}`} value={zone.textureId} defaultId={defaultGroundTexture(zone.kind)} disabled={zone.locked} onChange={choose} />
+  </section>
+}
+
 function WallFinishEditor({ building, wall }: { building: BuildingModel; wall: WallModel }) {
   const project = useStudioStore((state) => state.project); const commitCommands = useStudioStore((state) => state.commitCommands); const setSelectedRef = useStudioStore((state) => state.setSelectedRef); const setToast = useStudioStore((state) => state.setToast)
-  const current = resolveWallFinish(wall, building.architecturalStyle); const [material, setMaterial] = useState<WallMaterial>(current.material); const [colorHex, setColorHex] = useState(current.colorHex)
-  useEffect(() => { const next = resolveWallFinish(wall, building.architecturalStyle); setMaterial(next.material); setColorHex(next.colorHex) }, [building.architecturalStyle, wall.finish, wall.ref])
-  const chooseMaterial = (next: WallMaterial) => { const definition = wallFinishCatalog.find((item) => item.id === next)!; setMaterial(next); setColorHex(definition.defaultColor) }
+  const current = resolveWallFinish(wall, building.architecturalStyle); const [material, setMaterial] = useState<WallMaterial>(current.material); const [colorHex, setColorHex] = useState(current.colorHex); const [textureId, setTextureId] = useState<string | undefined>(current.textureId)
+  useEffect(() => { const next = resolveWallFinish(wall, building.architecturalStyle); setMaterial(next.material); setColorHex(next.colorHex); setTextureId(next.textureId) }, [building.architecturalStyle, wall.finish, wall.ref])
+  const chooseMaterial = (next: WallMaterial) => { const definition = wallFinishCatalog.find((item) => item.id === next)!; setMaterial(next); setColorHex(definition.defaultColor); setTextureId(undefined) }
   const applyFinish = (scope: WallFinishScope) => {
     try {
-      const commands = wallFinishCommands(project, { buildingRef: building.ref, scope, wallRef: wall.ref, material, colorHex })
+      const commands = wallFinishCommands(project, { buildingRef: building.ref, scope, wallRef: wall.ref, material, colorHex, ...(textureId !== undefined ? { textureId } : {}) })
       commitCommands(commands, `${wallFinishCatalog.find((item) => item.id === material)?.label ?? 'Wall finish'} applied to ${scope === 'wall' ? 'selected wall' : 'all exterior walls'}. Ctrl+Z to undo.`)
       setSelectedRef(wall.ref)
     } catch (error) { setToast(error instanceof Error ? error.message : 'Wall finish could not be applied.') }
   }
-  const validColor = /^#[0-9a-fA-F]{6}$/.test(colorHex); const textured = Boolean(wallTextureFor[material])
+  const validColor = /^#[0-9a-fA-F]{6}$/.test(colorHex); const textured = Boolean(resolveWallTexture({ material, colorHex, textureId }))
   return <section className="wall-finish-editor" aria-label={`Wall finish for ${wallLabel(wall)}`}>
     <header><div><h3>Wall finish</h3><small>{textured ? 'Scanned material · colour applied as a light tint' : 'Opaque material · selected or all exterior walls'}</small></div><span className="finish-current" style={{ backgroundColor: validColor ? colorHex : current.colorHex }} /></header>
     <div className="finish-materials" role="group" aria-label="Wall material">{wallFinishCatalog.map((item) => <button key={item.id} className={material === item.id ? 'active' : ''} aria-pressed={material === item.id} onClick={() => chooseMaterial(item.id)}><i style={{ backgroundColor: item.defaultColor }} /><span><strong>{item.label}</strong><small>{item.description}</small></span></button>)}</div>
+    <TexturePicker surface="wall" label="Wall scan" value={textureId} defaultId={defaultWallTexture(material)} onChange={setTextureId} />
     <div className="finish-color"><label><span>{textured ? 'Tint over texture' : 'Custom color'}</span><input type="color" value={validColor ? colorHex : current.colorHex} onChange={(event) => setColorHex(event.target.value.toUpperCase())} aria-label="Wall color picker" /></label><input type="text" value={colorHex} onChange={(event) => setColorHex(event.target.value)} pattern="#[0-9a-fA-F]{6}" aria-label="Wall color hex" /></div>
     <div className="finish-actions"><button className="save-finish" disabled={!validColor} onClick={() => applyFinish('wall')}>Apply to this wall</button><button disabled={!validColor} onClick={() => applyFinish('all-exterior')}>Apply to all exterior</button></div>
   </section>
@@ -326,6 +352,7 @@ function Inspector() {
     {building && <dl className="readout"><div><dt>Position</dt><dd>{building.position.x.toFixed(2)}, {building.position.z.toFixed(2)} m</dd></div><div><dt>Rotation</dt><dd>{building.rotationDegrees.toFixed(1)}°</dd></div><div><dt>Storeys</dt><dd>{building.storeys.length}</dd></div></dl>}
     {fixture && <dl className="readout"><div><dt>Fixture</dt><dd>{fixture.catalogId}</dd></div><div><dt>Position</dt><dd>{fixture.position.x.toFixed(2)}, {fixture.position.z.toFixed(2)} m</dd></div><div><dt>Rotation</dt><dd>{fixture.rotationDegrees.toFixed(1)}°</dd></div></dl>}
     {plant && <dl className="readout"><div><dt>Species</dt><dd>{plant.species}</dd></div><div><dt>Position</dt><dd>{plant.position.x.toFixed(2)}, {plant.position.z.toFixed(2)} m</dd></div></dl>}
+    {zone && <ZoneSurfaceEditor zone={zone} />}
     {selectedRoofSegment && <dl className="readout"><div><dt>Eaves</dt><dd>{selectedRoofSegment.baseElevationM.toFixed(2)} m</dd></div><div><dt>Pitch</dt><dd>{selectedRoofSegment.pitchDegrees.toFixed(1)}°</dd></div><div><dt>Finish</dt><dd>{selectedRoofSegment.finish.material}</dd></div></dl>}
     {selectedWall && openingBuilding ? <OpeningEditor building={openingBuilding} wall={selectedWall} selectedRef={selectedRef} /> : <>
       <section className="house-presets"><h3>House preset</h3><button className={modernBarnActive ? 'active' : ''} onClick={() => useModernBarnPreset()}><span>Modern barn</span><small>2 levels · 45° gable</small><b>{modernBarnActive ? 'ACTIVE' : 'USE'}</b></button></section>
