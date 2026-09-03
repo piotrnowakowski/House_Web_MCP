@@ -26,17 +26,36 @@ describe('ProjectV2 command bus', () => {
     expect(result.buildings[0]).toMatchObject({ architecturalStyle: 'barn', roof: { type: 'gable', pitchDegrees: 45, overhangM: 0.3 } })
   })
 
-  it('ships the selectable modern barn preset as two levels without moving the house', () => {
+  it('ships the selectable modern barn preset as a valid two-level L-shaped house', () => {
     expect(modernBarnProject.buildings[0]).toMatchObject({
       architecturalStyle: 'barn',
-      position: sampleProject.buildings[0].position,
-      roof: { type: 'gable', pitchDegrees: 45, overhangM: 0.3 },
+      position: { x: 0, z: -1 },
+      roof: { type: 'gable', pitchDegrees: 45, overhangM: 0.42 },
     })
     expect(modernBarnProject.buildings[0].storeys).toHaveLength(2)
-    expect(calculateMetrics(modernBarnProject).homeAreaM2).toBe(216)
+    expect(modernBarnProject.buildings[0].slabs[0].footprint).toHaveLength(6)
+    expect(calculateMetrics(modernBarnProject).homeAreaM2).toBe(204)
     expect(calculateMetrics(modernBarnProject).fixtureCount).toBe(6)
     expect(modernBarnProject.landscape.fixtures.map((fixture) => fixture.catalogId)).toEqual(['raised-bed-2x1', 'tomato-row', 'raised-bed-2x1', 'potato-row', 'raised-bed-2x1', 'cucumber-trellis'])
     expect(validateProject(modernBarnProject).filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
+  it('extends the existing upper barn storey over the 16 × 6 m wing atomically', () => {
+    const result = applyCommand(modernBarnProject, {
+      type: 'storey.update', action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
+      extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }],
+      spaceRef: 'house/main/storey-upper/space-wing', spaceName: 'Upper wing', usage: 'living',
+    })
+    const building = result.buildings[0]; const upper = building.storeys.find((storey) => storey.ref === 'house/main/storey-upper')!
+    const slab = building.slabs.find((item) => item.ref === upper.baseSlabRef)!
+    expect(modernBarnProject.buildings[0].storeys).toHaveLength(2)
+    expect(building.storeys).toHaveLength(2)
+    expect(polygonArea(slab.footprint)).toBe(150)
+    expect(calculateMetrics(result).homeAreaM2).toBe(300)
+    expect(building.roof.footprint).toEqual(slab.footprint)
+    expect(upper.spaceRefs).toContain('house/main/storey-upper/space-wing')
+    expect(building.walls.find((wall) => wall.ref === 'wall/upper-east')?.openings).toHaveLength(2)
+    expect(validateProject(result).filter((issue) => issue.severity === 'error')).toEqual([])
   })
 
   it('adds and moves a semantic garden fixture without mutating the source', () => {
@@ -45,6 +64,11 @@ describe('ProjectV2 command bus', () => {
     expect(sampleProject.landscape.fixtures).toHaveLength(0)
     expect(moved.landscape.fixtures[0]).toMatchObject({ ref: 'fixture/test-bed', catalogId: 'raised-bed-2x1', position: { x: 9, z: 6 } })
     expect(validateProject(moved).filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
+  it('reports a crop fixture separated from its linked raised bed', () => {
+    const movedCrop = applyCommand(modernBarnProject, { type: 'garden-fixture.update', action: 'move', fixtureRef: 'fixture-set/starter-1/crop-tomato', position: { x: 8.4, z: 25.5 } })
+    expect(validateProject(movedCrop)).toContainEqual(expect.objectContaining({ severity: 'error', code: 'fixture.crop-host', subjectRef: 'fixture-set/starter-1/crop-tomato' }))
   })
 
   it('moves the one intermediate slab used as both floor and ceiling', () => {

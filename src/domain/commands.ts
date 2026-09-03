@@ -1,6 +1,6 @@
 import { estimateDayPartTemperatures } from './climate'
 import { gardenFixtureById } from './gardenFixtures'
-import { buildingFootprintsWorld, pointInPolygon, polygonArea, polygonSelfIntersects, rectangle, spaceFootprint, wallLength } from './geometry'
+import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
 import type { BuildingModel, LandscapeZone, OpeningModel, Polygon2, ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, SpaceBoundaryUse, StoreyModel, Vec2, WallModel } from './types'
 
 export { polygonArea } from './geometry'
@@ -15,9 +15,23 @@ const getBuilding = (project: ProjectV2, ref: string) => { const value = project
 const getStorey = (building: BuildingModel, ref: string) => { const value = building.storeys.find((item) => item.ref === ref); if (!value) throw new Error(`Storey not found: ${ref}`); return value }
 const getWall = (building: BuildingModel, ref: string) => { const value = building.walls.find((item) => item.ref === ref); if (!value) throw new Error(`Wall not found: ${ref}`); return value }
 
-const findReusableWall = (building: BuildingModel, start: Vec2, end: Vec2, baseElevationM: number) => building.walls.find((wall) =>
-  Math.abs(wall.baseElevationM - baseElevationM) < 0.001
-  && ((samePoint(wall.start, start) && samePoint(wall.end, end)) || (samePoint(wall.start, end) && samePoint(wall.end, start))))
+const findReusableWall = (building: BuildingModel, start: Vec2, end: Vec2, baseElevationM: number) => {
+  const exact = building.walls.find((wall) => Math.abs(wall.baseElevationM - baseElevationM) < 0.001
+    && ((samePoint(wall.start, start) && samePoint(wall.end, end)) || (samePoint(wall.start, end) && samePoint(wall.end, start))))
+  if (exact) return exact
+  const contained = building.walls.filter((wall) => Math.abs(wall.baseElevationM - baseElevationM) < 0.001
+    && pointOnSegment(wall.start, start, end) && pointOnSegment(wall.end, start, end)).sort((a, b) => wallLength(b) - wallLength(a))[0]
+  if (!contained) return undefined
+  const oldStart = clone(contained.start); const oldEnd = clone(contained.end); const oldLength = wallLength(contained)
+  const length = Math.hypot(end.x - start.x, end.z - start.z); const ux = (end.x - start.x) / length; const uz = (end.z - start.z) / length
+  contained.openings.forEach((opening) => {
+    const oldUx = (oldEnd.x - oldStart.x) / oldLength; const oldUz = (oldEnd.z - oldStart.z) / oldLength
+    const center = { x: oldStart.x + oldUx * opening.offsetM, z: oldStart.z + oldUz * opening.offsetM }
+    opening.offsetM = (center.x - start.x) * ux + (center.z - start.z) * uz
+  })
+  contained.start = clone(start); contained.end = clone(end)
+  return contained
+}
 
 const buildBoundary = (building: BuildingModel, storey: StoreyModel, spaceRef: string, footprint: Polygon2): SpaceBoundaryUse[] => footprint.map((start, index) => {
   const end = footprint[(index + 1) % footprint.length]
@@ -27,7 +41,7 @@ const buildBoundary = (building: BuildingModel, storey: StoreyModel, spaceRef: s
     return { wallRef: existing.ref, direction: samePoint(existing.start, start) ? 1 : -1 }
   }
   const ref = `${spaceRef}/wall-${index + 1}`
-  const wall: WallModel = { ref, start: clone(start), end: clone(end), thicknessM: 0.22, baseElevationM: storey.elevationM, heightM: storey.clearHeightM, openings: [], locked: false }
+  const wall: WallModel = { ref, start: clone(start), end: clone(end), thicknessM: 0.22, baseElevationM: storey.elevationM, heightM: storey.clearHeightM, openings: [], finish: { material: 'light-render', colorHex: '#E8E1D2' }, locked: false }
   building.walls.push(wall)
   storey.wallRefs.push(ref)
   return { wallRef: ref, direction: 1 }
@@ -88,6 +102,41 @@ const applyStorey = (project: ProjectV2, command: Extract<ProjectCommand, { type
     return
   }
   const storey = getStorey(building, command.storeyRef)
+  if (command.action === 'extend-footprint') {
+    const slab = building.slabs.find((item) => item.ref === storey.baseSlabRef)
+    if (!slab) throw new Error(`Base slab not found: ${storey.baseSlabRef}`)
+    if (slab.locked) throw new Error(`Slab is locked: ${slab.ref}`)
+    if (!command.footprint && !command.extensionFootprint) throw new Error('A complete footprint or extensionFootprint is required.')
+    const completeFootprint = clone(command.footprint ?? mergeAdjacentPolygons(slab.footprint, command.extensionFootprint!))
+    if (command.extensionFootprint && command.footprint) {
+      const expectedArea = polygonArea(slab.footprint) + polygonArea(command.extensionFootprint)
+      if (Math.abs(polygonArea(completeFootprint) - expectedArea) > 0.02) throw new Error('Complete footprint area must equal the existing storey plus the non-overlapping extension.')
+    }
+    if (polygonArea(completeFootprint) <= polygonArea(slab.footprint) + 0.01) throw new Error('The new storey footprint must increase modeled floor area.')
+    if (command.extensionFootprint) {
+      const spaceRef = command.spaceRef ?? `${storey.ref}/space-extension`
+      if (building.spaces.some((space) => space.ref === spaceRef)) throw new Error(`Reference already exists: ${spaceRef}`)
+      const extensionFootprint = splitPolygonEdges(command.extensionFootprint, slab.footprint)
+      building.spaces.push({ ref: spaceRef, name: command.spaceName ?? 'Storey extension', usage: command.usage ?? 'flex', boundary: buildBoundary(building, storey, spaceRef, extensionFootprint), baseSlabRef: slab.ref, topBoundaryRef: storey.topBoundaryRef, locked: false })
+      storey.spaceRefs.push(spaceRef)
+    } else {
+      const primarySpace = building.spaces.find((space) => storey.spaceRefs.includes(space.ref) && !space.locked)
+      const spaceRef = primarySpace?.ref ?? command.spaceRef ?? `${storey.ref}/space-main`
+      if (primarySpace) primarySpace.boundary = buildBoundary(building, storey, primarySpace.ref, completeFootprint)
+      else {
+        building.spaces.push({ ref: spaceRef, name: command.spaceName ?? 'Extended storey', usage: command.usage ?? 'flex', boundary: buildBoundary(building, storey, spaceRef, completeFootprint), baseSlabRef: slab.ref, topBoundaryRef: storey.topBoundaryRef, locked: false })
+        storey.spaceRefs.push(spaceRef)
+      }
+    }
+    slab.footprint = completeFootprint
+    if (storey.level === Math.max(...building.storeys.map((item) => item.level))) building.roof.footprint = clone(completeFootprint)
+    const usedWallRefs = new Set(building.spaces.filter((space) => storey.spaceRefs.includes(space.ref)).flatMap((space) => space.boundary.map((use) => use.wallRef)))
+    const obsoleteWallRefs = new Set(storey.wallRefs.filter((ref) => !usedWallRefs.has(ref)))
+    storey.wallRefs = [...usedWallRefs]
+    const otherStoreyWallRefs = new Set(building.storeys.filter((item) => item.ref !== storey.ref).flatMap((item) => item.wallRefs))
+    building.walls = building.walls.filter((wall) => !obsoleteWallRefs.has(wall.ref) || otherStoreyWallRefs.has(wall.ref))
+    return
+  }
   if (command.action === 'remove') {
     const highest = Math.max(...building.storeys.map((item) => item.level))
     if (storey.level !== highest || building.storeys.length === 1) throw new Error('Only the highest non-ground storey can be removed.')
@@ -171,6 +220,11 @@ const applyCommandMutable = (project: ProjectV2, command: ProjectCommand) => {
     if (command.start) wall.start = clone(command.start); if (command.end) wall.end = clone(command.end)
     if (command.thicknessM !== undefined) wall.thicknessM = command.thicknessM
     if (command.heightM !== undefined) wall.heightM = command.heightM
+  } else if (command.type === 'wall.finish') {
+    const wall = getWall(getBuilding(project, command.buildingRef), command.wallRef)
+    if (wall.locked) throw new Error(`Wall is locked: ${wall.ref}`)
+    if (!/^#[0-9a-fA-F]{6}$/.test(command.colorHex)) throw new Error('Wall color must be a six-digit hex value such as #242927.')
+    wall.finish = { material: command.material, colorHex: command.colorHex.toUpperCase() }
   } else if (command.type === 'opening.update') {
     const wall = getWall(getBuilding(project, command.buildingRef), command.wallRef)
     const index = wall.openings.findIndex((item) => item.ref === command.openingRef)
@@ -202,6 +256,11 @@ const applyCommandMutable = (project: ProjectV2, command: ProjectCommand) => {
     if (command.action === 'add') { if (!command.position) throw new Error('Plant position is required.'); project.landscape.plants.push({ ref: command.plantRef, name: command.name ?? 'Plant', species: command.species ?? 'Unspecified', kind: command.kind ?? 'shrub', position: clone(command.position), matureHeightM: 1.5, canopyM: 1.2, sunNeed: 'sun', waterNeed: 0.7, hardinessMinC: -20, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [], locked: false }) }
     else if (command.action === 'remove') project.landscape.plants = project.landscape.plants.filter((item) => item.ref !== command.plantRef)
     else { if (index < 0 || !command.position) throw new Error(index < 0 ? `Plant not found: ${command.plantRef}` : 'Plant position is required.'); if (project.landscape.plants[index].locked) throw new Error(`${project.landscape.plants[index].name} is locked.`); project.landscape.plants[index].position = clone(command.position) }
+  } else if (command.type === 'planting-area.update') {
+    const existingRefs = new Set(project.landscape.plants.map((plant) => plant.ref))
+    const duplicate = command.plants.find((plant, index) => existingRefs.has(plant.ref) || command.plants.findIndex((candidate) => candidate.ref === plant.ref) !== index)
+    if (duplicate) throw new Error(`Reference already exists: ${duplicate.ref}`)
+    project.landscape.plants.push(...clone(command.plants))
   } else if (command.type === 'garden-fixture.update') {
     const index = project.landscape.fixtures.findIndex((item) => item.ref === command.fixtureRef)
     if (command.action === 'add') {
@@ -232,6 +291,7 @@ const allRefs = (building: BuildingModel) => [building.ref, building.roof.ref, .
 
 export const validateProject = (project: ProjectV2): ProjectIssue[] => {
   const issues: ProjectIssue[] = []
+  const constructionParcels = project.site.parcels.filter((parcel) => parcel.landRole === 'construction')
   if (polygonSelfIntersects(project.site.boundary)) issues.push({ severity: 'error', code: 'site.self-intersection', message: 'Site boundary self-intersects.', subjectRef: 'site' })
   project.buildings.forEach((building) => {
     const refs = allRefs(building); const duplicates = refs.filter((ref, index) => refs.indexOf(ref) !== index)
@@ -252,7 +312,7 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
       if (opening.offsetM - opening.widthM / 2 < 0 || opening.offsetM + opening.widthM / 2 > wallLength(wall)) issues.push({ severity: 'error', code: 'opening.bounds', message: `${opening.ref} exceeds its host wall.`, subjectRef: opening.ref })
       if (opening.sillM + opening.heightM > wall.heightM) issues.push({ severity: 'error', code: 'opening.height', message: `${opening.ref} exceeds wall height.`, subjectRef: opening.ref })
     }))
-    if (!buildingFootprintsWorld(building).flat().every((point) => pointInPolygon(point, project.site.boundary))) issues.push({ severity: 'error', code: 'building.site', message: `${building.name} is outside the site boundary.`, subjectRef: building.ref })
+    if (!buildingFootprintsWorld(building).flat().every((point) => constructionParcels.some((parcel) => pointInPolygon(point, parcel.boundary)))) issues.push({ severity: 'error', code: 'building.site', message: `${building.name} is outside the construction parcels.`, subjectRef: building.ref })
   })
   project.landscape.zones.forEach((zone: LandscapeZone) => {
     if (polygonArea(zone.footprint) < 0.01 || polygonSelfIntersects(zone.footprint)) issues.push({ severity: 'error', code: 'landscape.polygon', message: `${zone.name} has an invalid polygon.`, subjectRef: zone.ref })
@@ -268,6 +328,10 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
     const corners = [[-definition.widthM / 2, -definition.depthM / 2], [definition.widthM / 2, -definition.depthM / 2], [definition.widthM / 2, definition.depthM / 2], [-definition.widthM / 2, definition.depthM / 2]]
       .map(([x, z]) => ({ x: fixture.position.x + x * c + z * s, z: fixture.position.z - x * s + z * c }))
     if (!corners.every((corner) => project.site.parcels.some((parcel) => pointInPolygon(corner, parcel.boundary)))) issues.push({ severity: 'error', code: 'fixture.site', message: `${fixture.name} extends outside the owned parcels.`, subjectRef: fixture.ref })
+  })
+  const raisedBeds = project.landscape.fixtures.filter((fixture) => fixture.catalogId === 'raised-bed-2x1')
+  project.landscape.fixtures.filter((fixture) => fixture.catalogId !== 'raised-bed-2x1').forEach((fixture) => {
+    if (!raisedBeds.some((bed) => Math.hypot(bed.position.x - fixture.position.x, bed.position.z - fixture.position.z) < 0.15)) issues.push({ severity: 'error', code: 'fixture.crop-host', message: `${fixture.name} must remain colocated with a raised bed.`, subjectRef: fixture.ref })
   })
   if (project.site.knowledgeBase.geotechnical.documentationNeed) issues.push({ severity: 'warning', code: 'site.geotechnical-review', message: project.site.knowledgeBase.geotechnical.documentationNeed, subjectRef: 'site' })
   return issues

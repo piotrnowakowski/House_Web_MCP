@@ -27,6 +27,17 @@ const getOldRecord = () => new Promise<unknown>((resolve, reject) => {
   request.onerror = () => reject(request.error)
 })
 
+const putCurrentRecord = (value: unknown) => new Promise<void>((resolve, reject) => {
+  const request = indexedDB.open('house-web-mcp', 1)
+  request.onupgradeneeded = () => request.result.createObjectStore('projects')
+  request.onsuccess = () => {
+    const database = request.result; const transaction = database.transaction('projects', 'readwrite')
+    transaction.objectStore('projects').put(value, 'zielonki-spatial-editor-balanced-facades-v2')
+    transaction.oncomplete = () => { database.close(); resolve() }; transaction.onerror = () => reject(transaction.error)
+  }
+  request.onerror = () => reject(request.error)
+})
+
 describe('ProjectV2 persistence boundary', () => {
   beforeEach(deleteDatabase)
 
@@ -36,5 +47,19 @@ describe('ProjectV2 persistence boundary', () => {
     await saveProject(sampleProject)
     expect(await loadProject()).toEqual(sampleProject)
     expect(await getOldRecord()).toEqual({ schemaVersion: 1, name: 'Legacy project' })
+  })
+
+  it('migrates saved Zielonki site geometry to the corrected subdivision outline', async () => {
+    const stale = structuredClone(sampleProject)
+    stale.site.knowledgeBase.datasetVersion = 'zielonki-knowledge-bank-2026-09-03'
+    const parcel55 = stale.site.parcels.find((parcel) => parcel.cadastralNumber === '55/4')!
+    parcel55.boundary = [{ x: -9.246, z: 15.882 }, { x: 0.8, z: 15.882 }, { x: 0.8, z: 161.017 }, { x: -9.246, z: 161.017 }]
+    await putCurrentRecord(stale)
+
+    const restored = await loadProject()
+    const corrected55 = restored!.site.parcels.find((parcel) => parcel.cadastralNumber === '55/4')!
+    expect(restored!.site.knowledgeBase.datasetVersion).toBe('zielonki-knowledge-bank-2026-09-03-outline-v3')
+    expect(Math.max(...corrected55.boundary.map((point) => point.z))).toBeCloseTo(186.012, 3)
+    expect(corrected55.boundary.some((point) => point.x === -2.152166)).toBe(true)
   })
 })

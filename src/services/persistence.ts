@@ -1,9 +1,10 @@
 import { parseProject } from '../domain/schema'
 import type { ProjectV2 } from '../domain/types'
+import { zielonkiKnowledgeBase, zielonkiPlot } from '../../knowledge-bank/zielonki/data'
 
 const DB_NAME = 'house-web-mcp'
 const STORE_NAME = 'projects'
-const ACTIVE_KEY = 'zielonki-spatial-editor-project-v2'
+const ACTIVE_KEY = 'zielonki-spatial-editor-balanced-facades-v2'
 
 const openDatabase = () => new Promise<IDBDatabase>((resolve, reject) => {
   const request = indexedDB.open(DB_NAME, 1)
@@ -35,5 +36,14 @@ export const loadProject = async (): Promise<ProjectV2 | null> => {
     request.onerror = () => reject(request.error)
   })
   database.close()
-  return value ? parseProject(value) : null
+  if (!value) return null
+  const project = parseProject(value)
+  if (project.ref === 'project/zielonki-spatial-v2' && project.site.knowledgeBase.datasetVersion !== zielonkiKnowledgeBase.datasetVersion) {
+    project.site.boundary = structuredClone(zielonkiPlot.boundary)
+    project.site.terrain.boundary = structuredClone(zielonkiPlot.boundary)
+    project.site.parcels = structuredClone(zielonkiPlot.parcels)
+    project.site.entrances = structuredClone(zielonkiPlot.entrances)
+    project.site.knowledgeBase = structuredClone(zielonkiKnowledgeBase)
+  }
+  return project
 }

@@ -22,6 +22,86 @@ export const polygonBounds = (points: Polygon2) => points.reduce((bounds, point)
   minZ: Math.min(bounds.minZ, point.z), maxZ: Math.max(bounds.maxZ, point.z),
 }), { minX: Infinity, maxX: -Infinity, minZ: Infinity, maxZ: -Infinity })
 
+const GEOMETRY_EPSILON = 0.001
+const samePoint = (a: Vec2, b: Vec2) => Math.hypot(a.x - b.x, a.z - b.z) < GEOMETRY_EPSILON
+
+export const pointOnSegment = (point: Vec2, start: Vec2, end: Vec2, tolerance = GEOMETRY_EPSILON) => {
+  const length = Math.hypot(end.x - start.x, end.z - start.z)
+  if (length < tolerance) return samePoint(point, start)
+  const cross = Math.abs((point.x - start.x) * (end.z - start.z) - (point.z - start.z) * (end.x - start.x)) / length
+  const dot = (point.x - start.x) * (end.x - start.x) + (point.z - start.z) * (end.z - start.z)
+  return cross <= tolerance && dot >= -tolerance && dot <= length * length + tolerance
+}
+
+export const pointOnPolygonBoundary = (point: Vec2, polygon: Polygon2, tolerance = GEOMETRY_EPSILON) => polygon.some((start, index) => pointOnSegment(point, start, polygon[(index + 1) % polygon.length], tolerance))
+
+export const distanceToSegment = (point: Vec2, start: Vec2, end: Vec2) => {
+  const dx = end.x - start.x; const dz = end.z - start.z; const lengthSquared = dx * dx + dz * dz
+  if (lengthSquared < 1e-9) return Math.hypot(point.x - start.x, point.z - start.z)
+  const t = Math.max(0, Math.min(1, ((point.x - start.x) * dx + (point.z - start.z) * dz) / lengthSquared))
+  return Math.hypot(point.x - (start.x + t * dx), point.z - (start.z + t * dz))
+}
+
+export const polygonPerimeter = (points: Polygon2) => points.reduce((sum, point, index) => sum + Math.hypot(points[(index + 1) % points.length].x - point.x, points[(index + 1) % points.length].z - point.z), 0)
+
+/** Splits polygon edges at vertices from another polygon so shared partial edges become reusable semantic segments. */
+export const splitPolygonEdges = (polygon: Polygon2, splitter: Polygon2): Polygon2 => polygon.flatMap((start, index) => {
+  const end = polygon[(index + 1) % polygon.length]
+  const dx = end.x - start.x; const dz = end.z - start.z; const lengthSquared = dx * dx + dz * dz
+  const points = [start, ...splitter.filter((point) => !samePoint(point, start) && !samePoint(point, end) && pointOnSegment(point, start, end))]
+    .map((point) => ({ point, t: ((point.x - start.x) * dx + (point.z - start.z) * dz) / lengthSquared }))
+    .sort((a, b) => a.t - b.t)
+    .map(({ point }) => ({ ...point }))
+  return points
+})
+
+/** Joins two non-overlapping polygons that share one or more boundary segments. */
+export const mergeAdjacentPolygons = (first: Polygon2, second: Polygon2): Polygon2 => {
+  const normalize = (polygon: Polygon2) => polygonSignedArea(polygon) < 0 ? [...polygon].reverse() : [...polygon]
+  const a = splitPolygonEdges(normalize(first), second)
+  const b = splitPolygonEdges(normalize(second), first)
+  type Edge = { start: Vec2; end: Vec2 }
+  const edges: Edge[] = [...a.map((start, index) => ({ start, end: a[(index + 1) % a.length] })), ...b.map((start, index) => ({ start, end: b[(index + 1) % b.length] }))]
+  const boundary = edges.filter((edge, index) => !edges.some((candidate, otherIndex) => otherIndex !== index && samePoint(edge.start, candidate.end) && samePoint(edge.end, candidate.start)))
+  if (boundary.length === edges.length) throw new Error('The extension footprint must share an edge with the existing storey footprint.')
+  const ordered: Vec2[] = [{ ...boundary[0].start }]
+  let current = boundary[0].end; const used = new Set([0])
+  while (!samePoint(current, ordered[0])) {
+    ordered.push({ ...current })
+    const nextIndex = boundary.findIndex((edge, index) => !used.has(index) && samePoint(edge.start, current))
+    if (nextIndex < 0) throw new Error('The storey and extension footprints do not form one valid outer boundary.')
+    used.add(nextIndex); current = boundary[nextIndex].end
+    if (ordered.length > boundary.length + 1) throw new Error('The combined storey boundary could not be resolved.')
+  }
+  if (used.size !== boundary.length || polygonSelfIntersects(ordered)) throw new Error('The combined storey footprint is disconnected or self-intersecting.')
+  return ordered.filter((point, index) => {
+    const previous = ordered[(index + ordered.length - 1) % ordered.length]; const next = ordered[(index + 1) % ordered.length]
+    return Math.abs((point.x - previous.x) * (next.z - point.z) - (point.z - previous.z) * (next.x - point.x)) > GEOMETRY_EPSILON
+  })
+}
+
+const lineIntersection = (a: Vec2, b: Vec2, c: Vec2, d: Vec2): Vec2 | null => {
+  const denominator = (a.x - b.x) * (c.z - d.z) - (a.z - b.z) * (c.x - d.x)
+  if (Math.abs(denominator) < 1e-8) return null
+  const determinantA = a.x * b.z - a.z * b.x; const determinantB = c.x * d.z - c.z * d.x
+  return { x: (determinantA * (c.x - d.x) - (a.x - b.x) * determinantB) / denominator, z: (determinantA * (c.z - d.z) - (a.z - b.z) * determinantB) / denominator }
+}
+
+/** Straight-edge inward offset used for reviewable planting rows. */
+export const offsetPolygon = (polygon: Polygon2, distance: number): Polygon2 => {
+  if (distance === 0) return polygon.map((point) => ({ ...point }))
+  const orientation = polygonSignedArea(polygon) >= 0 ? 1 : -1
+  const shifted = polygon.map((start, index) => {
+    const end = polygon[(index + 1) % polygon.length]; const dx = end.x - start.x; const dz = end.z - start.z; const length = Math.hypot(dx, dz)
+    if (length < GEOMETRY_EPSILON) throw new Error('Boundary contains a zero-length edge.')
+    const normal = { x: -dz / length * orientation * distance, z: dx / length * orientation * distance }
+    return { start: { x: start.x + normal.x, z: start.z + normal.z }, end: { x: end.x + normal.x, z: end.z + normal.z } }
+  })
+  const result = shifted.map((edge, index) => lineIntersection(shifted[(index + shifted.length - 1) % shifted.length].start, shifted[(index + shifted.length - 1) % shifted.length].end, edge.start, edge.end) ?? edge.start)
+  if (polygonArea(result) < 0.01 || polygonSelfIntersects(result)) throw new Error('The inward offset collapses or self-intersects the selected boundary.')
+  return result
+}
+
 const orient = (a: Vec2, b: Vec2, c: Vec2) => Math.sign((b.z - a.z) * (c.x - b.x) - (b.x - a.x) * (c.z - b.z))
 const segmentsIntersect = (a: Vec2, b: Vec2, c: Vec2, d: Vec2) => orient(a, b, c) !== orient(a, b, d) && orient(c, d, a) !== orient(c, d, b)
 
@@ -70,8 +150,9 @@ export const buildingFootprintsWorld = (building: BuildingModel) => {
 
 export const buildingPlacement = (building: BuildingModel) => {
   const bounds = buildingLocalBounds(building)
+  const roofBounds = building.roof.footprint ? polygonBounds(building.roof.footprint) : bounds
   const baseElevationM = buildingBaseElevation(building)
-  const roofTop = building.roof.baseElevationM + (building.roof.type === 'flat' ? 0.24 : Math.tan(building.roof.pitchDegrees * Math.PI / 180) * (bounds.maxX - bounds.minX) / 2)
+  const roofTop = building.roof.baseElevationM + (building.roof.type === 'flat' ? 0.24 : Math.tan(building.roof.pitchDegrees * Math.PI / 180) * (roofBounds.maxX - roofBounds.minX) / 2)
   return {
     ref: building.ref, name: building.name, positionM: building.position, rotationDegrees: building.rotationDegrees,
     widthM: bounds.maxX - bounds.minX, depthM: bounds.maxZ - bounds.minZ,

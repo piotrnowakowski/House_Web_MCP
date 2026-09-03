@@ -31,8 +31,9 @@ export const zielonkiClimate: ClimateProfile = {
 export const zielonkiPlot: PlotModel = {
   boundary: [
     { x: 8.77, z: -15.63 }, { x: 18.21, z: -15.861 }, { x: 18.591, z: -6.318 },
-    { x: 19.477, z: 15.883 }, { x: 0.8, z: 15.882 }, { x: -9.246, z: 15.882 },
-    { x: -18.404, z: 15.882 }, { x: -18.403, z: 10.53 }, { x: -19.778, z: -15.1 },
+    { x: 19.477, z: 15.883 }, { x: 18.554407, z: 69.05 }, { x: -0.122593, z: 69.05 },
+    { x: -2.152166, z: 186.012 }, { x: -9.246, z: 186.012 },
+    { x: -18.403, z: 186.012 }, { x: -18.403, z: 15.882 }, { x: -18.403, z: 10.53 }, { x: -19.778, z: -15.1 },
     { x: -10.621, z: -15.591 }, { x: -0.838, z: -16.116 }, { x: 8.7, z: -16.628 },
   ],
   northDegrees: -56.7,
@@ -74,17 +75,27 @@ export const zielonkiPlot: PlotModel = {
     },
     {
       ref: 'parcel/55-4', cadastralNumber: '55/4', landRole: 'agricultural', officialAreaM2: 1458, geometryConfidence: 'context-only',
-      boundary: [{ x: -9.246, z: 15.882 }, { x: 0.8, z: 15.882 }, { x: 0.8, z: 161.017 }, { x: -9.246, z: 161.017 }],
+      boundary: [{ x: -9.246, z: 15.882 }, { x: 0.8, z: 15.882 }, { x: -2.152166, z: 186.012 }, { x: -9.246, z: 186.012 }],
     },
     {
       ref: 'parcel/58-4', cadastralNumber: '58/4', landRole: 'agricultural', officialAreaM2: 993, geometryConfidence: 'context-only',
-      boundary: [{ x: 0.8, z: 15.882 }, { x: 19.477, z: 15.882 }, { x: 19.477, z: 69.051 }, { x: 0.8, z: 69.05 }],
+      boundary: [{ x: 0.8, z: 15.882 }, { x: 19.477, z: 15.882 }, { x: 18.554407, z: 69.05 }, { x: -0.122593, z: 69.05 }],
+    },
+  ],
+  entrances: [
+    {
+      ref: 'entrance/house-road', name: 'House-side road entrance', connectsTo: 'public-road', geometryConfidence: 'user-marked',
+      start: { x: -19.403, z: -8.114 }, end: { x: -19.001, z: -0.614 },
+    },
+    {
+      ref: 'entrance/field-road', name: 'Field-side road entrance', connectsTo: 'public-road', geometryConfidence: 'user-marked',
+      start: { x: -18.403, z: 66 }, end: { x: -18.403, z: 74 },
     },
   ],
 }
 
 export const zielonkiKnowledgeBase: SiteKnowledgeBase = {
-  datasetVersion: 'zielonki-knowledge-bank-2026-09-02',
+  datasetVersion: 'zielonki-knowledge-bank-2026-09-03-outline-v3',
   locality: 'Zielonki, Małopolskie, Poland',
   addressContext: 'Krakowskie Przedmieście, third line of development',
   cadastralDistrict: '120617_2.0018 Zielonki',
@@ -130,7 +141,12 @@ export const zielonkiKnowledgeBase: SiteKnowledgeBase = {
     {
       ref: 'source/user-land-role', title: 'Owner design brief', date: '2026-09-02',
       kind: 'user-direction', authority: 'user-provided',
-      summary: 'Treat suffix /3 parcels as the house construction site and suffix /4 parcels as agricultural land.',
+      summary: 'Treat all six suffix /3 and /4 parcels as one owned site, with /3 as the house construction zone and /4 as agricultural land.',
+    },
+    {
+      ref: 'source/user-road-entrances', title: 'Owner road-entrance annotation', date: '2026-09-03',
+      kind: 'user-direction', authority: 'user-provided',
+      summary: 'Annotated cadastral screenshot marking two approximate entrances from the road along the outer edge of parcel 54.',
     },
   ],
   measurements: [
@@ -334,12 +350,13 @@ export const zielonkiKnowledgeBase: SiteKnowledgeBase = {
   designRules: [
     { rule: 'Keep the house and permanent building mass within parcels 54/3, 55/3 and 58/3.', basis: 'Owner brief; planning status still requires professional verification.', sourceRef: 'source/user-land-role' },
     { rule: 'Treat parcels 54/4, 55/4 and 58/4 as agricultural context, not as the house footprint.', basis: 'Owner brief.', sourceRef: 'source/user-land-role' },
+    { rule: 'Keep the two owner-marked road entrance locations visible and unobstructed in site concepts.', basis: 'Approximate positions from the owner annotation; verify widths and setting-out coordinates before construction.', sourceRef: 'source/user-road-entrances' },
     { rule: 'Flag every foundation proposal for geotechnical and structural review before it can be treated as feasible.', basis: 'Weak-bearing organic soils, shallow groundwater and specialist micropile recommendation.', sourceRef: 'source/geoanaliz-email' },
     { rule: 'Do not place conceptual infiltration or retention features beside foundations without a groundwater and drainage review.', basis: 'Groundwater range and moisture-sensitive clay.', sourceRef: 'source/geotechnical-opinion' },
   ],
   caveats: [
     'This knowledge bank is a concise planning extract, not a replacement for the signed source documents.',
-    'The /3 parcel polygons were transformed from the v2 DWG into a local 3D coordinate system. The /4 display polygons preserve official areas but are context-only strips because the map-for-design-purpose drawing does not close their remote extents.',
+    'The /3 parcel polygons were transformed from the v2 DWG into a local 3D coordinate system. The /4 display polygons preserve official areas and the topology visible on the subdivision map: 54/4 and 55/4 continue together to the far end, while 58/4 ends earlier. Their remote coordinates remain context-only because the map-for-design-purpose drawing does not close those extents.',
     'The three widths and centreline depth are working measurements derived from DWG geometry and are not surveyor-signed dimensions.',
     'Borehole marker positions are digitised from the report map and should not be used for setting out.',
     'No soil pH test was found in the reviewed material; the climate profile therefore stores pH as unknown.',

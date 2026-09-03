@@ -1,8 +1,101 @@
-# ProjectV2 Spatial Editor
+# House & Garden Spatial Editor
 
-[Open the deployed planner](https://piotrnowakowski.github.io/House_Web_MCP/)
+**A WebMCP-native 3D workspace where people and browser agents design a house, site and garden together.**
 
-This is a WebMCP-native spatial editor for early building, site and landscape planning. The clean-break `ProjectV2` model represents buildings as storeys, shared slabs, wall graphs, polygonal spaces, real openings, roofs, platforms and linked ceiling finishes. It does not read V1 projects.
+[Open the live planner](https://piotrnowakowski.github.io/House_Web_MCP/) · [Inspect the generated WebMCP manifest](https://piotrnowakowski.github.io/House_Web_MCP/webmcp-tools.json) · [Read the source](https://github.com/piotrnowakowski/House_Web_MCP)
+
+No account, credentials or paid service is required. The project was created during the August 25–September 3, 2026 WebMCP Challenge submission period and is available under the MIT licence.
+
+## What it does
+
+Early house and garden planning is spatial: people need to see the building, terrain, rooms, openings, planting and seasonal effects together. A normal chat can describe a change, but it cannot safely understand or edit the exact objects in a live 3D design.
+
+This editor gives both the person and their browser agent access to one semantic `ProjectV2` model. A person can navigate and edit the 3D scene directly. An agent can inspect the same project through 31 schema-described WebMCP tools, propose coordinated changes and open visible architectural reports. The result remains an uncommitted ghost variant until the person explicitly applies or rejects it.
+
+The bundled Zielonki project demonstrates:
+
+- a two-storey modern-barn house with semantic storeys, slabs, spaces, walls, openings, finishes and roof;
+- terrain, site boundary, landscape zones, plants and a ready three-bed kitchen garden;
+- climate and planting guidance with documented evidence, unknowns and cautions kept separate;
+- measurements and a ten-sheet architectural set containing site plan, elevations, plans, sections and axonometric view;
+- grouped, transactional changes that can be reviewed as one proposal instead of a sequence of partly applied edits.
+
+This is an early concept-exploration tool, not construction documentation or structural, planning, geotechnical or horticultural advice.
+
+## Why WebMCP is the right interface
+
+A 3D canvas is difficult for an agent to operate through DOM guessing or screen coordinates. WebMCP lets the page expose stable semantic references such as `house/main`, exact metre-based geometry, validation rules and deliberate operations such as `propose_storey_update` or `propose_planting_area`.
+
+That creates a better experience in three ways:
+
+1. **Accurate context:** the agent reads structured project state instead of inferring geometry from pixels.
+2. **Meaningful actions:** tools call the same domain commands as the human interface, so validation and results stay consistent.
+3. **Human control:** modifying tools create immutable ghost variants. The agent can compare them, but only a visible Apply/Reject decision commits one. Committed work can still be undone.
+
+This makes collaboration possible that is awkward in either a conventional editor or a text-only chat: a person can describe an outcome, let the agent translate it into several exact spatial operations, inspect the resulting design in 3D and retain the final decision.
+
+## Human-agent journey
+
+```text
+Person states an intent
+        ↓
+Agent reads semantic project state and constraints
+        ↓
+Agent creates one tool proposal or transactional change set
+        ↓
+Editor renders a visible ghost variant and comparison
+        ↓
+Person applies or rejects it → committed history remains undoable
+```
+
+The person can continue editing through the UI at every stage. WebMCP is not a separate chatbot or parallel data model; it is an agent-facing interface to the live application.
+
+## Try it as a judge
+
+1. Open the [live planner](https://piotrnowakowski.github.io/House_Web_MCP/) in ChatGPT's in-app Browser, which supports WebMCP by default. Alternatively, use Google Chrome 149 or later, enable `chrome://flags/#enable-webmcp-testing`, then restart Chrome.
+2. Confirm that the 3D scene loads. The app requires no login and stores project state locally in IndexedDB.
+3. Open **MCP Tools** in the top toolbar to inspect every registered tool, prompt, JSON Schema, example input and result shape.
+4. Give the browser agent one of these prompts:
+
+   - `Inspect this project and summarize the house, garden fixtures and important site constraints.`
+   - `Create a ghost variant with a hornbeam boundary 1.2 metres inside the site, spaced every 5 metres. Do not apply it.`
+   - `Extend the upper-storey footprint with a new wing, compare the proposal with the current design and ask before applying it.`
+   - `Move the complete kitchen garden as one grouped change, but leave it for my approval.`
+   - `Show the complete architectural set for the main house.`
+
+5. For a modifying request, verify that the committed revision does not change until **Apply** is selected. Reject the proposal or apply it and use `undo_last_change` to restore the earlier committed project.
+
+## How WebMCP is implemented
+
+The app uses WebMCP's imperative API. At startup it registers the generated tool catalogue with the current document:
+
+```ts
+const modelContext = document.modelContext
+const controller = new AbortController()
+
+Promise.all(
+  webMcpTools.map((tool) =>
+    modelContext.registerTool(tool, { signal: controller.signal }),
+  ),
+)
+
+return () => controller.abort()
+```
+
+The implementation lives in [`src/services/webmcp.ts`](src/services/webmcp.ts). A centralized Zod registry in [`src/services/webmcpDefinitions.ts`](src/services/webmcpDefinitions.ts) generates the exact Draft-7 input schemas used by both runtime registration and the public [`webmcp-tools.json`](public/webmcp-tools.json) manifest.
+
+Read tools return structured state or open a visible in-page report. Modifying tools call the same commands used by the interface and return an immutable variant reference. Transactional tools stage several typed operations against an explicit base revision before finalizing one reviewable variant. An `AbortController` removes registrations when the application unmounts.
+
+## Challenge judging fit
+
+| Criterion | Evidence in this project |
+| --- | --- |
+| WebMCP leverage | 31 non-trivial, schema-validated tools operate on live semantic spatial state; read, proposal, comparison, grouped transaction, approval and undo flows are all implemented. |
+| Execution | Public no-login deployment, one coherent 3D editor, real geometry, local persistence, visible reports and automated browser coverage. |
+| Potential impact | Helps homeowners and early-stage design collaborators turn broad intent into inspectable house-and-garden alternatives before engaging professional design and engineering services. |
+| Creativity and ambition | Combines a semantic building model, landscape and seasonal context, agent-authored spatial variants and explicit human approval in one browser-native workspace. |
+
+## Zielonki demonstration data
 
 The bundled demo uses the Zielonki site evidence for parcels `54/3 + 55/3 + 58/3`, agricultural context, terrain, geotechnical constraints, climate and planting guidance. See the [Zielonki knowledge bank](knowledge-bank/zielonki/README.md).
 
@@ -10,9 +103,7 @@ The climate panel shows representative temperature averages for every month spli
 
 The planting guide separates productive and landscape recommendations. Its productive catalogue includes tomatoes, potatoes, cucumbers, apples, sour cherries, pears and plums, with planting/harvest windows and site-specific cautions. A dedicated soil-analysis section distinguishes documented ground observations from unknown horticultural properties, lists the laboratory and drainage checks still needed, and gives conservative raised-bed and orchard-mound preparation principles.
 
-The default modern-barn project also includes a ready kitchen-garden set: three timber raised beds planted with tomatoes, potatoes and cucumbers. Use **Garden fixtures** in the viewport to focus the camera on the set, place another complete set or add individual structures and crop rows. Fixtures are semantic, selectable project objects rather than decorative canvas-only geometry.
-
-This is a concept tool, not construction documentation or structural, planning, geotechnical or horticultural advice.
+The default project includes three timber raised beds planted with tomatoes, potatoes and cucumbers. Use **Garden fixtures** in the viewport to focus the camera on the set, place another complete set or add individual structures and crop rows. Fixtures are semantic, selectable project objects rather than decorative canvas-only geometry.
 
 ## Spatial and viewer stack
 
@@ -39,14 +130,16 @@ There is no project-file import, download/export, IFC exchange or Fragments exch
 
 Each drawing is rendered sequentially at 960×640, annotated with title, north, scale and building labels, and displayed from an in-memory PNG Blob. Object URLs are revoked when a report is replaced, closed or the app unmounts. The WebMCP JSON contains only view descriptors and local-metre placement numbers—never data URLs, Blob URLs or binary image content. Reports do not change the project revision and can target an uncommitted ghost variant.
 
-## Run and verify
+## Run locally and verify
 
 Requirements: Node.js 22+ and npm.
 
 ```bash
-npm install
+npm ci
 npm run dev -- --host 127.0.0.1 --port 5173
 ```
+
+Open `http://127.0.0.1:5173`. WebMCP is available when the page runs in ChatGPT's in-app Browser or in Chrome 149+ with `chrome://flags/#enable-webmcp-testing` enabled.
 
 Verification:
 
@@ -56,7 +149,7 @@ npm run build
 npm run test:e2e
 ```
 
-The browser test uses installed Chrome. It checks one canvas, runtime WASM, two-click length measurement, drag-to-size rectangular area measurement, removal of the angle tool, the ready garden-fixture set, live WebMCP fixture discovery, the climate day-part view, the planting and soil guide, the ten-sheet architectural set, placement data, report cleanup, zero page/console errors, and the same report against an uncommitted moved-building variant.
+The browser test uses installed Chrome. It checks one canvas, runtime WASM, length/area/semantic-height measurement, the ready garden-fixture set, live WebMCP storey-extension, planting-area, grouped-change and height calls, the climate day-part view, the planting and soil guide, the ten-sheet architectural set, placement data, report cleanup, zero page/console errors, and the same report against an uncommitted moved-building variant.
 
 ## WebMCP tools
 
@@ -68,18 +161,26 @@ Use **MCP Tools** in the application to inspect the registered catalogue. The pa
 | `propose_site_update` | Change site boundary or north |
 | `propose_terrain_update` | Change terrain elevation controls |
 | `propose_building_update` | Add, remove, move, rotate or restyle a building |
-| `propose_storey_update` | Add/remove a storey or change clear height |
+| `propose_storey_update` | Add/remove/resize a storey, including an atomic existing-footprint extension |
 | `propose_slab_update` | Edit one shared slab identity |
 | `propose_space_update` | Edit a polygonal space or linked lowered ceiling |
 | `propose_wall_update` | Edit a shared wall graph edge |
+| `propose_wall_opening_layout` | Apply a deterministic opening layout to one wall |
+| `propose_wall_finish_update` | Change one wall or all exterior walls to a material and color |
 | `propose_opening_update` | Add/remove/move/resize a wall-hosted door or window |
 | `propose_roof_update` | Edit flat, gable or hip roof parameters |
 | `propose_platform_update` | Edit a space-hosted mezzanine platform |
 | `propose_landscape_update` | Edit a straight-edged landscape polygon |
 | `propose_plant_update` | Edit a terrain-supported plant |
+| `propose_planting_area` | Create one deterministic boundary, line or polygon planting scheme |
 | `list_garden_fixtures` | Read the ready structure and crop-fixture catalogue |
 | `propose_garden_fixture_update` | Add, remove, move or rotate one semantic garden fixture |
 | `propose_garden_fixture_set` | Place the complete kitchen garden or one crop-filled raised bed, including “next to the previous bed” placement |
+| `create_change_set` | Start a transactional draft against an explicit base revision |
+| `add_change_set_operations` | Append typed operations and validate their combined result |
+| `propose_change_set` | Finalize the draft as one ghost variant and one approval |
+| `discard_change_set` | Discard an uncommitted draft |
+| `measure_height` | Read semantic or free vertical height with local and absolute elevations |
 | `propose_climate_update` | Edit one climate month, including night/morning/day/evening averages |
 | `show_structure_views` | Open visible architectural drawings and return placement data |
 | `run_seasonal_analysis` | Return day-part temperature averages and V2 seasonal planning signals |
@@ -93,6 +194,12 @@ Every modifying tool creates an immutable ghost variant. Only explicit human app
 ## Scope
 
 The editor is desktop-first and deliberately excludes accounts, a backend, an embedded LLM, cost estimation, structural simulation and legal compliance. Placement coordinates are local `{x,z}` metres; survey coordinates and setback claims are not included in architectural report results.
+
+Project data stays in the browser's local IndexedDB. The application makes no runtime weather request and transmits no design state to an application backend.
+
+## Assets and third-party software
+
+All necessary source, generated manifests and runtime assets are included in this repository. See [ATTRIBUTIONS.md](ATTRIBUTIONS.md) for the climate-data basis, original AI-assisted garden textures and open-source runtime libraries. No third-party 3D models, photos, logos or music are bundled.
 
 ## License
 

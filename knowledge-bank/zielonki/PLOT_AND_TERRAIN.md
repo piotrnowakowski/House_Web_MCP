@@ -19,7 +19,11 @@ Totals:
 - Agricultural `/4`: 4,009 m².
 - All six parcels: 5,209 m².
 
-The map closes the `/3` construction geometry used by the app but not the remote ends of every long `/4` parcel. The `/4` strips preserve official areas and their shared edge with `/3`, but they are context geometry rather than cadastral setting-out geometry.
+The app's primary site outline is the complete six-parcel ownership area (`54/3 + 55/3 + 58/3 + 54/4 + 55/4 + 58/4`). The three `/3` parcels remain the construction zone; the `/4` parcels remain agricultural land within the same owned plot.
+
+Two road entrances are shown on the outer road-facing edge of parcel 54. Their positions are approximate, transcribed from the owner's annotated screenshot on 3 September 2026, and are not survey setting-out coordinates.
+
+The map closes the `/3` construction geometry used by the app but not the remote ends of every long `/4` parcel. The `/4` strips preserve official areas, their shared edge with `/3`, and the subdivision-map topology: `54/4` and `55/4` continue together to the far end, while `58/4` ends earlier. They remain context geometry rather than cadastral setting-out geometry.
 
 ## Working dimensions
 

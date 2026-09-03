@@ -1,11 +1,10 @@
 import { zielonkiClimate, zielonkiKnowledgeBase, zielonkiPlot } from '../../knowledge-bank/zielonki/data'
 import { rectangle } from './geometry'
 import { ensureStarterGarden } from './gardenFixtures'
-import { applyModernBarnPreset } from './presets'
 import type { BuildingModel, ProjectV2, WallModel } from './types'
 
 const wall = (ref: string, start: { x: number; z: number }, end: { x: number; z: number }, openings: WallModel['openings'] = []): WallModel => ({
-  ref, start, end, thicknessM: 0.24, baseElevationM: 0.45, heightM: 3, openings, locked: false,
+  ref, start, end, thicknessM: 0.24, baseElevationM: 0.45, heightM: 3, openings, finish: { material: 'light-render', colorHex: '#E8E1D2' }, locked: false,
 })
 
 const mainHouse: BuildingModel = {
@@ -44,6 +43,7 @@ export const sampleProject: ProjectV2 = {
     northDegrees: zielonkiPlot.northDegrees,
     terrain: { boundary: zielonkiPlot.boundary, elevationPoints: zielonkiPlot.elevationPoints },
     parcels: zielonkiPlot.parcels,
+    entrances: zielonkiPlot.entrances,
     knowledgeBase: zielonkiKnowledgeBase,
   },
   buildings: [mainHouse],
@@ -65,8 +65,143 @@ export const sampleProject: ProjectV2 = {
   climateProfile: zielonkiClimate,
 }
 
+const lBarnWall = (
+  ref: string,
+  start: { x: number; z: number },
+  end: { x: number; z: number },
+  openings: WallModel['openings'] = [],
+  baseElevationM = 0.45,
+  heightM = 3,
+): WallModel => ({ ref, start, end, thicknessM: 0.24, baseElevationM, heightM, openings, finish: { material: 'charred-timber', colorHex: '#242927' }, locked: false })
+
+const lBarnFootprint = [
+  { x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 },
+  { x: -2, z: 1 }, { x: -2, z: 10 }, { x: -8, z: 10 },
+]
+
+const lShapedModernBarn: BuildingModel = {
+  ref: 'house/main', name: 'L-shaped modern barn', kind: 'house', architecturalStyle: 'barn', position: { x: 0, z: -1 }, rotationDegrees: 0,
+  storeys: [
+    {
+      ref: 'storey/ground', name: 'Ground storey', level: 0, elevationM: 0.45, clearHeightM: 3,
+      baseSlabRef: 'slab/ground', topBoundaryRef: 'slab/upper',
+      wallRefs: [
+        'wall/back-left', 'wall/back-right', 'wall/east', 'wall/courtyard-right', 'wall/courtyard-left',
+        'wall/courtyard-living', 'wall/front-glass', 'wall/west-living', 'wall/west-rear', 'wall/rear-partition', 'wall/wing-divider',
+      ],
+      spaceRefs: ['space/kitchen-studio', 'space/dining', 'space/living'], platformRefs: [], ceilingFinishRefs: [],
+    },
+    {
+      ref: 'house/main/storey-upper', name: 'Upper storey', level: 1, elevationM: 3.45, clearHeightM: 3.1,
+      baseSlabRef: 'slab/upper', topBoundaryRef: 'roof/main',
+      wallRefs: ['wall/upper-north', 'wall/upper-east', 'wall/upper-front-glass', 'wall/upper-west'],
+      spaceRefs: ['house/main/storey-upper/space-main'], platformRefs: [], ceilingFinishRefs: [],
+    },
+  ],
+  slabs: [
+    { ref: 'slab/ground', footprint: lBarnFootprint, topElevationM: 0.45, thicknessM: 0.3, locked: false },
+    { ref: 'slab/upper', footprint: rectangle({ x: -5, z: 5.5 }, 6, 9), topElevationM: 3.45, thicknessM: 0.26, locked: false },
+  ],
+  walls: [
+    lBarnWall('wall/back-left', { x: -8, z: -5 }, { x: 0, z: -5 }, [
+      { ref: 'opening/kitchen-window', kind: 'window', wallRef: 'wall/back-left', offsetM: 4.5, widthM: 2.4, heightM: 1.55, sillM: 0.8 },
+    ]),
+    lBarnWall('wall/back-right', { x: 0, z: -5 }, { x: 8, z: -5 }, [
+      { ref: 'opening/dining-window', kind: 'window', wallRef: 'wall/back-right', offsetM: 4, widthM: 3.8, heightM: 1.8, sillM: 0.65 },
+    ]),
+    lBarnWall('wall/east', { x: 8, z: -5 }, { x: 8, z: 1 }, [
+      { ref: 'opening/east-door', kind: 'door', wallRef: 'wall/east', offsetM: 3, widthM: 1.2, heightM: 2.35, sillM: 0 },
+    ]),
+    lBarnWall('wall/courtyard-right', { x: 8, z: 1 }, { x: 0, z: 1 }, [
+      { ref: 'opening/courtyard-window-east', kind: 'window', wallRef: 'wall/courtyard-right', offsetM: 1.65, widthM: 1.7, heightM: 1.55, sillM: 0.78 },
+      { ref: 'opening/courtyard-balcony-door', kind: 'door', wallRef: 'wall/courtyard-right', offsetM: 4, widthM: 1.55, heightM: 2.35, sillM: 0.04 },
+      { ref: 'opening/courtyard-window-west', kind: 'window', wallRef: 'wall/courtyard-right', offsetM: 6.35, widthM: 1.7, heightM: 1.55, sillM: 0.78 },
+    ]),
+    lBarnWall('wall/courtyard-left', { x: 0, z: 1 }, { x: -2, z: 1 }),
+    lBarnWall('wall/courtyard-living', { x: -2, z: 1 }, { x: -2, z: 10 }, [
+      { ref: 'opening/living-window-north', kind: 'window', wallRef: 'wall/courtyard-living', offsetM: 2.35, widthM: 1.8, heightM: 1.55, sillM: 0.78 },
+      { ref: 'opening/living-balcony-door', kind: 'door', wallRef: 'wall/courtyard-living', offsetM: 6.4, widthM: 1.8, heightM: 2.35, sillM: 0.04 },
+    ]),
+    lBarnWall('wall/front-glass', { x: -2, z: 10 }, { x: -8, z: 10 }, [
+      { ref: 'opening/front-ground-glass', kind: 'window', wallRef: 'wall/front-glass', offsetM: 3, widthM: 5.5, heightM: 2.8, sillM: 0.08 },
+    ]),
+    lBarnWall('wall/west-living', { x: -8, z: 10 }, { x: -8, z: 1 }),
+    lBarnWall('wall/west-rear', { x: -8, z: 1 }, { x: -8, z: -5 }, [
+      { ref: 'opening/service-window', kind: 'window', wallRef: 'wall/west-rear', offsetM: 3, widthM: 1.4, heightM: 1.4, sillM: 0.9 },
+    ]),
+    lBarnWall('wall/rear-partition', { x: 0, z: -5 }, { x: 0, z: 1 }, [
+      { ref: 'opening/rear-internal', kind: 'door', wallRef: 'wall/rear-partition', offsetM: 3, widthM: 1.5, heightM: 2.35, sillM: 0 },
+    ]),
+    lBarnWall('wall/wing-divider', { x: -8, z: 1 }, { x: -2, z: 1 }, [
+      { ref: 'opening/wing-internal', kind: 'door', wallRef: 'wall/wing-divider', offsetM: 3, widthM: 2.4, heightM: 2.5, sillM: 0 },
+    ]),
+    lBarnWall('wall/upper-north', { x: -8, z: 1 }, { x: -2, z: 1 }, [], 3.45, 3.1),
+    lBarnWall('wall/upper-east', { x: -2, z: 1 }, { x: -2, z: 10 }, [
+      { ref: 'opening/upper-east-north', kind: 'window', wallRef: 'wall/upper-east', offsetM: 2.35, widthM: 1.8, heightM: 1.55, sillM: 0.78 },
+      { ref: 'opening/upper-east-south', kind: 'window', wallRef: 'wall/upper-east', offsetM: 6.65, widthM: 1.8, heightM: 1.55, sillM: 0.78 },
+    ], 3.45, 3.1),
+    lBarnWall('wall/upper-front-glass', { x: -2, z: 10 }, { x: -8, z: 10 }, [
+      { ref: 'opening/front-upper-glass', kind: 'window', wallRef: 'wall/upper-front-glass', offsetM: 3, widthM: 5.5, heightM: 2.8, sillM: 0.12 },
+    ], 3.45, 3.1),
+    lBarnWall('wall/upper-west', { x: -8, z: 10 }, { x: -8, z: 1 }, [
+      { ref: 'opening/upper-west-window', kind: 'window', wallRef: 'wall/upper-west', offsetM: 4.5, widthM: 1.4, heightM: 1.7, sillM: 0.75 },
+    ], 3.45, 3.1),
+  ],
+  spaces: [
+    {
+      ref: 'space/kitchen-studio', name: 'Kitchen and studio', usage: 'work',
+      boundary: [
+        { wallRef: 'wall/back-left', direction: 1 }, { wallRef: 'wall/rear-partition', direction: 1 },
+        { wallRef: 'wall/courtyard-left', direction: 1 }, { wallRef: 'wall/wing-divider', direction: -1 }, { wallRef: 'wall/west-rear', direction: 1 },
+      ],
+      baseSlabRef: 'slab/ground', topBoundaryRef: 'roof/main', locked: false,
+    },
+    {
+      ref: 'space/dining', name: 'Dining and family room', usage: 'living',
+      boundary: [
+        { wallRef: 'wall/back-right', direction: 1 }, { wallRef: 'wall/east', direction: 1 },
+        { wallRef: 'wall/courtyard-right', direction: 1 }, { wallRef: 'wall/rear-partition', direction: -1 },
+      ],
+      baseSlabRef: 'slab/ground', topBoundaryRef: 'roof/main', locked: false,
+    },
+    {
+      ref: 'space/living', name: 'Double-height living room', usage: 'living',
+      boundary: [
+        { wallRef: 'wall/wing-divider', direction: 1 }, { wallRef: 'wall/courtyard-living', direction: 1 },
+        { wallRef: 'wall/front-glass', direction: 1 }, { wallRef: 'wall/west-living', direction: 1 },
+      ],
+      baseSlabRef: 'slab/ground', topBoundaryRef: 'slab/upper', locked: false,
+    },
+    {
+      ref: 'house/main/storey-upper/space-main', name: 'Upper gallery', usage: 'flex',
+      boundary: [
+        { wallRef: 'wall/upper-north', direction: 1 }, { wallRef: 'wall/upper-east', direction: 1 },
+        { wallRef: 'wall/upper-front-glass', direction: 1 }, { wallRef: 'wall/upper-west', direction: 1 },
+      ],
+      baseSlabRef: 'slab/upper', topBoundaryRef: 'roof/main', locked: false,
+    },
+  ],
+  platforms: [], ceilingFinishes: [],
+  roof: { ref: 'roof/main', type: 'gable', baseElevationM: 6.55, pitchDegrees: 45, overhangM: 0.42 },
+}
+
 export const modernBarnProject: ProjectV2 = {
-  ...ensureStarterGarden(applyModernBarnPreset(sampleProject)),
+  ...ensureStarterGarden({
+    ...structuredClone(sampleProject),
+    name: 'Zielonki L-shaped barn study',
+    buildings: [lShapedModernBarn],
+    landscape: {
+      ...structuredClone(sampleProject.landscape),
+      zones: sampleProject.landscape.zones.map((zone) => zone.ref === 'zone/terrace'
+        ? { ...zone, name: 'Sheltered L-courtyard terrace', footprint: rectangle({ x: 3, z: 2 }, 9, 4) }
+        : zone.ref === 'zone/lawn'
+          ? { ...zone, name: 'Open courtyard lawn', footprint: rectangle({ x: 4.5, z: 8 }, 12, 6) }
+          : structuredClone(zone)),
+      plants: sampleProject.landscape.plants.map((plant) => plant.ref === 'plant/apple'
+        ? { ...structuredClone(plant), position: { x: -14, z: 12 }, attachment: plant.attachment ? { ...structuredClone(plant.attachment), localPosition: { x: -14, y: 0, z: 12 } } : undefined }
+        : structuredClone(plant)),
+    },
+  }),
   revision: sampleProject.revision,
   updatedAt: sampleProject.updatedAt,
 }

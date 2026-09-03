@@ -4,8 +4,11 @@ import { ACESFilmicToneMapping, PCFSoftShadowMap, SRGBColorSpace } from 'three'
 import { dayParts } from './domain/climate'
 import { calculateMetrics } from './domain/commands'
 import { ensureStarterGarden, gardenFixtureCatalog, nextFixturePosition, starterGardenCommands } from './domain/gardenFixtures'
+import { wallLength } from './domain/geometry'
 import { applyModernBarnPreset, isModernBarnPreset } from './domain/presets'
-import type { ClimateDayPart, GardenFixtureCatalogId, PlantingGuideCategory } from './domain/types'
+import type { BuildingModel, ClimateDayPart, GardenFixtureCatalogId, HeightMeasureKind, PlantingGuideCategory, ProjectCommand, WallMaterial, WallModel } from './domain/types'
+import { inferWallOpeningLayout, wallOpeningLayoutCommands, wallOpeningLayoutPresets, type WallOpeningLayoutPreset } from './domain/wallOpeningLayouts'
+import { resolveWallFinish, wallFinishCatalog, wallFinishCommands, type WallFinishScope } from './domain/wallFinishes'
 import { CLEAR_MEASUREMENT_EVENT, StudioScene } from './scene/StudioScene'
 import { loadProject, saveProject } from './services/persistence'
 import { showStructureViews } from './services/structureViews'
@@ -14,13 +17,14 @@ import type { WebMcpManifest } from './services/webmcpDefinitions'
 import { useStudioStore } from './state/store'
 
 const modes = [
-  ['edit', 'Edit'], ['measure-length', 'Length'], ['measure-area', 'Area'], ['section', 'Section'], ['plan', 'Plan'],
+  ['edit', 'Edit'], ['measure-length', 'Length'], ['measure-area', 'Area'], ['measure-height', 'Height'], ['section', 'Section'], ['plan', 'Plan'],
 ] as const
 
 const modeTitles = {
   edit: 'Select and move semantic objects',
   'measure-length': 'Click two points to measure the distance',
   'measure-area': 'Drag a rectangle across the ground to measure its area',
+  'measure-height': 'Select a semantic object or Shift-click two points to measure vertically',
   section: 'Cut through the model to inspect the interior',
   plan: 'Switch to a top-down orthographic view',
 } as const
@@ -187,20 +191,114 @@ function GardenFixturesPanel({ onClose }: { onClose: () => void }) {
   </section>
 }
 
+const wallLabel = (wall: WallModel) => wall.ref.split('/').at(-1)?.replaceAll('-', ' ') ?? 'wall'
+
+const nextOpeningSlot = (wall: WallModel) => {
+  const length = wallLength(wall); const edge = 0.3
+  const intervals = wall.openings.map((opening) => ({ start: opening.offsetM - opening.widthM / 2, end: opening.offsetM + opening.widthM / 2 })).sort((a, b) => a.start - b.start)
+  const gaps = [{ start: edge, end: intervals[0]?.start ?? length - edge }, ...intervals.map((interval, index) => ({ start: interval.end, end: intervals[index + 1]?.start ?? length - edge }))]
+  const gap = gaps.sort((a, b) => (b.end - b.start) - (a.end - a.start))[0]
+  const available = Math.max(0, gap.end - gap.start); const widthM = Math.min(1.8, available - 0.3)
+  if (widthM < 0.6) throw new Error('This wall has no clear space for another window.')
+  return { offsetM: (gap.start + gap.end) / 2, widthM }
+}
+
+function WallFinishEditor({ building, wall }: { building: BuildingModel; wall: WallModel }) {
+  const project = useStudioStore((state) => state.project); const commitCommands = useStudioStore((state) => state.commitCommands); const setSelectedRef = useStudioStore((state) => state.setSelectedRef); const setToast = useStudioStore((state) => state.setToast)
+  const current = resolveWallFinish(wall, building.architecturalStyle); const [material, setMaterial] = useState<WallMaterial>(current.material); const [colorHex, setColorHex] = useState(current.colorHex)
+  useEffect(() => { const next = resolveWallFinish(wall, building.architecturalStyle); setMaterial(next.material); setColorHex(next.colorHex) }, [building.architecturalStyle, wall.finish, wall.ref])
+  const chooseMaterial = (next: WallMaterial) => { const definition = wallFinishCatalog.find((item) => item.id === next)!; setMaterial(next); setColorHex(definition.defaultColor) }
+  const applyFinish = (scope: WallFinishScope) => {
+    try {
+      const commands = wallFinishCommands(project, { buildingRef: building.ref, scope, wallRef: wall.ref, material, colorHex })
+      commitCommands(commands, `${wallFinishCatalog.find((item) => item.id === material)?.label ?? 'Wall finish'} applied to ${scope === 'wall' ? 'selected wall' : 'all exterior walls'}. Ctrl+Z to undo.`)
+      setSelectedRef(wall.ref)
+    } catch (error) { setToast(error instanceof Error ? error.message : 'Wall finish could not be applied.') }
+  }
+  const validColor = /^#[0-9a-fA-F]{6}$/.test(colorHex)
+  return <section className="wall-finish-editor" aria-label={`Wall finish for ${wallLabel(wall)}`}>
+    <header><div><h3>Wall finish</h3><small>Opaque material · selected or all exterior walls</small></div><span className="finish-current" style={{ backgroundColor: validColor ? colorHex : current.colorHex }} /></header>
+    <div className="finish-materials" role="group" aria-label="Wall material">{wallFinishCatalog.map((item) => <button key={item.id} className={material === item.id ? 'active' : ''} aria-pressed={material === item.id} onClick={() => chooseMaterial(item.id)}><i style={{ backgroundColor: item.defaultColor }} /><span><strong>{item.label}</strong><small>{item.description}</small></span></button>)}</div>
+    <div className="finish-color"><label><span>Custom color</span><input type="color" value={validColor ? colorHex : current.colorHex} onChange={(event) => setColorHex(event.target.value.toUpperCase())} aria-label="Wall color picker" /></label><input type="text" value={colorHex} onChange={(event) => setColorHex(event.target.value)} pattern="#[0-9a-fA-F]{6}" aria-label="Wall color hex" /></div>
+    <div className="finish-actions"><button className="save-finish" disabled={!validColor} onClick={() => applyFinish('wall')}>Apply to this wall</button><button disabled={!validColor} onClick={() => applyFinish('all-exterior')}>Apply to all exterior</button></div>
+  </section>
+}
+
+function OpeningEditor({ building, wall, selectedRef }: { building: BuildingModel; wall: WallModel; selectedRef: string | null }) {
+  const project = useStudioStore((state) => state.project); const commitCommand = useStudioStore((state) => state.commitCommand); const commitCommands = useStudioStore((state) => state.commitCommands); const setSelectedRef = useStudioStore((state) => state.setSelectedRef); const setToast = useStudioStore((state) => state.setToast)
+  const activeLayout = inferWallOpeningLayout(wall)
+  const applyLayout = (preset: WallOpeningLayoutPreset) => {
+    if (activeLayout === preset) { setToast(`This wall already uses ${wallOpeningLayoutPresets.find((item) => item.id === preset)?.label.toLowerCase()}.`); return }
+    try {
+      commitCommands(wallOpeningLayoutCommands(project, building.ref, wall.ref, preset), `${wallOpeningLayoutPresets.find((item) => item.id === preset)?.label ?? 'Façade'} applied. Ctrl+Z to undo.`)
+      setSelectedRef(wall.ref)
+    } catch (error) { setToast(error instanceof Error ? error.message : 'Façade layout could not be applied.') }
+  }
+  const saveOpening = (event: React.FormEvent<HTMLFormElement>, openingRef: string) => {
+    event.preventDefault(); const values = new FormData(event.currentTarget); const number = (name: string) => Number(values.get(name))
+    try {
+      commitCommand({ type: 'opening.update', action: 'resize', buildingRef: building.ref, wallRef: wall.ref, openingRef, offsetM: number('offsetM'), widthM: number('widthM'), heightM: number('heightM'), sillM: number('sillM') })
+      setSelectedRef(openingRef); setToast('Opening dimensions updated. Ctrl+Z to undo.')
+    } catch (error) { setToast(error instanceof Error ? error.message : 'Opening could not be updated.') }
+  }
+  const removeOpening = (openingRef: string) => {
+    try {
+      commitCommand({ type: 'opening.update', action: 'remove', buildingRef: building.ref, wallRef: wall.ref, openingRef })
+      setSelectedRef(wall.ref); setToast('Opening removed and wall closed. Ctrl+Z to undo.')
+    } catch (error) { setToast(error instanceof Error ? error.message : 'Opening could not be removed.') }
+  }
+  const addWindow = () => {
+    try {
+      const slot = nextOpeningSlot(wall); const sequence = building.walls.flatMap((item) => item.openings).filter((opening) => opening.ref.startsWith(`opening/${wall.ref.replace('wall/', '').replaceAll('/', '-')}-window-`)).length + 1
+      const openingRef = `opening/${wall.ref.replace('wall/', '').replaceAll('/', '-')}-window-${sequence}`
+      commitCommand({ type: 'opening.update', action: 'add', buildingRef: building.ref, wallRef: wall.ref, openingRef, kind: 'window', ...slot, heightM: 1.5, sillM: 0.8 })
+      setSelectedRef(openingRef); setToast('Window added. Edit its dimensions below or press Ctrl+Z to undo.')
+    } catch (error) { setToast(error instanceof Error ? error.message : 'Window could not be added.') }
+  }
+  return <section className="opening-editor" aria-label={`Openings on ${wallLabel(wall)}`} data-wall-ref={wall.ref}>
+    <WallFinishEditor building={building} wall={wall} />
+    <header><div><h3>Façade layout</h3><small>{wallLength(wall).toFixed(2)} m wall · {activeLayout === 'custom' ? 'custom openings' : wallOpeningLayoutPresets.find((item) => item.id === activeLayout)?.label}</small></div></header>
+    <div className="facade-layouts" role="group" aria-label={`Façade layout for ${wallLabel(wall)}`}>{wallOpeningLayoutPresets.map((preset) => <button key={preset.id} className={activeLayout === preset.id ? 'active' : ''} aria-pressed={activeLayout === preset.id} onClick={() => applyLayout(preset.id)}>
+      <span className={`facade-diagram ${preset.id}`} aria-hidden="true"><i /><i /></span><strong>{preset.label}</strong><small>{preset.description}</small>
+    </button>)}</div>
+    <div className="opening-detail-head"><div><h3>Fine controls</h3><small>{wall.openings.length} opening{wall.openings.length === 1 ? '' : 's'}</small></div><button className="add-opening" onClick={addWindow}>+ Window</button></div>
+    {!wall.openings.length && <p className="empty-openings">This wall is solid. Add a window when needed.</p>}
+    <div className="opening-list">{wall.openings.map((opening) => <form key={`${opening.ref}-${project.revision}`} className={selectedRef === opening.ref ? 'opening-row active' : 'opening-row'} onSubmit={(event) => saveOpening(event, opening.ref)} aria-label={`Edit opening ${opening.ref}`}>
+      <button type="button" className="opening-name" onClick={() => setSelectedRef(opening.ref)}><span>{opening.kind}</span><strong>{opening.ref.split('/').at(-1)?.replaceAll('-', ' ')}</strong></button>
+      <div className="opening-fields">
+        <label><span>Position</span><input name="offsetM" type="number" min="0" max={wallLength(wall)} step="0.05" defaultValue={opening.offsetM} /></label>
+        <label><span>Width</span><input name="widthM" type="number" min="0.2" step="0.05" defaultValue={opening.widthM} /></label>
+        <label><span>Height</span><input name="heightM" type="number" min="0.2" step="0.05" defaultValue={opening.heightM} /></label>
+        <label><span>Sill</span><input name="sillM" type="number" min="0" step="0.05" defaultValue={opening.sillM} /></label>
+      </div>
+      <div className="opening-actions"><button type="submit" className="save-opening">Save</button><button type="button" className="remove-opening" onClick={() => removeOpening(opening.ref)} aria-label={`Remove opening ${opening.ref}`}>Remove</button></div>
+    </form>)}</div>
+    <p className="opening-note"><span>Position</span> is measured from the wall’s start point. WebMCP uses these same opening references and metre values.</p>
+  </section>
+}
+
 function Inspector() {
   const project = useStudioStore((state) => state.project); const selectedRef = useStudioStore((state) => state.selectedRef); const issues = useStudioStore((state) => state.variants)
   const useModernBarnPreset = useStudioStore((state) => state.useModernBarnPreset)
   const metrics = calculateMetrics(project); const building = project.buildings.find((item) => item.ref === selectedRef); const fixture = project.landscape.fixtures.find((item) => item.ref === selectedRef)
+  const openingBuilding = project.buildings.find((item) => item.walls.some((wall) => wall.ref === selectedRef || wall.openings.some((opening) => opening.ref === selectedRef)))
+  const selectedWall = openingBuilding?.walls.find((wall) => wall.ref === selectedRef || wall.openings.some((opening) => opening.ref === selectedRef))
+  const selectedOpening = selectedWall?.openings.find((opening) => opening.ref === selectedRef)
+  const exteriorWalls = project.buildings.flatMap((item) => item.walls.filter((wall) => item.spaces.filter((space) => space.boundary.some((boundary) => boundary.wallRef === wall.ref)).length <= 1))
+  const selectedTitle = building?.name ?? fixture?.name ?? (selectedOpening ? `${selectedOpening.kind === 'window' ? 'Window' : 'Door'} opening` : selectedWall ? wallLabel(selectedWall) : selectedRef ? selectedRef.split('/').at(-1) : 'Project overview')
   const modernBarnActive = isModernBarnPreset(project)
   return <aside className="inspector">
     <p className="eyebrow">PROJECTV2 / SEMANTIC MODEL</p>
-    <h2>{building?.name ?? fixture?.name ?? (selectedRef ? selectedRef.split('/').at(-1) : 'Project overview')}</h2>
+    <h2>{selectedTitle}</h2>
     <p className="muted">{selectedRef ?? 'Select a wall, shared slab, space, roof, landscape zone or plant.'}</p>
     {building && <dl className="readout"><div><dt>Position</dt><dd>{building.position.x.toFixed(2)}, {building.position.z.toFixed(2)} m</dd></div><div><dt>Rotation</dt><dd>{building.rotationDegrees.toFixed(1)}°</dd></div><div><dt>Storeys</dt><dd>{building.storeys.length}</dd></div></dl>}
     {fixture && <dl className="readout"><div><dt>Fixture</dt><dd>{fixture.catalogId}</dd></div><div><dt>Position</dt><dd>{fixture.position.x.toFixed(2)}, {fixture.position.z.toFixed(2)} m</dd></div><div><dt>Rotation</dt><dd>{fixture.rotationDegrees.toFixed(1)}°</dd></div></dl>}
-    <section className="house-presets"><h3>House preset</h3><button className={modernBarnActive ? 'active' : ''} onClick={() => useModernBarnPreset()}><span>Modern barn</span><small>2 levels · 45° gable</small><b>{modernBarnActive ? 'ACTIVE' : 'USE'}</b></button></section>
-    <div className="metric-grid"><div><span>Home</span><strong>{metrics.homeAreaM2.toFixed(0)} m²</strong></div><div><span>Green</span><strong>{metrics.greenAreaM2.toFixed(0)} m²</strong></div><div><span>Plants</span><strong>{metrics.plantCount}</strong></div><div><span>Fixtures</span><strong>{metrics.fixtureCount}</strong></div></div>
+    {selectedWall && openingBuilding ? <OpeningEditor building={openingBuilding} wall={selectedWall} selectedRef={selectedRef} /> : <>
+      <section className="house-presets"><h3>House preset</h3><button className={modernBarnActive ? 'active' : ''} onClick={() => useModernBarnPreset()}><span>Modern barn</span><small>2 levels · 45° gable</small><b>{modernBarnActive ? 'ACTIVE' : 'USE'}</b></button></section>
+      <div className="metric-grid"><div><span>Home</span><strong>{metrics.homeAreaM2.toFixed(0)} m²</strong></div><div><span>Green</span><strong>{metrics.greenAreaM2.toFixed(0)} m²</strong></div><div><span>Plants</span><strong>{metrics.plantCount}</strong></div><div><span>Fixtures</span><strong>{metrics.fixtureCount}</strong></div></div>
+    </>}
     <section className="model-tree"><h3>Buildings</h3>{project.buildings.map((item) => <button key={item.ref} onClick={() => useStudioStore.getState().setSelectedRef(item.ref)}><span>{item.name}</span><small>{item.storeys.length} storey</small></button>)}</section>
+    <section className="model-tree wall-tree"><h3>Exterior walls</h3>{exteriorWalls.map((wall) => <button key={wall.ref} className={selectedWall?.ref === wall.ref ? 'active' : ''} onClick={() => useStudioStore.getState().setSelectedRef(wall.ref)} aria-label={`Edit openings on ${wallLabel(wall)}`}><span>{wallLabel(wall)}</span><small>{wall.openings.length ? `${wall.openings.length} opening${wall.openings.length === 1 ? '' : 's'}` : 'solid'}</small></button>)}</section>
     <p className="muted footer-note">{issues.length} ghost variant{issues.length === 1 ? '' : 's'} · local metres · north {project.site.northDegrees.toFixed(1)}°</p>
   </aside>
 }
@@ -220,13 +318,25 @@ function ReportPanel() {
   </section>
 }
 
+const commandAudit = (command: ProjectCommand) => {
+  const refs = Object.entries(command).filter(([key, value]) => (key.endsWith('Ref') || key === 'plantingRef') && typeof value === 'string').map(([, value]) => value)
+  if (command.type === 'planting-area.update') refs.push(command.metadata.plantingRef, `${command.plants.length} plants`)
+  return `${command.type}${refs.length ? ` · ${refs.join(' · ')}` : ''}`
+}
+
 function VariantApproval() {
-  const ref = useStudioStore((state) => state.confirmationVariantRef); if (!ref) return null
-  return <div className="approval"><p className="eyebrow">GHOST VARIANT</p><h2>Apply this spatial change?</h2><p>Review the translucent proposal in the scene.</p><div><button className="report-button" onClick={() => resolveVariantConfirmation(true)}>Apply variant</button><button onClick={() => resolveVariantConfirmation(false)}>Reject</button></div></div>
+  const ref = useStudioStore((state) => state.confirmationVariantRef); const variant = useStudioStore((state) => state.variants.find((item) => item.ref === ref)); if (!ref || !variant) return null
+  const blocking = variant.issues.filter((issue) => issue.severity === 'error')
+  return <div className="approval"><p className="eyebrow">GHOST VARIANT / {variant.commands.length} OPERATION{variant.commands.length === 1 ? '' : 'S'}</p><h2>{variant.label}</h2><p>Review the translucent proposal and its combined impact before one atomic approval.</p>
+    <dl><div><dt>Home area</dt><dd>{variant.metrics.homeAreaM2.toFixed(1)} m²</dd></div><div><dt>Plants</dt><dd>{variant.metrics.plantCount}</dd></div><div><dt>Fixtures</dt><dd>{variant.metrics.fixtureCount}</dd></div><div><dt>Validation</dt><dd>{blocking.length ? `${blocking.length} blocking` : 'Ready'}</dd></div></dl>
+    <ol aria-label="Variant operation audit">{variant.commands.map((command, index) => <li key={index}><span>{index + 1}</span><code>{commandAudit(command)}</code></li>)}</ol>
+    {variant.issues.length > 0 && <ul className="approval-issues">{variant.issues.map((issue, index) => <li key={`${issue.code}-${index}`} className={issue.severity}>{issue.severity}: {issue.message}</li>)}</ul>}
+    <div className="approval-actions"><button className="report-button" disabled={blocking.length > 0} onClick={() => resolveVariantConfirmation(true)}>Apply complete variant</button><button onClick={() => resolveVariantConfirmation(false)}>Reject all</button></div></div>
 }
 
 export function App() {
   const project = useStudioStore((state) => state.project); const toast = useStudioStore((state) => state.toast); const hydrated = useStudioStore((state) => state.hydrated); const viewerMode = useStudioStore((state) => state.viewerMode); const explode = useStudioStore((state) => state.explodeStoreys)
+  const heightMeasureKind = useStudioStore((state) => state.heightMeasureKind); const setHeightMeasureKind = useStudioStore((state) => state.setHeightMeasureKind)
   const replaceProject = useStudioStore((state) => state.replaceProject); const setHydrated = useStudioStore((state) => state.setHydrated); const setToast = useStudioStore((state) => state.setToast); const undo = useStudioStore((state) => state.undo)
   const refocusCamera = useStudioStore((state) => state.refocusCamera)
   const focusGardenFixtures = useStudioStore((state) => state.focusGardenFixtures)
@@ -251,16 +361,17 @@ export function App() {
       </button>
       <button className="fixtures-button" onClick={() => { const opening = dataPanel !== 'fixtures'; setDataPanel(opening ? 'fixtures' : null); if (opening) focusGardenFixtures() }} aria-label="Open garden fixtures"><span>Garden fixtures</span><small>{project.landscape.fixtures.length} placed</small></button>
       <div className="navigation-hint" aria-label="Garden navigation controls"><span>Move across garden</span><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd><i>or hold wheel + drag</i></div>
-      {(viewerMode === 'measure-length' || viewerMode === 'measure-area') && <section className="measurement-guide" aria-label={`${viewerMode === 'measure-length' ? 'Length' : 'Area'} measurement instructions`}>
-        <span>{viewerMode === 'measure-length' ? 'LENGTH' : 'AREA'}</span>
-        <strong>{viewerMode === 'measure-length' ? 'Click point 1, then point 2' : 'Hold and drag a rectangle on the ground'}</strong>
+      {(viewerMode === 'measure-length' || viewerMode === 'measure-area' || viewerMode === 'measure-height') && <section className="measurement-guide" aria-label={`${viewerMode === 'measure-length' ? 'Length' : viewerMode === 'measure-area' ? 'Area' : 'Height'} measurement instructions`}>
+        <span>{viewerMode === 'measure-length' ? 'LENGTH' : viewerMode === 'measure-area' ? 'AREA' : 'HEIGHT'}</span>
+        <strong>{viewerMode === 'measure-length' ? 'Click point 1, then point 2' : viewerMode === 'measure-area' ? 'Hold and drag a rectangle on the ground' : 'Select an object · Shift-click twice for free vertical'}</strong>
+        {viewerMode === 'measure-height' && <select aria-label="Height reference" value={heightMeasureKind} onChange={(event) => setHeightMeasureKind(event.target.value as HeightMeasureKind)}><option value="auto">Object height</option><option value="ground-to-eaves">Ground to eaves</option><option value="ground-to-ridge">Ground to ridge</option><option value="clear-height">Storey clear height</option><option value="opening-height">Opening height</option><option value="terrain-clearance">Terrain clearance</option></select>}
         <button onClick={() => window.dispatchEvent(new Event(CLEAR_MEASUREMENT_EVENT))}>Clear</button>
       </section>}
       {explode && <section className="explode-guide" aria-label="Exploded room view">
         <span>EXPLODED ROOMS</span>
         <strong>{project.buildings.reduce((sum, building) => sum + building.spaces.length, 0)} rooms · {project.buildings.reduce((sum, building) => sum + building.storeys.length, 0)} levels · roof separated</strong>
       </section>}
-      <div className="land-legend" aria-label="Land-use legend"><span><i className="construction" />House land</span><span><i className="garden" />Garden / agricultural land</span></div>
+      <div className="land-legend" aria-label="Land-use legend"><span><i className="construction" />House land</span><span><i className="garden" />Garden / agricultural land</span><span><i className="entrance" />Road entrance</span></div>
     </div>
     {dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}<ReportPanel /><VariantApproval />{toast && <div className="toast" role="status">{toast}</div>}
   </main>

@@ -79,6 +79,98 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(useStudioStore.getState().project.revision).toBe(1)
   })
 
+  it('previews a 96 m² upper-storey wing extension without creating a third level', async () => {
+    useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [] })
+    const parsed = payload(await tool('propose_storey_update').execute({
+      action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
+      extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }],
+      spaceRef: 'house/main/storey-upper/space-wing', spaceName: 'Upper wing', usage: 'living',
+    }))
+    const state = useStudioStore.getState(); const building = state.variants[0].project.buildings[0]
+    expect(parsed).toMatchObject({ status: 'variant_created', areaAddedM2: 96, buildingHeightM: 14.4, levelCount: 2, metrics: { homeAreaM2: 300 } })
+    expect(state.project.buildings[0].slabs.find((slab) => slab.ref === 'slab/upper')?.footprint).toHaveLength(4)
+    expect(building.storeys).toHaveLength(2)
+    expect(building.roof.footprint).toEqual(building.slabs.find((slab) => slab.ref === 'slab/upper')?.footprint)
+    expect(state.variants[0].issues.filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
+  it('previews a complete deterministic planting perimeter as one atomic variant', async () => {
+    useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [] })
+    const before = useStudioStore.getState().project.landscape.plants.length
+    const parsed = payload(await tool('propose_planting_area').execute({ plantingRef: 'planting/webmcp-hornbeam', mode: 'boundary', sourceRefs: ['site'], inwardOffsetM: 1.2, spacingM: 5, rowCount: 1, rowSpacingM: 0.6, cornerTreatment: 'distribute', plantingPaletteRef: 'plant-guide/hornbeam', clearanceM: 1 }))
+    const state = useStudioStore.getState()
+    expect(parsed.status).toBe('variant_created')
+    expect(parsed.plantCount).toBeGreaterThan(40)
+    expect(parsed.affectedParcelRefs).toEqual(expect.arrayContaining(['parcel/54-3', 'parcel/58-4']))
+    expect(parsed.conflicts).toContainEqual(expect.objectContaining({ code: 'planting.utilities-unmapped' }))
+    expect(state.project.landscape.plants).toHaveLength(before)
+    expect(state.variants[0].project.landscape.plants).toHaveLength(before + parsed.plantCount)
+    expect(state.variants[0].commands).toHaveLength(1)
+  })
+
+  it('groups all six raised-bed and crop moves into one approval and one revision', async () => {
+    useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [] })
+    const project = useStudioStore.getState().project
+    const created = payload(await tool('create_change_set').execute({ changeSetRef: 'change-set/garden-relocation-test', label: 'Relocate complete kitchen garden', baseRevision: project.revision }))
+    expect(created).toMatchObject({ status: 'draft_created', baseRevision: project.revision, operations: [] })
+    const operations = project.landscape.fixtures.map((fixture) => ({ type: 'garden-fixture.update', action: 'move', fixtureRef: fixture.ref, position: { x: fixture.position.x, z: 25.5 } }))
+    const appended = payload(await tool('add_change_set_operations').execute({ changeSetRef: 'change-set/garden-relocation-test', operations }))
+    expect(appended.operations).toHaveLength(6)
+    expect(useStudioStore.getState().project.landscape.fixtures.every((fixture) => fixture.position.z === 5.5)).toBe(true)
+    const proposed = payload(await tool('propose_change_set').execute({ changeSetRef: 'change-set/garden-relocation-test' }))
+    expect(proposed).toMatchObject({ status: 'variant_created', operations: expect.any(Array) })
+    expect(proposed.operations).toHaveLength(6)
+    const variantRef = proposed.variantRef as string
+    const waiting = tool('request_apply_variant').execute({ variantRef }, { signal: new AbortController().signal })
+    await Promise.resolve(); resolveVariantConfirmation(true)
+    expect(payload(await waiting)).toMatchObject({ status: 'applied', projectRevision: project.revision + 1 })
+    expect(useStudioStore.getState().project.landscape.fixtures.map((fixture) => fixture.position.z)).toEqual([25.5, 25.5, 25.5, 25.5, 25.5, 25.5])
+  })
+
+  it('measures semantic heights without creating variants or changing revision', async () => {
+    useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [] })
+    const parsed = payload(await tool('measure_height').execute({ mode: 'semantic', objectRef: 'opening/upper-east-north', measurement: 'opening-height' }))
+    expect(parsed).toMatchObject({ status: 'ok', projectRevision: 1, measurement: { objectRef: 'opening/upper-east-north', heightM: 1.55 } })
+    expect(parsed.measurement.bottomPoint.reference).toBe('opening/upper-east-north/sill')
+    expect(parsed.measurement.topPoint.reference).toBe('opening/upper-east-north/head')
+    expect(tool('measure_height').annotations?.readOnlyHint).toBe(true)
+    expect(useStudioStore.getState().variants).toEqual([])
+  })
+
+  it('proposes removing a selected wall window without changing the committed house', async () => {
+    useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [], selectedRef: 'wall/courtyard-living' })
+    const before = useStudioStore.getState().project.buildings[0].walls.find((wall) => wall.ref === 'wall/courtyard-living')!
+    expect(before.openings).toHaveLength(2)
+    const proposed = payload(await tool('propose_opening_update').execute({ action: 'remove', buildingRef: 'house/main', wallRef: 'wall/courtyard-living', openingRef: 'opening/living-balcony-door' }))
+    const state = useStudioStore.getState(); const committed = state.project.buildings[0].walls.find((wall) => wall.ref === 'wall/courtyard-living')!; const variantWall = state.variants[0].project.buildings[0].walls.find((wall) => wall.ref === 'wall/courtyard-living')!
+    expect(proposed.status).toBe('variant_created')
+    expect(committed.openings).toHaveLength(2)
+    expect(variantWall.openings.map((opening) => opening.ref)).toEqual(['opening/living-window-north'])
+    expect(state.variants[0].issues.filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
+  it('proposes a complete wall façade preset while keeping the committed wall unchanged', async () => {
+    useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [], selectedRef: 'wall/courtyard-living' })
+    const proposed = payload(await tool('propose_wall_opening_layout').execute({ buildingRef: 'house/main', wallRef: 'wall/courtyard-living', preset: 'center-window' }))
+    const state = useStudioStore.getState(); const committed = state.project.buildings[0].walls.find((wall) => wall.ref === 'wall/courtyard-living')!; const variantWall = state.variants[0].project.buildings[0].walls.find((wall) => wall.ref === 'wall/courtyard-living')!
+    expect(proposed.status).toBe('variant_created')
+    expect(committed.openings).toHaveLength(2)
+    expect(variantWall.openings).toHaveLength(1)
+    expect(variantWall.openings[0]).toMatchObject({ kind: 'window', offsetM: 4.5, widthM: 2.2, heightM: 1.5 })
+    expect(state.variants[0].issues.filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
+  it('proposes material and color for all exterior walls without changing committed finishes', async () => {
+    useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [], selectedRef: 'wall/courtyard-right' })
+    const proposed = payload(await tool('propose_wall_finish_update').execute({ buildingRef: 'house/main', scope: 'all-exterior', material: 'natural-timber', colorHex: '#8A6544' }))
+    const state = useStudioStore.getState(); const committed = state.project.buildings[0]; const variant = state.variants[0].project.buildings[0]
+    expect(proposed.status).toBe('variant_created')
+    expect(committed.walls.find((wall) => wall.ref === 'wall/courtyard-right')?.finish?.material).toBe('charred-timber')
+    expect(variant.walls.find((wall) => wall.ref === 'wall/courtyard-right')?.finish).toEqual({ material: 'natural-timber', colorHex: '#8A6544' })
+    expect(variant.walls.find((wall) => wall.ref === 'wall/rear-partition')?.finish?.material).toBe('charred-timber')
+    expect(state.variants[0].issues.filter((issue) => issue.severity === 'error')).toEqual([])
+  })
+
   it('waits for human approval before applying a linked lowered ceiling', async () => {
     await tool('propose_space_update').execute({ action: 'set-lowered-ceiling', buildingRef: 'house/main', storeyRef: 'storey/ground', spaceRef: 'space/living', ceilingElevationM: 3.1 })
     const variantRef = useStudioStore.getState().variants[0].ref

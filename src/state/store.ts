@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { applyCommand, applyCommands, calculateMetrics, validateProject } from '../domain/commands'
 import { applyModernBarnPreset, isModernBarnPreset } from '../domain/presets'
 import { modernBarnProject } from '../domain/sampleProject'
-import type { ProjectCommand, ProjectV2, StructureReport, TransformMode, VariantModel, ViewerMode, ViewMode } from '../domain/types'
+import type { HeightMeasureKind, ProjectCommand, ProjectV2, StructureReport, TransformMode, VariantModel, ViewerMode, ViewMode } from '../domain/types'
 
 interface StudioState {
   project: ProjectV2
@@ -12,6 +12,7 @@ interface StudioState {
   viewMode: ViewMode
   transformMode: TransformMode
   viewerMode: ViewerMode
+  heightMeasureKind: HeightMeasureKind
   activePlanStoreyRef: string | null
   month: number
   explodeStoreys: boolean
@@ -27,6 +28,7 @@ interface StudioState {
   setViewMode: (mode: ViewMode) => void
   setTransformMode: (mode: TransformMode) => void
   setViewerMode: (mode: ViewerMode) => void
+  setHeightMeasureKind: (kind: HeightMeasureKind) => void
   setActivePlanStoreyRef: (ref: string | null) => void
   setMonth: (month: number) => void
   setExplodeStoreys: (value: boolean) => void
@@ -54,13 +56,14 @@ const revokeReport = (report: StructureReport | null) => report?.views.forEach((
 
 export const useStudioStore = create<StudioState>((set, get) => ({
   project: structuredClone(modernBarnProject), history: [], variants: [], selectedRef: null,
-  viewMode: 'technical', transformMode: 'translate', viewerMode: 'edit', activePlanStoreyRef: null, month: 7,
+  viewMode: 'realistic', transformMode: 'translate', viewerMode: 'edit', heightMeasureKind: 'auto', activePlanStoreyRef: null, month: 7,
   explodeStoreys: false, webMcpAvailable: false, hydrated: false, confirmationVariantRef: null, structureReport: null,
   toast: 'Loaded the ProjectV2 Zielonki spatial model.', helpOpen: false, cameraRefocusRequest: 0, gardenFocusRequest: { sequence: 0, targetX: 0, targetZ: 0 },
   setSelectedRef: (selectedRef) => set({ selectedRef }),
   setViewMode: (viewMode) => set({ viewMode }),
   setTransformMode: (transformMode) => set({ transformMode }),
   setViewerMode: (viewerMode) => set({ viewerMode, activePlanStoreyRef: viewerMode === 'plan' ? get().activePlanStoreyRef : null }),
+  setHeightMeasureKind: (heightMeasureKind) => set({ heightMeasureKind }),
   setActivePlanStoreyRef: (activePlanStoreyRef) => set({ activePlanStoreyRef, viewerMode: activePlanStoreyRef ? 'plan' : 'edit' }),
   setMonth: (month) => set({ month: Math.min(12, Math.max(1, month)) }),
   setExplodeStoreys: (explodeStoreys) => set({ explodeStoreys }),

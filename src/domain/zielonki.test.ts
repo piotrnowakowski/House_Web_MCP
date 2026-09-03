@@ -18,7 +18,16 @@ describe('Zielonki demo dataset', () => {
     for (const parcel of construction) {
       expect(polygonArea(parcel.boundary)).toBeCloseTo(parcel.officialAreaM2, 0)
     }
-    expect(polygonArea(sampleProject.site.boundary)).toBeCloseTo(1200, 0)
+    for (const parcel of agricultural) {
+      expect(polygonArea(parcel.boundary)).toBeCloseTo(parcel.officialAreaM2, 0)
+    }
+    const remoteExtent = (number: string) => Math.max(...agricultural.find((parcel) => parcel.cadastralNumber === number)!.boundary.map((point) => point.z))
+    expect(remoteExtent('54/4')).toBeCloseTo(186.012, 3)
+    expect(remoteExtent('55/4')).toBeCloseTo(186.012, 3)
+    expect(remoteExtent('58/4')).toBeCloseTo(69.05, 3)
+    expect(polygonArea(sampleProject.site.boundary)).toBeCloseTo(5209, 0)
+    expect(sampleProject.site.entrances).toHaveLength(2)
+    expect(sampleProject.site.entrances.every((entrance) => entrance.connectsTo === 'public-road' && entrance.geometryConfidence === 'user-marked')).toBe(true)
   })
 
   it('places the house footprint on the construction land with its structural base at terrain level', () => {

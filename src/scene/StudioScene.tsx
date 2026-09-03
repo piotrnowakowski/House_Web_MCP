@@ -5,13 +5,16 @@ import * as OBC from '@thatopen/components'
 import CameraControls from 'camera-controls'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Box3, BufferAttribute, BufferGeometry, DoubleSide, EdgesGeometry, Group, LinearFilter, MathUtils, Mesh, MeshStandardMaterial, Object3D,
+  Box3, BufferAttribute, BufferGeometry, Color, DoubleSide, EdgesGeometry, Group, LinearFilter, MathUtils, Mesh, MeshStandardMaterial, Object3D,
   OrthographicCamera, PerspectiveCamera, Plane, Raycaster, Scene, Shape, ShapeGeometry, Vector2, Vector3, WebGLRenderTarget, WebGLRenderer,
 } from 'three'
 import { acceleratedRaycast, computeBoundsTree, disposeBoundsTree } from 'three-mesh-bvh'
-import { buildingGroundOffset, buildingLocalBounds, elevationAt, pointInPolygon, polygonCentroid, spaceFootprint } from '../domain/geometry'
+import { buildingGroundOffset, buildingLocalBounds, elevationAt, pointInPolygon, polygonBounds, polygonCentroid, spaceFootprint } from '../domain/geometry'
 import { gardenFixtureById } from '../domain/gardenFixtures'
-import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, StructureReport, ViewMode } from '../domain/types'
+import { measureHeight } from '../domain/heightMeasurements'
+import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, SiteEntranceModel, StructureReport, ViewMode, WallModel, WallMaterial } from '../domain/types'
+import { inferWallOpeningLayout } from '../domain/wallOpeningLayouts'
+import { resolveWallFinish } from '../domain/wallFinishes'
 import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
 import type { GeneratedSolid } from '../geometry/types'
 import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
@@ -69,33 +72,38 @@ function MeasurementPoint({ position, waiting = false }: { position: Vector3; wa
   </mesh>
 }
 
-function MeasurementLabel({ position, type, children }: { position: Vector3; type: 'length' | 'area'; children: React.ReactNode }) {
-  return <Html position={position} center zIndexRange={[18, 0]}><div className={`spatial-measurement-label ${type}`} role="status" aria-label={`${type === 'length' ? 'Length' : 'Area'} measurement`}>{children}</div></Html>
+function MeasurementLabel({ position, type, children }: { position: Vector3; type: 'length' | 'area' | 'height'; children: React.ReactNode }) {
+  return <Html position={position} center zIndexRange={[18, 0]}><div className={`spatial-measurement-label ${type}`} role="status" aria-label={`${type === 'length' ? 'Length' : type === 'area' ? 'Area' : 'Height'} measurement`}>{children}</div></Html>
 }
 
 function InteractiveMeasurements() {
-  const { camera, gl } = useThree()
+  const { camera, gl, scene } = useThree()
   const viewerMode = useStudioStore((state) => state.viewerMode)
+  const selectedRef = useStudioStore((state) => state.selectedRef)
+  const heightMeasureKind = useStudioStore((state) => state.heightMeasureKind)
   const project = useStudioStore((state) => state.project)
   const setToast = useStudioStore((state) => state.setToast)
   const [lengthPoints, setLengthPointsState] = useState<Vector3[]>([])
   const [areaRect, setAreaRectState] = useState<{ start: Vector3; end: Vector3; dragging: boolean } | null>(null)
+  const [freeHeightPoints, setFreeHeightPointsState] = useState<Vector3[]>([])
   const lengthRef = useRef<Vector3[]>([])
   const areaRef = useRef<{ start: Vector3; end: Vector3; dragging: boolean } | null>(null)
+  const freeHeightRef = useRef<Vector3[]>([])
   const raycaster = useMemo(() => new Raycaster(), [])
   const groundPlane = useMemo(() => new Plane(new Vector3(0, 1, 0), 0), [])
   const setLengthPoints = (points: Vector3[]) => { lengthRef.current = points; setLengthPointsState(points) }
   const setAreaRect = (rect: { start: Vector3; end: Vector3; dragging: boolean } | null) => { areaRef.current = rect; setAreaRectState(rect) }
-  const clear = () => { setLengthPoints([]); setAreaRect(null); setToast(null) }
+  const setFreeHeightPoints = (points: Vector3[]) => { freeHeightRef.current = points; setFreeHeightPointsState(points) }
+  const clear = () => { setLengthPoints([]); setAreaRect(null); setFreeHeightPoints([]); setToast(null) }
 
-  useEffect(() => { setLengthPoints([]); setAreaRect(null) }, [viewerMode])
+  useEffect(() => { setLengthPoints([]); setAreaRect(null); setFreeHeightPoints([]) }, [viewerMode])
   useEffect(() => {
     const onClear = () => clear()
     window.addEventListener(CLEAR_MEASUREMENT_EVENT, onClear)
     return () => window.removeEventListener(CLEAR_MEASUREMENT_EVENT, onClear)
   })
   useEffect(() => {
-    if (viewerMode !== 'measure-length' && viewerMode !== 'measure-area') return
+    if (viewerMode !== 'measure-length' && viewerMode !== 'measure-area' && viewerMode !== 'measure-height') return
     const element = gl.domElement
     const pointOnGround = (event: PointerEvent) => {
       const bounds = element.getBoundingClientRect()
@@ -107,8 +115,26 @@ function InteractiveMeasurements() {
       return point
     }
     const stopEditorClick = (event: PointerEvent) => { event.preventDefault(); event.stopImmediatePropagation() }
+    const pointOnGeometry = (event: PointerEvent) => {
+      const bounds = element.getBoundingClientRect()
+      const pointer = new Vector2(((event.clientX - bounds.left) / bounds.width) * 2 - 1, -((event.clientY - bounds.top) / bounds.height) * 2 + 1)
+      raycaster.setFromCamera(pointer, camera)
+      const hit = raycaster.intersectObjects(scene.children, true).find((intersection) => !intersection.object.userData.editorOnly && !intersection.object.userData.measurementOverlay)
+      return hit?.point.clone() ?? null
+    }
     const onPointerDown = (event: PointerEvent) => {
       if (event.button !== 0) return
+      if (viewerMode === 'measure-height') {
+        if (!event.shiftKey) return
+        const point = pointOnGeometry(event)
+        if (!point) return
+        stopEditorClick(event)
+        if (freeHeightRef.current.length === 1) {
+          const points = [freeHeightRef.current[0], point]; setFreeHeightPoints(points)
+          setToast(`Vertical height: ${Math.abs(points[1].y - points[0].y).toFixed(2)} m.`)
+        } else { setFreeHeightPoints([point]); setToast('First height point placed. Shift-click the second point.') }
+        return
+      }
       const point = pointOnGround(event)
       if (!point) return
       stopEditorClick(event)
@@ -152,7 +178,7 @@ function InteractiveMeasurements() {
       element.removeEventListener('pointermove', onPointerMove)
       element.removeEventListener('pointerup', onPointerUp)
     }
-  }, [camera, gl, groundPlane, project, raycaster, setToast, viewerMode])
+  }, [camera, gl, groundPlane, project, raycaster, scene, setToast, viewerMode])
 
   const length = lengthPoints.length === 2 ? lengthPoints[0].distanceTo(lengthPoints[1]) : null
   const areaWidth = areaRect ? Math.abs(areaRect.end.x - areaRect.start.x) : 0
@@ -162,6 +188,13 @@ function InteractiveMeasurements() {
     new Vector3(areaRect.start.x, areaCenter.y, areaRect.start.z), new Vector3(areaRect.end.x, areaCenter.y, areaRect.start.z),
     new Vector3(areaRect.end.x, areaCenter.y, areaRect.end.z), new Vector3(areaRect.start.x, areaCenter.y, areaRect.end.z), new Vector3(areaRect.start.x, areaCenter.y, areaRect.start.z),
   ] : []
+  const semanticHeight = useMemo(() => {
+    if (viewerMode !== 'measure-height' || !selectedRef || freeHeightPoints.length) return null
+    try { return measureHeight(project, { mode: 'semantic', objectRef: selectedRef, measurement: heightMeasureKind }) }
+    catch { return null }
+  }, [freeHeightPoints.length, heightMeasureKind, project, selectedRef, viewerMode])
+  const semanticHeightPoints = semanticHeight ? [new Vector3(semanticHeight.bottomPoint.x, semanticHeight.bottomPoint.y, semanticHeight.bottomPoint.z), new Vector3(semanticHeight.topPoint.x, semanticHeight.topPoint.y, semanticHeight.topPoint.z)] : []
+  const freeVerticalPoints = freeHeightPoints.length === 2 ? [freeHeightPoints[0], new Vector3(freeHeightPoints[0].x, freeHeightPoints[1].y, freeHeightPoints[0].z)] : []
   return <group userData={{ editorOnly: true, measurementOverlay: true }}>
     {viewerMode === 'measure-length' && lengthPoints.map((point, index) => <MeasurementPoint key={index} position={point} waiting={lengthPoints.length === 1} />)}
     {viewerMode === 'measure-length' && lengthPoints.length === 2 && <>
@@ -173,6 +206,16 @@ function InteractiveMeasurements() {
       <DreiLine points={areaCorners} color="#b9e84d" lineWidth={3} depthTest renderOrder={29} />
       <MeasurementPoint position={areaRect.start} /><MeasurementPoint position={areaRect.end} />
       {areaWidth >= 0.05 && areaDepth >= 0.05 && <MeasurementLabel type="area" position={areaCenter.clone().add(new Vector3(0, 0.35, 0))}><strong>{(areaWidth * areaDepth).toFixed(2)} m²</strong><span>{areaWidth.toFixed(2)} × {areaDepth.toFixed(2)} m</span></MeasurementLabel>}
+    </>}
+    {viewerMode === 'measure-height' && freeHeightPoints.map((value, index) => <MeasurementPoint key={`free-height-${index}`} position={value} waiting={freeHeightPoints.length === 1} />)}
+    {viewerMode === 'measure-height' && freeVerticalPoints.length === 2 && <>
+      <DreiLine points={freeVerticalPoints} color="#b9e84d" lineWidth={3} depthTest={false} renderOrder={29} />
+      <MeasurementLabel type="height" position={freeVerticalPoints[0].clone().lerp(freeVerticalPoints[1], 0.5).add(new Vector3(0.35, 0, 0))}><strong>{Math.abs(freeVerticalPoints[1].y - freeVerticalPoints[0].y).toFixed(2)} m</strong><span>free vertical · local project</span></MeasurementLabel>
+    </>}
+    {viewerMode === 'measure-height' && semanticHeight && semanticHeightPoints.length === 2 && <>
+      <MeasurementPoint position={semanticHeightPoints[0]} /><MeasurementPoint position={semanticHeightPoints[1]} />
+      <DreiLine points={semanticHeightPoints} color="#b9e84d" lineWidth={3} depthTest={false} renderOrder={29} />
+      <MeasurementLabel type="height" position={semanticHeightPoints[0].clone().lerp(semanticHeightPoints[1], 0.5).add(new Vector3(0.35, 0, 0))}><strong>{semanticHeight.heightM.toFixed(2)} m</strong><span>{semanticHeight.label} · {semanticHeight.bottomElevation.absoluteM.toFixed(2)}–{semanticHeight.topElevation.absoluteM.toFixed(2)} m abs.</span></MeasurementLabel>
     </>}
   </group>
 }
@@ -201,8 +244,8 @@ function ThatOpenBridge() {
     camera.threeOrtho.near = 0.1; camera.threeOrtho.far = SCENE_FAR; camera.threeOrtho.updateProjectionMatrix()
     camera.controls.maxDistance = MAX_ORBIT_DISTANCE
     camera.controls.mouseButtons.middle = CameraControls.ACTION.TRUCK
-    camera.three.position.set(18, 12, 20)
-    camera.controls?.setLookAt(18, 12, 20, 0, 1.4, 0, false)
+    camera.three.position.set(22, 13, 27)
+    camera.controls?.setLookAt(22, 13, 27, 0, 3, 1.5, false)
     set({ camera: camera.three })
     const clipper = components.get(OBC.Clipper); clipper.enabled = false; clipper.setup({})
     components.init()
@@ -258,11 +301,11 @@ function ThatOpenBridge() {
     handledRefocusRequest.current = refocusRequest
     const current = bridge.current; const building = project.buildings[0]
     if (!current || !building) return
-    const targetX = building.position.x; const targetY = 1.4; const targetZ = building.position.z
+    const targetX = building.position.x; const targetY = isLShapedBarn(building) ? 3 : 1.4; const targetZ = building.position.z + (isLShapedBarn(building) ? 2.5 : 0)
     const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
     current.camera.set('Orbit'); current.camera.controls.maxDistance = MAX_ORBIT_DISTANCE; void current.camera.projection.set('Perspective')
     void current.camera.controls.setFocalOffset(0, 0, 0, smooth)
-    void current.camera.controls?.setLookAt(targetX + 18, targetY + 12, targetZ + 20, targetX, targetY, targetZ, smooth)
+    void current.camera.controls?.setLookAt(targetX + 22, targetY + 10, targetZ + 25, targetX, targetY, targetZ, smooth)
   }, [project, refocusRequest])
   useEffect(() => {
     if (handledGardenFocusRequest.current === gardenFocusRequest.sequence) return
@@ -314,7 +357,14 @@ function useGeneratedSolids(project: ProjectV2, building: BuildingModel) {
   return solids
 }
 
-function GeneratedMesh({ solid, mode, selected, buildingRef, style, yOffset, ghost }: { solid: GeneratedSolid; mode: ViewMode; selected: boolean; buildingRef: string; style: BuildingModel['architecturalStyle']; yOffset: number; ghost?: boolean }) {
+const wallSurface: Record<WallMaterial, { roughness: number; metalness: number }> = {
+  'charred-timber': { roughness: 0.94, metalness: 0.01 }, 'natural-timber': { roughness: 0.86, metalness: 0.01 },
+  'light-render': { roughness: 0.98, metalness: 0 }, brick: { roughness: 1, metalness: 0 }, 'metal-panel': { roughness: 0.48, metalness: 0.62 },
+}
+
+const shade = (hex: string, factor: number) => `#${new Color(hex).multiplyScalar(factor).getHexString()}`
+
+function GeneratedMesh({ solid, mode, selected, buildingRef, style, wall, yOffset, ghost }: { solid: GeneratedSolid; mode: ViewMode; selected: boolean; buildingRef: string; style: BuildingModel['architecturalStyle']; wall?: WallModel; yOffset: number; ghost?: boolean }) {
   const geometry = useMemo(() => {
     const value = new BufferGeometry()
     value.setAttribute('position', new BufferAttribute(solid.positions, 3)); value.setIndex(new BufferAttribute(solid.indices, 1)); value.computeVertexNormals()
@@ -322,15 +372,138 @@ function GeneratedMesh({ solid, mode, selected, buildingRef, style, yOffset, gho
     return value
   }, [solid])
   useEffect(() => () => { disposeBoundsTree.call(geometry); geometry.dispose() }, [geometry])
-  const isWall = solid.ref.includes('wall'); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  const isWall = Boolean(wall) || solid.ref.includes('wall'); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
   const palette = mode === 'technical' ? TECH : style === 'barn' ? BARN : REAL
+  const finish = resolveWallFinish(wall, style); const surface = wallSurface[finish.material]
   return <mesh geometry={geometry} position={[0, yOffset, 0]} castShadow receiveShadow raycast={acceleratedRaycast} userData={{ semanticRef: solid.ref, buildingRef }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(solid.ref) }}>
-    <meshStandardMaterial color={selected ? '#b9e84d' : isWall ? palette.wall : palette.slab} transparent={ghost} opacity={ghost ? 0.33 : 1} roughness={0.78} metalness={0.02} />
+    <meshStandardMaterial color={isWall && mode !== 'technical' ? finish.colorHex : selected ? '#b9e84d' : isWall ? palette.wall : palette.slab} emissive={isWall && selected ? '#6c812f' : '#000000'} emissiveIntensity={isWall && selected ? 0.35 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.33 : 1} depthWrite={!ghost} side={isWall ? DoubleSide : undefined} roughness={isWall ? surface.roughness : 0.78} metalness={isWall ? surface.metalness : 0.02} />
   </mesh>
 }
 
+const isLShapedBarn = (building: BuildingModel) => building.architecturalStyle === 'barn'
+  && building.slabs[0]?.footprint.length === 6
+  && building.walls.some((wall) => wall.ref === 'wall/front-glass')
+
+function BarnGlazing({ building, mode, ghost }: { building: BuildingModel; mode: ViewMode; ghost?: boolean }) {
+  const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  const internalWalls = new Set(['wall/rear-partition', 'wall/wing-divider', 'wall/upper-north'])
+  const panes = building.walls.flatMap((wall) => internalWalls.has(wall.ref) ? [] : wall.openings.map((opening) => ({ wall, opening })))
+  return <>{panes.map(({ wall, opening }) => {
+    const dx = wall.end.x - wall.start.x; const dz = wall.end.z - wall.start.z; const length = Math.hypot(dx, dz)
+    const ux = dx / length; const uz = dz / length; const rotation = -Math.atan2(dz, dx)
+    const x = wall.start.x + ux * opening.offsetM; const z = wall.start.z + uz * opening.offsetM
+    const y = wall.baseElevationM + opening.sillM + opening.heightM / 2
+    const mullions = opening.widthM > 5 ? [-opening.widthM / 6, opening.widthM / 6] : opening.widthM > 2.6 ? [0] : []
+    const frame = selectedRef === opening.ref ? '#b9e84d' : mode === 'technical' ? '#516f78' : '#121817'
+    return <group key={opening.ref} position={[x, y, z]} rotation={[0, rotation, 0]} userData={{ semanticRef: opening.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(opening.ref) }}>
+      <mesh castShadow receiveShadow><boxGeometry args={[Math.max(0.08, opening.widthM - 0.08), Math.max(0.08, opening.heightM - 0.08), 0.045]} />
+        <meshPhysicalMaterial color={mode === 'technical' ? '#9bc7d2' : '#78959a'} transparent opacity={ghost ? 0.2 : mode === 'technical' ? 0.34 : 0.42} transmission={mode === 'technical' ? 0.12 : 0.55} roughness={0.08} metalness={0.08} depthWrite={false} />
+      </mesh>
+      <mesh position={[0, opening.heightM / 2, 0]}><boxGeometry args={[opening.widthM + 0.08, 0.075, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
+      <mesh position={[0, -opening.heightM / 2, 0]}><boxGeometry args={[opening.widthM + 0.08, 0.075, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
+      <mesh position={[opening.widthM / 2, 0, 0]}><boxGeometry args={[0.075, opening.heightM, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
+      <mesh position={[-opening.widthM / 2, 0, 0]}><boxGeometry args={[0.075, opening.heightM, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
+      {mullions.map((offset) => <mesh key={offset} position={[offset, 0, 0]}><boxGeometry args={[0.065, opening.heightM, 0.105]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>)}
+    </group>
+  })}</>
+}
+
+function BarnCladding({ building, ghost }: { building: BuildingModel; ghost?: boolean }) {
+  const internalWalls = new Set(['wall/rear-partition', 'wall/wing-divider', 'wall/upper-north'])
+  return <>{building.walls.filter((wall) => !internalWalls.has(wall.ref)).flatMap((wall) => {
+    const finish = resolveWallFinish(wall, building.architecturalStyle)
+    if (!['charred-timber', 'natural-timber', 'metal-panel'].includes(finish.material)) return []
+    const dx = wall.end.x - wall.start.x; const dz = wall.end.z - wall.start.z; const length = Math.hypot(dx, dz)
+    const ux = dx / length; const uz = dz / length; const nx = uz; const nz = -ux; const rotation = -Math.atan2(dz, dx)
+    const spacing = finish.material === 'metal-panel' ? 0.64 : 0.34
+    const strips = Array.from({ length: Math.floor(length / spacing) }, (_, index) => ({ offset: spacing / 2 + index * spacing, index }))
+    return strips.flatMap(({ offset, index }) => {
+      const blocked = wall.openings.filter((opening) => Math.abs(offset - opening.offsetM) < opening.widthM / 2 + 0.08)
+        .map((opening) => ({ start: Math.max(0, opening.sillM - 0.04), end: Math.min(wall.heightM, opening.sillM + opening.heightM + 0.04) })).sort((a, b) => a.start - b.start)
+      const segments: Array<{ start: number; end: number }> = []; let cursor = 0
+      blocked.forEach((interval) => { if (interval.start > cursor + 0.03) segments.push({ start: cursor, end: interval.start }); cursor = Math.max(cursor, interval.end) })
+      if (cursor < wall.heightM - 0.03) segments.push({ start: cursor, end: wall.heightM })
+      return segments.map((segment, segmentIndex) => <mesh key={`${wall.ref}-batten-${index}-${segmentIndex}`} position={[
+        wall.start.x + ux * offset + nx * (wall.thicknessM / 2 + 0.018),
+        wall.baseElevationM + (segment.start + segment.end) / 2,
+        wall.start.z + uz * offset + nz * (wall.thicknessM / 2 + 0.018),
+      ]} rotation={[0, rotation, 0]} castShadow>
+        <boxGeometry args={[finish.material === 'metal-panel' ? 0.022 : 0.026, segment.end - segment.start, 0.038]} />
+        <meshStandardMaterial color={shade(finish.colorHex, index % 3 === 0 ? 1.2 : 0.72)} roughness={finish.material === 'metal-panel' ? 0.42 : 0.96} metalness={finish.material === 'metal-panel' ? 0.65 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.32 : 1} depthWrite={!ghost} />
+      </mesh>)
+    })
+  })}</>
+}
+
+function BarnInteriorWarmth({ mode, ghost }: { mode: ViewMode; ghost?: boolean }) {
+  if (mode !== 'realistic' || ghost) return null
+  return <group userData={{ editorOnly: true }}>
+    <mesh position={[0, 0.465, -2]} receiveShadow><boxGeometry args={[15.7, 0.035, 5.7]} /><meshStandardMaterial color="#a9855d" roughness={0.72} /></mesh>
+    <mesh position={[-5, 0.475, 5.5]} receiveShadow><boxGeometry args={[5.7, 0.045, 8.7]} /><meshStandardMaterial color="#ad8b61" roughness={0.72} /></mesh>
+    <mesh position={[-5, 3.465, 5.5]} receiveShadow><boxGeometry args={[5.7, 0.035, 8.7]} /><meshStandardMaterial color="#987650" roughness={0.76} /></mesh>
+    <pointLight position={[-5, 2.3, 6]} color="#ffd29a" intensity={18} distance={9} decay={2} />
+    <pointLight position={[-5, 5.35, 6.5]} color="#ffd6a3" intensity={14} distance={8} decay={2} />
+    <pointLight position={[3.6, 2.15, -1]} color="#ffd09a" intensity={20} distance={10} decay={2} />
+  </group>
+}
+
+function LBarnRoof({ building, mode, selected, yOffset, ghost }: { building: BuildingModel; mode: ViewMode; selected: boolean; yOffset: number; ghost?: boolean }) {
+  const roofFootprint = building.roof.footprint ?? building.slabs[0].footprint
+  const bounds = polygonBounds(roofFootprint); const over = building.roof.overhangM; const pitch = MathUtils.degToRad(building.roof.pitchDegrees)
+  const notch = roofFootprint.find((point) => point.x > bounds.minX && point.x < bounds.maxX && point.z > bounds.minZ && point.z < bounds.maxZ) ?? { x: -2, z: 1 }
+  const roofColor = selected ? '#b9e84d' : mode === 'technical' ? TECH.roof : '#2d3435'; const wallColor = mode === 'technical' ? TECH.wall : '#242927'
+  const material = <meshStandardMaterial color={roofColor} roughness={mode === 'technical' ? 0.88 : 0.46} metalness={mode === 'technical' ? 0.04 : 0.58} transparent={ghost} opacity={ghost ? 0.35 : 1} />
+  const projectingWidth = notch.x - bounds.minX; const projectingDepth = bounds.maxZ - notch.z; const projectingCx = (bounds.minX + notch.x) / 2; const projectingCz = (notch.z + bounds.maxZ) / 2
+  const projectingHalf = projectingWidth / 2 + over; const projectingSlope = projectingHalf / Math.cos(pitch); const projectingRise = Math.tan(pitch) * projectingHalf; const projectingBase = building.roof.baseElevationM
+  const rearWidth = bounds.maxX - bounds.minX; const rearDepth = notch.z - bounds.minZ; const rearCx = (bounds.minX + bounds.maxX) / 2; const rearCz = (bounds.minZ + notch.z) / 2
+  const rearHalf = rearDepth / 2 + over; const rearSlope = rearHalf / Math.cos(pitch); const rearRise = Math.tan(pitch) * rearHalf
+  const ground = building.storeys.find((storey) => storey.level === 0); const rearBase = (ground?.elevationM ?? 0.45) + (ground?.clearHeightM ?? 3)
+  const frontUpperWall = building.walls.find((wall) => wall.ref === 'wall/upper-front-glass')
+  const frontGableIsGlass = frontUpperWall ? inferWallOpeningLayout(frontUpperWall) === 'full-glass' : false
+  const frontWallColor = mode === 'technical' ? TECH.wall : resolveWallFinish(frontUpperWall, building.architecturalStyle).colorHex
+  const projectGable = useMemo(() => {
+    const value = new BufferGeometry(); value.setAttribute('position', new BufferAttribute(new Float32Array([
+      bounds.minX, projectingBase, 0, notch.x, projectingBase, 0, projectingCx, projectingBase + Math.tan(pitch) * projectingWidth / 2, 0,
+    ]), 3)); value.setIndex([0, 1, 2]); value.computeVertexNormals(); return value
+  }, [bounds.minX, notch.x, pitch, projectingBase, projectingCx, projectingWidth])
+  const rearGable = useMemo(() => {
+    const value = new BufferGeometry(); value.setAttribute('position', new BufferAttribute(new Float32Array([
+      0, rearBase, bounds.minZ, 0, rearBase, notch.z, 0, rearBase + Math.tan(pitch) * rearDepth / 2, rearCz,
+    ]), 3)); value.setIndex([0, 1, 2]); value.computeVertexNormals(); return value
+  }, [bounds.minZ, notch.z, pitch, rearBase, rearCz, rearDepth])
+  useEffect(() => () => { projectGable.dispose(); rearGable.dispose() }, [projectGable, rearGable])
+  const projectSeams = Array.from({ length: Math.max(2, Math.floor(projectingDepth / 0.72)) }, (_, index) => notch.z + 0.36 + index * 0.72)
+  const rearSeams = Array.from({ length: Math.max(2, Math.floor(rearWidth / 0.78)) }, (_, index) => bounds.minX + 0.39 + index * 0.78)
+  return <group position={[0, yOffset, 0]} userData={{ semanticRef: building.roof.ref, buildingRef: building.ref }}>
+    <mesh position={[projectingCx - projectingHalf / 2, projectingBase + projectingRise / 2, projectingCz]} rotation={[0, 0, pitch]} castShadow><boxGeometry args={[projectingSlope, 0.2, projectingDepth + over * 2]} />{material}</mesh>
+    <mesh position={[projectingCx + projectingHalf / 2, projectingBase + projectingRise / 2, projectingCz]} rotation={[0, 0, -pitch]} castShadow><boxGeometry args={[projectingSlope, 0.2, projectingDepth + over * 2]} />{material}</mesh>
+    <mesh position={[rearCx, rearBase + rearRise / 2, rearCz - rearHalf / 2]} rotation={[-pitch, 0, 0]} castShadow><boxGeometry args={[rearWidth + over * 2, 0.2, rearSlope]} />{material}</mesh>
+    <mesh position={[rearCx, rearBase + rearRise / 2, rearCz + rearHalf / 2]} rotation={[pitch, 0, 0]} castShadow><boxGeometry args={[rearWidth + over * 2, 0.2, rearSlope]} />{material}</mesh>
+    <mesh geometry={projectGable} position={[0, 0, notch.z - 0.01]} castShadow><meshStandardMaterial color={wallColor} roughness={0.92} side={DoubleSide} transparent={ghost} opacity={ghost ? 0.35 : 1} /></mesh>
+    <mesh geometry={rearGable} position={[bounds.minX + 0.01, 0, 0]} castShadow><meshStandardMaterial color={wallColor} roughness={0.92} side={DoubleSide} transparent={ghost} opacity={ghost ? 0.35 : 1} /></mesh>
+    <mesh geometry={rearGable} position={[bounds.maxX - 0.01, 0, 0]} castShadow><meshStandardMaterial color={wallColor} roughness={0.92} side={DoubleSide} transparent={ghost} opacity={ghost ? 0.35 : 1} /></mesh>
+    <mesh geometry={projectGable} position={[0, 0, bounds.maxZ + 0.02]} castShadow>{frontGableIsGlass
+      ? <meshPhysicalMaterial color={mode === 'technical' ? '#9bc7d2' : '#7e999c'} transparent opacity={ghost ? 0.2 : 0.43} transmission={mode === 'technical' ? 0.1 : 0.58} roughness={0.08} side={DoubleSide} depthWrite={false} />
+      : <meshStandardMaterial color={frontWallColor} roughness={0.92} side={DoubleSide} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />}</mesh>
+    {frontGableIsGlass && [-projectingWidth / 4, 0, projectingWidth / 4].map((offset, index) => {
+      const height = offset === 0 ? Math.tan(pitch) * projectingWidth / 2 : Math.tan(pitch) * projectingWidth / 4
+      return <mesh key={`gable-mullion-${index}`} position={[projectingCx + offset, projectingBase + height / 2, bounds.maxZ + 0.06]}><boxGeometry args={[0.075, height, 0.1]} /><meshStandardMaterial color="#111716" roughness={0.48} /></mesh>
+    })}
+    {frontGableIsGlass && <mesh position={[projectingCx, projectingBase, bounds.maxZ + 0.06]}><boxGeometry args={[projectingWidth, 0.09, 0.1]} /><meshStandardMaterial color="#111716" roughness={0.48} /></mesh>}
+    {mode === 'realistic' && projectSeams.flatMap((z) => [
+      <mesh key={`pl-${z}`} position={[projectingCx - projectingHalf / 2, projectingBase + projectingRise / 2 + 0.12, z]} rotation={[0, 0, pitch]}><boxGeometry args={[projectingSlope, 0.025, 0.032]} /><meshStandardMaterial color="#151b1c" metalness={0.7} roughness={0.35} /></mesh>,
+      <mesh key={`pr-${z}`} position={[projectingCx + projectingHalf / 2, projectingBase + projectingRise / 2 + 0.12, z]} rotation={[0, 0, -pitch]}><boxGeometry args={[projectingSlope, 0.025, 0.032]} /><meshStandardMaterial color="#151b1c" metalness={0.7} roughness={0.35} /></mesh>,
+    ])}
+    {mode === 'realistic' && rearSeams.flatMap((x) => [
+      <mesh key={`rn-${x}`} position={[x, rearBase + rearRise / 2 + 0.12, rearCz - rearHalf / 2]} rotation={[-pitch, 0, 0]}><boxGeometry args={[0.032, 0.025, rearSlope]} /><meshStandardMaterial color="#151b1c" metalness={0.7} roughness={0.35} /></mesh>,
+      <mesh key={`rs-${x}`} position={[x, rearBase + rearRise / 2 + 0.12, rearCz + rearHalf / 2]} rotation={[pitch, 0, 0]}><boxGeometry args={[0.032, 0.025, rearSlope]} /><meshStandardMaterial color="#151b1c" metalness={0.7} roughness={0.35} /></mesh>,
+    ])}
+  </group>
+}
+
 function Roof({ building, mode, selected, yOffset, ghost }: { building: BuildingModel; mode: ViewMode; selected: boolean; yOffset: number; ghost?: boolean }) {
-  const bounds = buildingLocalBounds(building); const width = bounds.maxX - bounds.minX; const depth = bounds.maxZ - bounds.minZ
+  if (isLShapedBarn(building)) return <LBarnRoof building={building} mode={mode} selected={selected} yOffset={yOffset} ghost={ghost} />
+  const bounds = building.roof.footprint ? polygonBounds(building.roof.footprint) : buildingLocalBounds(building); const width = bounds.maxX - bounds.minX; const depth = bounds.maxZ - bounds.minZ
   const cx = (bounds.minX + bounds.maxX) / 2; const cz = (bounds.minZ + bounds.maxZ) / 2; const over = building.roof.overhangM; const pitch = MathUtils.degToRad(building.roof.pitchDegrees)
   const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
   const palette = mode === 'technical' ? TECH : building.architecturalStyle === 'barn' ? BARN : REAL
@@ -422,7 +595,8 @@ const buildingCornersWorld = (building: BuildingModel, position = building.posit
 
 const placementValid = (project: ProjectV2, building: BuildingModel, position: { x: number; z: number }) => {
   const corners = buildingCornersWorld(building, position)
-  if (!corners.every((corner) => pointInPolygon(corner, project.site.boundary))) return false
+  const constructionParcels = project.site.parcels.filter((parcel) => parcel.landRole === 'construction')
+  if (!corners.every((corner) => constructionParcels.some((parcel) => pointInPolygon(corner, parcel.boundary)))) return false
   return project.buildings.filter((other) => other.ref !== building.ref).every((other) => {
     const b = buildingCornersWorld(other); const ax = corners.map((p) => p.x); const az = corners.map((p) => p.z); const bx = b.map((p) => p.x); const bz = b.map((p) => p.z)
     return Math.max(...ax) <= Math.min(...bx) || Math.min(...ax) >= Math.max(...bx) || Math.max(...az) <= Math.min(...bz) || Math.min(...az) >= Math.max(...bz)
@@ -444,7 +618,10 @@ function Building({ project, building, mode, ghost }: { project: ProjectV2; buil
   const roofBounds = buildingLocalBounds(building); const roofWidth = roofBounds.maxX - roofBounds.minX + building.roof.overhangM * 2; const roofDepth = roofBounds.maxZ - roofBounds.minZ + building.roof.overhangM * 2
   return <>
     <group ref={group} position={[building.position.x, terrainOffset, building.position.z]} rotation={[0, -MathUtils.degToRad(building.rotationDegrees), 0]} userData={{ semanticRef: building.ref, buildingRef: building.ref, captureRoot: true, captureSource: ghost ? 'ghost' : 'committed' }} onDoubleClick={(event) => { event.stopPropagation(); useStudioStore.getState().setSelectedRef(building.ref) }}>
-      {solids.map((solid) => <GeneratedMesh key={solid.ref} solid={solid} mode={mode} selected={selectedRef === solid.ref} buildingRef={building.ref} style={building.architecturalStyle} yOffset={offsetFor(solid.ref)} ghost={ghost} />)}
+      {solids.map((solid) => <GeneratedMesh key={solid.ref} solid={solid} mode={mode} selected={selectedRef === solid.ref} buildingRef={building.ref} style={building.architecturalStyle} wall={building.walls.find((wall) => wall.ref === solid.ref)} yOffset={offsetFor(solid.ref)} ghost={ghost} />)}
+      {isLShapedBarn(building) && <BarnGlazing building={building} mode={mode} ghost={ghost} />}
+      {isLShapedBarn(building) && mode === 'realistic' && <BarnCladding building={building} ghost={ghost} />}
+      {isLShapedBarn(building) && <BarnInteriorWarmth mode={mode} ghost={ghost} />}
       <Roof building={building} mode={mode} selected={selectedRef === building.roof.ref} yOffset={roofOffset} ghost={ghost} />
       {!ghost && <><SpaceOverlays building={building} explodedOffset={explodedOffset} explode={explode} /><PlatformsAndFinishes building={building} explodeOffset={explodedOffset} /></>}
       {!ghost && <RigidBody type="fixed" colliders={false}>{solids.map((solid) => <CuboidCollider key={solid.ref} args={solid.collider.halfExtents} position={[solid.collider.center[0], solid.collider.center[1] + offsetFor(solid.ref), solid.collider.center[2]]} rotation={[0, solid.collider.rotationY, 0]} />)}<CuboidCollider args={[roofWidth / 2, 0.2, roofDepth / 2]} position={[(roofBounds.minX + roofBounds.maxX) / 2, building.roof.baseElevationM + 0.2 + roofOffset, (roofBounds.minZ + roofBounds.maxZ) / 2]} /></RigidBody>}
@@ -481,6 +658,20 @@ function ParcelSurface({ boundary, landRole, mode }: { boundary: Polygon2; landR
   </group>
 }
 
+function RoadEntranceMarker({ entrance, mode }: { entrance: SiteEntranceModel; mode: ViewMode }) {
+  const start = entrance.start; const end = entrance.end
+  const centerX = (start.x + end.x) / 2; const centerZ = (start.z + end.z) / 2
+  const length = Math.hypot(end.x - start.x, end.z - start.z); const angle = -Math.atan2(end.z - start.z, end.x - start.x)
+  const markerColor = mode === 'technical' ? '#f4c84a' : '#e9b92f'
+  return <group position={[centerX, TERRAIN_SURFACE_Y + 0.055, centerZ]} rotation={[0, angle, 0]} userData={{ semanticRef: entrance.ref }}>
+    <mesh renderOrder={5} receiveShadow><boxGeometry args={[length, 0.07, 0.72]} /><meshStandardMaterial color={markerColor} emissive={markerColor} emissiveIntensity={0.14} roughness={0.72} /></mesh>
+    {[-length / 2, length / 2].map((offset, index) => <mesh key={index} position={[offset, 0.43, 0]} castShadow><cylinderGeometry args={[0.09, 0.11, 0.86, 10]} /><meshStandardMaterial color="#f7d568" roughness={0.62} /></mesh>)}
+    <Html center position={[0, 1.25, 0]} distanceFactor={15} style={{ pointerEvents: 'none' }}>
+      <span className="site-entrance-label">{entrance.name}</span>
+    </Html>
+  </group>
+}
+
 function TerrainAndSite({ project, mode }: { project: ProjectV2; mode: ViewMode }) {
   const boundaryGeometry = useMemo(() => localPolygonGeometry(project.site.boundary), [project.site.boundary])
   const landBounds = useMemo(() => project.site.parcels.flatMap((parcel) => parcel.boundary).reduce((box, point) => box.expandByPoint(new Vector3(point.x, 0, point.z)), new Box3()), [project.site.parcels])
@@ -489,6 +680,7 @@ function TerrainAndSite({ project, mode }: { project: ProjectV2; mode: ViewMode 
   return <group userData={{ semanticRef: 'site' }}>
     <mesh geometry={boundaryGeometry} position={[0, TERRAIN_SURFACE_Y, 0]} receiveShadow userData={{ semanticRef: 'site/terrain' }}><meshStandardMaterial color={mode === 'technical' ? TECH.soil : REAL.soil} roughness={1} side={DoubleSide} /></mesh>
     {project.site.parcels.map((parcel) => <ParcelSurface key={parcel.ref} boundary={parcel.boundary} landRole={parcel.landRole} mode={mode} />)}
+    {project.site.entrances.map((entrance) => <RoadEntranceMarker key={entrance.ref} entrance={entrance} mode={mode} />)}
     <RigidBody type="fixed" colliders={false}><CuboidCollider args={[Math.max(1, landSize.x / 2), 0.08, Math.max(1, landSize.z / 2)]} position={[landCenter.x, TERRAIN_SURFACE_Y - 0.08, landCenter.z]} /></RigidBody>
   </group>
 }
@@ -502,11 +694,11 @@ function Landscape({ project }: { project: ProjectV2 }) {
   })}{project.landscape.plants.map((plant) => <Plant key={plant.ref} plant={plant} project={project} selected={selectedRef === plant.ref} onSelect={() => setSelectedRef(plant.ref)} />)}</>
 }
 
-function Plant({ plant, project, selected, onSelect }: { plant: PlantModel; project: ProjectV2; selected: boolean; onSelect: () => void }) {
+function Plant({ plant, project, selected, onSelect, ghost = false }: { plant: PlantModel; project: ProjectV2; selected: boolean; onSelect: () => void; ghost?: boolean }) {
   const month = useStudioStore((state) => state.month); const y = elevationAt(project, plant.position.x, plant.position.z); const canopy = Math.max(0.25, plant.canopyM / 2); const visibleLeaf = plant.leafMonths.includes(month)
-  return <group position={[plant.position.x, y, plant.position.z]} userData={{ semanticRef: plant.ref }} onPointerDown={(event) => { event.stopPropagation(); onSelect() }}>
-    <mesh position={[0, plant.matureHeightM * 0.28, 0]} castShadow><cylinderGeometry args={[0.1, 0.15, plant.matureHeightM * 0.56, 8]} /><meshStandardMaterial color="#584434" /></mesh>
-    <mesh position={[0, plant.matureHeightM * 0.72, 0]} castShadow><sphereGeometry args={[canopy, 12, 9]} /><meshStandardMaterial color={selected ? '#b9e84d' : visibleLeaf ? '#477348' : '#756955'} transparent opacity={visibleLeaf ? 0.92 : 0.52} /></mesh>
+  return <group position={[plant.position.x, y, plant.position.z]} userData={{ semanticRef: plant.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) onSelect() }}>
+    <mesh position={[0, plant.matureHeightM * 0.28, 0]} castShadow={!ghost}><cylinderGeometry args={[0.1, 0.15, plant.matureHeightM * 0.56, 8]} /><meshStandardMaterial color="#584434" transparent={ghost} opacity={ghost ? 0.42 : 1} /></mesh>
+    <mesh position={[0, plant.matureHeightM * 0.72, 0]} castShadow={!ghost}><sphereGeometry args={[canopy, 12, 9]} /><meshStandardMaterial color={selected ? '#b9e84d' : ghost ? '#b9e84d' : visibleLeaf ? '#477348' : '#756955'} transparent opacity={ghost ? 0.38 : visibleLeaf ? 0.92 : 0.52} depthWrite={!ghost} /></mesh>
   </group>
 }
 
@@ -652,6 +844,10 @@ export function StudioScene() {
     const committed = project.landscape.fixtures.find((item) => item.ref === fixture.ref)
     return !committed || committed.catalogId !== fixture.catalogId || committed.position.x !== fixture.position.x || committed.position.z !== fixture.position.z || committed.rotationDegrees !== fixture.rotationDegrees
   }) ?? []
+  const changedGhostPlants = ghost?.landscape.plants.filter((plant) => {
+    const committed = project.landscape.plants.find((item) => item.ref === plant.ref)
+    return !committed || committed.position.x !== plant.position.x || committed.position.z !== plant.position.z
+  }) ?? []
   return <>
     <color attach="background" args={[mode === 'technical' ? '#cfd5cd' : '#aebdb1']} />{mode === 'realistic' && <fog attach="fog" args={['#aebdb1', 450, 1100]} />}
     <ThatOpenBridge /><InteractiveMeasurements /><StructureCaptureController /><Lighting mode={mode} />
@@ -659,6 +855,7 @@ export function StudioScene() {
       {project.buildings.map((building) => <Building key={building.ref} project={project} building={building} mode={mode} />)}
       {ghost?.buildings.map((building) => <Building key={`ghost-${building.ref}`} project={ghost} building={building} mode={mode} ghost />)}
       {ghost && <GardenFixtures project={ghost} fixtures={changedGhostFixtures} ghost />}
+      {ghost && changedGhostPlants.map((plant) => <Plant key={`ghost-${plant.ref}`} plant={plant} project={ghost} selected={false} onSelect={() => undefined} ghost />)}
     </group></Physics>
   </>
 }

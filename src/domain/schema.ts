@@ -40,13 +40,19 @@ const ParcelSchema = z.object({
   ref: z.string().min(1), cadastralNumber: z.string().min(1), landRole: z.enum(['construction', 'agricultural']),
   officialAreaM2: z.number().positive(), boundary: PolygonSchema, geometryConfidence: z.enum(['surveyed', 'derived', 'context-only']),
 })
+const SiteEntranceSchema = z.object({
+  ref: z.string().min(1), name: z.string().min(1), start: Vec2Schema, end: Vec2Schema,
+  connectsTo: z.literal('public-road'), geometryConfidence: z.enum(['user-marked', 'surveyed']),
+}).refine((entrance) => Math.hypot(entrance.end.x - entrance.start.x, entrance.end.z - entrance.start.z) > 0.5, { message: 'Site entrance must have length.' })
 const OpeningSchema = z.object({
   ref: z.string().min(1), kind: z.enum(['door', 'window']), wallRef: z.string().min(1), offsetM: z.number().min(0),
   widthM: z.number().positive(), heightM: z.number().positive(), sillM: z.number().min(0),
 })
 const WallSchema = z.object({
   ref: z.string().min(1), start: Vec2Schema, end: Vec2Schema, thicknessM: z.number().positive(), baseElevationM: z.number().finite(),
-  heightM: z.number().positive(), openings: z.array(OpeningSchema), locked: z.boolean(),
+  heightM: z.number().positive(), openings: z.array(OpeningSchema),
+  finish: z.object({ material: z.enum(['charred-timber', 'natural-timber', 'light-render', 'brick', 'metal-panel']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) }).optional(),
+  locked: z.boolean(),
 }).refine((wall) => Math.hypot(wall.end.x - wall.start.x, wall.end.z - wall.start.z) > 0.1, { message: 'Wall must have length.' })
 const SpaceSchema = z.object({
   ref: z.string().min(1), name: z.string().min(1), usage: z.string().min(1),
@@ -65,7 +71,7 @@ const BuildingSchema = z.object({
   slabs: z.array(SlabSchema).min(1), walls: z.array(WallSchema), spaces: z.array(SpaceSchema),
   platforms: z.array(z.object({ ref: z.string().min(1), spaceRef: z.string().min(1), footprint: PolygonSchema, elevationM: z.number().finite(), thicknessM: z.number().positive() })),
   ceilingFinishes: z.array(z.object({ ref: z.string().min(1), spaceRef: z.string().min(1), hostBoundaryRef: z.string().min(1), elevationM: z.number().finite(), thicknessM: z.number().positive() })),
-  roof: z.object({ ref: z.string().min(1), type: z.enum(['flat', 'gable', 'hip']), baseElevationM: z.number().finite(), pitchDegrees: z.number().min(0).max(70), overhangM: z.number().min(0).max(3) }),
+  roof: z.object({ ref: z.string().min(1), type: z.enum(['flat', 'gable', 'hip']), baseElevationM: z.number().finite(), pitchDegrees: z.number().min(0).max(70), overhangM: z.number().min(0).max(3), footprint: PolygonSchema.optional() }),
 })
 const PlantSchema = z.object({
   ref: z.string().min(1), name: z.string().min(1), species: z.string().min(1), kind: z.enum(['tree', 'hedge', 'shrub', 'perennial', 'grass', 'crop', 'wetland']),
@@ -85,7 +91,7 @@ export const ProjectSchema = z.object({
   site: z.object({
     boundary: PolygonSchema, northDegrees: z.number().finite(),
     terrain: z.object({ boundary: PolygonSchema, elevationPoints: z.array(Vec2Schema.extend({ elevation: z.number().finite() })).min(1) }),
-    parcels: z.array(ParcelSchema).min(1), knowledgeBase: z.custom<SiteKnowledgeBase>((value) => Boolean(value) && typeof value === 'object').transform(hydrateKnowledgeBase),
+    parcels: z.array(ParcelSchema).min(1), entrances: z.array(SiteEntranceSchema).default([]), knowledgeBase: z.custom<SiteKnowledgeBase>((value) => Boolean(value) && typeof value === 'object').transform(hydrateKnowledgeBase),
   }),
   buildings: z.array(BuildingSchema),
   landscape: z.object({ zones: z.array(z.object({ ref: z.string().min(1), name: z.string().min(1), kind: z.enum(['lawn', 'terrace', 'path', 'driveway', 'bed', 'rain-garden', 'vegetable']), footprint: PolygonSchema, locked: z.boolean() })), plants: z.array(PlantSchema), fixtures: z.array(GardenFixtureSchema).default([]), fixtureCatalogVersion: z.number().int().nonnegative().default(0) }),
