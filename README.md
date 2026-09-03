@@ -161,7 +161,7 @@ Use **MCP Tools** in the application to inspect the registered catalogue. The pa
 
 | Tool | Purpose |
 | --- | --- |
-| `get_project_state` | Read summary, site, structure, landscape or full V2 state |
+| `get_project_state` | Read summary, site, structure, landscape, a knowledge-bank section, one object by ref, or full V2 state |
 | `propose_site_update` | Change site boundary or north |
 | `propose_terrain_update` | Change terrain elevation controls |
 | `propose_building_update` | Add, remove, move, rotate or restyle a building |

@@ -33,7 +33,11 @@ const changeSetOperationSchema = z.discriminatedUnion('type', [
 ])
 
 export const webMcpSchemas = {
-  get_project_state: z.object({ detail: z.enum(['summary', 'site', 'structure', 'landscape', 'full']).default('summary') }),
+  get_project_state: z.object({
+    detail: z.enum(['summary', 'site', 'structure', 'landscape', 'knowledge', 'full']).default('summary').describe('Slice to return. knowledge accepts a section; objectRef overrides detail.'),
+    section: z.enum(['sources', 'measurements', 'terrain', 'geotechnical', 'planting', 'designRules', 'caveats']).optional().describe('Knowledge-bank section when detail is knowledge.'),
+    objectRef: ref.optional(),
+  }),
   list_garden_fixtures: z.object({}),
   propose_site_update: z.object({ boundary: polygon.optional(), northDegrees: z.number().optional() }),
   propose_terrain_update: z.object({ elevationPoints: z.array(point.extend({ elevation: z.number() })).min(1) }),

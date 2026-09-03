@@ -7,12 +7,12 @@
       "name": "get_project_state",
       "title": "Inspect ProjectV2",
       "readOnly": true,
-      "description": "Read the committed V2 site, terrain, buildings, shared slabs, wall graph, spaces, openings, landscape, climate, evidence-linked planting recommendations, soil analysis, metrics and variants.",
+      "description": "Read the committed V2 project in agent-sized slices: summary, site geometry, structure, landscape and climate, knowledge-bank sections (sources, measurements, terrain, geotechnical, planting with soil analysis, design rules, caveats), or one object by its stable ref.",
       "prompt": {
         "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
-        "task": "Read the committed V2 site, terrain, buildings, shared slabs, wall graph, spaces, openings, landscape, climate, evidence-linked planting recommendations, soil analysis, metrics and variants.",
-        "input": "`detail` (enum): `summary`, `site`, `structure`, `landscape`, or `full`. `landscape` returns placed landscape, climate and the planting guide, including documented soil findings, unknowns, required tests, preparation principles, vegetables and fruit trees.",
-        "tools": "Use before proposing edits or requesting views. This is read-only. Treat conditional crop recommendations and unknown soil properties as constraints, not verified suitability.",
+        "task": "Read the committed V2 project in agent-sized slices: summary, site geometry, structure, landscape and climate, knowledge-bank sections (sources, measurements, terrain, geotechnical, planting with soil analysis, design rules, caveats), or one object by its stable ref.",
+        "input": "`detail` (enum): `summary`, `site`, `structure`, `landscape`, `knowledge`, or `full`. With `knowledge`, pass `section` for one section or omit it for an overview. Pass `objectRef` to read a single building, storey, slab, wall, opening, space, roof, zone, plant, fixture, parcel or entrance instead.",
+        "tools": "Use before proposing edits or requesting views. This is read-only. Prefer objectRef or a knowledge section over full; full is large. Treat conditional crop recommendations and unknown soil properties as constraints, not verified suitability.",
         "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output.",
         "exampleOutput": "{\"detail\":\"landscape\"}"
       },
@@ -22,14 +22,34 @@
         "properties": {
           "detail": {
             "default": "summary",
+            "description": "Slice to return. knowledge accepts a section; objectRef overrides detail.",
             "type": "string",
             "enum": [
               "summary",
               "site",
               "structure",
               "landscape",
+              "knowledge",
               "full"
             ]
+          },
+          "section": {
+            "description": "Knowledge-bank section when detail is knowledge.",
+            "type": "string",
+            "enum": [
+              "sources",
+              "measurements",
+              "terrain",
+              "geotechnical",
+              "planting",
+              "designRules",
+              "caveats"
+            ]
+          },
+          "objectRef": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Stable semantic reference such as building/main, storey/ground or wall/east."
           }
         },
         "required": [

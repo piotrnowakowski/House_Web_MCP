@@ -48,14 +48,32 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(webMcpManifest.tools.find((item) => item.name === 'propose_building_update')).toMatchObject({ readOnly: false })
   })
 
-  it('reads nested site and structure state', async () => {
-    const site = payload(await tool('get_project_state').execute({ detail: 'site' }))
+  it('reads nested site and structure state in agent-sized slices', async () => {
+    const siteResult = await tool('get_project_state').execute({ detail: 'site' }); const site = payload(siteResult)
     expect(site.data.parcels.map((parcel: { cadastralNumber: string }) => parcel.cadastralNumber)).toEqual(['54/3', '55/3', '58/3', '54/4', '55/4', '58/4'])
+    expect(site.data.knowledgeBase).toBeUndefined()
+    expect(siteResult.content[0].text.length).toBeLessThan(6000)
     const structure = payload(await tool('get_project_state').execute({ detail: 'structure' }))
     expect(structure.data.buildings[0]).toMatchObject({ storeys: expect.any(Array), slabs: expect.any(Array), walls: expect.any(Array), spaces: expect.any(Array) })
-    const landscape = payload(await tool('get_project_state').execute({ detail: 'landscape' }))
-    expect(landscape.data.plantingGuidance.soilAnalysis.findings).toHaveLength(5)
-    expect(landscape.data.plantingGuidance.recommendations.map((plant: { commonName: string }) => plant.commonName)).toEqual(expect.arrayContaining(['Tomato', 'Potato', 'Cucumber', 'Apple tree', 'Sour cherry']))
+    const landscapeResult = await tool('get_project_state').execute({ detail: 'landscape' }); const landscape = payload(landscapeResult)
+    expect(landscape.data.landscape.zones.length).toBeGreaterThan(0)
+    expect(landscape.data.plantingGuidance).toBeUndefined()
+    expect(landscapeResult.content[0].text.length).toBeLessThan(8000)
+  })
+
+  it('serves the knowledge bank by section and single objects by ref', async () => {
+    const planting = payload(await tool('get_project_state').execute({ detail: 'knowledge', section: 'planting' }))
+    expect(planting.data.soilAnalysis.findings).toHaveLength(5)
+    expect(planting.data.recommendations.map((plant: { commonName: string }) => plant.commonName)).toEqual(expect.arrayContaining(['Tomato', 'Potato', 'Cucumber', 'Apple tree', 'Sour cherry']))
+    const sources = await tool('get_project_state').execute({ detail: 'knowledge', section: 'sources' })
+    expect(payload(sources).data).toHaveLength(9)
+    expect(sources.content[0].text.length).toBeLessThan(4000)
+    const wallResult = await tool('get_project_state').execute({ objectRef: 'wall/east' }); const wall = payload(wallResult)
+    expect(wall.data).toMatchObject({ kind: 'wall', buildingRef: 'house/main', storeyRef: 'storey/ground', object: { ref: 'wall/east', openings: expect.any(Array) } })
+    expect(wallResult.content[0].text.length).toBeLessThan(1500)
+    const zone = payload(await tool('get_project_state').execute({ objectRef: 'zone/lawn' }))
+    expect(zone.data).toMatchObject({ kind: 'zone', object: { ref: 'zone/lawn' } })
+    expect(payload(await tool('get_project_state').execute({ objectRef: 'nothing/here' })).status).toBe('error')
   })
 
   it('lists ready fixtures and proposes a complete kitchen garden without committing it', async () => {
@@ -249,9 +267,10 @@ describe('sunlight WebMCP surface', () => {
   })
 
   it('returns a downsampled grid only on request and analyses a ghost variant when given its ref', async () => {
-    const gridded = payload(await tool('run_sunlight_analysis').execute({ targetRef: 'zone/lawn', month: 6, includeGrid: true }))
-    expect(gridded.analysis.grid.width).toBeLessThanOrEqual(24)
-    expect(gridded.analysis.grid.height).toBeLessThanOrEqual(24)
+    const griddedResult = await tool('run_sunlight_analysis').execute({ targetRef: 'zone/lawn', month: 6, includeGrid: true }); const gridded = payload(griddedResult)
+    expect(gridded.analysis.grid.width).toBeLessThanOrEqual(12)
+    expect(gridded.analysis.grid.height).toBeLessThanOrEqual(12)
+    expect(griddedResult.content[0].text.length).toBeLessThan(1500)
     expect(gridded.analysis.grid.hours).toHaveLength(gridded.analysis.grid.width * gridded.analysis.grid.height)
     const proposal = payload(await tool('propose_storey_update').execute({
       action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',

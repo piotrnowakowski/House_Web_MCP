@@ -27,7 +27,7 @@ export function SunPath() {
     <Line points={arc.points} color="#f7d568" lineWidth={1.4} transparent opacity={0.75} depthTest={false} renderOrder={26} />
     {arc.ticks.map((tick) => <mesh key={tick.hour} position={tick.position} renderOrder={27}>
       <sphereGeometry args={[tick.hour % 2 === 0 ? 0.55 : 0.32, 10, 8]} /><meshBasicMaterial color="#f7d568" transparent opacity={0.85} depthTest={false} />
-      {tick.hour % 2 === 0 && <Html center distanceFactor={90} style={{ pointerEvents: 'none' }}><span className="sun-tick-label">{String(tick.hour).padStart(2, '0')}:00</span></Html>}
+      {tick.hour % 2 === 0 && <Html center style={{ pointerEvents: 'none' }}><span className="sun-tick-label">{String(tick.hour).padStart(2, '0')}:00</span></Html>}
     </mesh>)}
     {arc.aboveHorizon && <mesh position={arc.current} renderOrder={28}><sphereGeometry args={[1.4, 16, 12]} /><meshBasicMaterial color="#ffe08a" depthTest={false} /></mesh>}
   </group>

@@ -4,6 +4,7 @@ import { applyCommands, calculateMetrics, validateProject } from '../domain/comm
 import { gardenFixtureCatalog, gardenFixtureSetCommands, nextGardenBedPosition } from '../domain/gardenFixtures'
 import { buildingPlacement } from '../domain/roofWings'
 import { measureHeight } from '../domain/heightMeasurements'
+import { findProjectObject, knowledgeSlice } from '../domain/refs'
 import { createPlantingAreaPlan } from '../domain/plantingAreas'
 import { analyzeSeason } from '../domain/seasonal'
 import { solarPosition, sunriseSunset } from '../domain/solar'
@@ -70,11 +71,18 @@ const define = <S extends z.ZodType>(definition: { name: string; title: string; 
 })
 
 export const webMcpTools: WebMcpTool[] = [
-  define({ ...webMcpToolPrompts.get_project_state, input: webMcpSchemas.get_project_state, readOnly: true, handler: ({ detail }) => {
-    const state = useStudioStore.getState(); const metrics = calculateMetrics(state.project)
-    const data = detail === 'summary' ? { schemaVersion: 2, name: state.project.name, revision: state.project.revision, metrics, buildingRefs: state.project.buildings.map((building) => building.ref), variantRefs: state.variants.map((variant) => variant.ref) }
-      : detail === 'site' ? state.project.site : detail === 'structure' ? { buildings: state.project.buildings } : detail === 'landscape' ? { landscape: state.project.landscape, climateProfile: state.project.climateProfile, plantingGuidance: state.project.site.knowledgeBase.planting } : state.project
-    return { status: 'ok', projectRevision: state.project.revision, summary: `Returned ${detail} ProjectV2 state.`, metrics, data }
+  define({ ...webMcpToolPrompts.get_project_state, input: webMcpSchemas.get_project_state, readOnly: true, handler: ({ detail, section, objectRef }) => {
+    const state = useStudioStore.getState(); const project = state.project; const metrics = calculateMetrics(project)
+    if (objectRef) {
+      const found = findProjectObject(project, objectRef)
+      if (!found) throw new Error(`Object not found: ${objectRef}. Use a building, storey, slab, wall, opening, space, roof, zone, plant, fixture, parcel or entrance ref.`)
+      return { status: 'ok', projectRevision: project.revision, summary: `Returned ${found.kind} ${objectRef}.`, metrics, data: found }
+    }
+    const { knowledgeBase: _knowledgeBase, ...siteWithoutKnowledge } = project.site
+    const data = detail === 'summary' ? { schemaVersion: 2, name: project.name, revision: project.revision, metrics, buildingRefs: project.buildings.map((building) => building.ref), variantRefs: state.variants.map((variant) => variant.ref) }
+      : detail === 'site' ? siteWithoutKnowledge : detail === 'structure' ? { buildings: project.buildings } : detail === 'landscape' ? { landscape: project.landscape, climateProfile: project.climateProfile }
+      : detail === 'knowledge' ? knowledgeSlice(project, section) : project
+    return { status: 'ok', projectRevision: project.revision, summary: `Returned ${detail}${section ? ` ${section}` : ''} ProjectV2 state.`, metrics, data }
   } }),
   define({ ...webMcpToolPrompts.list_garden_fixtures, input: webMcpSchemas.list_garden_fixtures, readOnly: true, handler: () => ({ status: 'ok', projectRevision: useStudioStore.getState().project.revision, summary: `Returned ${gardenFixtureCatalog.length} ready garden fixtures.`, data: gardenFixtureCatalog }) }),
   define({ ...webMcpToolPrompts.propose_site_update, input: webMcpSchemas.propose_site_update, handler: (input) => createVariant('Site update', { type: 'site.update', ...input }) }),
@@ -148,7 +156,7 @@ export const webMcpTools: WebMcpTool[] = [
     const state = useStudioStore.getState(); const project = projectForVariant(state.project, state.variants, variantRef)
     const target = resolveSunTarget(project, targetRef, point)
     const analysis = analyzeSunlight(project, { target, month, day, stepMinutes, hours, includeGrid })
-    if (analysis.grid) analysis.grid = downsampleSunGrid(analysis.grid, 24)
+    if (analysis.grid) analysis.grid = downsampleSunGrid(analysis.grid, 12)
     const label = target.kind === 'point' ? `Point ${target.x}, ${target.z}` : target.kind === 'site' ? 'Site' : target.ref
     return { status: 'ok', projectRevision: state.project.revision, variantRef, summary: `${label}: ${analysis.sunHours.mean} h direct sun on ${formatSunMoment(month, analysis.day, 12).slice(0, -6)} (${analysis.expectedSunHours} h expected after typical cloud).`, analysis }
   } }),
