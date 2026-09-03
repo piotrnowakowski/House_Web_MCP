@@ -487,7 +487,11 @@ test('house remains visible when zoomed out across the long plot', async ({ page
 test('editor remains usable when optional garden models cannot be loaded', async ({ page }) => {
   const pageErrors: string[] = []
   page.on('pageerror', (error) => pageErrors.push(error.message))
-  await page.route('**/models/garden/*.glb', (route) => route.abort('failed'))
+  let blockedModelRequests = 0
+  await page.route('**/models/garden/*.glb', (route) => {
+    blockedModelRequests += 1
+    return route.abort('failed')
+  })
   await page.goto(appUrl, { waitUntil: 'networkidle' })
   const startScreen = page.getByRole('dialog', { name: 'Where do you want to plan today?' })
   await startScreen.getByRole('button', { name: /Zielonki house study/ }).click()
@@ -496,7 +500,7 @@ test('editor remains usable when optional garden models cannot be loaded', async
   await expect(page.getByText('Spatial Editor', { exact: true })).toBeVisible()
   await page.getByRole('button', { name: 'Open garden fixtures' }).click()
   await expect(page.getByRole('region', { name: 'Garden fixture library' })).toBeVisible()
-  expect(pageErrors.length).toBeGreaterThan(0)
+  await expect.poll(() => blockedModelRequests, { timeout: 20_000 }).toBeGreaterThan(0)
   expect(pageErrors.every((message) => /^Could not load \/.*\/models\/garden\/.*\.glb: Failed to fetch$/.test(message))).toBe(true)
 })
 
