@@ -201,7 +201,7 @@ export const webMcpTools: WebMcpTool[] = [
     if (focusRef !== undefined) {
       state.setSelectedRef(focusRef)
       const kind = focusRef ? findProjectObject(state.project, focusRef)?.kind : undefined
-      if (kind === 'building') state.refocusCamera(); else if (kind === 'fixture') state.focusGardenFixtures()
+      if (kind === 'building') state.refocusCamera(); else if (kind === 'fixture' && focusRef) state.focusGardenFixtures(focusRef)
     }
     const next = useStudioStore.getState()
     return { status: 'ok', projectRevision: next.project.revision, summary: `Viewer: ${next.viewMode}${next.explodeStoreys ? ', exploded' : ''}${next.selectedRef ? `, selected ${next.selectedRef}` : ''}.`, viewer: { viewMode: next.viewMode, explode: next.explodeStoreys, viewerMode: next.viewerMode, activePlanStoreyRef: next.activePlanStoreyRef, selectedRef: next.selectedRef } }

@@ -52,7 +52,7 @@ interface StudioState {
   setToast: (message: string | null) => void
   setHelpOpen: (value: boolean) => void
   refocusCamera: () => void
-  focusGardenFixtures: () => void
+  focusGardenFixtures: (fixtureRef?: string) => void
   useModernBarnPreset: () => ProjectV2
   replaceProject: (project: ProjectV2) => void
   restoreWorkspace: (workspace: PersistedWorkspace) => void
@@ -121,11 +121,12 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     activePlanStoreyRef: null,
     toast: `Camera refocused on ${state.project.buildings[0]?.name ?? 'the building'}.`,
   })),
-  focusGardenFixtures: () => set((state) => {
-    if (!state.project.landscape.fixtures.length) return { toast: 'Place a garden fixture first.' }
-    const targetX = state.project.landscape.fixtures.reduce((sum, fixture) => sum + fixture.position.x, 0) / state.project.landscape.fixtures.length
-    const targetZ = state.project.landscape.fixtures.reduce((sum, fixture) => sum + fixture.position.z, 0) / state.project.landscape.fixtures.length
-    return { gardenFocusRequest: { sequence: state.gardenFocusRequest.sequence + 1, targetX, targetZ }, viewerMode: 'edit', activePlanStoreyRef: null, toast: 'Camera focused on the placed garden fixtures.' }
+  focusGardenFixtures: (fixtureRef) => set((state) => {
+    const fixtures = fixtureRef ? state.project.landscape.fixtures.filter((fixture) => fixture.ref === fixtureRef) : state.project.landscape.fixtures
+    if (!fixtures.length) return { toast: fixtureRef ? `Fixture not found: ${fixtureRef}.` : 'Place a garden fixture first.' }
+    const targetX = fixtures.reduce((sum, fixture) => sum + fixture.position.x, 0) / fixtures.length
+    const targetZ = fixtures.reduce((sum, fixture) => sum + fixture.position.z, 0) / fixtures.length
+    return { gardenFocusRequest: { sequence: state.gardenFocusRequest.sequence + 1, targetX, targetZ }, viewerMode: 'edit', activePlanStoreyRef: null, toast: fixtureRef ? `Camera focused on ${fixtures[0].name}.` : 'Camera focused on the placed garden fixtures.' }
   }),
   useModernBarnPreset: () => {
     const state = get()

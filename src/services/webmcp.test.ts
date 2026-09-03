@@ -396,6 +396,17 @@ describe('variant explanation and viewer tools', () => {
     const cleared = payload(await tool('set_viewer_state').execute({ focusRef: null, explode: false }))
     expect(cleared.viewer).toMatchObject({ selectedRef: null, explode: false })
   })
+
+  it('focuses the camera on the requested fixture instead of the fixture-group centroid', async () => {
+    const withFirstFixture = applyCommand(sampleProject, { type: 'garden-fixture.update', action: 'add', fixtureRef: 'fixture/first', catalogId: 'raised-bed-2x1', position: { x: 4, z: 6 } })
+    const project = applyCommand(withFirstFixture, { type: 'garden-fixture.update', action: 'add', fixtureRef: 'fixture/target', catalogId: 'tomato-row', position: { x: 20, z: 30 } })
+    useStudioStore.setState({ project })
+
+    const parsed = payload(await tool('set_viewer_state').execute({ focusRef: 'fixture/target' }))
+
+    expect(parsed).toMatchObject({ status: 'ok', viewer: { selectedRef: 'fixture/target' } })
+    expect(useStudioStore.getState().gardenFocusRequest).toMatchObject({ targetX: 20, targetZ: 30 })
+  })
 })
 
 describe('sunlight WebMCP surface', () => {
