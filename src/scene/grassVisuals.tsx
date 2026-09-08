@@ -4,6 +4,7 @@ import { Color, DoubleSide, Float32BufferAttribute, InstancedBufferAttribute, In
 import { elevationAt, pointInPolygon } from '../domain/geometry'
 import type { BuildingModel, Polygon2, ProjectV2, Vec2 } from '../domain/types'
 import { useStudioStore } from '../state/store'
+import { landUseAreas } from '../domain/zoning'
 
 const NEAR_FIELD_LIMIT_Z = 38
 const CANDIDATE_BLADES = 360_000
@@ -32,7 +33,7 @@ const segmentDistance = (point: Vec2, start: Vec2, end: Vec2) => {
 
 export const grassBladePoints = (project: ProjectV2): GrassBlade[] => {
   const areas = [
-    ...project.site.parcels.filter((parcel) => parcel.landRole === 'agricultural').map((parcel) => parcel.boundary),
+    ...landUseAreas(project).filter((zone) => zone.landRole === 'agricultural').map((zone) => zone.boundary),
     ...project.landscape.zones.filter((zone) => zone.kind === 'lawn').map((zone) => zone.footprint),
   ]
   const exclusions = [

@@ -26,6 +26,8 @@ import { RealisticGrass } from './grassVisuals'
 import { interiorFloorTexture, raisedBedSoilTexture, raisedBedTexture, resolveWallTexture, resolveZoneTexture, terrainTexture, tintForTexturedFinish, zoneTintFor } from './materialCatalog'
 import { TexturedMaterial, TexturePreloader, waitForTextures } from './materials'
 import { useStudioStore } from '../state/store'
+import { landUseAreas } from '../domain/zoning'
+import { zielonkiZoningBoundary } from '../../knowledge-bank/zielonki/zoning'
 
 const REAL = { slab: '#d6d0bf', wall: '#e8e1d2', roof: '#6f4735', soil: '#918867' }
 const BARN = { slab: '#777269', wall: '#282d2c', roof: '#343a3b' }
@@ -695,7 +697,7 @@ const buildingCornersWorld = (building: BuildingModel, position = building.posit
 
 const placementValid = (project: ProjectV2, building: BuildingModel, position: { x: number; z: number }) => {
   const corners = buildingCornersWorld(building, position)
-  const constructionParcels = project.site.parcels.filter((parcel) => parcel.landRole === 'construction')
+  const constructionParcels = landUseAreas(project).filter((zone) => zone.landRole === 'construction')
   if (!corners.every((corner) => constructionParcels.some((parcel) => pointInPolygon(corner, parcel.boundary)))) return false
   return project.buildings.filter((other) => other.ref !== building.ref).every((other) => {
     const b = buildingCornersWorld(other); const ax = corners.map((p) => p.x); const az = corners.map((p) => p.z); const bx = b.map((p) => p.x); const bz = b.map((p) => p.z)
@@ -742,19 +744,19 @@ function Building({ project, building, ghost }: { project: ProjectV2; building: 
   </>
 }
 
-function ParcelSurface({ boundary, landRole }: { boundary: Polygon2; landRole: 'construction' | 'agricultural' }) {
+function ParcelSurface({ boundary, landRole, planning = false }: { boundary: Polygon2; landRole: 'construction' | 'agricultural'; planning?: boolean }) {
   const geometry = useMemo(() => localPolygonGeometry(boundary), [boundary])
   const edges = useMemo(() => new EdgesGeometry(geometry, 1), [geometry])
   useEffect(() => () => { edges.dispose(); geometry.dispose() }, [edges, geometry])
   const construction = landRole === 'construction'
   const fill = construction
-    ? '#829665'
+    ? planning ? '#e6a348' : '#829665'
     : '#627b50'
   return <group>
-    <mesh geometry={geometry} position={[0, TERRAIN_SURFACE_Y + 0.006, 0]} renderOrder={1} receiveShadow>
-      <meshStandardMaterial color={fill} transparent opacity={construction ? 0.34 : 0.82} roughness={1} side={DoubleSide} depthWrite={!construction} polygonOffset polygonOffsetFactor={-2} />
+    <mesh geometry={geometry} position={[0, TERRAIN_SURFACE_Y + (planning ? 0.055 : 0.006), 0]} renderOrder={1} receiveShadow>
+      <meshStandardMaterial color={fill} transparent opacity={construction ? planning ? 0.58 : 0.34 : 0.82} roughness={1} side={DoubleSide} depthWrite={!construction} polygonOffset polygonOffsetFactor={-2} />
     </mesh>
-    <lineSegments geometry={edges} position={[0, TERRAIN_SURFACE_Y + 0.012, 0]} renderOrder={2}>
+    <lineSegments geometry={edges} position={[0, TERRAIN_SURFACE_Y + (planning ? 0.065 : 0.012), 0]} renderOrder={2}>
       <lineBasicMaterial color={construction ? '#526b45' : '#4d6841'} transparent opacity={construction ? 0.95 : 0.88} depthWrite={false} />
     </lineSegments>
   </group>
@@ -790,7 +792,13 @@ function TerrainAndSite({ project }: { project: ProjectV2 }) {
   return <group userData={{ semanticRef: 'site' }}>
     {neighbouringGround && <mesh geometry={neighbouringGround} position={[0, TERRAIN_SURFACE_Y - 0.01, 0]} receiveShadow userData={{ contextOnly: true }}><TexturedMaterial asset={terrainTexture.asset} color="#727b60" fallbackColor="#727b60" roughness={1} side={DoubleSide} normalScale={0.4} /></mesh>}
     <mesh geometry={boundaryGeometry} position={[0, TERRAIN_SURFACE_Y, 0]} receiveShadow userData={{ semanticRef: 'site/terrain' }}><TexturedMaterial asset={terrainTexture.asset} color={terrainTexture.tint} fallbackColor={REAL.soil} roughness={1} side={DoubleSide} normalScale={0.4} /></mesh>
-    {project.site.parcels.map((parcel) => <ParcelSurface key={parcel.ref} boundary={parcel.boundary} landRole={parcel.landRole} />)}
+    {landUseAreas(project).map((zone) => <ParcelSurface key={zone.ref} boundary={zone.boundary} landRole={zone.landRole} planning={Boolean(zone.code)} />)}
+    {project.site.parcels.some((parcel) => parcel.landUseZones?.some((zone) => zone.sourceRef === 'source/mpzp-boundary-v2')) && <group userData={{ semanticRef: 'site/zoning' }}>
+      <DreiLine points={zielonkiZoningBoundary.map((point) => [point.x, 0.12, point.z] as [number, number, number])} color="#ffc15a" lineWidth={3} dashed dashSize={0.65} gapSize={0.3} depthTest={false} renderOrder={12} />
+      <Html position={[-4, 0.2, -9]} center zIndexRange={[5, 0]}><div className="zoning-map-label residential">06.MNU.8 · Residential / services</div></Html>
+      <Html position={[5, 0.2, 11]} center zIndexRange={[5, 0]}><div className="zoning-map-label agricultural">06.R.21 · Agricultural</div></Html>
+      <Html position={[10, 0.2, -1.7]} center zIndexRange={[5, 0]}><div className="zoning-map-label boundary">MPZP boundary</div></Html>
+    </group>}
     {project.site.entrances.map((entrance) => <RoadEntranceMarker key={entrance.ref} entrance={entrance} />)}
     <RigidBody type="fixed" colliders={false}><CuboidCollider args={[Math.max(1, landSize.x / 2), 0.08, Math.max(1, landSize.z / 2)]} position={[landCenter.x, TERRAIN_SURFACE_Y - 0.08, landCenter.z]} /></RigidBody>
   </group>

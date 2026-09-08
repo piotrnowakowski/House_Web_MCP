@@ -38,8 +38,9 @@ export const PolygonSchema = z.array(Vec2Schema).min(3)
   .refine((value) => !polygonSelfIntersects(value), { message: 'Polygon must not self-intersect.' })
 
 const ParcelSchema = z.object({
-  ref: z.string().min(1), cadastralNumber: z.string().min(1), landRole: z.enum(['construction', 'agricultural']),
+  ref: z.string().min(1), cadastralNumber: z.string().min(1), landRole: z.enum(['construction', 'agricultural', 'mixed']),
   officialAreaM2: z.number().positive(), boundary: PolygonSchema, geometryConfidence: z.enum(['surveyed', 'derived', 'context-only']),
+  landUseZones: z.array(z.object({ ref: z.string().min(1), code: z.string().min(1), landRole: z.enum(['construction', 'agricultural']), boundary: PolygonSchema, sourceRef: z.string().min(1), geometryConfidence: z.enum(['surveyed', 'derived', 'context-only']) })).min(1).optional(),
 })
 const SiteEntranceSchema = z.object({
   ref: z.string().min(1), name: z.string().min(1), start: Vec2Schema, end: Vec2Schema,

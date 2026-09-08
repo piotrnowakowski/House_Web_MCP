@@ -4,8 +4,8 @@ import { buildingBaseElevation, buildingFootprintsWorld, buildingGroundOffset, e
 import { sampleProject } from './sampleProject'
 
 describe('Zielonki demo dataset', () => {
-  it('keeps the official post-division areas and surveyed construction geometry aligned', () => {
-    const construction = sampleProject.site.parcels.filter((parcel) => parcel.landRole === 'construction')
+  it('keeps the official post-division areas and surveyed mixed-use parcel geometry aligned', () => {
+    const construction = sampleProject.site.parcels.filter((parcel) => parcel.landRole === 'mixed')
     const agricultural = sampleProject.site.parcels.filter((parcel) => parcel.landRole === 'agricultural')
 
     expect(construction.map((parcel) => parcel.cadastralNumber)).toEqual(['54/3', '55/3', '58/3'])
@@ -30,9 +30,9 @@ describe('Zielonki demo dataset', () => {
     expect(sampleProject.site.entrances.every((entrance) => entrance.connectsTo === 'public-road' && entrance.geometryConfidence === 'user-marked')).toBe(true)
   })
 
-  it('places the house footprint on the construction land with its structural base at terrain level', () => {
+  it('places the existing house within the surveyed /3 cadastral footprint with its structural base at terrain level', () => {
     const building = sampleProject.buildings[0]
-    const construction = sampleProject.site.parcels.filter((parcel) => parcel.landRole === 'construction')
+    const construction = sampleProject.site.parcels.filter((parcel) => parcel.landRole === 'mixed')
 
     expect(buildingFootprintsWorld(building).flat().every((point) => construction.some((parcel) => pointInPolygon(point, parcel.boundary)))).toBe(true)
     expect(buildingBaseElevation(building)).toBeCloseTo(0.15)

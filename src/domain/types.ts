@@ -21,14 +21,15 @@ export interface ClimateProfile {
   irrigationMm: number; months: ClimateMonth[]
 }
 
-export type ParcelLandRole = 'construction' | 'agricultural'
+export type ParcelLandRole = 'construction' | 'agricultural' | 'mixed'
 export type GeometryConfidence = 'surveyed' | 'derived' | 'context-only'
-export interface PlotParcelModel { ref: string; cadastralNumber: string; landRole: ParcelLandRole; officialAreaM2: number; boundary: Polygon2; geometryConfidence: GeometryConfidence }
+export interface LandUseZone { ref: string; code: string; landRole: 'construction' | 'agricultural'; boundary: Polygon2; sourceRef: string; geometryConfidence: GeometryConfidence }
+export interface PlotParcelModel { ref: string; cadastralNumber: string; landRole: ParcelLandRole; officialAreaM2: number; boundary: Polygon2; geometryConfidence: GeometryConfidence; landUseZones?: LandUseZone[] }
 export interface SiteEntranceModel { ref: string; name: string; start: Vec2; end: Vec2; connectsTo: 'public-road'; geometryConfidence: 'user-marked' | 'surveyed' }
 export interface TerrainModel { boundary: Polygon2; elevationPoints: Array<Vec2 & { elevation: number }> }
 /** Source-data shape used by the bundled Zielonki evidence module before it is nested into SiteModel. */
 export interface PlotModel { boundary: Polygon2; northDegrees: number; elevationPoints: TerrainModel['elevationPoints']; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[] }
-export interface KnowledgeSource { ref: string; title: string; date: string; kind: 'survey-map' | 'subdivision-map' | 'working-measurement' | 'geotechnical-report' | 'specialist-email' | 'climate-dataset' | 'horticultural-guidance' | 'user-direction'; authority: 'official' | 'professional' | 'working' | 'user-provided'; summary: string; url?: string }
+export interface KnowledgeSource { ref: string; title: string; date: string; kind: 'planning-document' | 'survey-map' | 'subdivision-map' | 'working-measurement' | 'geotechnical-report' | 'specialist-email' | 'climate-dataset' | 'horticultural-guidance' | 'user-direction'; authority: 'official' | 'professional' | 'working' | 'user-provided'; summary: string; url?: string }
 export interface SiteMeasurement { ref: string; label: string; value: number; unit: 'm' | 'm2' | 'percent'; sourceRef: string; confidence: 'official' | 'professional' | 'derived' | 'conceptual' }
 export interface SoilInterval { fromM: number; toM: number; material: string; condition: string }
 export interface BoreholeKnowledge { ref: string; label: string; position: Vec2; positionConfidence: 'map-derived' | 'surveyed'; depthM: number; groundwaterDepthM: number; intervals: SoilInterval[] }

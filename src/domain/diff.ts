@@ -15,7 +15,7 @@ const entries = (project: ProjectV2): Array<[ChangeKind, Entry[]]> => {
   const buildings = project.buildings
   return [
     ['site', [{ ref: 'site', fields: { boundary: project.site.boundary, northDegrees: project.site.northDegrees, terrain: project.site.terrain } }]],
-    ['parcel', project.site.parcels.map((parcel) => ({ ref: parcel.ref, fields: pick(parcel as unknown as Record<string, unknown>, ['cadastralNumber', 'landRole', 'officialAreaM2', 'boundary']) }))],
+    ['parcel', project.site.parcels.map((parcel) => ({ ref: parcel.ref, fields: pick(parcel as unknown as Record<string, unknown>, ['cadastralNumber', 'landRole', 'officialAreaM2', 'boundary', 'landUseZones']) }))],
     ['entrance', project.site.entrances.map((entrance) => ({ ref: entrance.ref, fields: pick(entrance as unknown as Record<string, unknown>, ['name', 'start', 'end']) }))],
     ['building', buildings.map((building) => ({ ref: building.ref, fields: pick(building as unknown as Record<string, unknown>, ['name', 'kind', 'architecturalStyle', 'garageMode', 'position', 'rotationDegrees']) }))],
     ['storey', buildings.flatMap((building) => building.storeys.map((storey) => ({ ref: storey.ref, fields: pick(storey as unknown as Record<string, unknown>, ['name', 'level', 'elevationM', 'clearHeightM', 'baseSlabRef', 'topBoundaryRef', 'wallRefs', 'spaceRefs', 'platformRefs', 'ceilingFinishRefs']) })))],

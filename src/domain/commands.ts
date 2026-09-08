@@ -6,6 +6,7 @@ import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOn
 import { decomposeOrthogonalLFootprint, defaultRoofFinish, ridgeDirectionForFootprint, roofSegmentRidgeElevation, segmentContainsFootprint, supportingWallRefs } from './roofs'
 import { gableWallsForBuilding } from './roofWings'
 import { sunMismatchIssues } from './sunlight'
+import { buildingCrossesAgriculturalZone } from './zoning'
 import type { BuildingModel, LandscapeZone, OpeningModel, Polygon2, ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, RoofJunctionModel, RoofSegmentDefinition, RoofSegmentModel, SpaceBoundaryUse, StoreyModel, Vec2, WallModel } from './types'
 
 export { polygonArea } from './geometry'
@@ -508,9 +509,10 @@ const allRefs = (building: BuildingModel) => [building.ref, building.roof.ref, .
 
 export const validateProject = (project: ProjectV2): ProjectIssue[] => {
   const issues: ProjectIssue[] = []
-  const constructionParcels = project.site.parcels.filter((parcel) => parcel.landRole === 'construction')
+  const constructionParcels = project.site.parcels.filter((parcel) => parcel.landRole !== 'agricultural')
   if (polygonSelfIntersects(project.site.boundary)) issues.push({ severity: 'error', code: 'site.self-intersection', message: 'Site boundary self-intersects.', subjectRef: 'site' })
   project.buildings.forEach((building) => {
+    if (buildingCrossesAgriculturalZone(project, building)) issues.push({ severity: 'warning', code: 'building.zoning', message: `${building.name} overlaps agricultural zone 06.R.21. New house mass must stay within 06.MNU.8; review its placement.`, subjectRef: building.ref })
     const refs = [...allRefs(building), ...(building.furniture ?? []).map((item) => item.ref), ...(building.stairs ?? []).map((item) => item.ref)]; const duplicates = refs.filter((ref, index) => refs.indexOf(ref) !== index)
     if (duplicates.length) issues.push({ severity: 'error', code: 'ref.duplicate', message: `Duplicate reference: ${duplicates[0]}`, subjectRef: duplicates[0] })
     for (const stairs of building.stairs ?? []) {

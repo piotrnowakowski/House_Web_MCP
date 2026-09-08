@@ -1,5 +1,6 @@
 import type { ClimateMonth, ClimateProfile, PlotModel, SiteKnowledgeBase } from '../../src/domain/types'
 import { estimateDayPartTemperatures } from '../../src/domain/climate'
+import { zielonkiZoningParts } from './zoning'
 
 const climateRows: Array<Omit<ClimateMonth, 'month' | 'temperatureByDayPartC'>> = [
   { meanMinC: -4.2, meanMaxC: 2.1, precipitationMm: 38, sunshineHours: 49, et0Mm: 8, frostDays: 20, windKph: 12 },
@@ -48,21 +49,24 @@ export const zielonkiPlot: PlotModel = {
   ],
   parcels: [
     {
-      ref: 'parcel/54-3', cadastralNumber: '54/3', landRole: 'construction', officialAreaM2: 282, geometryConfidence: 'surveyed',
+      ref: 'parcel/54-3', cadastralNumber: '54/3', landRole: 'mixed', officialAreaM2: 282, geometryConfidence: 'surveyed',
+      landUseZones: zielonkiZoningParts.filter((zone) => zone.parcel === '54/3').map(({ parcel, ...zone }) => zone),
       boundary: [
         { x: -18.403, z: 10.53 }, { x: -19.778, z: -15.1 }, { x: -10.621, z: -15.591 },
         { x: -9.678, z: 7.33 }, { x: -9.246, z: 15.882 }, { x: -18.404, z: 15.882 },
       ],
     },
     {
-      ref: 'parcel/55-3', cadastralNumber: '55/3', landRole: 'construction', officialAreaM2: 315, geometryConfidence: 'surveyed',
+      ref: 'parcel/55-3', cadastralNumber: '55/3', landRole: 'mixed', officialAreaM2: 315, geometryConfidence: 'surveyed',
+      landUseZones: zielonkiZoningParts.filter((zone) => zone.parcel === '55/3').map(({ parcel, ...zone }) => zone),
       boundary: [
         { x: -9.246, z: 15.882 }, { x: -9.678, z: 7.33 }, { x: -10.621, z: -15.591 },
         { x: -0.838, z: -16.116 }, { x: -0.397, z: -6.83 }, { x: 0.13, z: 3.156 }, { x: 0.8, z: 15.882 },
       ],
     },
     {
-      ref: 'parcel/58-3', cadastralNumber: '58/3', landRole: 'construction', officialAreaM2: 603, geometryConfidence: 'surveyed',
+      ref: 'parcel/58-3', cadastralNumber: '58/3', landRole: 'mixed', officialAreaM2: 603, geometryConfidence: 'surveyed',
+      landUseZones: zielonkiZoningParts.filter((zone) => zone.parcel === '58/3').map(({ parcel, ...zone }) => zone),
       boundary: [
         { x: 8.7, z: -16.628 }, { x: 8.77, z: -15.63 }, { x: 18.21, z: -15.861 },
         { x: 18.591, z: -6.318 }, { x: 19.477, z: 15.883 }, { x: 0.8, z: 15.882 },
@@ -95,7 +99,7 @@ export const zielonkiPlot: PlotModel = {
 }
 
 export const zielonkiKnowledgeBase: SiteKnowledgeBase = {
-  datasetVersion: 'zielonki-knowledge-bank-2026-09-03-outline-v4',
+  datasetVersion: 'zielonki-knowledge-bank-2026-09-08-zoning-v5',
   locality: 'Zielonki, Małopolskie, Poland',
   addressContext: 'Krakowskie Przedmieście, third line of development',
   cadastralDistrict: '120617_2.0018 Zielonki',
@@ -103,6 +107,9 @@ export const zielonkiKnowledgeBase: SiteKnowledgeBase = {
   heightSystem: 'PL-EVRF2007-NH',
   sourceCadOrigin: { easting: 7421523.183, northing: 5556062.474 },
   sources: [
+    { ref: 'source/mpzp-boundary-v2', title: 'MPZP boundary in v2 DWG, checked against current plan 06', date: '2026-09-08', kind: 'survey-map', authority: 'working', url: 'https://rejestrurbanistyczny.gison.pl/zielonki', summary: 'Dashed _MPZP entities 5882–589B, including the bend at 5887, separate 06.MNU.8 and 06.R.21 inside all three /3 parcels. Checked against the official georeferenced plan raster. Geometry and areas are derived, not setting-out coordinates.' },
+    { ref: 'source/mpzp-certificate', title: 'Municipal zoning certificate BU.6727.596.2026', date: '2026-06-30', kind: 'planning-document', authority: 'official', url: 'https://mail.google.com/mail/#all/19f1db89b8d7ffbe', summary: 'Confirms 54/3, 55/3 and 58/3 each contain residential/service 06.MNU.8 and agricultural 06.R.21; all /4 parcels are 06.R.21. Plan IX/55/2007 amended by XIV/26/2020.' },
+    { ref: 'source/mpzp-plan', title: 'Plan 06, IX/55/2007, with XIV/26/2020 amendment', date: '2026-09-08', kind: 'planning-document', authority: 'official', url: 'https://rastry.gison.pl/mpzp-public/zielonki/uchwaly/U_06_2007_55_IX.pdf', summary: 'Current municipal register checked 8 September 2026. Section 19 permits single-family housing in MNU; section 28 prohibits new buildings in R, subject to its provisions for existing development. The 2020 amendment changes text only, not the zoning map.' },
     {
       ref: 'source/project-map-v2', title: 'Zielonki_dz54_55_58-akt-v2 — map for design purposes', date: '2026-07-01',
       kind: 'survey-map', authority: 'official',
@@ -156,7 +163,7 @@ export const zielonkiKnowledgeBase: SiteKnowledgeBase = {
     {
       ref: 'source/user-land-role', title: 'Owner design brief', date: '2026-09-02',
       kind: 'user-direction', authority: 'user-provided',
-      summary: 'Treat all six suffix /3 and /4 parcels as one owned site, with /3 as the house construction zone and /4 as agricultural land.',
+      summary: 'Treat all six suffix /3 and /4 parcels as one owned site. The earlier whole-/3 construction assumption is superseded by the municipal certificate and MPZP boundary checked on 8 September 2026.',
     },
     {
       ref: 'source/user-road-entrances', title: 'Owner road-entrance annotation', date: '2026-09-03',
@@ -173,7 +180,7 @@ export const zielonkiKnowledgeBase: SiteKnowledgeBase = {
     { ref: 'measurement/58-4-area', label: 'Parcel 58/4 official area', value: 993, unit: 'm2', sourceRef: 'source/subdivision-map', confidence: 'official' },
     { ref: 'measurement/build-width-1', label: 'Combined /3 width — road-side section', value: 28.5, unit: 'm', sourceRef: 'source/working-measurements', confidence: 'derived' },
     { ref: 'measurement/build-width-2', label: 'Combined /3 width — middle section', value: 33.2, unit: 'm', sourceRef: 'source/working-measurements', confidence: 'derived' },
-    { ref: 'measurement/build-width-3', label: 'Combined /3 width — agricultural boundary', value: 37.9, unit: 'm', sourceRef: 'source/working-measurements', confidence: 'derived' },
+    { ref: 'measurement/build-width-3', label: 'Combined /3 width — cadastral boundary with /4 (not the zoning line)', value: 37.9, unit: 'm', sourceRef: 'source/working-measurements', confidence: 'derived' },
     { ref: 'measurement/build-depth-axis', label: 'Combined /3 centreline depth', value: 32.3, unit: 'm', sourceRef: 'source/working-measurements', confidence: 'derived' },
   ],
   terrain: {
@@ -384,8 +391,8 @@ export const zielonkiKnowledgeBase: SiteKnowledgeBase = {
     ],
   },
   designRules: [
-    { rule: 'Keep the house and permanent building mass within parcels 54/3, 55/3 and 58/3.', basis: 'Owner brief; planning status still requires professional verification.', sourceRef: 'source/user-land-role' },
-    { rule: 'Treat parcels 54/4, 55/4 and 58/4 as agricultural context, not as the house footprint.', basis: 'Owner brief.', sourceRef: 'source/user-land-role' },
+    { rule: 'Keep new house mass within the 06.MNU.8 portions of 54/3, 55/3 and 58/3. Each parcel also contains 06.R.21 agricultural land.', basis: 'Municipal certificate of 30 June 2026; current MPZP sections 19 and 28 checked 8 September 2026. Confirm detailed placement with the architect.', sourceRef: 'source/mpzp-certificate' },
+    { rule: 'Agricultural 06.R.21 includes all /4 parcels and the agricultural portions inside /3. It is not a new-house site.', basis: 'Plan 06 section 28 and municipal zoning certificate.', sourceRef: 'source/mpzp-certificate' },
     { rule: 'Keep the two owner-marked road entrance locations visible and unobstructed in site concepts.', basis: 'Approximate positions from the owner annotation; verify widths and setting-out coordinates before construction.', sourceRef: 'source/user-road-entrances' },
     { rule: 'Flag every foundation proposal for geotechnical and structural review before it can be treated as feasible.', basis: 'Weak-bearing organic soils, shallow groundwater and specialist micropile recommendation.', sourceRef: 'source/geoanaliz-email' },
     { rule: 'Do not place conceptual infiltration or retention features beside foundations without a groundwater and drainage review.', basis: 'Groundwater range and moisture-sensitive clay.', sourceRef: 'source/geotechnical-opinion' },

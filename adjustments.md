@@ -43,7 +43,7 @@ The user asked the agent to plant hornbeam continuously alongside the outer edge
 
 `propose_plant_update` can add, remove or move only one point-based plant object per ghost variant. It cannot describe a hedge line, perimeter planting, polygonal planting bed, spacing rule or repeated plant set. Creating a perimeter plant by plant would require many sequential variants and human approvals, cannot be reviewed as one design, and risks leaving a partially completed hedge.
 
-The editable site boundary also currently covers the `/3` construction parcels, while the `/4` agricultural parcels are context-only. A complete-plot planting tool must state which parcel set and boundary source it targets.
+The editable site boundary covers all six owned parcels. Each `/3` parcel contains both MNU residential/services and R agricultural land; the `/4` agricultural footprints remain context geometry. See `knowledge-bank/zielonki/ZONING.md` for the verified split. A complete-plot planting tool must state which parcel set and boundary source it targets.
 
 ### Implementation contract
 

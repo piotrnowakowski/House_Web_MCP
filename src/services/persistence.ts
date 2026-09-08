@@ -1,4 +1,5 @@
 import { parseProject } from '../domain/schema'
+import { calculateMetrics, validateProject } from '../domain/commands'
 import { isZielonkiProject } from '../domain/terrain'
 import type { PersistedWorkspace, Polygon2, ProjectV2, ProposalRecord } from '../domain/types'
 import { zielonkiKnowledgeBase, zielonkiPlot } from '../../knowledge-bank/zielonki/data'
@@ -46,11 +47,19 @@ const allEntries = async () => {
 }
 
 const refreshZielonkiKnowledge = (project: ProjectV2) => {
-  if (isZielonkiProject(project) && project.site.knowledgeBase.datasetVersion !== zielonkiKnowledgeBase.datasetVersion) {
-    project.site.boundary = structuredClone(zielonkiPlot.boundary)
-    project.site.terrain.boundary = structuredClone(zielonkiPlot.boundary)
-    project.site.parcels = structuredClone(zielonkiPlot.parcels)
-    project.site.entrances = structuredClone(zielonkiPlot.entrances)
+  const usesZielonkiLand = isZielonkiProject(project) || (project.site.knowledgeBase.cadastralDistrict === '120617_2.0018 Zielonki' && ['54/3', '55/3', '58/3'].every((number) => project.site.parcels.some((parcel) => parcel.cadastralNumber === number)))
+  if (usesZielonkiLand && project.site.knowledgeBase.datasetVersion !== zielonkiKnowledgeBase.datasetVersion) {
+    if (project.site.knowledgeBase.datasetVersion !== 'zielonki-knowledge-bank-2026-09-03-outline-v4') {
+      project.site.boundary = structuredClone(zielonkiPlot.boundary)
+      project.site.terrain.boundary = structuredClone(zielonkiPlot.boundary)
+      project.site.parcels = structuredClone(zielonkiPlot.parcels)
+      project.site.entrances = structuredClone(zielonkiPlot.entrances)
+    } else {
+      project.site.parcels = project.site.parcels.map((parcel) => {
+        const current = zielonkiPlot.parcels.find((item) => item.cadastralNumber === parcel.cadastralNumber)
+        return current ? { ...parcel, landRole: current.landRole, landUseZones: structuredClone(current.landUseZones) } : parcel
+      })
+    }
     project.site.knowledgeBase = structuredClone(zielonkiKnowledgeBase)
   }
   return project
@@ -61,10 +70,21 @@ const toWorkspace = (value: unknown): PersistedWorkspace => {
   const candidate = value as Partial<PersistedWorkspace>
   if (candidate.version === 1 && candidate.project) {
     const project = refreshZielonkiKnowledge(parseProject(candidate.project))
-    const proposals = Array.isArray(candidate.proposals) ? candidate.proposals.map((proposal) => ({ ...proposal, project: parseProject((proposal as ProposalRecord).project) })) as ProposalRecord[] : []
+    const proposals = Array.isArray(candidate.proposals) ? candidate.proposals.map((proposal) => {
+      const parsed = parseProject((proposal as ProposalRecord).project)
+      const previousVersion = parsed.site.knowledgeBase.datasetVersion
+      const refreshed = refreshZielonkiKnowledge(parsed)
+      return { ...proposal, project: refreshed, ...(previousVersion !== refreshed.site.knowledgeBase.datasetVersion ? { issues: validateProject(refreshed), metrics: calculateMetrics(refreshed) } : {}) }
+    }) as ProposalRecord[] : []
     return { version: 1, project, proposals, draftChangeSets: Array.isArray(candidate.draftChangeSets) ? candidate.draftChangeSets : [] }
   }
   return { version: 1, project: refreshZielonkiKnowledge(parseProject(value)), proposals: [], draftChangeSets: [] }
+}
+
+const knowledgeChanged = (value: unknown, workspace: PersistedWorkspace) => {
+  const stored = value as Partial<PersistedWorkspace> & Partial<ProjectV2>
+  return (stored.project ?? stored).site?.knowledgeBase?.datasetVersion !== workspace.project.site.knowledgeBase.datasetVersion ||
+    workspace.proposals.some((proposal, index) => stored.proposals?.[index]?.project.site.knowledgeBase.datasetVersion !== proposal.project.site.knowledgeBase.datasetVersion)
 }
 
 /** Moves the pre-multi-project autosave under its project ref; safe to call on every read. */
@@ -87,20 +107,25 @@ export const loadWorkspace = async (ref?: string): Promise<PersistedWorkspace | 
   if (!target) return null
   const value = await getRecord(workspaceKey(target))
   if (value === undefined) return null
-  return toWorkspace(value)
+  const workspace = toWorkspace(value)
+  if (knowledgeChanged(value, workspace)) await putRecords([[workspaceKey(target), workspace]])
+  return workspace
 }
 
 /** Every saved project, newest first, with just enough to draw a card. */
 export const listWorkspaces = async (): Promise<WorkspaceSummary[]> => {
   await migrateLegacyRecord()
   const summaries: WorkspaceSummary[] = []
+  const refreshed: Array<[string, unknown]> = []
   for (const [key, value] of await allEntries()) {
     if (!key.startsWith(WORKSPACE_PREFIX)) continue
     try {
       const workspace = toWorkspace(value)
+      if (knowledgeChanged(value, workspace)) refreshed.push([key, workspace])
       summaries.push({ ref: workspace.project.ref, name: workspace.project.name, revision: workspace.project.revision, updatedAt: workspace.project.updatedAt, proposalCount: workspace.proposals.length, boundary: workspace.project.site.boundary })
     } catch { /* an unreadable record is skipped rather than blocking the start screen */ }
   }
+  if (refreshed.length) await putRecords(refreshed)
   return summaries.sort((first, second) => second.updatedAt.localeCompare(first.updatedAt))
 }
 

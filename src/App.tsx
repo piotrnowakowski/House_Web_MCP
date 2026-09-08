@@ -5,7 +5,7 @@ import { ACESFilmicToneMapping, PCFSoftShadowMap, SRGBColorSpace } from 'three'
 import { dayParts } from './domain/climate'
 import { calculateMetrics } from './domain/commands'
 import { gardenFixtureCatalog, nextFixturePosition, starterGardenCommands } from './domain/gardenFixtures'
-import { polygonCentroid, wallLength } from './domain/geometry'
+import { polygonArea, polygonCentroid, wallLength } from './domain/geometry'
 import { isModernBarnPreset } from './domain/presets'
 import { isExteriorWall } from './domain/zielonkiInterior'
 import { TerrainInputSchema, defaultTerrainInput, type TerrainInput } from './domain/terrain'
@@ -23,6 +23,7 @@ import { showStructureViews } from './services/structureViews'
 import { registerWebMcpTools, resolveVariantConfirmation } from './services/webmcp'
 import type { WebMcpManifest } from './services/webmcpDefinitions'
 import { useStudioStore } from './state/store'
+import { buildingCrossesAgriculturalZone, landUseAreas } from './domain/zoning'
 
 const modes = [
   ['edit', 'Edit'], ['measure-length', 'Length'], ['measure-area', 'Area'], ['measure-height', 'Height'],
@@ -637,7 +638,14 @@ export function App() {
         <strong>{project.buildings.reduce((sum, building) => sum + building.spaces.length, 0)} rooms · {project.buildings.reduce((sum, building) => sum + building.storeys.length, 0)} levels · roof separated</strong>
       </section>}
       <SunWidget />
-      <div className="land-legend" aria-label="Land-use legend"><span><i className="construction" />House land</span><span><i className="garden" />Garden / agricultural land</span><span><i className="entrance" />Road entrance</span></div>
+      <div className="land-legend" aria-label="Land-use legend">{project.site.parcels.some((parcel) => parcel.landUseZones?.length) ? <>
+        <strong>MPZP · Zielonki · checked 8 Sep 2026</strong>
+        <span><i className="residential" />06.MNU.8 · Residential / services · ≈{Math.round(landUseAreas(project).filter((zone) => zone.landRole === 'construction').reduce((sum, zone) => sum + polygonArea(zone.boundary), 0))} m²</span>
+        <span><i className="garden" />06.R.21 · Agricultural, including parts of /3</span>
+        <span><i className="zoning-boundary" />Dashed amber: zoning boundary</span>
+        <small>54/3, 55/3, 58/3 are mixed-use parcels.<br />Derived boundary · not a building setback line.</small>
+        {project.buildings.some((building) => buildingCrossesAgriculturalZone(project, building)) && <strong className="zoning-warning">House overlaps agricultural zoning — review placement.</strong>}
+      </> : <><span><i className="construction" />House land</span><span><i className="garden" />Garden / agricultural land</span></>}<span><i className="entrance" />Road entrance</span></div>
     </div>
     {dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'proposals' && <ProposalsPanel onClose={() => setDataPanel(null)} />}<ReportPanel /><VariantApproval /><StartScreen />{toast && <div className="toast" role="status">{toast}</div>}
   </main>

@@ -143,3 +143,10 @@ canvas:focus-visible { outline: 2px solid #b9e84d; outline-offset: -4px; }
 .inspector .add-house p { margin: 0 0 10px; color: #8a968f; font-size: 11px; line-height: 1.5; }
 .tree-empty { margin: 0; padding: 8px 0; color: #7f8c85; font-size: 11px; }
 .plant-list-empty { margin: 18px 0; max-width: 60ch; color: #9aa79f; font-size: 12px; line-height: 1.55; }
+.land-legend i.residential { background: #e6a348; }
+.land-legend i.zoning-boundary { height: 0; border: 0; border-top: 2px dashed #ffc15a; width: 16px; border-radius: 0; }
+.land-legend small { line-height: 1.5; color: #b8c2bd; }
+.land-legend .zoning-warning { max-width: 290px; color: #ffc15a; line-height: 1.5; }
+.zoning-map-label { padding: 5px 8px; border-radius: 4px; background: rgba(18,24,19,.88); color: #fff; white-space: nowrap; font: 10px/1.3 system-ui; pointer-events: none; border: 1px solid #b7c5ac; }
+.zoning-map-label.residential, .zoning-map-label.boundary { border-color: #ffc15a; color: #ffe0aa; }
+.zoning-map-label.agricultural { border-color: #90bb75; }

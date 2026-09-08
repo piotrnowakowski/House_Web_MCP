@@ -110,8 +110,9 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(planting.data.soilAnalysis.findings).toHaveLength(5)
     expect(planting.data.recommendations.map((plant: { commonName: string }) => plant.commonName)).toEqual(expect.arrayContaining(['Tomato', 'Potato', 'Cucumber', 'Apple tree']))
     const sources = await tool('get_site_knowledge').execute({ section: 'sources' })
-    expect(payload(sources).data).toHaveLength(12)
-    expect(sources.content[0].text.length).toBeLessThan(4000)
+    expect(payload(sources).data).toHaveLength(sampleProject.site.knowledgeBase.sources.length)
+    // Includes the municipal certificate, operative plan and traced DWG boundary.
+    expect(sources.content[0].text.length).toBeLessThan(6000)
     expect(payload(await tool('get_project_state').execute({ detail: 'knowledge' })).status).toBe('error')
     const wallResult = await tool('get_project_state').execute({ objectRef: 'wall/east' }); const wall = payload(wallResult)
     expect(wall.data).toMatchObject({ kind: 'wall', buildingRef: 'house/main', storeyRef: 'storey/ground', object: { ref: 'wall/east', openings: expect.any(Array) } })
