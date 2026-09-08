@@ -202,17 +202,16 @@
     },
     {
       "type": "plant.update",
-      "purpose": "Add, remove, move, unlock or set the modeled height of one plant. Locked plants must be unlocked before editing; height drives rendering and shadows.",
+      "purpose": "Add, remove or move one plant; its elevation follows the terrain.",
       "required": [
-        "action add|remove|move|unlock|set-height",
+        "action add|remove|move",
         "plantRef"
       ],
       "optional": [
         "name",
         "species",
         "kind tree|hedge|shrub|perennial|grass|crop|wetland",
-        "position {x,z}",
-        "matureHeightM positive metres (required for set-height, optional for add)"
+        "position {x,z}"
       ]
     },
     {

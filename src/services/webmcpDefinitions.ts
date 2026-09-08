@@ -59,10 +59,7 @@ export const operationSchema = z.discriminatedUnion('type', [
   roofUpdateBase.extend({ type: z.literal('roof.update') }).superRefine(validateRoofUpdate),
   z.object({ type: z.literal('platform.update'), action: z.enum(['add', 'remove', 'resize']), buildingRef: ref, storeyRef: ref, spaceRef: ref, platformRef: ref, footprint: polygon.optional(), elevationM: z.number().optional(), thicknessM: z.number().positive().optional() }),
   z.object({ type: z.literal('landscape.update'), action: z.enum(['add', 'remove', 'set-footprint', 'move', 'set-surface']), zoneRef: ref, name: z.string().optional(), kind: z.enum(['lawn', 'terrace', 'path', 'driveway', 'bed', 'rain-garden', 'vegetable']).optional(), footprint: polygon.optional(), delta: point.optional(), textureId: z.string().optional() }),
-  z.object({ type: z.literal('plant.update'), action: z.enum(['add', 'remove', 'move', 'unlock', 'set-height']), plantRef: ref, name: z.string().optional(), species: z.string().optional(), kind: plantKind.optional(), position: point.optional(), matureHeightM: z.number().finite().positive().optional() }).superRefine((value, context) => {
-    if (value.action === 'set-height' && value.matureHeightM === undefined) context.addIssue({ code: 'custom', path: ['matureHeightM'], message: 'Plant height is required for set-height.' })
-    if (value.matureHeightM !== undefined && value.action !== 'add' && value.action !== 'set-height') context.addIssue({ code: 'custom', path: ['matureHeightM'], message: 'Plant height is only supported for add or set-height.' })
-  }),
+  z.object({ type: z.literal('plant.update'), action: z.enum(['add', 'remove', 'move']), plantRef: ref, name: z.string().optional(), species: z.string().optional(), kind: plantKind.optional(), position: point.optional() }),
   z.object({
     type: z.literal('planting.area'), plantingRef: ref, mode: z.enum(['boundary', 'line', 'polygon']), sourceRefs: z.array(ref).min(1).max(12).optional(), points: polyline.optional(),
     inwardOffsetM: z.number().min(0).max(25).default(0.8), spacingM: z.number().positive().max(25).default(0.6), rowCount: z.number().int().min(1).max(100).default(1), rowSpacingM: z.number().positive().max(10).default(0.6),

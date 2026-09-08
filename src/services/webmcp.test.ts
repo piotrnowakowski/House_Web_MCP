@@ -210,22 +210,6 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(payload(await tool('propose_change').execute({ operations: [{ type: 'plant.update', action: 'move', plantRef: 'plant/apple', position: { x: 10, z: 12 } }] })).summary).toMatch(/locked/)
   })
 
-  it('exposes height edits in the catalogue and previews them without changing the committed tree', async () => {
-    expect(operationReference.find((operation) => operation.type === 'plant.update')!.optional.join(' ')).toContain('matureHeightM')
-    const before = useStudioStore.getState().project
-    const result = await propose([
-      { type: 'plant.update', action: 'unlock', plantRef: 'plant/apple' },
-      { type: 'plant.update', action: 'set-height', plantRef: 'plant/apple', matureHeightM: 18 },
-    ], 'Correct measured tree height')
-    expect(result.status).toBe('variant_created')
-    expect(useStudioStore.getState().project).toEqual(before)
-    expect(useStudioStore.getState().variants[0].project.landscape.plants.find((plant) => plant.ref === 'plant/apple')!.matureHeightM).toBe(18)
-    for (const matureHeightM of [undefined, 0, -2, Infinity]) {
-      expect(operationSchema.safeParse({ type: 'plant.update', action: 'set-height', plantRef: 'plant/apple', matureHeightM }).success).toBe(false)
-    }
-    expect(operationSchema.safeParse({ type: 'plant.update', action: 'move', plantRef: 'plant/apple', position: { x: 0, z: 0 }, matureHeightM: 15 }).success).toBe(false)
-  })
-
   it('previews a complete deterministic planting perimeter as one atomic variant', async () => {
     useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [] })
     const before = useStudioStore.getState().project.landscape.plants.length

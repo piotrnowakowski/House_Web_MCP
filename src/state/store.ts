@@ -5,12 +5,10 @@ import { ensureStarterOrchard } from '../domain/orchard'
 import { applyModernBarnPreset, isModernBarnPreset } from '../domain/presets'
 import { slugify } from '../domain/refs'
 import { modernBarnProject } from '../domain/sampleProject'
-import { createReferenceHouse, REFERENCE_HOUSE_REF } from '../domain/referenceHouse'
-import { fitZielonkiInterior, hasZielonkiInterior } from '../domain/zielonkiInterior'
 import { REFERENCE_YEAR, type SunTime } from '../domain/solar'
 import type { SunlightAnalysis } from '../domain/sunlight'
 import { createTerrainProject, isZielonkiProject, type TerrainInput } from '../domain/terrain'
-import { listWorkspaces, loadWorkspace, saveWorkspace, type WorkspaceSummary } from '../services/persistence'
+import { listWorkspaces, loadWorkspace, type WorkspaceSummary } from '../services/persistence'
 import type { DraftChangeSetModel, HeightMeasureKind, PersistedWorkspace, ProjectCommand, ProjectV2, ProposalRecord, StructureReport, TransformMode, VariantModel, ViewerMode } from '../domain/types'
 
 interface StudioState {
@@ -68,9 +66,6 @@ interface StudioState {
   closeLauncher: () => void
   startTerrain: (input: TerrainInput) => ProjectV2
   loadBundledStudy: () => void
-  openZielonkiStudy: () => Promise<void>
-  fitReferenceToZielonki: () => Promise<void>
-  openReferenceHouse: () => Promise<void>
   openWorkspace: (ref: string) => Promise<void>
   createVariant: (label: string, commands: ProjectCommand[], metadata?: Pick<ProposalRecord, 'sourceChangeSetRef' | 'recreatedFromRef'>) => VariantModel
   applyVariant: (ref: string) => ProjectV2
@@ -160,8 +155,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   replaceProject: (project) => { revokeReport(get().structureReport); set((state) => ({ project, variants: [], proposals: [], draftChangeSets: [], history: [], structureReport: null, sunOverlay: { ...state.sunOverlay, result: null }, toast: `Loaded ${project.name}.` })) },
   restoreWorkspace: (workspace) => {
     revokeReport(get().structureReport)
-    const proposals = staleRecords(workspace.proposals, workspace.project.revision).map((proposal) =>
-      proposal.status === 'pending' ? { ...proposal, issues: validateProject(proposal.project) } : proposal)
+    const proposals = staleRecords(workspace.proposals, workspace.project.revision)
     const variants = proposals.filter((proposal) => proposal.status === 'pending')
     set({ project: workspace.project, proposals, variants, draftChangeSets: staleDrafts(workspace.draftChangeSets, workspace.project.revision), history: [], structureReport: null, sunOverlay: { enabled: false, targetRef: null, result: null }, toast: `Loaded ${workspace.project.name} with ${proposals.length} proposal record${proposals.length === 1 ? '' : 's'}.` })
   },
@@ -183,49 +177,6 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     const project = ensureStarterOrchard(ensureStarterGarden(structuredClone(modernBarnProject)))
     get().replaceProject(project)
     set((state) => ({ launcherOpen: false, hydrated: true, selectedRef: null, cameraRefocusRequest: state.cameraRefocusRequest + 1, toast: 'Loaded the Zielonki house study.' }))
-  },
-  openReferenceHouse: async () => {
-    try {
-      const saved = await loadWorkspace(REFERENCE_HOUSE_REF)
-      if (saved) get().restoreWorkspace(saved)
-      else get().replaceProject(createReferenceHouse())
-      set((state) => ({ launcherOpen: false, hydrated: true, selectedRef: null, viewerMode: 'edit', activePlanStoreyRef: null, explodeStoreys: false, cameraRefocusRequest: state.cameraRefocusRequest + 1, toast: 'Reference house loaded. Open House interior to explore both floors.' }))
-    } catch (error) { set({ toast: `Could not open reference house: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
-  },
-  openZielonkiStudy: async () => {
-    try {
-      const saved = await loadWorkspace(modernBarnProject.ref)
-      if (saved) await get().openWorkspace(saved.project.ref)
-      else {
-        const project = fitZielonkiInterior(ensureStarterOrchard(ensureStarterGarden(structuredClone(modernBarnProject))), createReferenceHouse())
-        await saveWorkspace({ version: 1, project, proposals: [], draftChangeSets: [] })
-        get().replaceProject(project)
-        set((state) => ({ launcherOpen: false, hydrated: true, selectedRef: null, viewerMode: 'edit', activePlanStoreyRef: null, explodeStoreys: false,
-          cameraRefocusRequest: state.cameraRefocusRequest + 1, toast: 'Furnished Zielonki loaded. Open House interior to explore both floors.' }))
-      }
-    } catch (error) { set({ toast: `Could not open Zielonki: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
-  },
-  fitReferenceToZielonki: async () => {
-    const state = get()
-    const activeTarget = isZielonkiProject(state.project)
-    const target = activeTarget ? { version: 1 as const, project: state.project, proposals: state.proposals, draftChangeSets: state.draftChangeSets }
-      : await loadWorkspace(modernBarnProject.ref) ?? { version: 1 as const, project: ensureStarterOrchard(ensureStarterGarden(structuredClone(modernBarnProject))), proposals: [], draftChangeSets: [] }
-    if (hasZielonkiInterior(target.project)) { get().restoreWorkspace(target); return }
-    const reference = state.project.ref === REFERENCE_HOUSE_REF ? state.project : (await loadWorkspace(REFERENCE_HOUSE_REF))?.project ?? createReferenceHouse()
-    const project = fitZielonkiInterior(target.project, reference)
-    const blocking = validateProject(project).filter((issue) => issue.severity === 'error')
-    if (blocking.length) throw new Error(blocking[0].message)
-    // Save the previous model as a separate recoverable project before fitting the new house.
-    const previous = structuredClone(target)
-    previous.project.ref = `${target.project.ref}/before-interior-${Date.now()}`
-    previous.project.name = `${target.project.name} · before interior fit`
-    await saveWorkspace(previous)
-    const workspace = { ...target, project, proposals: staleRecords(target.proposals, project.revision), draftChangeSets: staleDrafts(target.draftChangeSets, project.revision) }
-    await saveWorkspace(workspace)
-    get().restoreWorkspace(workspace)
-    set({ history: [...(activeTarget ? state.history : []), structuredClone(target.project)].slice(-40), selectedRef: null, repositioningRef: null,
-      hydrated: true, launcherOpen: false, viewerMode: 'edit', activePlanStoreyRef: null, explodeStoreys: false,
-      cameraRefocusRequest: get().cameraRefocusRequest + 1, toast: 'Zielonki fitted to the measured interior. The previous house is saved in Projects.' })
   },
   openWorkspace: async (ref) => {
     try {
