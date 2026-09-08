@@ -42,7 +42,7 @@ const validateRoofUpdate = (value: z.infer<typeof roofUpdateBase>, context: z.Re
  * garden-fixture.preset) expand into commands in the handler. The registered JSON Schema does not carry these shapes.
  */
 export const operationSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('site.update'), boundary: polygon.optional(), northDegrees: z.number().optional() }),
+  z.object({ type: z.literal('site.update'), boundary: polygon.optional(), northDegrees: z.number().optional(), entrance: z.object({ ref, start: point, end: point }).strict().optional() }),
   z.object({ type: z.literal('terrain.update'), elevationPoints: z.array(point.extend({ elevation: z.number() })).min(1) }),
   z.object({ type: z.literal('building.update'), action: z.enum(['add', 'remove', 'move', 'set-style']), buildingRef: ref, name: z.string().optional(), kind: z.enum(['house', 'garage']).optional(), architecturalStyle: z.enum(['classic', 'futuristic', 'barn']).optional(), position: point.optional(), rotationDegrees: z.number().optional() }),
   z.object({

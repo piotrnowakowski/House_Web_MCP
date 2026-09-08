@@ -10,11 +10,12 @@
   "operations": [
     {
       "type": "site.update",
-      "purpose": "Change the site boundary polygon or the north direction.",
+      "purpose": "Change the site boundary polygon, north direction, or endpoints of one existing entrance while preserving its metadata and other entrances.",
       "required": [],
       "optional": [
         "boundary {x,z}[3..64]",
-        "northDegrees"
+        "northDegrees",
+        "entrance {ref,start:{x,z},end:{x,z}}"
       ]
     },
     {

@@ -20,7 +20,7 @@ const define = (blocks: Blocks): WebMcpPromptDefinition => ({
  */
 export interface OperationReference { type: string; purpose: string; required: string[]; optional: string[] }
 export const operationReference: OperationReference[] = [
-  { type: 'site.update', purpose: 'Change the site boundary polygon or the north direction.', required: [], optional: ['boundary {x,z}[3..64]', 'northDegrees'] },
+  { type: 'site.update', purpose: 'Change the site boundary polygon, north direction, or endpoints of one existing entrance while preserving its metadata and other entrances.', required: [], optional: ['boundary {x,z}[3..64]', 'northDegrees', 'entrance {ref,start:{x,z},end:{x,z}}'] },
   { type: 'terrain.update', purpose: 'Replace the terrain elevation control points.', required: ['elevationPoints {x,z,elevation}[]'], optional: [] },
   { type: 'building.update', purpose: 'Add, remove, move or restyle a building.', required: ['action add|remove|move|set-style', 'buildingRef'], optional: ['name', 'kind house|garage', 'architecturalStyle classic|futuristic|barn', 'position {x,z}', 'rotationDegrees'] },
   { type: 'storey.update', purpose: 'Add or remove a storey, set its clear height, or extend its footprint together with slab, walls, space and roof.', required: ['action add|remove|set-height|extend-footprint', 'buildingRef', 'storeyRef'], optional: ['name', 'clearHeightM 2..8', 'footprint', 'extensionFootprint (adjacent polygon)', 'spaceRef', 'spaceName', 'usage'] },

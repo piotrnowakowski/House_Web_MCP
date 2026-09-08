@@ -16,6 +16,21 @@ const extension = { type: 'storey.update', action: 'extend-footprint', buildingR
 beforeEach(() => useStudioStore.setState({ project: structuredClone(sampleProject), history: [], variants: [], proposals: [], draftChangeSets: [], selectedRef: 'space/living', repositioningRef: null, confirmationVariantRef: null, structureReport: null }))
 
 describe('ProjectV2 WebMCP surface', () => {
+  it('moves one existing entrance without losing metadata, other entrances or planting', async () => {
+    useStudioStore.setState({ project: structuredClone(modernBarnProject) })
+    const entrance = modernBarnProject.site.entrances[0]
+    const update = { ref: entrance.ref, start: { x: -19.5, z: -10 }, end: { x: -19.1, z: -2.5 } }
+    const result = await propose([{ type: 'site.update', entrance: update }])
+    expect(result.status).toBe('variant_created')
+    const preview = useStudioStore.getState().variants[0].project
+    expect(preview.site.entrances[0]).toEqual({ ...entrance, ...update })
+    expect(preview.site.entrances.slice(1)).toEqual(modernBarnProject.site.entrances.slice(1))
+    expect(preview.landscape).toEqual(modernBarnProject.landscape)
+    expect(useStudioStore.getState().project).toEqual(modernBarnProject)
+    expect(() => applyCommand(modernBarnProject, { type: 'site.update', entrance: { ...update, ref: 'missing' } })).toThrow(/Entrance not found/)
+    expect(() => applyCommand(modernBarnProject, { type: 'site.update', entrance: { ...update, end: update.start } })).toThrow(/length/)
+  })
+
   it('replaces an older page registration so hot reload cannot keep a stale store alive', () => {
     const originalDocument = globalThis.document
     const signals: AbortSignal[] = []

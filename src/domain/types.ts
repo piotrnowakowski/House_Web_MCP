@@ -98,7 +98,7 @@ export type IssueSeverity = 'error' | 'warning' | 'note'
 export interface ProjectIssue { severity: IssueSeverity; code: string; message: string; subjectRef?: string }
 export interface ProjectMetrics { homeAreaM2: number; garageAreaM2: number; landscapeAreaM2: number; greenAreaM2: number; spaceCount: number; plantCount: number; fixtureCount: number; annualWaterBalanceMm: number }
 
-export type SiteUpdateCommand = { type: 'site.update'; boundary?: Polygon2; northDegrees?: number }
+export type SiteUpdateCommand = { type: 'site.update'; boundary?: Polygon2; northDegrees?: number; entrance?: { ref: string; start: Vec2; end: Vec2 } }
 export type TerrainUpdateCommand = { type: 'terrain.update'; elevationPoints: TerrainModel['elevationPoints'] }
 export type BuildingUpdateCommand = { type: 'building.update'; action: 'add' | 'remove' | 'move' | 'set-style'; buildingRef: string; name?: string; kind?: BuildingKind; architecturalStyle?: ArchitecturalStyle; position?: Vec2; rotationDegrees?: number }
 export type StoreyUpdateCommand = {

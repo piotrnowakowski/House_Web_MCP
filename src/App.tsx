@@ -8,6 +8,7 @@ import { gardenFixtureCatalog, nextFixturePosition, starterGardenCommands } from
 import { polygonArea, polygonCentroid, wallLength } from './domain/geometry'
 import { isModernBarnPreset } from './domain/presets'
 import { isExteriorWall } from './domain/zielonkiInterior'
+import { REFERENCE_HOUSE_REF } from './domain/referenceHouse'
 import { TerrainInputSchema, defaultTerrainInput, type TerrainInput } from './domain/terrain'
 import { gableWallsForBuilding } from './domain/roofWings'
 import type { BuildingModel, ClimateDayPart, GardenFixtureCatalogId, HeightMeasureKind, LandscapeZone, PlantingGuideCategory, Polygon2, ProjectCommand, ProposalStatus, WallMaterial, WallModel } from './domain/types'
@@ -36,7 +37,26 @@ const modeTitles = {
   'measure-height': 'Select a semantic object or Shift-click two points to measure vertically',
 } as const
 
-function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenMcpTools, onOpenProposals, onOpenProjects }: { onOpenInterior: () => void; onOpenClimate: () => void; onOpenPlanting: () => void; onOpenMcpTools: () => void; onOpenProposals: () => void; onOpenProjects: () => void }) {
+function ClimateMenu({ onOpenClimate, onOpenPlanting }: { onOpenClimate: () => void; onOpenPlanting: () => void }) {
+  const [open, setOpen] = useState(false)
+  const menu = useRef<HTMLDivElement>(null)
+  const trigger = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const closeOutside = (event: PointerEvent) => { if (!menu.current?.contains(event.target as Node)) setOpen(false) }
+    document.addEventListener('pointerdown', closeOutside)
+    return () => document.removeEventListener('pointerdown', closeOutside)
+  }, [open])
+  return <div className="climate-menu" ref={menu} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }} onKeyDown={(event) => { if (event.key === 'Escape' && open) { event.stopPropagation(); setOpen(false); trigger.current?.focus() } }}>
+    <button ref={trigger} className={open ? 'active' : ''} aria-expanded={open} aria-controls="climate-options" onClick={() => setOpen(!open)}>Climate <span aria-hidden="true">▾</span></button>
+    {open && <div id="climate-options" className="climate-options" role="group" aria-label="Climate options">
+      <button onClick={() => { setOpen(false); onOpenClimate() }}>Temperature</button>
+      <button onClick={() => { setOpen(false); onOpenPlanting() }}>Planting</button>
+    </div>}
+  </div>
+}
+
+function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenFixtures, fixturesOpen, onOpenMcpTools, onOpenProposals, onOpenProjects }: { onOpenInterior: () => void; onOpenClimate: () => void; onOpenPlanting: () => void; onOpenFixtures: () => void; fixturesOpen: boolean; onOpenMcpTools: () => void; onOpenProposals: () => void; onOpenProjects: () => void }) {
   const project = useStudioStore((state) => state.project); const viewerMode = useStudioStore((state) => state.viewerMode); const setViewerMode = useStudioStore((state) => state.setViewerMode)
   const explode = useStudioStore((state) => state.explodeStoreys); const setExplode = useStudioStore((state) => state.setExplodeStoreys)
   const webMcp = useStudioStore((state) => state.webMcpAvailable); const setToast = useStudioStore((state) => state.setToast)
@@ -50,7 +70,7 @@ function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenMcpTools
   }
   return <header className="topbar">
     <div className="brand"><span className="brand-mark">V2</span><div><strong>Spatial Editor</strong><small>{project.name} · r{project.revision}</small></div></div>
-    <nav aria-label="Viewer tools">{modes.map(([value, label]) => <button key={value} className={viewerMode === value ? 'active' : ''} onClick={() => setViewerMode(value)} title={modeTitles[value]}>{label}</button>)}</nav>
+    <nav aria-label="Viewer tools">{modes.map(([value, label]) => <button key={value} className={viewerMode === value ? 'active' : ''} aria-pressed={viewerMode === value} onClick={() => setViewerMode(viewerMode === value ? 'edit' : value)} title={modeTitles[value]}>{label}</button>)}</nav>
     <div className="top-actions">
       <button onClick={onOpenInterior} disabled={!project.buildings.length} title="Edit rooms, furniture and house levels">House interior</button>
       <button onClick={onOpenProjects} title="Open another project or start a new terrain">Projects</button>
@@ -59,8 +79,8 @@ function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenMcpTools
         const rooms = project.buildings.reduce((sum, building) => sum + building.spaces.length, 0)
         setToast(next ? `Exploded ${rooms} rooms across every level.` : 'Room explosion collapsed.')
       }}>Explode</button>
-      <button onClick={onOpenClimate}>Climate</button>
-      <button onClick={onOpenPlanting}>Planting</button>
+      <button className={`fixtures-button${fixturesOpen ? ' active' : ''}`} onClick={onOpenFixtures} aria-label="Open garden fixtures" aria-expanded={fixturesOpen}><span>Garden fixtures</span><small>{project.landscape.fixtures.length} placed</small></button>
+      <ClimateMenu onOpenClimate={onOpenClimate} onOpenPlanting={onOpenPlanting} />
       <button className="proposal-entry" onClick={onOpenProposals}><span>Proposals</span><small aria-label={`${proposalCounts.pending} pending, ${proposalCounts.approved} approved, ${proposalCounts.rejected} rejected, ${proposalCounts.stale} stale`}><i>P {proposalCounts.pending}</i><i>A {proposalCounts.approved}</i><i>R {proposalCounts.rejected}</i><i>S {proposalCounts.stale}</i></small></button>
       <button onClick={onOpenMcpTools}>MCP Tools</button>
       <button className="report-button" disabled={busy} onClick={generateReport}>{busy ? 'Rendering…' : 'Architectural set'}</button>
@@ -346,6 +366,7 @@ const timezoneOptions = (() => { try { const values = (Intl as unknown as { supp
 /** The start screen: continue a saved project, reset to the bundled Zielonki study, or describe a new plot. */
 function StartScreen() {
   const open = useStudioStore((state) => state.launcherOpen); const saved = useStudioStore((state) => state.savedWorkspaces); const hydrated = useStudioStore((state) => state.hydrated); const project = useStudioStore((state) => state.project)
+  const visibleProjects = saved.filter((item) => item.ref !== REFERENCE_HOUSE_REF)
   const closeLauncher = useStudioStore((state) => state.closeLauncher); const openLauncher = useStudioStore((state) => state.openLauncher); const startTerrain = useStudioStore((state) => state.startTerrain); const openWorkspace = useStudioStore((state) => state.openWorkspace); const setToast = useStudioStore((state) => state.setToast)
   const [mode, setMode] = useState<'choose' | 'terrain'>('choose'); const [values, setValues] = useState<TerrainFormValues>(terrainFormDefaults); const [errors, setErrors] = useState<Partial<TerrainFormValues>>({}); const [removeRef, setRemoveRef] = useState<string | null>(null)
   const dialog = useRef<HTMLElement>(null)
@@ -376,14 +397,13 @@ function StartScreen() {
     <p className="eyebrow">PROJECTS</p>
     <h2 id="start-screen-title">Where do you want to plan today?</h2>
     {mode === 'choose' ? <>
-      {saved.length > 0 && <div className="start-saved"><h3>Saved projects</h3>{saved.map((item, index) => <div className="project-card" key={item.ref}>
+      {visibleProjects.length > 0 && <div className="start-saved"><h3>Saved projects</h3>{visibleProjects.map((item, index) => <div className="project-card" key={item.ref}>
         <PlotOutline boundary={item.boundary} />
         <div><strong>{item.name}</strong><small>r{item.revision} · saved {new Date(item.updatedAt).toLocaleString()} · {item.proposalCount} proposal{item.proposalCount === 1 ? '' : 's'}</small></div>
         <div className="project-card-actions"><button className={index === 0 ? 'primary' : ''} onClick={() => void openWorkspace(item.ref)}>{index === 0 ? `Continue · ${item.name}` : 'Open'}</button><button onClick={() => setRemoveRef(removeRef === item.ref ? null : item.ref)} aria-label={`Remove ${item.name}`}>Remove</button></div>
         {removeRef === item.ref && <div className="remove-confirm"><span>Remove {item.name} from this browser? Its proposals go with it.</span><button onClick={() => setRemoveRef(null)}>Keep</button><button className="confirm-delete" onClick={() => void remove(item.ref)}>Remove project</button></div>}
       </div>)}</div>}
       <div className="start-options">
-        <button className="start-card" onClick={() => void useStudioStore.getState().openReferenceHouse()}><strong>Dom z planów · Reference house</strong><span>Your two-floor house reconstructed from the supplied plans, with measured rooms, stairs, furniture and garage. Continues your saved edits.</span></button>
         <button className="start-card" onClick={() => void useStudioStore.getState().openZielonkiStudy()}><strong>Zielonki house study</strong><span>Continue your saved house, or explore the furnished modern barn with the measured interior, both floors and the Zielonki garden.</span></button>
         <button className="start-card" onClick={() => setMode('terrain')}><strong>New terrain</strong><span>An empty rectangular plot with your own size, north direction and coordinates, ready for a house.</span></button>
       </div>
@@ -619,13 +639,12 @@ export function App() {
   }, [setToast, undo])
   useEffect(() => () => useStudioStore.getState().setStructureReport(null), [])
   if (interiorOpen) return <InteriorEditor onBack={() => setInteriorOpen(false)} />
-  return <main aria-label="ProjectV2 spatial planning workspace"><Toolbar onOpenInterior={() => { setDataPanel(null); setInteriorOpen(true) }} onOpenClimate={() => setDataPanel('climate')} onOpenPlanting={() => setDataPanel('planting')} onOpenMcpTools={() => setDataPanel('mcp-tools')} onOpenProposals={() => setDataPanel('proposals')} onOpenProjects={() => { setDataPanel(null); void openLauncher() }} /><Inspector />
+  return <main aria-label="ProjectV2 spatial planning workspace"><Toolbar onOpenInterior={() => { setDataPanel(null); setInteriorOpen(true) }} onOpenClimate={() => setDataPanel('climate')} onOpenPlanting={() => setDataPanel('planting')} fixturesOpen={dataPanel === 'fixtures'} onOpenFixtures={() => { const opening = dataPanel !== 'fixtures'; setDataPanel(opening ? 'fixtures' : null); if (opening) focusGardenFixtures() }} onOpenMcpTools={() => setDataPanel('mcp-tools')} onOpenProposals={() => setDataPanel('proposals')} onOpenProjects={() => { setDataPanel(null); void openLauncher() }} /><Inspector />
     <div className="viewport"><Canvas shadows dpr={[1, 2]} camera={{ position: [29, 23, 32], fov: 38, near: 0.1, far: 1200 }} gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' }} onCreated={({ gl }) => { gl.outputColorSpace = SRGBColorSpace; gl.toneMapping = ACESFilmicToneMapping; gl.toneMappingExposure = 1.08; gl.shadowMap.type = PCFSoftShadowMap; gl.domElement.setAttribute('role', 'application'); gl.domElement.setAttribute('aria-label', 'Interactive ProjectV2 spatial editor'); gl.domElement.tabIndex = 0 }}><Suspense fallback={null}><StudioScene /></Suspense></Canvas>
       <button className="refocus-button" onClick={refocusCamera} aria-label={project.buildings.length ? 'Refocus on Main house' : 'Refocus on the site'}>
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" /><circle cx="12" cy="12" r="3.25" /></svg>
         <span>{project.buildings.length ? 'Refocus building' : 'Refocus site'}</span>
       </button>
-      <button className="fixtures-button" onClick={() => { const opening = dataPanel !== 'fixtures'; setDataPanel(opening ? 'fixtures' : null); if (opening) focusGardenFixtures() }} aria-label="Open garden fixtures"><span>Garden fixtures</span><small>{project.landscape.fixtures.length} placed</small></button>
       <div className="navigation-hint" aria-label="Garden navigation controls"><span>Move across garden</span><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd><i>or hold wheel + drag</i></div>
       {(viewerMode === 'measure-length' || viewerMode === 'measure-area' || viewerMode === 'measure-height') && <section className="measurement-guide" aria-label={`${viewerMode === 'measure-length' ? 'Length' : viewerMode === 'measure-area' ? 'Area' : 'Height'} measurement instructions`}>
         <span>{viewerMode === 'measure-length' ? 'LENGTH' : viewerMode === 'measure-area' ? 'AREA' : 'HEIGHT'}</span>
@@ -638,6 +657,8 @@ export function App() {
         <strong>{project.buildings.reduce((sum, building) => sum + building.spaces.length, 0)} rooms · {project.buildings.reduce((sum, building) => sum + building.storeys.length, 0)} levels · roof separated</strong>
       </section>}
       <SunWidget />
+      <details className="land-legend-control" key={project.ref}>
+        <summary>MPZP</summary>
       <div className="land-legend" aria-label="Land-use legend">{project.site.parcels.some((parcel) => parcel.landUseZones?.length) ? <>
         <strong>MPZP · Zielonki · checked 8 Sep 2026</strong>
         <span><i className="residential" />06.MNU.8 · Residential / services · ≈{Math.round(landUseAreas(project).filter((zone) => zone.landRole === 'construction').reduce((sum, zone) => sum + polygonArea(zone.boundary), 0))} m²</span>
@@ -646,6 +667,7 @@ export function App() {
         <small>54/3, 55/3, 58/3 are mixed-use parcels.<br />Derived boundary · not a building setback line.</small>
         {project.buildings.some((building) => buildingCrossesAgriculturalZone(project, building)) && <strong className="zoning-warning">House overlaps agricultural zoning — review placement.</strong>}
       </> : <><span><i className="construction" />House land</span><span><i className="garden" />Garden / agricultural land</span></>}<span><i className="entrance" />Road entrance</span></div>
+      </details>
     </div>
     {dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'proposals' && <ProposalsPanel onClose={() => setDataPanel(null)} />}<ReportPanel /><VariantApproval /><StartScreen />{toast && <div className="toast" role="status">{toast}</div>}
   </main>

@@ -207,6 +207,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await expect(page.getByRole('button', { name: 'Open garden fixtures' })).toContainText('6 placed')
 
   await page.getByRole('button', { name: 'Climate' }).click()
+  await page.getByRole('button', { name: 'Temperature', exact: true }).click()
   const climate = page.getByRole('region', { name: 'Monthly temperature by part of day' })
   await expect(climate).toBeVisible()
   await expect(climate.getByText('Temperature through the day')).toBeVisible()
@@ -221,6 +222,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await climate.getByRole('button', { name: 'Close climate panel' }).click()
   await expect(climate).toBeHidden()
 
+  await page.getByRole('button', { name: 'Climate' }).click()
   await page.getByRole('button', { name: 'Planting' }).click()
   const planting = page.getByRole('region', { name: 'Planting guide and soil analysis' })
   await expect(planting).toBeVisible()

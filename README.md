@@ -14,6 +14,8 @@ This editor gives both the person and their browser agent access to one semantic
 
 The page opens on a start screen. Continue the last saved session, load the bundled Zielonki house study, or create a new terrain from a short form (name, width and depth in metres, north angle, coordinates and timezone). A new terrain is an empty plot: the inspector offers **Add a house**, the modern barn preset and every WebMCP proposal then work on it, and each project is autosaved separately so the **Projects** button in the top bar switches between them.
 
+The top toolbar includes **Garden fixtures** and a **Climate** menu containing **Temperature** and **Planting**. Clicking an active measurement tool (**Length**, **Area**, or **Height**) again returns to **Edit** and closes its measurement controls.
+
 The bundled Zielonki project demonstrates:
 
 - a two-storey modern-barn house with semantic storeys, slabs, spaces, walls, openings, finishes and roof;
@@ -184,7 +186,7 @@ Operation types accepted by `propose_change` and `manage_change_set` (`list_cata
 
 | Operation | What it does |
 | --- | --- |
-| `site.update` | Change site boundary or north |
+| `site.update` | Change site boundary, north, or one existing entrance with `entrance: {ref, start: {x,z}, end: {x,z}}`; preserve other entrances and metadata |
 | `terrain.update` | Change terrain elevation controls |
 | `building.update` | Add, remove, move, rotate or restyle a building |
 | `storey.update` | Add/remove/resize a storey, including an atomic existing-footprint extension |

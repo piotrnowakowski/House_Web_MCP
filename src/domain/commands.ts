@@ -119,6 +119,14 @@ const defaultBuilding = (ref: string, name: string, kind: BuildingModel['kind'],
 const applySite = (project: ProjectV2, command: Extract<ProjectCommand, { type: 'site.update' }>) => {
   if (command.boundary) { project.site.boundary = clone(command.boundary); project.site.terrain.boundary = clone(command.boundary) }
   if (command.northDegrees !== undefined) project.site.northDegrees = command.northDegrees
+  if (command.entrance) {
+    const update = command.entrance
+    const entrance = project.site.entrances.find((item) => item.ref === update.ref)
+    if (!entrance) throw new Error(`Entrance not found: ${update.ref}`)
+    if (Math.hypot(update.end.x - update.start.x, update.end.z - update.start.z) <= 0.5) throw new Error('Site entrance must have length greater than 0.5 m.')
+    entrance.start = clone(update.start)
+    entrance.end = clone(update.end)
+  }
 }
 
 const applyBuilding = (project: ProjectV2, command: Extract<ProjectCommand, { type: 'building.update' }>) => {

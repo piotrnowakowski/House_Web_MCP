@@ -1,6 +1,6 @@
 # House reconstruction from the 18 supplied screenshots
 
-Open **Projects → Dom z planów · Reference house → House interior**. The entry creates an independent project on first use and subsequently opens its saved edits. It never seeds the Zielonki demo garden into this project.
+Open **Projects → Zielonki house study → House interior** to use the measured house within the Zielonki site. The separate **Dom z planów · Reference house** entry and its saved-project card are no longer shown. Its reference geometry remains the source for the fitted Zielonki interior.
 
 All geometry is in metres. Room dimensions in the interior editor are **between inside wall faces**; areas are computed from geometry, excluding internal partitions and fully enclosed floor openings. The floor summary identifies gross slab area separately. Furniture dimensions are its editable overall bounding box (including chairs for the dining set).
 
@@ -68,6 +68,8 @@ The reconstruction is dimensionally faithful to the legible measurements listed 
 
 The interior editor can fit the saved reference house into the saved Zielonki project. This translates the floor coordinates to the centre of the former house, retaining its position, rotation, site, landscape and garden fixtures. It does not scale the measured rooms or furniture. A separate saved project retains the previous house before fitting; the reference project also remains separate.
 
-The resulting ground envelope is 11.19 × 18.31 m; the upper envelope is 11.28 × 15.14 m. The exterior inherits Zielonki's dark timber facade and standing-seam metal roof finish. Two perpendicular 45° gable wings cover the upper floor, and a lower flat dark roof covers the front garage portion beyond the upper floor. Ceiling heights remain provisional at 2.80 m. The roof design is an adaptation, since the supplied interior screenshots do not specify a roof.
+The resulting ground envelope is 11.19 × 18.31 m; the upper envelope is 11.28 × 15.14 m. The exterior inherits Zielonki's dark timber facade and standing-seam metal roof finish. Following the September 2026 paper roof reference, one continuous gable runs the full length of the garage wing, including the portion beyond the upper floor. A shorter perpendicular gable meets it at the main ridge, forming valleys at the side junction. Both pitches are initially reduced together so the maximum ground-to-ridge measurement across the two segment centres is 8.90 m, using the height tool's local terrain datum. This implements the user's requested model height below their 9.00 m limit. Eaves and provisional 2.80 m room heights remain unchanged; subsequent pitch edits are preserved.
 
-The Zielonki project card now continues the saved project. Its legacy barn preset migration preserves this fitted floor plan and lower garage roof. Source notes live on the building so site knowledge updates cannot remove them.
+The shorter roof's panels and standing seams are cut to the surface of the long roof at the valley. There is no projecting end overhang or internal gable wall at that junction. This cut is part of the mesh geometry, including shadows and exploded views.
+
+The Zielonki project card continues the saved project. Loading a fitted project with the former three-roof layout replaces its flat garage cap with the continuous gable, retaining rooms, placement and finishes. This upgrade runs once and advances the revision so old proposals become stale. Source notes live on the building so site knowledge updates cannot remove them.

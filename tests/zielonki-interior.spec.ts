@@ -44,7 +44,7 @@ test('Zielonki keeps its site and barn style with the measured interior, includi
   expect(after.site).toEqual(before.site)
   expect(after.landscape).toEqual(before.landscape)
   expect(after.buildings[0].architecturalStyle).toBe('barn')
-  expect(after.buildings[0].roof.segments).toHaveLength(3)
+  expect(after.buildings[0].roof.segments).toHaveLength(2)
   expect(after.buildings[0].furniture).toHaveLength(22)
   await page.reload()
   await page.getByRole('button', { name: /Zielonki house study/ }).click()

@@ -2,7 +2,7 @@ import { Html, Line as DreiLine, TransformControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { CuboidCollider, Physics, RigidBody } from '@react-three/rapier'
 import CameraControls from 'camera-controls'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   Box3, BoxGeometry, BufferAttribute, BufferGeometry, Color, DirectionalLight, DoubleSide, EdgesGeometry, Group, LinearFilter, MathUtils, Matrix4, Mesh, MeshStandardMaterial, MOUSE, Object3D,
   OrthographicCamera, PerspectiveCamera, Plane, PlaneGeometry, Quaternion, Raycaster, Scene, Shape, ShapeGeometry, Sphere, Spherical, SRGBColorSpace, Vector2, Vector3, Vector4, WebGLRenderTarget,
@@ -19,7 +19,8 @@ import { resolveGableWallFinish, resolveWallFinish } from '../domain/wallFinishe
 import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
 import type { GeneratedSolid } from '../geometry/types'
 import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
-import { gableEndWall, gableWallsForBuilding, roofWings, type RoofWing } from '../domain/roofWings'
+import { gableEndWall, gableRoofJunction, gableWallsForBuilding, roofWings, type RoofWing } from '../domain/roofWings'
+import { clippedRoofBox, roofJunctionPlanes } from '../geometry/roofJunction'
 import { CompassRose, SUN_DISTANCE_M, SunHoursOverlay, SunLight, SunPath, sunStateFor } from './sun'
 import { CucumberTrellisVisual, FruitTreeVisual, hasFruitTreeVisual, PotatoRowVisual, SurveyTreeVisual, TomatoRowVisual } from './gardenVisuals'
 import { RealisticGrass } from './grassVisuals'
@@ -530,7 +531,13 @@ function roofSurfaceMaterial(segment: RoofSegmentModel, selected: boolean, ghost
   return <meshStandardMaterial color={selected ? '#b9e84d' : segment.finish.colorHex} roughness={metallic ? 0.42 : 0.78} metalness={metallic ? 0.58 : 0.04} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />
 }
 
-/** One gable roof segment: two slopes whose ridge sits at the shared segment ridge elevation and whose eaves drop past the wall line by the overhang. */
+function RoofPanel({ size, position, rotation, planes, children, castShadow = false }: { size: [number, number, number]; position: [number, number, number]; rotation: [number, number, number]; planes: Plane[]; children: ReactNode; castShadow?: boolean }) {
+  const geometry = useMemo(() => clippedRoofBox(size, position, rotation, planes), [...size, ...position, ...rotation, planes])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  return <mesh geometry={geometry} castShadow={castShadow}>{children}</mesh>
+}
+
+/** Gable slopes extend past exposed walls; at a junction they stop on the adjoining roof surface. */
 function GableWing({ building, wing, segment, ghost, selected }: { building: BuildingModel; wing: RoofWing; segment: RoofSegmentModel; ghost?: boolean; selected: boolean }) {
   const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
   const bounds = polygonBounds(wing.footprint); const over = wing.overhangM; const pitch = MathUtils.degToRad(segment.pitchDegrees)
@@ -540,6 +547,8 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
   const span = alongZ ? width : depth; const eaveY = base - Math.tan(pitch) * over
   const half = span / 2 + over; const slope = half / Math.cos(pitch); const midY = (eaveY + ridge) / 2
   const roofMaterial = roofSurfaceMaterial(segment, selected, ghost)
+  const junction = useMemo(() => gableRoofJunction(building, wing), [building, wing])
+  const junctionPlanes = useMemo(() => roofJunctionPlanes(junction), [junction])
   const gable = useMemo(() => {
     const value = new BufferGeometry()
     const positions = alongZ ? [bounds.minX, base, 0, bounds.maxX, base, 0, cx, ridge, 0] : [0, base, bounds.minZ, 0, base, bounds.maxZ, 0, ridge, cz]
@@ -555,13 +564,14 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
   const frameMaterial = <meshStandardMaterial color="#111716" roughness={0.48} />
   return <group>
     {alongZ ? <>
-      <mesh position={[cx - half / 2, midY, cz]} rotation={[0, 0, pitch]} castShadow><boxGeometry args={[slope, 0.2, depth + over * 2]} />{roofMaterial}</mesh>
-      <mesh position={[cx + half / 2, midY, cz]} rotation={[0, 0, -pitch]} castShadow><boxGeometry args={[slope, 0.2, depth + over * 2]} />{roofMaterial}</mesh>
+      <RoofPanel position={[cx - half / 2, midY, cz]} rotation={[0, 0, pitch]} size={[slope, 0.2, depth + over * 2]} planes={junctionPlanes} castShadow>{roofMaterial}</RoofPanel>
+      <RoofPanel position={[cx + half / 2, midY, cz]} rotation={[0, 0, -pitch]} size={[slope, 0.2, depth + over * 2]} planes={junctionPlanes} castShadow>{roofMaterial}</RoofPanel>
     </> : <>
-      <mesh position={[cx, midY, cz - half / 2]} rotation={[-pitch, 0, 0]} castShadow><boxGeometry args={[width + over * 2, 0.2, slope]} />{roofMaterial}</mesh>
-      <mesh position={[cx, midY, cz + half / 2]} rotation={[pitch, 0, 0]} castShadow><boxGeometry args={[width + over * 2, 0.2, slope]} />{roofMaterial}</mesh>
+      <RoofPanel position={[cx, midY, cz - half / 2]} rotation={[-pitch, 0, 0]} size={[width + over * 2, 0.2, slope]} planes={junctionPlanes} castShadow>{roofMaterial}</RoofPanel>
+      <RoofPanel position={[cx, midY, cz + half / 2]} rotation={[pitch, 0, 0]} size={[width + over * 2, 0.2, slope]} planes={junctionPlanes} castShadow>{roofMaterial}</RoofPanel>
     </>}
     {ends.map((value, index) => {
+      if (junction?.side === (index === 0 ? 'min' : 'max')) return null
       const outward = index === 0 ? -1 : 1; const offset = value + outward * 0.02; const frameOffset = value + outward * 0.06
       const wall = gableEndWall(building, wing, alongZ ? 'z' : 'x', value)
       const gableWall = gableWallsForBuilding(building).find((gable) => gable.segmentRef === wing.ref && gable.side === (index === 0 ? 'min' : 'max'))!
@@ -594,11 +604,11 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
       </group>
     })}
     {seams.flatMap((along) => alongZ ? [
-      <mesh key={`a-${along}`} position={[cx - half / 2, midY + 0.12, along]} rotation={[0, 0, pitch]}><boxGeometry args={[slope, 0.025, 0.032]} />{seamMaterial}</mesh>,
-      <mesh key={`b-${along}`} position={[cx + half / 2, midY + 0.12, along]} rotation={[0, 0, -pitch]}><boxGeometry args={[slope, 0.025, 0.032]} />{seamMaterial}</mesh>,
+      <RoofPanel key={`a-${along}`} position={[cx - half / 2, midY + 0.12, along]} rotation={[0, 0, pitch]} size={[slope, 0.025, 0.032]} planes={junctionPlanes}>{seamMaterial}</RoofPanel>,
+      <RoofPanel key={`b-${along}`} position={[cx + half / 2, midY + 0.12, along]} rotation={[0, 0, -pitch]} size={[slope, 0.025, 0.032]} planes={junctionPlanes}>{seamMaterial}</RoofPanel>,
     ] : [
-      <mesh key={`a-${along}`} position={[along, midY + 0.12, cz - half / 2]} rotation={[-pitch, 0, 0]}><boxGeometry args={[0.032, 0.025, slope]} />{seamMaterial}</mesh>,
-      <mesh key={`b-${along}`} position={[along, midY + 0.12, cz + half / 2]} rotation={[pitch, 0, 0]}><boxGeometry args={[0.032, 0.025, slope]} />{seamMaterial}</mesh>,
+      <RoofPanel key={`a-${along}`} position={[along, midY + 0.12, cz - half / 2]} rotation={[-pitch, 0, 0]} size={[0.032, 0.025, slope]} planes={junctionPlanes}>{seamMaterial}</RoofPanel>,
+      <RoofPanel key={`b-${along}`} position={[along, midY + 0.12, cz + half / 2]} rotation={[pitch, 0, 0]} size={[0.032, 0.025, slope]} planes={junctionPlanes}>{seamMaterial}</RoofPanel>,
     ])}
   </group>
 }
@@ -719,7 +729,7 @@ function Building({ project, building, ghost }: { project: ProjectV2; building: 
   const roofOffset = explode ? (Math.max(...building.storeys.map((storey) => storey.level)) + 1) * explodedOffset : 0
   const roofBounds = buildingLocalBounds(building); const roofWidth = roofBounds.maxX - roofBounds.minX + building.roof.overhangM * 2; const roofDepth = roofBounds.maxZ - roofBounds.minZ + building.roof.overhangM * 2
   return <>
-    <group ref={group} position={[building.position.x, terrainOffset, building.position.z]} rotation={[0, -MathUtils.degToRad(building.rotationDegrees), 0]} userData={{ semanticRef: building.ref, buildingRef: building.ref, captureRoot: true, captureSource: ghost ? 'ghost' : 'committed' }} onDoubleClick={(event) => { event.stopPropagation(); useStudioStore.getState().setSelectedRef(building.ref) }}>
+    <group ref={group} position={[building.position.x, terrainOffset, building.position.z]} rotation={[0, MathUtils.degToRad(building.rotationDegrees), 0]} userData={{ semanticRef: building.ref, buildingRef: building.ref, captureRoot: true, captureSource: ghost ? 'ghost' : 'committed' }} onDoubleClick={(event) => { event.stopPropagation(); useStudioStore.getState().setSelectedRef(building.ref) }}>
       {solids.map((solid) => <GeneratedMesh key={solid.ref} solid={solid} selected={selectedRef === solid.ref} buildingRef={building.ref} style={building.architecturalStyle} wall={building.walls.find((wall) => wall.ref === solid.ref)} yOffset={offsetFor(solid.ref)} ghost={ghost} />)}
       {isLShapedBarn(building) && <BarnGlazing building={building} ghost={ghost} />}
       {isLShapedBarn(building) && <BarnCladding building={building} ghost={ghost} />}
@@ -738,7 +748,7 @@ function Building({ project, building, ghost }: { project: ProjectV2; building: 
       onMouseUp={() => {
         if (!group.current) return
         if (invalid.current) { group.current.position.set(building.position.x, terrainOffset, building.position.z); setToast('Placement reverted: collision, missing site support, or out-of-site footprint.') }
-        else commitCommand({ type: 'building.update', action: 'move', buildingRef: building.ref, position: { x: group.current.position.x, z: group.current.position.z }, rotationDegrees: MathUtils.radToDeg(-group.current.rotation.y) })
+        else commitCommand({ type: 'building.update', action: 'move', buildingRef: building.ref, position: { x: group.current.position.x, z: group.current.position.z }, rotationDegrees: MathUtils.radToDeg(group.current.rotation.y) })
         endReposition()
       }} />}
   </>
