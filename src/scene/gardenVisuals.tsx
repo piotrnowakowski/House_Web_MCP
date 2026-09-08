@@ -5,6 +5,7 @@ import type { PlantModel } from '../domain/types'
 
 const gardenAsset = (filename: string) => `${import.meta.env.BASE_URL}models/garden/${filename}`
 const treeAsset = gardenAsset('orchard-tree-realistic.glb')
+const coniferAsset = gardenAsset('conifer-realistic.glb')
 const tomatoFoliageAsset = gardenAsset('crop-tomato-foliage.glb')
 const potatoFoliageAsset = gardenAsset('crop-potato-foliage.glb')
 
@@ -49,7 +50,7 @@ function usePreparedScene(path: string, selected: boolean, ghost: boolean, leave
       const sourceMaterials = Array.isArray(object.material) ? object.material : [object.material]
       const materials = sourceMaterials.map((material) => {
         const copy = material.clone() as MeshStandardMaterial
-        const leafMaterial = copy.name.toLowerCase().includes('leav')
+        const leafMaterial = /leav|twig/.test(copy.name.toLowerCase())
         if (leafMaterial && !leavesVisible) {
           copy.transparent = true
           copy.opacity = 0
@@ -202,8 +203,19 @@ export function FruitTreeVisual({ plant, month, selected, ghost }: { plant: Plan
   </group>
 }
 
-function ImportedTree({ plant, visibleLeaf, selected, ghost, shape }: { plant: PlantModel; visibleLeaf: boolean; selected: boolean; ghost: boolean; shape: { x: number; z: number } }) {
-  const { prepared, bounds } = usePreparedScene(treeAsset, selected, ghost, visibleLeaf)
+export function SurveyTreeVisual({ plant, month, selected, ghost }: { plant: PlantModel; month: number; selected: boolean; ghost: boolean }) {
+  const visibleLeaf = plant.leafMonths.includes(month)
+  const rotation = parseInt(plant.surveyHandle ?? '0', 16) * 2.399963
+  return <group rotation={[0, rotation, 0]}>
+    <AssetBoundary fallback={<FallbackTree plant={plant} visibleLeaf={visibleLeaf} selected={selected} ghost={ghost} />}>
+      <ImportedTree plant={plant} visibleLeaf={visibleLeaf} selected={selected} ghost={ghost} shape={{ x: 1, z: 1 }} path={plant.crownShape === 'conical' ? coniferAsset : treeAsset} />
+    </AssetBoundary>
+    {(selected || ghost) && <mesh position={[0, 0.025, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[plant.canopyM * 0.46, plant.canopyM * 0.5, 40]} /><meshBasicMaterial color="#b9e84d" transparent opacity={ghost ? 0.35 : 0.78} side={DoubleSide} /></mesh>}
+  </group>
+}
+
+function ImportedTree({ plant, visibleLeaf, selected, ghost, shape, path = treeAsset }: { plant: PlantModel; visibleLeaf: boolean; selected: boolean; ghost: boolean; shape: { x: number; z: number }; path?: string }) {
+  const { prepared, bounds } = usePreparedScene(path, selected, ghost, visibleLeaf)
   const sourceWidth = Math.max(0.1, bounds.max.x - bounds.min.x)
   const sourceHeight = Math.max(0.1, bounds.max.y - bounds.min.y)
   const sourceDepth = Math.max(0.1, bounds.max.z - bounds.min.z)
