@@ -1,5 +1,4 @@
 import { estimateDayPartTemperatures } from './climate'
-import { applyInterior, InteriorItemSchema, itemFitsFloor } from './interior'
 import { validateTextureChoice } from './textures'
 import { gardenFixtureById, groupedGardenFixtures } from './gardenFixtures'
 import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
@@ -227,8 +226,6 @@ const applyStorey = (project: ProjectV2, command: Extract<ProjectCommand, { type
     lower.topBoundaryRef = building.roof.ref
     building.spaces.filter((space) => lower.spaceRefs.includes(space.ref)).forEach((space) => { space.topBoundaryRef = building.roof.ref })
     building.storeys = building.storeys.filter((item) => item.ref !== storey.ref)
-    if (building.furniture) building.furniture = building.furniture.filter((item) => item.storeyRef !== storey.ref)
-    if (building.stairs) building.stairs = building.stairs.filter((item) => item.fromStoreyRef !== storey.ref && item.toStoreyRef !== storey.ref)
     building.spaces = building.spaces.filter((item) => !storey.spaceRefs.includes(item.ref))
     building.walls = building.walls.filter((item) => !storey.wallRefs.includes(item.ref))
     building.slabs = building.slabs.filter((item) => item.ref !== storey.baseSlabRef)
@@ -366,7 +363,6 @@ const applyRoof = (project: ProjectV2, command: Extract<ProjectCommand, { type: 
 }
 
 const applyCommandMutable = (project: ProjectV2, command: ProjectCommand) => {
-  if (command.type === 'interior.update') { applyInterior(getBuilding(project, command.buildingRef), command); return }
   if (command.type === 'site.update') applySite(project, command)
   else if (command.type === 'terrain.update') project.site.terrain.elevationPoints = clone(command.elevationPoints)
   else if (command.type === 'building.update') applyBuilding(project, command)
@@ -445,11 +441,8 @@ const applyCommandMutable = (project: ProjectV2, command: ProjectCommand) => {
       if (command.footprint) zone.footprint = clone(command.footprint); if (command.delta) zone.footprint = zone.footprint.map((point) => ({ x: point.x + command.delta!.x, z: point.z + command.delta!.z }))
     }
   } else if (command.type === 'plant.update') {
-    if (command.action === 'set-height' && command.matureHeightM === undefined) throw new Error('Plant height is required.')
-    if (command.matureHeightM !== undefined && (!Number.isFinite(command.matureHeightM) || command.matureHeightM <= 0)) throw new Error('Plant height must be a positive finite number.')
-    if (command.matureHeightM !== undefined && command.action !== 'add' && command.action !== 'set-height') throw new Error('Plant height is only supported for add or set-height.')
     const index = project.landscape.plants.findIndex((item) => item.ref === command.plantRef)
-    if (command.action === 'add') { if (!command.position) throw new Error('Plant position is required.'); project.landscape.plants.push({ ref: command.plantRef, name: command.name ?? 'Plant', species: command.species ?? 'Unspecified', kind: command.kind ?? 'shrub', position: clone(command.position), matureHeightM: command.matureHeightM ?? 1.5, canopyM: 1.2, sunNeed: 'sun', waterNeed: 0.7, hardinessMinC: -20, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [], locked: false }) }
+    if (command.action === 'add') { if (!command.position) throw new Error('Plant position is required.'); project.landscape.plants.push({ ref: command.plantRef, name: command.name ?? 'Plant', species: command.species ?? 'Unspecified', kind: command.kind ?? 'shrub', position: clone(command.position), matureHeightM: 1.5, canopyM: 1.2, sunNeed: 'sun', waterNeed: 0.7, hardinessMinC: -20, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [], locked: false }) }
     else {
       if (index < 0) throw new Error(`Plant not found: ${command.plantRef}`)
       const plant = project.landscape.plants[index]
@@ -457,7 +450,6 @@ const applyCommandMutable = (project: ProjectV2, command: ProjectCommand) => {
       else {
         if (plant.locked) throw new Error(`${plant.name} is locked. Unlock it before changing it.`)
         if (command.action === 'remove') project.landscape.plants.splice(index, 1)
-        else if (command.action === 'set-height') plant.matureHeightM = command.matureHeightM!
         else { if (!command.position) throw new Error('Plant position is required.'); plant.position = clone(command.position) }
       }
     }
@@ -511,20 +503,8 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
   const constructionParcels = project.site.parcels.filter((parcel) => parcel.landRole === 'construction')
   if (polygonSelfIntersects(project.site.boundary)) issues.push({ severity: 'error', code: 'site.self-intersection', message: 'Site boundary self-intersects.', subjectRef: 'site' })
   project.buildings.forEach((building) => {
-    const refs = [...allRefs(building), ...(building.furniture ?? []).map((item) => item.ref), ...(building.stairs ?? []).map((item) => item.ref)]; const duplicates = refs.filter((ref, index) => refs.indexOf(ref) !== index)
+    const refs = allRefs(building); const duplicates = refs.filter((ref, index) => refs.indexOf(ref) !== index)
     if (duplicates.length) issues.push({ severity: 'error', code: 'ref.duplicate', message: `Duplicate reference: ${duplicates[0]}`, subjectRef: duplicates[0] })
-    for (const stairs of building.stairs ?? []) {
-      const lower = building.storeys.find((s) => s.ref === stairs.fromStoreyRef); const upper = building.storeys.find((s) => s.ref === stairs.toStoreyRef)
-      if (!lower || !upper || upper.elevationM <= lower.elevationM) issues.push({ severity: 'error', code: 'stairs.connection', message: 'Stairs must connect an existing lower floor to an upper floor.', subjectRef: stairs.ref })
-    }
-    for (const slab of building.slabs) for (const hole of slab.holes ?? []) {
-      if (polygonSelfIntersects(hole) || polygonArea(hole) < 0.01 || hole.some((p) => !pointInPolygon(p, slab.footprint))) issues.push({ severity: 'error', code: 'slab.opening', message: 'A stair opening must stay within its floor slab.', subjectRef: slab.ref })
-    }
-    for (const item of building.furniture ?? []) {
-      const host = building.storeys.find((floor) => floor.ref === item.storeyRef)
-      const slab = building.slabs.find((floor) => floor.ref === host?.baseSlabRef)
-      if (!InteriorItemSchema.safeParse(item).success || !host || !slab || item.heightM > host.clearHeightM || !itemFitsFloor(item, slab.footprint, slab.holes)) issues.push({ severity: 'error', code: 'interior.invalid', message: `${item.name} must fit on an existing floor with valid dimensions.`, subjectRef: item.ref })
-    }
     building.storeys.forEach((storey) => {
       const base = building.slabs.find((slab) => slab.ref === storey.baseSlabRef)
       if (!base) issues.push({ severity: 'error', code: 'storey.base-slab', message: `${storey.name} has no base slab.`, subjectRef: storey.ref })
@@ -586,7 +566,7 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
   })
   const hostRefs = new Set(['site/terrain', ...project.landscape.zones.map((zone) => zone.ref), ...project.buildings.flatMap((building) => [building.roof.ref, ...building.roof.segments.map((segment) => segment.ref), ...building.slabs.map((slab) => slab.ref), ...building.walls.map((wall) => wall.ref), ...building.platforms.map((platform) => platform.ref)])])
   project.landscape.plants.forEach((plant) => {
-    if (plant.placementRole !== 'context' && !pointInPolygon(plant.position, project.site.boundary)) issues.push({ severity: 'error', code: 'plant.site', message: `${plant.name} is outside the site.`, subjectRef: plant.ref })
+    if (!pointInPolygon(plant.position, project.site.boundary)) issues.push({ severity: 'error', code: 'plant.site', message: `${plant.name} is outside the site.`, subjectRef: plant.ref })
     if (plant.attachment && !hostRefs.has(plant.attachment.hostRef)) issues.push({ severity: 'error', code: 'plant.support', message: `${plant.name} has an unknown support surface.`, subjectRef: plant.ref })
   })
   project.landscape.fixtures.forEach((fixture) => {

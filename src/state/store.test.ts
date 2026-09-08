@@ -38,43 +38,6 @@ describe('sun time state', () => {
 })
 
 describe('start screen and project switching', () => {
-  it('refreshes cached warnings on pending proposals when reopening a workspace', () => {
-    const project = structuredClone(modernBarnProject)
-    const proposal = useStudioStore.getState().createVariant('Sedge adjustment', [{ type: 'plant.update', action: 'move', plantRef: 'plant/sedge', position: { x: -7, z: 9 } }])
-    const expectedIssues = structuredClone(proposal.issues)
-    const cached = structuredClone(useStudioStore.getState().proposals.find((item) => item.ref === proposal.ref)!)
-    cached.issues.push({ severity: 'warning', code: 'planting.sun-mismatch', subjectRef: 'plant/apple', message: 'Obsolete mapped-tree sunlight warning' })
-    useStudioStore.getState().restoreWorkspace({ version: 1, project, proposals: [cached], draftChangeSets: [] })
-    const restored = useStudioStore.getState().variants[0]
-    expect(restored.issues).toEqual(expectedIssues)
-    expect(restored.issues.some((issue) => issue.code === 'site.geotechnical-review')).toBe(true)
-    expect(restored.project).toEqual(proposal.project)
-    expect(restored.commands).toEqual(proposal.commands)
-    expect(useStudioStore.getState().proposals[0].issues).toEqual(expectedIssues)
-  })
-
-  it('migrates saved tree heights and prevents an older proposal from restoring the old dimensions', async () => {
-    globalThis.indexedDB = new IDBFactory()
-    const legacy = structuredClone(modernBarnProject)
-    legacy.landscape.orchardCatalogVersion = 2
-    const apple = legacy.landscape.plants.find((plant) => plant.ref === 'plant/apple')!
-    apple.matureHeightM = 5.5
-    apple.position = { x: -14, z: 12 }
-    useStudioStore.getState().replaceProject(legacy)
-    const proposal = useStudioStore.getState().createVariant('Old planting proposal', [{ type: 'plant.update', action: 'move', plantRef: 'plant/hydrangea', position: { x: -7, z: 9 } }])
-    const proposals = structuredClone(useStudioStore.getState().proposals)
-    await saveWorkspace({ version: 1, project: legacy, proposals, draftChangeSets: [] })
-    await useStudioStore.getState().openWorkspace(legacy.ref)
-    const state = useStudioStore.getState()
-    expect(state.project.landscape.plants.find((plant) => plant.ref === apple.ref)).toMatchObject({ ref: apple.ref, matureHeightM: 15, surveyHandle: '50F5' })
-    expect(state.project.landscape.plants.find((plant) => plant.ref === apple.ref)!.position).toEqual(modernBarnProject.landscape.plants.find((plant) => plant.ref === apple.ref)!.position)
-    expect(state.project.revision).toBe(legacy.revision + 1)
-    expect(state.proposals.find((item) => item.ref === proposal.ref)!.status).toBe('stale')
-    expect(state.variants).toEqual([])
-    await saveWorkspace({ version: 1, project: state.project, proposals: state.proposals, draftChangeSets: [] })
-    await useStudioStore.getState().openWorkspace(legacy.ref)
-    expect(useStudioStore.getState().project).toEqual(state.project)
-  })
   it('opens on the launcher without a hydrated project and starts a new terrain from valid input', () => {
     useStudioStore.setState({ launcherOpen: true, hydrated: false })
     expect(useStudioStore.getState().launcherOpen).toBe(true)

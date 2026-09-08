@@ -4,7 +4,6 @@ export type SlabSolidInput = {
   kind: 'slab'
   ref: string
   footprint: Polygon2
-  holes?: Polygon2[]
   topElevationM: number
   thicknessM: number
 }
