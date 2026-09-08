@@ -1,12 +1,11 @@
 import { Html, Line as DreiLine, TransformControls } from '@react-three/drei'
 import { useFrame, useThree } from '@react-three/fiber'
 import { CuboidCollider, Physics, RigidBody } from '@react-three/rapier'
-import * as OBC from '@thatopen/components'
 import CameraControls from 'camera-controls'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
-  Box3, BoxGeometry, BufferAttribute, BufferGeometry, Color, DirectionalLight, DoubleSide, EdgesGeometry, Group, LinearFilter, MathUtils, Mesh, MeshStandardMaterial, Object3D,
-  OrthographicCamera, PerspectiveCamera, Plane, PlaneGeometry, Raycaster, Scene, Shape, ShapeGeometry, SRGBColorSpace, Vector2, Vector3, WebGLRenderTarget, WebGLRenderer,
+  Box3, BoxGeometry, BufferAttribute, BufferGeometry, Color, DirectionalLight, DoubleSide, EdgesGeometry, Group, LinearFilter, MathUtils, Matrix4, Mesh, MeshStandardMaterial, MOUSE, Object3D,
+  OrthographicCamera, PerspectiveCamera, Plane, PlaneGeometry, Quaternion, Raycaster, Scene, Shape, ShapeGeometry, Sphere, Spherical, SRGBColorSpace, Vector2, Vector3, Vector4, WebGLRenderTarget,
 } from 'three'
 import { acceleratedRaycast, computeBoundsTree, disposeBoundsTree } from 'three-mesh-bvh'
 import { buildingGroundOffset, buildingLocalBounds, elevationAt, pointInPolygon, polygonBounds, polygonCentroid, spaceFootprint } from '../domain/geometry'
@@ -38,6 +37,10 @@ const STOREY_EXPLODE_GAP_M = 2.8
 const ROOM_EXPLODE_DISTANCE_M = 2.6
 export const CLEAR_MEASUREMENT_EVENT = 'projectv2:clear-measurement'
 
+CameraControls.install({
+  THREE: { MOUSE, Vector2, Vector3, Vector4, Quaternion, Matrix4, Spherical, Box3, Sphere, Raycaster, MathUtils },
+})
+
 const polygonShape = (points: Polygon2) => {
   const shape = new Shape()
   points.forEach((point, index) => index ? shape.lineTo(point.x, -point.z) : shape.moveTo(point.x, -point.z))
@@ -65,21 +68,6 @@ const metreBoxGeometry = (width: number, height: number, depth: number) => {
   const spans: Array<[number, number]> = [[depth, height], [depth, height], [width, depth], [width, depth], [width, height], [width, height]]
   for (let index = 0; index < uv.count; index += 1) { const [u, v] = spans[Math.floor(index / 4)]; uv.setXY(index, uv.getX(index) * u, uv.getY(index) * v) }
   return geometry
-}
-
-class SharedRenderer extends OBC.BaseRenderer {
-  three: WebGLRenderer
-  constructor(components: OBC.Components, renderer: WebGLRenderer) { super(components); this.three = renderer }
-  update() { /* React Three Fiber owns the render loop. */ }
-  dispose() { this.clippingPlanes = []; this.onDisposed.trigger(undefined) }
-  getSize() { return this.three.getSize(new Vector2()) }
-  resize(_size?: Vector2) { this.onResize.trigger(this.getSize()) }
-}
-
-class SharedScene extends OBC.BaseScene {
-  three: Object3D
-  constructor(components: OBC.Components, shared: Scene) { super(components); this.three = shared }
-  override dispose() { this.onDisposed.trigger(undefined) }
 }
 
 function MeasurementPoint({ position, waiting = false }: { position: Vector3; waiting?: boolean }) {
@@ -244,7 +232,7 @@ function InteractiveMeasurements() {
 }
 
 function ThatOpenBridge() {
-  const { gl, scene, set, size } = useThree()
+  const { gl, set, size } = useThree()
   const viewerMode = useStudioStore((state) => state.viewerMode)
   const explode = useStudioStore((state) => state.explodeStoreys)
   const project = useStudioStore((state) => state.project)
@@ -253,30 +241,66 @@ function ThatOpenBridge() {
   const handledRefocusRequest = useRef(refocusRequest)
   const handledGardenFocusRequest = useRef(gardenFocusRequest.sequence)
   const handledExplode = useRef(explode)
-  const bridge = useRef<{ components: OBC.Components; world: OBC.SimpleWorld; camera: OBC.OrthoPerspectiveCamera; renderer: SharedRenderer } | null>(null)
+  const bridge = useRef<{
+    controls: CameraControls
+    perspective: PerspectiveCamera
+    orthographic: OrthographicCamera
+    active: PerspectiveCamera | OrthographicCamera
+  } | null>(null)
+
+  const usePerspectiveCamera = (current: NonNullable<typeof bridge.current>) => {
+    if (current.active !== current.perspective) {
+      current.perspective.position.copy(current.active.position)
+      current.perspective.quaternion.copy(current.active.quaternion)
+      current.perspective.updateProjectionMatrix()
+      current.controls.camera = current.perspective
+      current.active = current.perspective
+      set({ camera: current.perspective })
+    }
+    current.controls.mouseButtons.wheel = CameraControls.ACTION.DOLLY
+    current.controls.mouseButtons.middle = CameraControls.ACTION.DOLLY
+    current.controls.touches.two = CameraControls.ACTION.TOUCH_DOLLY_TRUCK
+  }
+
+  const useOrthographicCamera = (current: NonNullable<typeof bridge.current>) => {
+    if (current.active !== current.orthographic) {
+      const aspect = Math.max(gl.domElement.clientWidth, 1) / Math.max(gl.domElement.clientHeight, 1)
+      const halfHeight = Math.max(
+        Math.tan(MathUtils.degToRad(current.perspective.fov * 0.5)) * current.controls.distance,
+        1,
+      )
+      current.orthographic.left = -halfHeight * aspect
+      current.orthographic.right = halfHeight * aspect
+      current.orthographic.top = halfHeight
+      current.orthographic.bottom = -halfHeight
+      current.orthographic.zoom = 1
+      current.orthographic.position.copy(current.active.position)
+      current.orthographic.quaternion.copy(current.active.quaternion)
+      current.orthographic.updateProjectionMatrix()
+      current.controls.camera = current.orthographic
+      current.active = current.orthographic
+      set({ camera: current.orthographic })
+    }
+    current.controls.mouseButtons.wheel = CameraControls.ACTION.ZOOM
+    current.controls.mouseButtons.middle = CameraControls.ACTION.ZOOM
+    current.controls.touches.two = CameraControls.ACTION.TOUCH_ZOOM_TRUCK
+  }
 
   useEffect(() => {
-    const components = new OBC.Components()
-    const world = components.get(OBC.Worlds).create()
-    const renderer = new SharedRenderer(components, gl)
-    world.scene = new SharedScene(components, scene)
-    world.renderer = renderer
-    const camera = new OBC.OrthoPerspectiveCamera(components)
-    world.camera = camera
-    camera.threePersp.near = 0.1; camera.threePersp.far = SCENE_FAR; camera.threePersp.updateProjectionMatrix()
-    camera.threeOrtho.near = 0.1; camera.threeOrtho.far = SCENE_FAR; camera.threeOrtho.updateProjectionMatrix()
-    camera.controls.maxDistance = MAX_ORBIT_DISTANCE
-    camera.controls.mouseButtons.middle = CameraControls.ACTION.TRUCK
-    camera.three.position.set(22, 13, 27)
-    camera.controls?.setLookAt(22, 13, 27, 0, 3, 1.5, false)
-    set({ camera: camera.three })
-    components.init()
-    bridge.current = { components, world, camera, renderer }
+    const aspect = Math.max(gl.domElement.clientWidth, 1) / Math.max(gl.domElement.clientHeight, 1)
+    const perspective = new PerspectiveCamera(60, aspect, 0.1, SCENE_FAR)
+    const orthographic = new OrthographicCamera(-25 * aspect, 25 * aspect, 25, -25, 0.1, SCENE_FAR)
+    const controls = new CameraControls(perspective, gl.domElement)
+    controls.maxDistance = MAX_ORBIT_DISTANCE
+    controls.mouseButtons.middle = CameraControls.ACTION.DOLLY
+    controls.setLookAt(22, 13, 27, 0, 3, 1.5, false)
+    bridge.current = { controls, perspective, orthographic, active: perspective }
+    set({ camera: perspective })
     return () => {
-      camera.dispose()
-      world.enabled = false; renderer.dispose(); components.enabled = false; bridge.current = null
+      controls.dispose()
+      bridge.current = null
     }
-  }, [gl, scene, set])
+  }, [gl, set])
 
   useEffect(() => {
     let pointerOverViewport = false
@@ -286,7 +310,7 @@ function ThatOpenBridge() {
       if (!pointerOverViewport || !['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(event.key)) return
       const active = document.activeElement
       if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLSelectElement || (active instanceof HTMLElement && active.isContentEditable)) return
-      const controls = bridge.current?.camera.controls
+      const controls = bridge.current?.controls
       if (!controls) return
       const position = controls.getPosition(new Vector3())
       const target = controls.getTarget(new Vector3())
@@ -309,13 +333,30 @@ function ThatOpenBridge() {
     }
   }, [gl])
 
-  useEffect(() => { bridge.current?.renderer.resize(new Vector2(size.width, size.height)) }, [size])
   useEffect(() => {
     const current = bridge.current
     if (!current) return
-    current.camera.controls.mouseButtons.left = viewerMode === 'measure-area' ? CameraControls.ACTION.NONE : CameraControls.ACTION.ROTATE
-    if (viewerMode === 'plan') { current.camera.set('Plan'); void current.camera.projection.set('Orthographic') }
-    else { current.camera.set('Orbit'); current.camera.controls.maxDistance = MAX_ORBIT_DISTANCE; void current.camera.projection.set('Perspective') }
+    const aspect = Math.max(size.width, 1) / Math.max(size.height, 1)
+    current.perspective.aspect = aspect
+    current.perspective.updateProjectionMatrix()
+    const halfHeight = Math.max((current.orthographic.top - current.orthographic.bottom) * 0.5, 1)
+    current.orthographic.left = -halfHeight * aspect
+    current.orthographic.right = halfHeight * aspect
+    current.orthographic.updateProjectionMatrix()
+  }, [size])
+  useEffect(() => {
+    const current = bridge.current
+    if (!current) return
+    if (viewerMode === 'plan') {
+      useOrthographicCamera(current)
+      current.controls.mouseButtons.left = CameraControls.ACTION.TRUCK
+      current.controls.touches.one = CameraControls.ACTION.TOUCH_TRUCK
+    } else {
+      usePerspectiveCamera(current)
+      current.controls.maxDistance = MAX_ORBIT_DISTANCE
+      current.controls.mouseButtons.left = viewerMode === 'measure-area' ? CameraControls.ACTION.NONE : CameraControls.ACTION.ROTATE
+      current.controls.touches.one = CameraControls.ACTION.TOUCH_ROTATE
+    }
   }, [viewerMode])
   useEffect(() => {
     if (handledRefocusRequest.current === refocusRequest) return
@@ -323,18 +364,18 @@ function ThatOpenBridge() {
     const current = bridge.current; const building = project.buildings[0]
     if (!current) return
     const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    current.camera.set('Orbit'); current.camera.controls.maxDistance = MAX_ORBIT_DISTANCE; void current.camera.projection.set('Perspective')
-    void current.camera.controls.setFocalOffset(0, 0, 0, smooth)
+    usePerspectiveCamera(current); current.controls.maxDistance = MAX_ORBIT_DISTANCE
+    void current.controls.setFocalOffset(0, 0, 0, smooth)
     if (!building) {
       // An empty plot: frame the site boundary from the south-east so the whole rectangle and the compass are in view.
       const xs = project.site.boundary.map((point) => point.x); const zs = project.site.boundary.map((point) => point.z)
       const centerX = (Math.min(...xs) + Math.max(...xs)) / 2; const centerZ = (Math.min(...zs) + Math.max(...zs)) / 2
       const extent = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs), 12)
-      void current.camera.controls?.setLookAt(centerX + extent * 0.7, extent * 0.75 + 6, centerZ + extent * 0.85, centerX, 0, centerZ, smooth)
+      void current.controls.setLookAt(centerX + extent * 0.7, extent * 0.75 + 6, centerZ + extent * 0.85, centerX, 0, centerZ, smooth)
       return
     }
     const targetX = building.position.x; const targetY = isLShapedBarn(building) ? 3 : 1.4; const targetZ = building.position.z + (isLShapedBarn(building) ? 2.5 : 0)
-    void current.camera.controls?.setLookAt(targetX + 22, targetY + 10, targetZ + 25, targetX, targetY, targetZ, smooth)
+    void current.controls.setLookAt(targetX + 22, targetY + 10, targetZ + 25, targetX, targetY, targetZ, smooth)
   }, [project, refocusRequest])
   useEffect(() => {
     if (handledGardenFocusRequest.current === gardenFocusRequest.sequence) return
@@ -342,9 +383,9 @@ function ThatOpenBridge() {
     const current = bridge.current
     if (!current) return
     const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    current.camera.set('Orbit'); current.camera.controls.maxDistance = MAX_ORBIT_DISTANCE; void current.camera.projection.set('Perspective')
-    void current.camera.controls.setFocalOffset(2.4, 0, 0, smooth)
-    void current.camera.controls.setLookAt(gardenFocusRequest.targetX + 5.5, 4.6, gardenFocusRequest.targetZ + 7, gardenFocusRequest.targetX, 0.65, gardenFocusRequest.targetZ, smooth)
+    usePerspectiveCamera(current); current.controls.maxDistance = MAX_ORBIT_DISTANCE
+    void current.controls.setFocalOffset(2.4, 0, 0, smooth)
+    void current.controls.setLookAt(gardenFocusRequest.targetX + 5.5, 4.6, gardenFocusRequest.targetZ + 7, gardenFocusRequest.targetX, 0.65, gardenFocusRequest.targetZ, smooth)
   }, [gardenFocusRequest])
   useEffect(() => {
     if (handledExplode.current === explode) return
@@ -358,20 +399,14 @@ function ThatOpenBridge() {
     const targetX = building.position.x; const targetY = explode ? explodedTop * 0.44 : 1.4; const targetZ = building.position.z
     const span = Math.max(width + ROOM_EXPLODE_DISTANCE_M * 2, depth + ROOM_EXPLODE_DISTANCE_M * 2, explodedTop)
     const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    current.camera.set('Orbit'); current.camera.controls.maxDistance = MAX_ORBIT_DISTANCE; void current.camera.projection.set('Perspective')
-    void current.camera.controls.setFocalOffset(0, 0, 0, smooth)
-    void current.camera.controls.setLookAt(
+    usePerspectiveCamera(current); current.controls.maxDistance = MAX_ORBIT_DISTANCE
+    void current.controls.setFocalOffset(0, 0, 0, smooth)
+    void current.controls.setLookAt(
       targetX + (explode ? span * 1.05 : 18), targetY + (explode ? span * 0.72 : 12), targetZ + (explode ? span * 1.15 : 20),
       targetX, targetY, targetZ, smooth,
     )
   }, [explode, project])
-  useEffect(() => {
-    const current = bridge.current
-    if (!current) return
-    current.world.meshes.clear()
-    scene.traverse((object) => { if (object instanceof Mesh && object.userData.semanticRef) current.world.meshes.add(object) })
-  }, [project, scene])
-  useFrame((_, delta) => { bridge.current?.world.update(delta) })
+  useFrame((_, delta) => { bridge.current?.controls.update(delta) })
   return null
 }
 
