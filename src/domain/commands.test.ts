@@ -41,7 +41,8 @@ describe('ProjectV2 command bus', () => {
   it('ships the selectable modern barn preset as a valid two-level L-shaped house', () => {
     expect(modernBarnProject.buildings[0]).toMatchObject({
       architecturalStyle: 'barn',
-      position: { x: 0, z: -1 },
+      position: { x: 2.5, z: 1.5 },
+      rotationDegrees: 270,
       roof: { type: 'gable', pitchDegrees: 45, overhangM: 0.42 },
     })
     expect(modernBarnProject.buildings[0].storeys).toHaveLength(2)

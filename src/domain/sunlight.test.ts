@@ -148,14 +148,18 @@ describe('planting sun-mismatch validation', () => {
   })
 
   it('reveals extra shade in the original garden when the mapped trees are included', () => {
-    const withoutSurvey = structuredClone(modernBarnProject)
+    // Retain the original regression scene independently of the current house-placement preset.
+    const original = structuredClone(modernBarnProject)
+    original.buildings[0].position = { x: 0, z: -1 }
+    original.buildings[0].rotationDegrees = 0
+    const withoutSurvey = structuredClone(original)
     withoutSurvey.landscape.plants = withoutSurvey.landscape.plants.filter((plant) => !plant.surveyHandle)
     expect(validateProject(withoutSurvey).filter((issue) => issue.code === 'planting.sun-mismatch')).toEqual([])
-    const warnings = validateProject(modernBarnProject).filter((issue) => issue.code === 'planting.sun-mismatch')
+    const warnings = validateProject(original).filter((issue) => issue.code === 'planting.sun-mismatch')
     expect(warnings.length).toBeGreaterThan(0)
-    const mappedRefs = new Set(modernBarnProject.landscape.plants.filter((plant) => plant.surveyHandle).map((plant) => plant.ref))
+    const mappedRefs = new Set(original.landscape.plants.filter((plant) => plant.surveyHandle).map((plant) => plant.ref))
     expect(warnings.every((issue) => !mappedRefs.has(issue.subjectRef!))).toBe(true)
-    expect(warnings.some((issue) => modernBarnProject.landscape.fixtures.some((fixture) => fixture.ref === issue.subjectRef))).toBe(true)
+    expect(warnings.some((issue) => original.landscape.fixtures.some((fixture) => fixture.ref === issue.subjectRef))).toBe(true)
   })
 
   it('still checks proposed planting while excluding mapped trees at the same shaded location', () => {

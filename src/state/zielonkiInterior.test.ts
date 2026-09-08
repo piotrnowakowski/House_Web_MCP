@@ -12,6 +12,8 @@ it('starts a fresh Zielonki workspace with the furnished reference and preserves
   const project = useStudioStore.getState().project
   expect(project.buildings[0].furniture).toHaveLength(22)
   expect(project.buildings[0].interiorSource).toBeDefined()
+  expect(project.buildings[0].rotationDegrees).toBe(270)
+  expect(project.buildings[0].position).toEqual({ x: 2.5, z: 1.5 })
   expect((await loadWorkspace(project.ref))?.project.buildings).toEqual(project.buildings)
   project.buildings[0].spaces[0].name = 'My saved room'
   await saveWorkspace({ version: 1, project, proposals: [], draftChangeSets: [] })

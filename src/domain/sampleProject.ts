@@ -85,7 +85,8 @@ const lBarnFootprint = [
 ]
 
 const lShapedModernBarn: BuildingModel = {
-  ref: 'house/main', name: 'L-shaped modern barn', kind: 'house', architecturalStyle: 'barn', position: { x: 0, z: -1 }, rotationDegrees: 0,
+  // Turn the long wing toward the house-road entrance, retaining its footprint centre at (0, 1.5).
+  ref: 'house/main', name: 'L-shaped modern barn', kind: 'house', architecturalStyle: 'barn', position: { x: 2.5, z: 1.5 }, rotationDegrees: 270,
   storeys: [
     {
       ref: 'storey/ground', name: 'Ground storey', level: 0, elevationM: 0.45, clearHeightM: 3,
