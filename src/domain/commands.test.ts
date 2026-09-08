@@ -5,6 +5,17 @@ import { modernBarnProject, partialUpperModernBarnProject, sampleProject } from 
 import { ProjectSchema } from './schema'
 
 describe('ProjectV2 command bus', () => {
+  it('edits a plant height independently of position and canopy while respecting locks', () => {
+    const plant = sampleProject.landscape.plants.find((item) => item.ref === 'plant/apple')!
+    expect(() => applyCommand(sampleProject, { type: 'plant.update', action: 'set-height', plantRef: plant.ref, matureHeightM: 18 })).toThrow(/locked/)
+    const unlocked = applyCommand(sampleProject, { type: 'plant.update', action: 'unlock', plantRef: plant.ref })
+    const result = applyCommand(unlocked, { type: 'plant.update', action: 'set-height', plantRef: plant.ref, matureHeightM: 18 })
+    expect(result.landscape.plants.find((item) => item.ref === plant.ref)).toEqual({ ...plant, locked: false, matureHeightM: 18 })
+    expect(sampleProject.landscape.plants.find((item) => item.ref === plant.ref)).toEqual(plant)
+    for (const height of [undefined, 0, -1, NaN, Infinity]) {
+      expect(() => applyCommand(unlocked, { type: 'plant.update', action: 'set-height', plantRef: plant.ref, matureHeightM: height })).toThrow(/height/)
+    }
+  })
   it('keeps the bundled V2 model valid and measurable', () => {
     expect(ProjectSchema.safeParse(sampleProject).success).toBe(true)
     expect(polygonArea(sampleProject.site.boundary)).toBeGreaterThan(1_000)

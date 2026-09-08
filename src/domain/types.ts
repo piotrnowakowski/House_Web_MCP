@@ -53,7 +53,7 @@ export interface WallFinish { material: WallMaterial; colorHex: string; textureI
 export interface WallModel { ref: string; start: Vec2; end: Vec2; thicknessM: number; baseElevationM: number; heightM: number; openings: OpeningModel[]; finish?: WallFinish; locked: boolean }
 export interface SpaceBoundaryUse { wallRef: string; direction: 1 | -1 }
 export interface SpaceModel { ref: string; name: string; usage: string; boundary: SpaceBoundaryUse[]; baseSlabRef: string; topBoundaryRef: string; locked: boolean }
-export interface SlabModel { ref: string; footprint: Polygon2; topElevationM: number; thicknessM: number; locked: boolean }
+export interface SlabModel { ref: string; footprint: Polygon2; holes?: Polygon2[]; topElevationM: number; thicknessM: number; locked: boolean }
 export interface CeilingFinishModel { ref: string; spaceRef: string; hostBoundaryRef: string; elevationM: number; thicknessM: number }
 export interface PlatformModel { ref: string; spaceRef: string; footprint: Polygon2; elevationM: number; thicknessM: number }
 export interface StoreyModel { ref: string; name: string; level: number; elevationM: number; clearHeightM: number; baseSlabRef: string; topBoundaryRef: string; wallRefs: string[]; spaceRefs: string[]; platformRefs: string[]; ceilingFinishRefs: string[] }
@@ -69,15 +69,26 @@ export interface RoofModel {
   finish: RoofFinish; segments: RoofSegmentModel[]; junctions: RoofJunctionModel[]
 }
 export interface BuildingModel {
+  interiorSource?: { id: string; notes: string[] }
+  furniture?: InteriorItem[]
+  stairs?: StairModel[]
   ref: string; name: string; kind: BuildingKind; architecturalStyle: ArchitecturalStyle; garageMode?: 'integrated' | 'attached'
   position: Vec2; rotationDegrees: number; storeys: StoreyModel[]; slabs: SlabModel[]; walls: WallModel[]; spaces: SpaceModel[]
   platforms: PlatformModel[]; ceilingFinishes: CeilingFinishModel[]; roof: RoofModel
 }
 
+export interface StairModel { ref: string; fromStoreyRef: string; toStoreyRef: string; start: Vec2; runM: number; widthM: number; steps: number }
+export type InteriorCatalogId = 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car'
+export interface InteriorItem { ref: string; catalogId: InteriorCatalogId; storeyRef: string; name: string; position: Vec2; widthM: number; depthM: number; heightM: number; rotationDegrees: number; color: string }
+export type InteriorCommand = { type: 'interior.update'; buildingRef: string; storeyRef: string } & (
+  { action: 'put'; item: InteriorItem } | { action: 'remove'; itemRef: string } |
+  { action: 'room'; spaceRef: string; name: string; widthM?: number; depthM?: number }
+)
+
 /** `textureId` picks a ground scan from the texture library; omit for the kind default, `none` for a flat colour. */
 export interface LandscapeZone { ref: string; name: string; kind: GardenZoneKind; footprint: Polygon2; locked: boolean; textureId?: string }
 export interface SurfaceAttachment { hostRef: string; hostFace: 'top' | 'bottom' | 'inside' | 'outside' | 'terrain'; localPosition: Vec3; rotationDegrees: number }
-export interface PlantModel { ref: string; name: string; species: string; kind: PlantKind; position: Vec2; matureHeightM: number; canopyM: number; sunNeed: 'shade' | 'partial' | 'sun'; waterNeed: number; hardinessMinC: number; leafMonths: number[]; bloomMonths: number[]; locked: boolean; attachment?: SurfaceAttachment }
+export interface PlantModel { ref: string; name: string; species: string; kind: PlantKind; position: Vec2; matureHeightM: number; canopyM: number; sunNeed: 'shade' | 'partial' | 'sun'; waterNeed: number; hardinessMinC: number; leafMonths: number[]; bloomMonths: number[]; locked: boolean; attachment?: SurfaceAttachment; crownShape?: 'rounded' | 'conical'; placementRole?: 'site' | 'context'; surveyHandle?: string }
 export interface GardenFixtureModel { ref: string; catalogId: GardenFixtureCatalogId; name: string; position: Vec2; rotationDegrees: number; locked: boolean }
 export interface LandscapeModel { zones: LandscapeZone[]; plants: PlantModel[]; fixtures: GardenFixtureModel[]; fixtureCatalogVersion: number; orchardCatalogVersion: number }
 
@@ -111,7 +122,7 @@ export type RoofUpdateCommand = {
 }
 export type PlatformUpdateCommand = { type: 'platform.update'; action: 'add' | 'remove' | 'resize'; buildingRef: string; storeyRef: string; spaceRef: string; platformRef: string; footprint?: Polygon2; elevationM?: number; thicknessM?: number }
 export type LandscapeUpdateCommand = { type: 'landscape.update'; action: 'add' | 'remove' | 'set-footprint' | 'move' | 'set-surface'; zoneRef: string; name?: string; kind?: GardenZoneKind; footprint?: Polygon2; delta?: Vec2; textureId?: string }
-export type PlantUpdateCommand = { type: 'plant.update'; action: 'add' | 'remove' | 'move' | 'unlock'; plantRef: string; name?: string; species?: string; kind?: PlantKind; position?: Vec2 }
+export type PlantUpdateCommand = { type: 'plant.update'; action: 'add' | 'remove' | 'move' | 'unlock' | 'set-height'; plantRef: string; name?: string; species?: string; kind?: PlantKind; position?: Vec2; matureHeightM?: number }
 export interface PlantingAreaMetadata {
   plantingRef: string; mode: 'boundary' | 'line' | 'polygon'; sourceRefs: string[]; totalLengthM?: number; areaM2?: number
   spacingM: number; rowCount: number; inwardOffsetM: number; cornerTreatment: 'include' | 'distribute' | 'skip'
@@ -119,7 +130,7 @@ export interface PlantingAreaMetadata {
 export type PlantingAreaUpdateCommand = { type: 'planting-area.update'; metadata: PlantingAreaMetadata; plants: PlantModel[] }
 export type GardenFixtureUpdateCommand = { type: 'garden-fixture.update'; action: 'add' | 'remove' | 'move' | 'rotate'; fixtureRef: string; catalogId?: GardenFixtureCatalogId; name?: string; position?: Vec2; rotationDegrees?: number }
 export type ClimateUpdateCommand = { type: 'climate.update'; month: number; values: Partial<Omit<ClimateMonth, 'month'>> }
-export type ProjectCommand = SiteUpdateCommand | TerrainUpdateCommand | BuildingUpdateCommand | StoreyUpdateCommand | SlabUpdateCommand | SpaceUpdateCommand | WallUpdateCommand | WallFinishUpdateCommand | OpeningUpdateCommand | RoofUpdateCommand | PlatformUpdateCommand | LandscapeUpdateCommand | PlantUpdateCommand | PlantingAreaUpdateCommand | GardenFixtureUpdateCommand | ClimateUpdateCommand
+export type ProjectCommand = InteriorCommand | SiteUpdateCommand | TerrainUpdateCommand | BuildingUpdateCommand | StoreyUpdateCommand | SlabUpdateCommand | SpaceUpdateCommand | WallUpdateCommand | WallFinishUpdateCommand | OpeningUpdateCommand | RoofUpdateCommand | PlatformUpdateCommand | LandscapeUpdateCommand | PlantUpdateCommand | PlantingAreaUpdateCommand | GardenFixtureUpdateCommand | ClimateUpdateCommand
 
 export interface VariantModel { ref: string; label: string; baseRevision: number; createdAt: string; commands: ProjectCommand[]; project: ProjectV2; issues: ProjectIssue[]; metrics: ProjectMetrics }
 export type ProposalStatus = 'pending' | 'approved' | 'rejected' | 'stale'

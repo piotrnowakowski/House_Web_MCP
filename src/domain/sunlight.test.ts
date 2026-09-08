@@ -27,12 +27,25 @@ const wallOnlyProject = (heightM = 3, lengthM = 6): ProjectV2 => {
 const noon = { month: 6, day: 21, hour: 12.7 }
 
 describe('sunlight occluders', () => {
+  it('includes the low conifer crown and the full 15 metre rounded crown in shading', () => {
+    const project = wallOnlyProject()
+    project.buildings = []
+    project.site.terrain.elevationPoints.forEach((point) => { point.elevation = 0 })
+    const tree = structuredClone(modernBarnProject.landscape.plants.find((plant) => plant.crownShape === 'conical')!)
+    tree.position = { x: 0, z: 0 }
+    project.landscape.plants = [tree]
+    expect(isLitAt(project, collectOccluders(project), { x: 0, y: 0.3, z: 0 }, noon)).toBe(false)
+    expect(isLitAt(project, collectOccluders(project), { x: 0, y: 15.1, z: 0 }, noon)).toBe(true)
+    tree.crownShape = 'rounded'
+    expect(isLitAt(project, collectOccluders(project), { x: 0, y: 14.9, z: 0 }, noon)).toBe(false)
+    expect(isLitAt(project, collectOccluders(project), { x: 0, y: 15.1, z: 0 }, noon)).toBe(true)
+  })
   it('collects walls, slabs, roof wings, canopies and fixtures from the barn project', () => {
     const occluders = collectOccluders(partialUpperModernBarnProject)
     const kinds = occluders.map((occluder) => occluder.ref.split('/')[0])
     expect(occluders).toHaveLength(15 + 2 + 2 + partialUpperModernBarnProject.landscape.plants.length + 6)
     expect(kinds.filter((kind) => kind === 'wall')).toHaveLength(15)
-    expect(occluders.filter((occluder) => occluder.kind === 'sphere')).toHaveLength(partialUpperModernBarnProject.landscape.plants.length)
+    expect(occluders.filter((occluder) => occluder.ref.startsWith('plant/'))).toHaveLength(partialUpperModernBarnProject.landscape.plants.length)
   })
 
   it('shades the north side of an east-west wall at solar noon and lights the south side', () => {
@@ -54,6 +67,17 @@ describe('sunlight occluders', () => {
 })
 
 describe('sun-hours analysis', () => {
+  it('moves the tree shadow when the modeled height changes to 15 metres', () => {
+    const project = wallOnlyProject()
+    project.buildings = []
+    project.site.terrain.elevationPoints = [{ x: 0, z: 0, elevation: 0 }]
+    project.landscape.plants = [{ ...structuredClone(sampleProject.landscape.plants[0]), position: { x: 0, z: 0 }, matureHeightM: 5, canopyM: 5, locked: false }]
+    const point = { x: 0, y: 0.3, z: 5.3 }
+    const time = { month: 6, day: 21, hour: 12.7 }
+    expect(isLitAt(project, collectOccluders(project), point, time)).toBe(true)
+    const taller = applyCommand(project, { type: 'plant.update', action: 'set-height', plantRef: project.landscape.plants[0].ref, matureHeightM: 15 })
+    expect(isLitAt(taller, collectOccluders(taller), point, time)).toBe(false)
+  })
   it('gives a point north of a tall wall fewer hours than a point in the open, deterministically', () => {
     const project = wallOnlyProject(10, 40)
     const shaded = analyzeSunlight(project, { target: { kind: 'point', x: 0, z: 1 }, month: 6, day: 21, stepMinutes: 30 })
@@ -123,7 +147,25 @@ describe('planting sun-mismatch validation', () => {
     expect(validateProject(openBed).filter((issue) => issue.code === 'planting.sun-mismatch')).toEqual([])
   })
 
-  it('leaves the bundled project and its partial-sun hedges without sun warnings', () => {
-    expect(validateProject(modernBarnProject).filter((issue) => issue.code === 'planting.sun-mismatch')).toEqual([])
+  it('reveals extra shade in the original garden when the mapped trees are included', () => {
+    const withoutSurvey = structuredClone(modernBarnProject)
+    withoutSurvey.landscape.plants = withoutSurvey.landscape.plants.filter((plant) => !plant.surveyHandle)
+    expect(validateProject(withoutSurvey).filter((issue) => issue.code === 'planting.sun-mismatch')).toEqual([])
+    const warnings = validateProject(modernBarnProject).filter((issue) => issue.code === 'planting.sun-mismatch')
+    expect(warnings.length).toBeGreaterThan(0)
+    const mappedRefs = new Set(modernBarnProject.landscape.plants.filter((plant) => plant.surveyHandle).map((plant) => plant.ref))
+    expect(warnings.every((issue) => !mappedRefs.has(issue.subjectRef!))).toBe(true)
+    expect(warnings.some((issue) => modernBarnProject.landscape.fixtures.some((fixture) => fixture.ref === issue.subjectRef))).toBe(true)
+  })
+
+  it('still checks proposed planting while excluding mapped trees at the same shaded location', () => {
+    const project = wallOnlyProject(10, 40)
+    const mapped = structuredClone(modernBarnProject.landscape.plants.find((plant) => plant.surveyHandle)!)
+    mapped.position = { x: 0, z: 1.2 }
+    const proposed = { ...mapped, ref: 'plant/proposed', surveyHandle: undefined }
+    project.landscape.plants = [mapped, proposed]
+    const warnings = validateProject(project).filter((issue) => issue.code === 'planting.sun-mismatch')
+    expect(warnings.map((issue) => issue.subjectRef)).toEqual([proposed.ref])
+    expect(collectOccluders(project).some((occluder) => occluder.ref === mapped.ref)).toBe(true)
   })
 })

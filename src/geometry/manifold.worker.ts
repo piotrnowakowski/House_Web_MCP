@@ -36,7 +36,13 @@ const buildSolid = (element: SolidInput, module: ManifoldToplevel): GeneratedSol
       const polygon = element.footprint.map((point) => [point.x, -point.z] as [number, number])
       const extruded = Manifold.extrude([polygon], element.thicknessM)
       owned.push(extruded)
-      const rotated = extruded.rotate([-90, 0, 0])
+      let cutSlab = extruded
+      for (const hole of element.holes ?? []) {
+        const cutter = Manifold.extrude([hole.map((p) => [p.x, -p.z] as [number, number])], element.thicknessM)
+        owned.push(cutter)
+        cutSlab = cutSlab.subtract(cutter); owned.push(cutSlab)
+      }
+      const rotated = cutSlab.rotate([-90, 0, 0])
       owned.push(rotated)
       const translated = rotated.translate([0, element.topElevationM - element.thicknessM, 0])
       owned.push(translated)
