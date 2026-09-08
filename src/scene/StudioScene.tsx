@@ -1,5 +1,5 @@
 import { Html, Line as DreiLine, TransformControls } from '@react-three/drei'
-import { useFrame, useThree } from '@react-three/fiber'
+import { useFrame, useThree, type RootState } from '@react-three/fiber'
 import { CuboidCollider, Physics, RigidBody } from '@react-three/rapier'
 import CameraControls from 'camera-controls'
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
@@ -29,6 +29,9 @@ import { TexturedMaterial, TexturePreloader, waitForTextures } from './materials
 import { useStudioStore } from '../state/store'
 import { landUseAreas } from '../domain/zoning'
 import { zielonkiZoningBoundary } from '../../knowledge-bank/zielonki/zoning'
+import { measurementScreenPoint, siteMeasurementEdges, snapMeasurementPoint, type MeasurementEdge } from './measurementSnapping'
+import { MeasurementPoint } from './MeasurementPoint'
+import { GlazedGable } from './GlazedGable'
 
 const REAL = { slab: '#d6d0bf', wall: '#e8e1d2', roof: '#6f4735', soil: '#918867' }
 const BARN = { slab: '#777269', wall: '#282d2c', roof: '#343a3b' }
@@ -73,21 +76,8 @@ const metreBoxGeometry = (width: number, height: number, depth: number) => {
   return geometry
 }
 
-function MeasurementPoint({ position, waiting = false }: { position: Vector3; waiting?: boolean }) {
-  const point = useRef<Mesh>(null)
-  useFrame(({ clock }) => {
-    if (!point.current) return
-    const scale = waiting ? 1 + Math.sin(clock.elapsedTime * 5) * 0.18 : 1
-    point.current.scale.setScalar(scale)
-  })
-  return <mesh ref={point} position={position} renderOrder={30} userData={{ editorOnly: true, measurementOverlay: true }}>
-    <sphereGeometry args={[0.13, 16, 12]} />
-    <meshBasicMaterial color="#b9e84d" depthTest={false} />
-  </mesh>
-}
-
 function MeasurementLabel({ position, type, children }: { position: Vector3; type: 'length' | 'area' | 'height'; children: React.ReactNode }) {
-  return <Html position={position} center zIndexRange={[18, 0]}><div className={`spatial-measurement-label ${type}`} role="status" aria-label={`${type === 'length' ? 'Length' : type === 'area' ? 'Area' : 'Height'} measurement`}>{children}</div></Html>
+  return <Html position={position} center zIndexRange={[18, 0]} style={{ pointerEvents: 'none' }}><div className={`spatial-measurement-label ${type}`} role="status" aria-label={`${type === 'length' ? 'Length' : type === 'area' ? 'Area' : 'Height'} measurement`}>{children}</div></Html>
 }
 
 function InteractiveMeasurements() {
@@ -105,12 +95,15 @@ function InteractiveMeasurements() {
   const freeHeightRef = useRef<Vector3[]>([])
   const raycaster = useMemo(() => new Raycaster(), [])
   const groundPlane = useMemo(() => new Plane(new Vector3(0, 1, 0), 0), [])
+  const snapEdges = useMemo(() => siteMeasurementEdges(project), [project])
+  const [snapPreview, setSnapPreview] = useState<Vector3 | null>(null)
+  const semanticHeightRef = useRef<Vector3[]>([])
   const setLengthPoints = (points: Vector3[]) => { lengthRef.current = points; setLengthPointsState(points) }
   const setAreaRect = (rect: { start: Vector3; end: Vector3; dragging: boolean } | null) => { areaRef.current = rect; setAreaRectState(rect) }
   const setFreeHeightPoints = (points: Vector3[]) => { freeHeightRef.current = points; setFreeHeightPointsState(points) }
-  const clear = () => { setLengthPoints([]); setAreaRect(null); setFreeHeightPoints([]); setToast(null) }
+  const clear = () => { setLengthPoints([]); setAreaRect(null); setFreeHeightPoints([]); setSnapPreview(null); setToast(null) }
 
-  useEffect(() => { setLengthPoints([]); setAreaRect(null); setFreeHeightPoints([]) }, [viewerMode])
+  useEffect(() => { setLengthPoints([]); setAreaRect(null); setFreeHeightPoints([]); setSnapPreview(null) }, [viewerMode])
   useEffect(() => {
     const onClear = () => clear()
     window.addEventListener(CLEAR_MEASUREMENT_EVENT, onClear)
@@ -119,8 +112,19 @@ function InteractiveMeasurements() {
   useEffect(() => {
     if (viewerMode !== 'measure-length' && viewerMode !== 'measure-area' && viewerMode !== 'measure-height') return
     const element = gl.domElement
+    let drag: { index: number; pointerId: number; original: Vector3[] } | null = null
+    const geometryEdges = new WeakMap<BufferGeometry, MeasurementEdge[]>()
+    const currentPoints = () => viewerMode === 'measure-length' ? lengthRef.current : viewerMode === 'measure-height' ? freeHeightRef.current.length ? freeHeightRef.current : semanticHeightRef.current : areaRef.current ? [areaRef.current.start, areaRef.current.end] : []
+    const updatePoints = (points: Vector3[]) => {
+      if (viewerMode === 'measure-length') setLengthPoints(points)
+      else if (viewerMode === 'measure-height') setFreeHeightPoints(points)
+      else if (points.length === 2) setAreaRect({ start: points[0], end: points[1], dragging: false })
+    }
     const pointOnGround = (event: PointerEvent) => {
       const bounds = element.getBoundingClientRect()
+      const snapped = event.altKey ? null : snapMeasurementPoint(new Vector2(event.clientX, event.clientY), snapEdges, camera, bounds)
+      setSnapPreview(snapped)
+      if (snapped) return snapped
       const pointer = new Vector2(((event.clientX - bounds.left) / bounds.width) * 2 - 1, -((event.clientY - bounds.top) / bounds.height) * 2 + 1)
       raycaster.setFromCamera(pointer, camera)
       const point = raycaster.ray.intersectPlane(groundPlane, new Vector3())
@@ -131,13 +135,51 @@ function InteractiveMeasurements() {
     const stopEditorClick = (event: PointerEvent) => { event.preventDefault(); event.stopImmediatePropagation() }
     const pointOnGeometry = (event: PointerEvent) => {
       const bounds = element.getBoundingClientRect()
+      if (viewerMode === 'measure-length' && !event.altKey) {
+        const boundary = snapMeasurementPoint(new Vector2(event.clientX, event.clientY), snapEdges, camera, bounds)
+        if (boundary) { setSnapPreview(boundary); return boundary }
+      }
       const pointer = new Vector2(((event.clientX - bounds.left) / bounds.width) * 2 - 1, -((event.clientY - bounds.top) / bounds.height) * 2 + 1)
       raycaster.setFromCamera(pointer, camera)
-      const hit = raycaster.intersectObjects(scene.children, true).find((intersection) => !intersection.object.userData.editorOnly && !intersection.object.userData.measurementOverlay)
+      const hit = raycaster.intersectObjects(scene.children, true).find((intersection) => {
+        if (!(intersection.object instanceof Mesh)) return false
+        for (let object: Object3D | null = intersection.object; object; object = object.parent) {
+          if (!object.visible || object.userData.editorOnly || object.userData.measurementOverlay || object.userData.captureSource === 'ghost') return false
+        }
+        return true
+      })
+      if (hit && hit.object instanceof Mesh && !event.altKey) {
+        const mesh = hit.object
+        let edges = geometryEdges.get(mesh.geometry)
+        if (!edges) {
+          const geometry = new EdgesGeometry(mesh.geometry)
+          const positions = geometry.attributes.position
+          edges = []
+          for (let i = 0; i < positions.count; i += 2) edges.push([new Vector3().fromBufferAttribute(positions, i), new Vector3().fromBufferAttribute(positions, i + 1)])
+          geometry.dispose(); geometryEdges.set(mesh.geometry, edges)
+        }
+        const worldEdges: MeasurementEdge[] = edges.map(([a, b]) => [a.clone().applyMatrix4(mesh.matrixWorld), b.clone().applyMatrix4(mesh.matrixWorld)])
+        const snapped = snapMeasurementPoint(new Vector2(event.clientX, event.clientY), worldEdges, camera, bounds)
+        setSnapPreview(snapped ?? hit.point)
+        return snapped ?? hit.point.clone()
+      }
+      setSnapPreview(null)
       return hit?.point.clone() ?? null
     }
     const onPointerDown = (event: PointerEvent) => {
-      if (event.button !== 0) return
+      if (event.button !== 0 || drag) return
+      const bounds = element.getBoundingClientRect()
+      const points = currentPoints()
+      const index = points.findIndex((point) => {
+        const screen = measurementScreenPoint(point, camera, bounds)
+        return screen && screen.distanceTo(new Vector2(event.clientX, event.clientY)) <= 16
+      })
+      if (index >= 0) {
+        stopEditorClick(event)
+        drag = { index, pointerId: event.pointerId, original: points }
+        element.setPointerCapture(event.pointerId); element.style.cursor = 'grabbing'
+        return
+      }
       if (viewerMode === 'measure-height') {
         if (!event.shiftKey) return
         const point = pointOnGeometry(event)
@@ -149,7 +191,7 @@ function InteractiveMeasurements() {
         } else { setFreeHeightPoints([point]); setToast('First height point placed. Shift-click the second point.') }
         return
       }
-      const point = pointOnGround(event)
+      const point = viewerMode === 'measure-length' ? pointOnGeometry(event) ?? pointOnGround(event) : pointOnGround(event)
       if (!point) return
       stopEditorClick(event)
       if (viewerMode === 'measure-length') {
@@ -168,6 +210,22 @@ function InteractiveMeasurements() {
       }
     }
     const onPointerMove = (event: PointerEvent) => {
+      if (drag) {
+        if (event.pointerId !== drag.pointerId) return
+        stopEditorClick(event)
+        const point = viewerMode === 'measure-area' ? pointOnGround(event) : pointOnGeometry(event) ?? pointOnGround(event)
+        if (point) updatePoints(currentPoints().map((value, index) => index === drag!.index ? point : value))
+        return
+      }
+      if (viewerMode === 'measure-height') { if (event.shiftKey) pointOnGeometry(event); else setSnapPreview(null) }
+      else if (viewerMode === 'measure-length') pointOnGeometry(event)
+      else pointOnGround(event)
+      const bounds = element.getBoundingClientRect()
+      const overPoint = currentPoints().some((point) => {
+        const screen = measurementScreenPoint(point, camera, bounds)
+        return screen && screen.distanceTo(new Vector2(event.clientX, event.clientY)) <= 16
+      })
+      element.style.cursor = overPoint ? 'grab' : 'crosshair'
       if (viewerMode !== 'measure-area' || !areaRef.current?.dragging) return
       const point = pointOnGround(event)
       if (!point) return
@@ -175,6 +233,15 @@ function InteractiveMeasurements() {
       setAreaRect({ start: areaRef.current.start, end: point, dragging: true })
     }
     const onPointerUp = (event: PointerEvent) => {
+      if (drag) {
+        if (event.pointerId !== drag.pointerId) return
+        onPointerMove(event)
+        drag = null
+        if (element.hasPointerCapture(event.pointerId)) element.releasePointerCapture(event.pointerId)
+        element.style.cursor = 'crosshair'
+        setToast('Measurement updated. Drag either point to adjust.')
+        return
+      }
       if (viewerMode !== 'measure-area' || !areaRef.current?.dragging) return
       const point = pointOnGround(event) ?? areaRef.current.end
       stopEditorClick(event)
@@ -184,15 +251,34 @@ function InteractiveMeasurements() {
       const width = Math.abs(rect.end.x - rect.start.x); const depth = Math.abs(rect.end.z - rect.start.z)
       setToast(width < 0.05 || depth < 0.05 ? 'Drag a larger rectangle to measure area.' : `Area: ${(width * depth).toFixed(2)} m².`)
     }
-    element.addEventListener('pointerdown', onPointerDown)
-    element.addEventListener('pointermove', onPointerMove)
-    element.addEventListener('pointerup', onPointerUp)
-    return () => {
-      element.removeEventListener('pointerdown', onPointerDown)
-      element.removeEventListener('pointermove', onPointerMove)
-      element.removeEventListener('pointerup', onPointerUp)
+    const cancel = (event: PointerEvent) => {
+      if (drag?.pointerId === event.pointerId) { updatePoints(drag.original); drag = null }
+      if (areaRef.current?.dragging) setAreaRect(null)
+      if (element.hasPointerCapture(event.pointerId)) element.releasePointerCapture(event.pointerId)
+      element.style.cursor = 'crosshair'; setSnapPreview(null)
     }
-  }, [camera, gl, groundPlane, project, raycaster, scene, setToast, viewerMode])
+    const leave = () => { if (!drag && !areaRef.current?.dragging) setSnapPreview(null) }
+    const cancelOnClear = () => {
+      if (drag) { const pointerId = drag.pointerId; drag = null; if (element.hasPointerCapture(pointerId)) element.releasePointerCapture(pointerId) }
+    }
+    element.addEventListener('pointerdown', onPointerDown, true)
+    element.addEventListener('pointermove', onPointerMove, true)
+    element.addEventListener('pointerup', onPointerUp, true)
+    element.addEventListener('pointercancel', cancel, true)
+    element.addEventListener('lostpointercapture', cancel, true)
+    element.addEventListener('pointerleave', leave)
+    window.addEventListener(CLEAR_MEASUREMENT_EVENT, cancelOnClear)
+    return () => {
+      element.removeEventListener('pointerdown', onPointerDown, true)
+      element.removeEventListener('pointermove', onPointerMove, true)
+      element.removeEventListener('pointerup', onPointerUp, true)
+      element.removeEventListener('pointercancel', cancel, true)
+      element.removeEventListener('lostpointercapture', cancel, true)
+      element.removeEventListener('pointerleave', leave)
+      window.removeEventListener(CLEAR_MEASUREMENT_EVENT, cancelOnClear)
+      cancelOnClear(); element.style.cursor = ''
+    }
+  }, [camera, gl, groundPlane, project, raycaster, scene, setToast, snapEdges, viewerMode])
 
   const length = lengthPoints.length === 2 ? lengthPoints[0].distanceTo(lengthPoints[1]) : null
   const areaWidth = areaRect ? Math.abs(areaRect.end.x - areaRect.start.x) : 0
@@ -208,8 +294,10 @@ function InteractiveMeasurements() {
     catch { return null }
   }, [freeHeightPoints.length, heightMeasureKind, project, selectedRef, viewerMode])
   const semanticHeightPoints = semanticHeight ? [new Vector3(semanticHeight.bottomPoint.x, semanticHeight.bottomPoint.y, semanticHeight.bottomPoint.z), new Vector3(semanticHeight.topPoint.x, semanticHeight.topPoint.y, semanticHeight.topPoint.z)] : []
+  semanticHeightRef.current = semanticHeightPoints
   const freeVerticalPoints = freeHeightPoints.length === 2 ? [freeHeightPoints[0], new Vector3(freeHeightPoints[0].x, freeHeightPoints[1].y, freeHeightPoints[0].z)] : []
   return <group userData={{ editorOnly: true, measurementOverlay: true }}>
+    {snapPreview && <Html center position={snapPreview} style={{ pointerEvents: 'none' }}><span className="measurement-snap-preview">Snapped</span></Html>}
     {viewerMode === 'measure-length' && lengthPoints.map((point, index) => <MeasurementPoint key={index} position={point} waiting={lengthPoints.length === 1} />)}
     {viewerMode === 'measure-length' && lengthPoints.length === 2 && <>
       <DreiLine points={lengthPoints} color="#b9e84d" lineWidth={3} depthTest={false} renderOrder={29} />
@@ -236,6 +324,8 @@ function InteractiveMeasurements() {
 
 function ThatOpenBridge() {
   const { gl, set, size } = useThree()
+  const repositioningRef = useStudioStore((state) => state.repositioningRef)
+  const selectedRef = useStudioStore((state) => state.selectedRef)
   const viewerMode = useStudioStore((state) => state.viewerMode)
   const explode = useStudioStore((state) => state.explodeStoreys)
   const project = useStudioStore((state) => state.project)
@@ -298,9 +388,11 @@ function ThatOpenBridge() {
     controls.mouseButtons.middle = CameraControls.ACTION.DOLLY
     controls.setLookAt(22, 13, 27, 0, 3, 1.5, false)
     bridge.current = { controls, perspective, orthographic, active: perspective }
-    set({ camera: perspective })
+    // camera-controls has its own event types; Drei only needs the shared enabled flag.
+    set({ camera: perspective, controls: controls as unknown as RootState['controls'] })
     return () => {
       controls.dispose()
+      set({ controls: null })
       bridge.current = null
     }
   }, [gl, set])
@@ -314,7 +406,7 @@ function ThatOpenBridge() {
       const active = document.activeElement
       if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active instanceof HTMLSelectElement || (active instanceof HTMLElement && active.isContentEditable)) return
       const controls = bridge.current?.controls
-      if (!controls) return
+      if (!controls?.enabled) return
       const position = controls.getPosition(new Vector3())
       const target = controls.getTarget(new Vector3())
       const forward = target.clone().sub(position).setY(0)
@@ -357,10 +449,19 @@ function ThatOpenBridge() {
     } else {
       usePerspectiveCamera(current)
       current.controls.maxDistance = MAX_ORBIT_DISTANCE
-      current.controls.mouseButtons.left = viewerMode === 'measure-area' ? CameraControls.ACTION.NONE : CameraControls.ACTION.ROTATE
-      current.controls.touches.one = CameraControls.ACTION.TOUCH_ROTATE
+      const measuring = viewerMode.startsWith('measure-')
+      current.controls.mouseButtons.left = measuring ? CameraControls.ACTION.NONE : CameraControls.ACTION.ROTATE
+      current.controls.touches.one = measuring ? CameraControls.ACTION.NONE : CameraControls.ACTION.TOUCH_ROTATE
+      if (measuring) current.controls.stop()
     }
   }, [viewerMode])
+  useEffect(() => {
+    const controls = bridge.current?.controls
+    if (!controls) return
+    const moving = viewerMode === 'edit' && !!repositioningRef && selectedRef === repositioningRef
+    if (moving) controls.stop()
+    controls.enabled = !moving
+  }, [repositioningRef, selectedRef, viewerMode])
   useEffect(() => {
     if (handledRefocusRequest.current === refocusRequest) return
     handledRefocusRequest.current = refocusRequest
@@ -409,7 +510,7 @@ function ThatOpenBridge() {
       targetX, targetY, targetZ, smooth,
     )
   }, [explode, project])
-  useFrame((_, delta) => { bridge.current?.controls.update(delta) })
+  useFrame((_, delta) => { if (bridge.current?.controls.enabled) bridge.current.controls.update(delta) })
   return null
 }
 
@@ -578,6 +679,9 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
       const finish = resolveGableWallFinish(building, gableWall); const texture = resolveWallTexture(finish); const surface = wallSurface[finish.material]
       const glass = building.architecturalStyle === 'barn' && Boolean(wall) && inferWallOpeningLayout(wall!) === 'full-glass'
       const wallSelected = gableWall.ref === selectedRef
+      if (segment.gableGlazing?.[gableWall.side]) return <group key={index} userData={{ semanticRef: gableWall.ref, buildingRef: building.ref }} onPointerDown={(event) => { if (ghost) return; event.stopPropagation(); setSelectedRef(gableWall.ref) }}>
+        <GlazedGable segment={segment} side={gableWall.side} value={offset} finish={finish} selected={wallSelected} ghost={ghost} />
+      </group>
       const at = (across: number, y: number, along: number): [number, number, number] => alongZ ? [across, y, along] : [along, y, across]
       const cladding = !glass && !texture && ['charred-timber', 'metal-panel'].includes(finish.material)
       const spacing = finish.material === 'metal-panel' ? 0.64 : 0.34

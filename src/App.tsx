@@ -32,7 +32,7 @@ const modes = [
 
 const modeTitles = {
   edit: 'Select and move semantic objects',
-  'measure-length': 'Click two points to measure the distance',
+  'measure-length': 'Click near objects or boundaries to measure the distance; drag points to adjust',
   'measure-area': 'Drag a rectangle across the ground to measure its area',
   'measure-height': 'Select a semantic object or Shift-click two points to measure vertically',
 } as const
@@ -59,7 +59,7 @@ function ClimateMenu({ onOpenClimate, onOpenPlanting }: { onOpenClimate: () => v
 function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenFixtures, fixturesOpen, onOpenMcpTools, onOpenProposals, onOpenProjects }: { onOpenInterior: () => void; onOpenClimate: () => void; onOpenPlanting: () => void; onOpenFixtures: () => void; fixturesOpen: boolean; onOpenMcpTools: () => void; onOpenProposals: () => void; onOpenProjects: () => void }) {
   const project = useStudioStore((state) => state.project); const viewerMode = useStudioStore((state) => state.viewerMode); const setViewerMode = useStudioStore((state) => state.setViewerMode)
   const explode = useStudioStore((state) => state.explodeStoreys); const setExplode = useStudioStore((state) => state.setExplodeStoreys)
-  const webMcp = useStudioStore((state) => state.webMcpAvailable); const setToast = useStudioStore((state) => state.setToast)
+  const setToast = useStudioStore((state) => state.setToast)
   const proposals = useStudioStore((state) => state.proposals); const proposalCounts = { pending: proposals.filter((proposal) => proposal.status === 'pending').length, approved: proposals.filter((proposal) => proposal.status === 'approved').length, rejected: proposals.filter((proposal) => proposal.status === 'rejected').length, stale: proposals.filter((proposal) => proposal.status === 'stale').length }
   const [busy, setBusy] = useState(false)
   const generateReport = async () => {
@@ -84,7 +84,6 @@ function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenFixtures
       <button className="proposal-entry" onClick={onOpenProposals}><span>Proposals</span><small aria-label={`${proposalCounts.pending} pending, ${proposalCounts.approved} approved, ${proposalCounts.rejected} rejected, ${proposalCounts.stale} stale`}><i>P {proposalCounts.pending}</i><i>A {proposalCounts.approved}</i><i>R {proposalCounts.rejected}</i><i>S {proposalCounts.stale}</i></small></button>
       <button onClick={onOpenMcpTools}>MCP Tools</button>
       <button className="report-button" disabled={busy} onClick={generateReport}>{busy ? 'Rendering…' : 'Architectural set'}</button>
-      <span className={`connection ${webMcp ? 'online' : ''}`}>{webMcp ? 'WebMCP ready' : 'local'}</span>
     </div>
   </header>
 }
@@ -578,7 +577,11 @@ function SunWidget() {
   }, [latitude, longitude, sunAnimation, timezone])
   const targetRef = project.landscape.zones.find((zone) => zone.ref === selectedRef)?.ref ?? 'site'
   const legendTop = sunOverlay.result ? Math.max(sunOverlay.result.sunHours.max, sunOverlay.result.daylightHours * 0.999) : 0
-  return <section className="sun-widget" aria-label="Sun controls">
+  return <details className="sun-control">
+    <summary role="button" aria-label="Sun controls" aria-controls="sun-controls-panel" title="Show or hide sun controls">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" /></svg>
+    </summary>
+    <section id="sun-controls-panel" className="sun-widget" aria-label="Sun controls">
     <header><span className="eyebrow">SUN / LOCAL TIME</span><strong>{formatSunMoment(sunTime.month, sunTime.day, sunTime.hour)}</strong></header>
     <div className="sun-fields">
       <label><span>Month</span><select aria-label="Sun month" value={sunTime.month} onChange={(event) => setSunTime({ month: Number(event.target.value) })}>{monthNames.map((name, index) => <option key={name} value={index + 1}>{name}</option>)}</select></label>
@@ -596,7 +599,8 @@ function SunWidget() {
       <div><span>0 h</span><span>{legendTop.toFixed(1)} h direct sun</span></div>
       <small>{sunOverlay.targetRef ?? 'site'} · mean {sunOverlay.result.sunHours.mean.toFixed(1)} h · {sunOverlay.result.expectedSunHours.toFixed(1)} h expected after typical cloud</small>
     </div>}
-  </section>
+    </section>
+  </details>
 }
 
 export function App() {
@@ -650,7 +654,7 @@ export function App() {
         <span>{viewerMode === 'measure-length' ? 'LENGTH' : viewerMode === 'measure-area' ? 'AREA' : 'HEIGHT'}</span>
         <strong>{viewerMode === 'measure-length' ? 'Click point 1, then point 2' : viewerMode === 'measure-area' ? 'Hold and drag a rectangle on the ground' : 'Select an object · Shift-click twice for free vertical'}</strong>
         {viewerMode === 'measure-height' && <select aria-label="Height reference" value={heightMeasureKind} onChange={(event) => setHeightMeasureKind(event.target.value as HeightMeasureKind)}><option value="auto">Object height</option><option value="ground-to-eaves">Ground to eaves</option><option value="ground-to-ridge">Ground to ridge</option><option value="clear-height">Storey clear height</option><option value="opening-height">Opening height</option><option value="terrain-clearance">Terrain clearance</option></select>}
-        <button onClick={() => window.dispatchEvent(new Event(CLEAR_MEASUREMENT_EVENT))}>Clear</button>
+        <small>Snaps to objects and boundaries · Drag points to adjust · Hold Alt for free placement</small><button onClick={() => window.dispatchEvent(new Event(CLEAR_MEASUREMENT_EVENT))}>Clear</button>
       </section>}
       {explode && <section className="explode-guide" aria-label="Exploded room view">
         <span>EXPLODED ROOMS</span>

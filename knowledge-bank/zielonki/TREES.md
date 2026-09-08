@@ -1,16 +1,16 @@
 # Trees registered to the emailed map
 
-The source is `Zielonki_dz54_55_58-akt-v2 (1).pdf`, Gmail message `1a0196e4bcf56171`, re-fetched on 8 September 2026. SHA-256: `2F3E37E8EF694014184C32D173A8CEF4B5385FB7F249BFF2B1C22642FCF6A204`.
+The source is `Zielonki_dz54_55_58-akt-v2.pdf`, sent to Elipsa on 18 August 2026 in Gmail message `1a011cb195c5e7ff` ("Materiały do projektu domu – Zielonki"), verified on 9 September 2026. It is identical to the previously retrieved `(1).pdf` attachment. SHA-256: `2F3E37E8EF694014184C32D173A8CEF4B5385FB7F249BFF2B1C22642FCF6A204`.
 
 There are 17 symbols in the construction-area cluster: 11 conifers, three deciduous trees and three fruit trees. Distant roadside trees and the fruit-tree symbol in the legend are excluded. The three fruit-tree symbols are grouped at the right; two lie beyond the construction band in the neighbouring plot.
 
 ## Position correction
 
-Version four combined tree INSERT coordinates from the CAD file with a displayed parcel layout that does not align with the emailed PDF. It put the conifers through the conceptual house. Those coordinates are retained only for migration regression coverage, not used for current placement.
+Version five incorrectly warped PDF tree centres to four cadastral corners using bilinear interpolation. This moved the main conifer row towards the parcel edge instead of following the diagonal boundary between MNU and R shown on the emailed map.
 
-`trees.ts` records the centres extracted from the PDF vector paths in page points (top-left origin). Four visible construction-band corners are registered to the displayed construction band's four corners using bilinear interpolation. The conifers now follow the garden edge, with the left-hand cluster farther inward; the three fruit trees are on the right. This is an approximate visual registration to the existing model, not survey-grade setting-out coordinates: the PDF outline and the model's parcel polygon are not congruent. Parcel geometry and the solar north setting are unchanged.
+Version six uses the original CAD INSERT coordinates and the same rigid PL-2000-to-model transform as the MPZP geometry. The main row (handles 501E–5030) sits approximately 1.4–1.7 m inside the MNU side of the boundary, with the first cluster farther inward. Trees are neither snapped onto the boundary nor moved to avoid the conceptual house. Conflicts with the house therefore need separate design review. These are model-derived positions, not survey-grade setting-out coordinates. Parcel geometry and the solar north setting are unchanged.
 
-Version five repairs existing saves once. The original apple/cherry/pear/plum identifiers are reused for four mapped symbols rather than drawing duplicate demo trees: the default study now contains 17 trees, not 21. Their source categories are recorded without inventing species. Non-tree planting, buildings and fixtures are preserved. The migration preserves explicit heights and locks; subsequent tree edits and deletions are preserved. Older pending proposals become stale so they cannot restore the incorrect layout.
+Version six corrects existing version-five trees once when a workspace opens, including saved copies under different project identifiers. It updates positions and site/context classification while preserving names, heights, crowns, locks and deleted trees. Subsequent edits are preserved. Earlier inventories also receive the existing duplicate cleanup: the original apple/cherry/pear/plum identifiers are reused for four mapped symbols, giving 17 default trees. Non-tree planting, buildings and fixtures are preserved. Older pending proposals become stale so they cannot restore the incorrect layout.
 
 ## Appearance and height
 

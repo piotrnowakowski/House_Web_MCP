@@ -1,7 +1,7 @@
 import { Grid, Html, Line, OrbitControls } from '@react-three/drei'
 import { useThree, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { DoubleSide, Path, Plane, Shape, ShapeGeometry, Vector3 } from 'three'
+import { DoubleSide, Line3, Object3D, Path, Plane, Raycaster, Shape, ShapeGeometry, Vector2, Vector3 } from 'three'
 import type { OrbitControls as OrbitControlsType } from 'three-stdlib'
 import { polygonBounds, polygonCentroid, spaceFootprint, wallLength } from '../domain/geometry'
 import { roomDimensions } from '../domain/roomDimensions'
@@ -10,6 +10,8 @@ import type { BuildingModel, InteriorItem, Polygon2, StoreyModel, Vec2, WallMode
 import { interiorFloorTexture } from '../scene/materialCatalog'
 import { TexturedMaterial } from '../scene/materials'
 import { FurnitureModel } from './FurnitureModel'
+import { interiorMeasurementEdges, measurementScreenPoint, snapMeasurementPoint } from '../scene/measurementSnapping'
+import { MeasurementPoint } from '../scene/MeasurementPoint'
 
 function Floor({ points, holes, onPick, tiled = false, plan = false }: { points: Polygon2; holes?: Polygon2[]; onPick: (event: ThreeEvent<PointerEvent>) => void; tiled?: boolean; plan?: boolean }) {
   const geometry = useMemo(() => {
@@ -69,14 +71,110 @@ function Camera({ footprint, plan, reset, enabled }: { footprint: Polygon2; plan
 
 interface Props {
   building: BuildingModel; storey: StoreyModel; plan: boolean; reset: number; selected: string | null; mode: 'select' | 'measure'; placing: boolean; snap: boolean; labels: boolean
-  dimensions: boolean; points: Vec2[]; onPick: (point: Vec2) => void; onSelect: (ref: string | null) => void; onMove: (item: InteriorItem) => void
+  dimensions: boolean; points: Vec2[]; onPointsChange: (points: Vec2[]) => void; onPick: (point: Vec2) => void; onSelect: (ref: string | null) => void; onMove: (item: InteriorItem) => void
 }
 export function InteriorScene(props: Props) {
   const { building, storey, plan, selected, mode, placing, snap, labels, onPick, onSelect, onMove } = props
   const slab = building.slabs.find((item) => item.ref === storey.baseSlabRef)!
   const [drag, setDrag] = useState<{ item: InteriorItem; origin: Vec2; position: Vec2 } | null>(null)
   const dragRef = useRef(drag); dragRef.current = drag
+  const { camera, gl, get, scene } = useThree()
+  const [preview, setPreview] = useState<Vector3 | null>(null)
+  const pointsRef = useRef(props.points); pointsRef.current = props.points
+  const measurementEdges = useMemo(() => interiorMeasurementEdges(building, storey), [building, storey])
   const plane = useMemo(() => new Plane(new Vector3(0, 1, 0), 0), [])
+  useEffect(() => {
+    if (mode !== 'measure') { setPreview(null); return }
+    const element = gl.domElement; const raycaster = new Raycaster()
+    let dragging: { index: number; pointerId: number; original: Vec2[] } | null = null
+    const pick = (event: PointerEvent) => {
+      const bounds = element.getBoundingClientRect()
+      const pointer = new Vector2(event.clientX, event.clientY)
+      const snapped = event.altKey ? null : snapMeasurementPoint(pointer, measurementEdges, camera, bounds)
+      setPreview(snapped)
+      if (snapped) return { x: snapped.x, z: snapped.z }
+      raycaster.setFromCamera(new Vector2((event.clientX - bounds.left) / bounds.width * 2 - 1, 1 - (event.clientY - bounds.top) / bounds.height * 2), camera)
+      if (!event.altKey) {
+        const objects: Object3D[] = []
+        scene.traverse((object) => { if (object.userData.measurementFootprint) objects.push(object) })
+        const hit = raycaster.intersectObjects(objects, true)[0]
+        if (hit) {
+          let object: Object3D | null = hit.object
+          while (object && !object.userData.measurementFootprint) object = object.parent
+          const polygon: Polygon2 = object!.userData.measurementFootprint
+          const point = hit.point.clone().setY(0.09)
+          let closest: Vector3 | null = null; let distance = Infinity
+          for (const [i, a] of polygon.entries()) {
+            const b = polygon[(i + 1) % polygon.length]
+            const candidate = new Line3(new Vector3(a.x, 0.09, a.z), new Vector3(b.x, 0.09, b.z)).closestPointToPoint(point, true, new Vector3())
+            if (candidate.distanceToSquared(point) < distance) { closest = candidate; distance = candidate.distanceToSquared(point) }
+          }
+          if (closest) { setPreview(closest); return { x: closest.x, z: closest.z } }
+        }
+      }
+      const point = raycaster.ray.intersectPlane(plane, new Vector3())
+      return point ? { x: point.x, z: point.z } : null
+    }
+    const update = (points: Vec2[]) => { pointsRef.current = points; props.onPointsChange(points) }
+    const stop = (event: PointerEvent) => { event.preventDefault(); event.stopImmediatePropagation() }
+    const down = (event: PointerEvent) => {
+      if (event.button !== 0 || dragging) return
+      stop(event)
+      const bounds = element.getBoundingClientRect()
+      const index = pointsRef.current.findIndex((point) => {
+        const screen = measurementScreenPoint(new Vector3(point.x, 0.09, point.z), camera, bounds)
+        return screen && screen.distanceTo(new Vector2(event.clientX, event.clientY)) <= 16
+      })
+      if (index >= 0) {
+        dragging = { index, pointerId: event.pointerId, original: pointsRef.current }
+        element.setPointerCapture(event.pointerId); element.style.cursor = 'grabbing'
+        return
+      }
+      const point = pick(event)
+      if (point) update(pointsRef.current.length === 1 ? [...pointsRef.current, point] : [point])
+    }
+    const move = (event: PointerEvent) => {
+      if (dragging && event.pointerId !== dragging.pointerId) return
+      const point = pick(event)
+      if (dragging) {
+        stop(event)
+        if (point) update(pointsRef.current.map((value, index) => index === dragging!.index ? point : value))
+      } else {
+        const bounds = element.getBoundingClientRect()
+        const overPoint = pointsRef.current.some((value) => {
+          const screen = measurementScreenPoint(new Vector3(value.x, 0.09, value.z), camera, bounds)
+          return screen && screen.distanceTo(new Vector2(event.clientX, event.clientY)) <= 16
+        })
+        element.style.cursor = overPoint ? 'grab' : 'crosshair'
+      }
+    }
+    const finish = (event: PointerEvent) => {
+      if (!dragging || event.pointerId !== dragging.pointerId) return
+      stop(event)
+      if (event.type === 'pointerup') move(event)
+      else update(dragging.original)
+      dragging = null
+      if (element.hasPointerCapture(event.pointerId)) element.releasePointerCapture(event.pointerId)
+      element.style.cursor = 'crosshair'
+    }
+    const leave = () => { if (!dragging) setPreview(null) }
+    element.addEventListener('pointerdown', down, true)
+    element.addEventListener('pointermove', move, true)
+    element.addEventListener('pointerup', finish, true)
+    element.addEventListener('pointercancel', finish, true)
+    element.addEventListener('lostpointercapture', finish, true)
+    element.addEventListener('pointerleave', leave)
+    return () => {
+      element.removeEventListener('pointerdown', down, true)
+      element.removeEventListener('pointermove', move, true)
+      element.removeEventListener('pointerup', finish, true)
+      element.removeEventListener('pointercancel', finish, true)
+      element.removeEventListener('lostpointercapture', finish, true)
+      element.removeEventListener('pointerleave', leave)
+      if (dragging && element.hasPointerCapture(dragging.pointerId)) element.releasePointerCapture(dragging.pointerId)
+      element.style.cursor = ''
+    }
+  }, [camera, gl, measurementEdges, mode, plane, props.onPointsChange, scene])
   const onFloor = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation(); if (event.button !== 0) return
     onPick({ x: event.point.x, z: event.point.z })
@@ -135,21 +233,30 @@ export function InteriorScene(props: Props) {
     })}
     {items.map((item) => {
       const current = drag?.item.ref === item.ref ? { ...item, position: drag.position } : item
-      return <group key={item.ref} position={[current.position.x, 0.025, current.position.z]} rotation={[0, item.rotationDegrees * Math.PI / 180, 0]}
+      return <group key={item.ref} position={[current.position.x, 0.025, current.position.z]} rotation={[0, item.rotationDegrees * Math.PI / 180, 0]} userData={{ measurementFootprint: interiorCorners(current) }}
         onPointerDown={(event) => {
           if (event.button !== 0) return; event.stopPropagation()
           if (mode === 'measure' || placing) { onPick({ x: event.point.x, z: event.point.z }); return }
           const point = event.ray.intersectPlane(plane, new Vector3()); if (!point) return
+          // Disable immediately, before the next pointer event or controls update.
+          const controls = get().controls as OrbitControlsType | null
+          if (controls) {
+            const position = camera.position.clone(); const target = controls.target.clone(); const zoom = camera.zoom
+            controls.enableDamping = false; controls.update()
+            camera.position.copy(position); camera.zoom = zoom; camera.updateProjectionMatrix(); controls.target.copy(target); controls.update()
+            controls.enableDamping = true; controls.enabled = false
+          }
           onSelect(item.ref); (event.target as HTMLElement).setPointerCapture(event.pointerId)
           const next = { item, origin: { x: point.x, z: point.z }, position: item.position }; dragRef.current = next; setDrag(next)
-        }} onPointerMove={move} onPointerUp={(event) => finish(event)} onPointerCancel={(event) => finish(event, true)}>
+        }} onPointerMove={move} onPointerUp={(event) => finish(event)} onPointerCancel={(event) => finish(event, true)} onLostPointerCapture={(event) => finish(event, true)}>
         <FurnitureModel item={item} />
       </group>
     })}
     {selectedItem && <Line points={(() => { const corners = interiorCorners(drag ? { ...selectedItem, position: drag.position } : selectedItem); return [...corners, corners[0]].map((p) => [p.x, 0.07, p.z] as [number, number, number]) })()} color='#287466' lineWidth={2} />}
     {props.points.length > 0 && <>
-      {props.points.map((point, i) => <mesh key={i} position={[point.x, 0.09, point.z]}><sphereGeometry args={[0.09, 16, 16]} /><meshBasicMaterial color='#236959' /></mesh>)}
-      {props.points.length === 2 && <><Line points={props.points.map((p) => [p.x, 0.1, p.z] as [number, number, number])} color='#236959' lineWidth={2.5} dashed dashSize={0.16} gapSize={0.07} /><Html center position={[(props.points[0].x + props.points[1].x) / 2, 0.14, (props.points[0].z + props.points[1].z) / 2]}><span className='interior-measure-label'>{Math.hypot(props.points[1].x - props.points[0].x, props.points[1].z - props.points[0].z).toFixed(2)} m</span></Html></>}
+      {props.points.map((point, i) => <MeasurementPoint key={i} position={new Vector3(point.x, 0.09, point.z)} color='#236959' waiting={props.points.length === 1} />)}
+      {props.points.length === 2 && <><Line points={props.points.map((p) => [p.x, 0.1, p.z] as [number, number, number])} color='#236959' lineWidth={2.5} dashed dashSize={0.16} gapSize={0.07} /><Html center style={{ pointerEvents: 'none' }} position={[(props.points[0].x + props.points[1].x) / 2, 0.14, (props.points[0].z + props.points[1].z) / 2]}><span className='interior-measure-label'>{Math.hypot(props.points[1].x - props.points[0].x, props.points[1].z - props.points[0].z).toFixed(2)} m</span></Html></>}
     </>}
+    {preview && mode === 'measure' && <Html center position={preview} style={{ pointerEvents: 'none' }}><span className='measurement-snap-preview'>Snapped</span></Html>}
   </>
 }

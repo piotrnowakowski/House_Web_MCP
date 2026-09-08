@@ -108,11 +108,13 @@ describe('sun-hours analysis', () => {
   })
 
   it('shows the upper-storey extension taking morning sun from the courtyard terrace', () => {
-    const extended = applyCommand(partialUpperModernBarnProject, {
+    const source = structuredClone(partialUpperModernBarnProject)
+    source.landscape.plants = [] // Isolate the roof extension from the surveyed tree row's shade.
+    const extended = applyCommand(source, {
       type: 'storey.update', action: 'extend-footprint', buildingRef: 'house/main', storeyRef: 'house/main/storey-upper',
       extensionFootprint: [{ x: -8, z: -5 }, { x: 8, z: -5 }, { x: 8, z: 1 }, { x: -2, z: 1 }, { x: -8, z: 1 }],
     })
-    const before = analyzeSunlight(partialUpperModernBarnProject, { target: { kind: 'zone', ref: 'zone/terrace' }, month: 9, day: 21 })
+    const before = analyzeSunlight(source, { target: { kind: 'zone', ref: 'zone/terrace' }, month: 9, day: 21 })
     const after = analyzeSunlight(extended, { target: { kind: 'zone', ref: 'zone/terrace' }, month: 9, day: 21 })
     expect(after.sunHours.mean).toBeLessThan(before.sunHours.mean)
   })

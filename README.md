@@ -16,6 +16,10 @@ The page opens on a start screen. Continue the last saved session, load the bund
 
 The top toolbar includes **Garden fixtures** and a **Climate** menu containing **Temperature** and **Planting**. Clicking an active measurement tool (**Length**, **Area**, or **Height**) again returns to **Edit** and closes its measurement controls.
 
+Sun controls start collapsed behind the sun icon at the bottom left of the viewport. Click the icon to expand or collapse the panel; the selected date, time and sun settings are retained.
+
+Measurements snap to nearby objects and boundaries by default, with a **Snapped** preview. In the plot, length points use object surfaces and edges or site, parcel, building and garden boundaries; area stays on the ground. Interior measurements use furniture footprints, wall faces, opening jambs and floor boundaries. Click and hold either existing point to drag it and update the measurement; hold **Alt** for free placement. The interior's **Snap 10 cm** toggle controls furniture placement independently. The camera stays fixed while dragging measurement points or moving objects.
+
 The bundled Zielonki project demonstrates:
 
 - a two-storey modern-barn house with semantic storeys, slabs, spaces, walls, openings, finishes and roof;
@@ -115,7 +119,7 @@ The default project includes three timber raised beds planted with tomatoes, pot
 ## Spatial and viewer stack
 
 - React Three Fiber is the only renderer and render loop.
-- That Open Components uses the existing R3F scene, WebGL renderer and canvas through a non-owning world bridge. Its `OrthoPerspectiveCamera` is the active camera. Length uses two ground-point clicks; area uses a drag-sized rectangular ground overlay. Edit, length, area, section and plan modes are mutually exclusive; the unused angle mode is excluded.
+- The camera bridge uses `camera-controls` with R3F perspective and orthographic cameras, and registers its controls with R3F so transform handles suspend camera movement. Length uses two points snapped to scene geometry or boundaries; area uses a drag-sized rectangular ground overlay. Measurement endpoints can be dragged after placement. Edit, length, area, height and plan modes are mutually exclusive.
 - The sun is a real solar position (NOAA formulas) for the site's latitude, longitude, timezone and true north. The directional light, the sun-path arc, the compass rose, the sun-hours heatmap, the `sun-study` report view and the `run_sunlight_analysis` tool all derive from the same functions, so shadows on screen and numbers returned to agents agree. Sun hours are computed analytically against walls, slabs, roof wings, tree canopies and garden fixtures, and a `planting.sun-mismatch` warning flags sun-loving planting that gets under six hours of direct sun between 09:00 and 17:00 on 21 June.
 - Manifold runs in a Web Worker and generates semantic slab and wall meshes. Door/window boxes are subtracted as real voids. Results are revision-checked, transferable and cached by semantic input. The worker also emits planar UVs in metres, so textures tile at true physical scale.
 - A texture library of twelve Poly Haven CC0 scans (about 21 MB) dresses walls, ground zones, terrain, raised beds and the barn's interior floors at true physical scale. Every wall finish and every landscape zone can pick its scan from a thumbnail picker in the inspector, or keep the default for its material or zone kind, or go back to a flat colour. Agents read the same library with `list_textures` and choose with `textureId` on `propose_wall_finish_update` or a landscape `set-surface`. The scans a project draws load first; the rest of the library preloads in idle time so a later pick shows at once. The wall colour picker becomes a light tint over a textured finish.

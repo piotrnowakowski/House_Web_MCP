@@ -33,7 +33,7 @@ export const InteriorItemSchema = z.object({
   widthM: z.number().min(0.1).max(20), depthM: z.number().min(0.1).max(20), heightM: z.number().min(0.1).max(5),
   rotationDegrees: z.number().finite(), color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
 })
-export const interiorCorners = (item: InteriorItem): Polygon2 => {
+export const interiorCorners = (item: Pick<InteriorItem, 'position' | 'rotationDegrees' | 'widthM' | 'depthM'>): Polygon2 => {
   const angle = item.rotationDegrees * Math.PI / 180
   return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, z]) => ({
     x: item.position.x + x * item.widthM / 2 * Math.cos(angle) + z * item.depthM / 2 * Math.sin(angle),

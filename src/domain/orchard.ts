@@ -2,7 +2,7 @@ import type { PlantModel, ProjectV2 } from './types'
 import { surveyTreePosition, surveyTreeRef, zielonkiSurveyTrees } from '../../knowledge-bank/zielonki/trees'
 import { pointInPolygon } from './geometry'
 
-export const STARTER_ORCHARD_VERSION = 5
+export const STARTER_ORCHARD_VERSION = 6
 
 /** Owner-reported site tree height, not a species-wide mature-height recommendation. */
 export const ZIELONKI_TREE_HEIGHT_M = 15
@@ -44,16 +44,22 @@ export const ensureStarterOrchard = (source: ProjectV2): ProjectV2 => {
     const ref = surveyTreeRef(tree.handle)
     const existing = project.landscape.plants.find((plant) => plant.ref === ref)
       ?? project.landscape.plants.find((plant) => plant.ref === oldRef)
+    const position = surveyTreePosition(tree.handle)
+    const placementRole = pointInPolygon(position, project.site.boundary) ? 'site' : 'context'
+    // The v5 inventory is complete: correct positions without restoring deletions or resetting tree edits.
+    if (project.landscape.orchardCatalogVersion === 5) {
+      if (existing) Object.assign(existing, { position, placementRole })
+      continue
+    }
     // Version four added a second copy of the four original tree records.
     project.landscape.plants = project.landscape.plants.filter((plant) => plant.ref !== ref && plant.ref !== oldRef)
-    const position = surveyTreePosition(tree.handle)
     project.landscape.plants.push({
       ref, name: `Mapped ${tree.category} tree ${tree.handle}`, species: `Unidentified ${tree.category}`,
       kind: 'tree', position, matureHeightM: existing?.matureHeightM ?? ZIELONKI_TREE_HEIGHT_M,
       canopyM: tree.category === 'conifer' ? 5.2 : tree.category === 'fruit' ? 6 : 7,
       surveyHandle: tree.handle,
       crownShape: tree.category === 'conifer' ? 'conical' : 'rounded',
-      placementRole: pointInPolygon(position, project.site.boundary) ? 'site' : 'context',
+      placementRole,
       sunNeed: 'sun', waterNeed: 1, hardinessMinC: -25,
       leafMonths: tree.category === 'conifer' ? [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] : [4, 5, 6, 7, 8, 9, 10],
       bloomMonths: [], locked: existing?.locked ?? true,

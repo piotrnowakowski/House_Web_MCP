@@ -1,18 +1,74 @@
-import { buildingGroundOffset, elevationAt, offsetPolygon, pointOnPolygonBoundary, polygonBounds, polygonCentroid } from './geometry'
+import { buildingGroundOffset, elevationAt, offsetPolygon, pointOnPolygonBoundary, polygonBounds, polygonCentroid, wallLength } from './geometry'
+import { gableEndWall, roofWings } from './roofWings'
+import { roomInsideFootprint } from './roomDimensions'
 import { decomposeOrthogonalLFootprint } from './roofs'
 import type { BuildingModel, ProjectV2, Vec2, WallModel } from './types'
 
 export const ZIELONKI_INTERIOR_ID = 'zielonki-reference-interior-v1'
 export const hasZielonkiInterior = (project: ProjectV2) => project.buildings.some((b) => b.interiorSource?.id === ZIELONKI_INTERIOR_ID)
 
-const paperRoofNote = 'Roof follows the September 2026 paper reference: one continuous gable along the full garage wing, with a shorter perpendicular gable joining its side.'
-const ridgeHeightNote = 'Initial roof pitch adjusted to a maximum ground-to-ridge measurement of 8.90 m across both roof segments, below the user-specified 9.00 m limit. Room heights are retained.'
+const paperRoofNote = 'Zielonki roof revision 2026-09-09: the main gable ends at the upper-floor wall; a perpendicular gable meets its ridge, and the exposed garage has a separate flat roof at ground-floor ceiling level.'
+const ridgeHeightNote = 'Main roof pitches follow MPZP IX/55/2007, §13(6)(4): 37–45 degrees, fitted toward an 8.90 m ground-to-ridge height using the model terrain datum. Room heights are retained. The flat garage roof is a user-requested concept, not confirmed planning permission.'
+const glazingNote = 'ICON glazing revision 2026-09-09: the projecting living gable is glazed to the ridge; the former mezzanine floor is a full-height living void. The adjacent kitchen-side gable has half-width glazing aligned with the window below.'
+
+/** Apply the requested glazed gables and living void once, also to saved copies. */
+export function upgradeZielonkiGlazing(source: ProjectV2): ProjectV2 {
+  const eligible = source.buildings.filter((b) => b.interiorSource?.id === ZIELONKI_INTERIOR_ID && !b.interiorSource.notes.includes(glazingNote))
+  if (!eligible.length) return source
+  const project = structuredClone(source)
+  let changed = false
+  for (const building of project.buildings.filter((b) => eligible.some((old) => old.ref === b.ref))) {
+    const front = building.roof.segments.find((s) => s.ref.endsWith('/rear-barn') && s.type === 'gable')
+    const side = building.roof.segments.find((s) => s.ref.endsWith('/front-barn') && s.type === 'gable')
+    const mezzanine = building.spaces.find((s) => s.ref === 'space/reference-mezzanine')
+    const upperSlab = building.slabs.find((s) => s.ref === mezzanine?.baseSlabRef)
+    if (!front || !side || !mezzanine || !upperSlab) continue
+    const voidFootprint = roomInsideFootprint(building, mezzanine)
+    upperSlab.holes = [...(upperSlab.holes ?? []), voidFootprint]
+    // Retain the exterior shell and the partitions to bedrooms, but close the former door into the void.
+    building.walls.forEach((wall) => { wall.openings = wall.openings.filter((o) => o.ref !== 'opening/reference-mezzanine-access') })
+    building.spaces = building.spaces.filter((s) => s.ref !== mezzanine.ref)
+    building.storeys.forEach((s) => { s.spaceRefs = s.spaceRefs.filter((ref) => ref !== mezzanine.ref) })
+    const removedFinishes = new Set(building.ceilingFinishes.filter((f) => f.spaceRef === mezzanine.ref || f.spaceRef === 'space/reference-living').map((f) => f.ref))
+    building.ceilingFinishes = building.ceilingFinishes.filter((f) => !removedFinishes.has(f.ref))
+    building.storeys.forEach((s) => { s.ceilingFinishRefs = s.ceilingFinishRefs.filter((ref) => !removedFinishes.has(ref)) })
+
+    for (const [segment, end, from, to, groundOpeningRef] of [
+      [front, 'max', 0.09, 0.91, 'opening/reference-terrace-east'],
+      [side, 'min', 0.09, 0.5, 'opening/reference-terrace-north'],
+    ] as const) {
+      segment.gableGlazing = { ...segment.gableGlazing, [end]: { from, to, roofInsetM: 0.28 } }
+      const bounds = polygonBounds(segment.footprint)
+      const across = segment.ridgeDirection === 'z' ? 'x' : 'z'
+      const min = across === 'x' ? bounds.minX : bounds.minZ
+      const max = across === 'x' ? bounds.maxX : bounds.maxZ
+      const center = min + (max - min) * (from + to) / 2
+      const widthM = (max - min) * (to - from)
+      const endValue = segment.ridgeDirection === 'z' ? (end === 'min' ? bounds.minZ : bounds.maxZ) : (end === 'min' ? bounds.minX : bounds.maxX)
+      const upperWall = gableEndWall(building, roofWings(building).find((w) => w.ref === segment.ref)!, segment.ridgeDirection, endValue)
+      const groundWall = building.walls.find((w) => w.openings.some((o) => o.ref === groundOpeningRef))
+      for (const wall of [groundWall, upperWall]) {
+        if (!wall) continue
+        const offsetM = Math.abs(center - wall.start[across])
+        if (offsetM - widthM / 2 < 0 || offsetM + widthM / 2 > wallLength(wall)) continue
+        const ref = wall === groundWall ? groundOpeningRef : `${segment.ref}/glazing-upper`
+        wall.openings = wall.openings.filter((o) => o.ref !== ref)
+        wall.openings.push({ ref, kind: 'window', wallRef: wall.ref, offsetM, widthM, sillM: 0.08, heightM: wall.heightM - 0.16 })
+      }
+    }
+    building.interiorSource!.notes.push(glazingNote)
+    changed = true
+  }
+  if (!changed) return source
+  project.revision += 1; project.updatedAt = new Date().toISOString()
+  return project
+}
 
 /** Set the initial pitch once, using the same terrain datum as the height tool; later roof edits remain editable. */
-function fitRidgeHeight(project: ProjectV2, building: BuildingModel) {
+function fitRoofPitch(project: ProjectV2, building: BuildingModel) {
   if (!building.interiorSource || building.interiorSource.notes.includes(ridgeHeightNote)) return false
-  const segments = building.roof.segments
-  if (segments.length !== 2 || segments.some((segment) => segment.type !== 'gable')) return false
+  const segments = building.roof.segments.filter((segment) => segment.type === 'gable')
+  if (segments.length !== 2) return false
   const angle = building.rotationDegrees * Math.PI / 180
   const slope = Math.min(...segments.map((segment) => {
     const center = polygonCentroid(segment.footprint)
@@ -24,49 +80,54 @@ function fitRidgeHeight(project: ProjectV2, building: BuildingModel) {
     return (ridgeElevation - segment.baseElevationM) / (span / 2)
   }))
   if (slope <= 0) throw new Error('The eaves must be below the requested 8.90 m ridge height.')
-  const pitch = Math.atan(slope) * 180 / Math.PI
+  const pitch = Math.max(37, Math.min(45, Math.atan(slope) * 180 / Math.PI))
   building.roof.pitchDegrees = pitch
   segments.forEach((segment) => { segment.pitchDegrees = pitch })
-  building.interiorSource.notes = building.interiorSource.notes.map((note) => note.startsWith('Roof follows the September 2026 paper reference:') ? paperRoofNote : note)
   building.interiorSource.notes.push(ridgeHeightNote)
   return true
 }
 
-/** Extend the long ridge through the rear junction and over the exposed garage. */
-function fitPaperRoof(building: BuildingModel) {
+/** Join the two gables over the upper floor and cap only the exposed garage below. */
+function fitGarageRoof(building: BuildingModel) {
   const roof = building.roof
   const main = roof.segments.find((s) => s.ref === `${roof.ref}/front-barn`)!
   const side = roof.segments.find((s) => s.ref === `${roof.ref}/rear-barn`)!
   const ground = [...building.storeys].sort((a, b) => a.level - b.level)[0]
+  const upper = [...building.storeys].sort((a, b) => b.level - a.level)[0]
   const groundBounds = polygonBounds(building.slabs.find((s) => s.ref === ground.baseSlabRef)!.footprint)
+  const upperBounds = polygonBounds(building.slabs.find((s) => s.ref === upper.baseSlabRef)!.footprint)
   const long = polygonBounds(main.footprint); const cross = polygonBounds(side.footprint)
   // Slab edges extend 0.10 m past the wall centreline used by roof footprints.
-  const endZ = groundBounds.maxZ - 0.1
+  const endZ = upperBounds.maxZ - 0.1
   main.footprint = [{ x: long.minX, z: cross.minZ }, { x: long.maxX, z: cross.minZ }, { x: long.maxX, z: endZ }, { x: long.minX, z: endZ }]
   // Meet at the main ridge. The overlapping slopes form the two valley lines.
   const ridgeX = (long.minX + long.maxX) / 2
   side.footprint = [{ x: ridgeX, z: cross.minZ }, { x: cross.maxX, z: cross.minZ }, { x: cross.maxX, z: cross.maxZ }, { x: ridgeX, z: cross.maxZ }]
+  const previousCap = roof.segments.find((s) => s.ref === `${roof.ref}/garage-cap`)
   roof.segments = roof.segments.filter((s) => s.ref !== `${roof.ref}/garage-cap`)
+  roof.segments.push({
+    ref: `${roof.ref}/garage-cap`, storeyRef: ground.ref,
+    footprint: [{ x: long.minX, z: endZ }, { x: long.maxX, z: endZ }, { x: long.maxX, z: groundBounds.maxZ - 0.1 }, { x: long.minX, z: groundBounds.maxZ - 0.1 }],
+    baseElevationM: ground.elevationM + ground.clearHeightM, type: 'flat', pitchDegrees: 0, overhangM: 0.1,
+    ridgeDirection: 'z', finish: previousCap?.finish ?? { material: 'membrane', colorHex: '#777269' }, adjacentSegmentRefs: [],
+  })
   roof.footprint = [{ x: long.minX, z: cross.minZ }, { x: cross.maxX, z: cross.minZ }, { x: cross.maxX, z: cross.maxZ }, { x: long.maxX, z: cross.maxZ }, { x: long.maxX, z: endZ }, { x: long.minX, z: endZ }]
 }
 
-/** Upgrade the former roof layout and initial ridge height once, retaining subsequent edits. */
+/** Correct the former continuous garage gable once; subsequent roof edits remain untouched. */
 export function upgradeZielonkiRoof(source: ProjectV2): ProjectV2 {
   const legacy = source.buildings.filter((b) => b.interiorSource?.id === ZIELONKI_INTERIOR_ID
-    && b.roof.segments.length === 3
-    && b.roof.segments.some((s) => s.ref === `${b.roof.ref}/garage-cap` && s.type === 'flat')
+    && !b.interiorSource.notes.includes(paperRoofNote)
+    && (b.roof.segments.length === 2 || (b.roof.segments.length === 3 && b.roof.segments.some((s) => s.ref === `${b.roof.ref}/garage-cap` && s.type === 'flat')))
     && ['front-barn', 'rear-barn'].every((name) => b.roof.segments.some((s) => s.ref === `${b.roof.ref}/${name}` && s.type === 'gable')))
-  const needsHeight = source.buildings.some((building) => building.interiorSource?.id === ZIELONKI_INTERIOR_ID
-    && !building.interiorSource.notes.includes(ridgeHeightNote)
-    && building.roof.segments.length === 2 && building.roof.segments.every((segment) => segment.type === 'gable'))
-  if (!legacy.length && !needsHeight) return source
+  if (!legacy.length) return source
   const project = structuredClone(source)
   for (const building of project.buildings.filter((b) => legacy.some((old) => old.ref === b.ref))) {
-    fitPaperRoof(building)
-    building.interiorSource!.notes = building.interiorSource!.notes.filter((note) => !note.startsWith('Zielonki exterior:'))
+    fitGarageRoof(building)
+    building.interiorSource!.notes = building.interiorSource!.notes.filter((note) => !/^(Zielonki exterior:|Roof follows the September 2026 paper reference:|Initial roof pitch adjusted)/.test(note))
     building.interiorSource!.notes.push(paperRoofNote)
+    fitRoofPitch(project, building)
   }
-  project.buildings.filter((building) => building.interiorSource?.id === ZIELONKI_INTERIOR_ID).forEach((building) => fitRidgeHeight(project, building))
   project.revision += 1; project.updatedAt = new Date().toISOString()
   return project
 }
@@ -84,7 +145,7 @@ export const isExteriorWall = (building: BuildingModel, wall: WallModel) => {
 /** Transfer the measured floor plan into the existing site, retaining its house placement and finishes. */
 export function fitZielonkiInterior(target: ProjectV2, reference: ProjectV2): ProjectV2 {
   const project = structuredClone(target)
-  if (hasZielonkiInterior(project)) return upgradeZielonkiRoof(project)
+  if (hasZielonkiInterior(project)) return upgradeZielonkiGlazing(upgradeZielonkiRoof(project))
   const old = project.buildings.find((b) => b.kind === 'house')
   const source = reference.buildings.find((b) => b.kind === 'house')
   if (!old || !source) throw new Error('Both projects must contain a house.')
@@ -128,7 +189,7 @@ export function fitZielonkiInterior(target: ProjectV2, reference: ProjectV2): Pr
       ridgeDirection: i === 0 ? 'x' : 'z', finish: structuredClone(finish), adjacentSegmentRefs: [refs[1 - i]], gableWallFinishes: { min: structuredClone(facade), max: structuredClone(facade) } })),
     junctions: [{ ref: `${roofRef}/barn-valley`, type: 'valley', segmentRefs: refs }],
   }
-  fitPaperRoof(building)
+  fitGarageRoof(building)
   building.interiorSource = { id: ZIELONKI_INTERIOR_ID, notes: [
     'Measured September floor plans fitted to the Zielonki house; all room and furniture dimensions are retained. The original Zielonki site, plants and house position are preserved.',
     'Ground-floor outside dimensions: 11.19 × 18.31 m. Upper floor: 11.28 × 15.14 m. The screenshots differ by 9–10 cm at the east wall; this difference is retained.',
@@ -137,8 +198,8 @@ export function fitZielonkiInterior(target: ProjectV2, reference: ProjectV2): Pr
     ...reference.site.knowledgeBase.caveats.filter((note) => !/roof|plot|site/i.test(note)),
   ] }
   project.buildings = project.buildings.map((b) => b.ref === old.ref ? building : b)
-  fitRidgeHeight(project, building)
+  fitRoofPitch(project, building)
   project.name = 'Zielonki · Dom z planów'
   project.revision += 1; project.updatedAt = new Date().toISOString()
-  return project
+  return upgradeZielonkiGlazing(project)
 }

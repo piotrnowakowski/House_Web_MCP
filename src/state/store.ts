@@ -6,7 +6,7 @@ import { applyModernBarnPreset, isModernBarnPreset } from '../domain/presets'
 import { slugify } from '../domain/refs'
 import { modernBarnProject } from '../domain/sampleProject'
 import { createReferenceHouse, REFERENCE_HOUSE_REF } from '../domain/referenceHouse'
-import { fitZielonkiInterior, hasZielonkiInterior, upgradeZielonkiRoof } from '../domain/zielonkiInterior'
+import { fitZielonkiInterior, hasZielonkiInterior, upgradeZielonkiRoof, upgradeZielonkiGlazing } from '../domain/zielonkiInterior'
 import { REFERENCE_YEAR, type SunTime } from '../domain/solar'
 import type { SunlightAnalysis } from '../domain/sunlight'
 import { createTerrainProject, isZielonkiProject, type TerrainInput } from '../domain/terrain'
@@ -159,7 +159,11 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   },
   replaceProject: (project) => { revokeReport(get().structureReport); set((state) => ({ project, variants: [], proposals: [], draftChangeSets: [], history: [], structureReport: null, sunOverlay: { ...state.sunOverlay, result: null }, toast: `Loaded ${project.name}.` })) },
   restoreWorkspace: (workspace) => {
-    workspace = { ...workspace, project: upgradeZielonkiRoof(workspace.project) }
+    // Includes saved copies with different project refs; only mapped survey inventories need correction.
+    if (workspace.project.landscape.plants.some((plant) => plant.surveyHandle)) {
+      workspace = { ...workspace, project: ensureStarterOrchard(workspace.project) }
+    }
+    workspace = { ...workspace, project: upgradeZielonkiGlazing(upgradeZielonkiRoof(workspace.project)) }
     revokeReport(get().structureReport)
     const proposals = staleRecords(workspace.proposals, workspace.project.revision).map((proposal) =>
       proposal.status === 'pending' ? { ...proposal, issues: validateProject(proposal.project) } : proposal)

@@ -19,6 +19,12 @@ The [court judgment published in 2025, item 3643](https://edziennik.malopolska.u
 
 This establishes the land-use split, not approval of a particular building design. The MNU area is not the net available building footprint: setbacks and the plan's remaining provisions still apply.
 
+## Roof check — 9 September 2026
+
+For MN/MNU, **§13(6)(4)** of [IX/55/2007, page 15](https://rastry.gison.pl/mpzp-public/zielonki/uchwaly/U_06_2007_55_IX.pdf#page=15) specifies a symmetric gable or hipped roof, main slopes **37–45°**, ridge height up to **9 m**, and eaves/verge projection at least **0.60 m**. Dark grey roofs are among the colours described in §13(6)(11). The [2020 amendment](https://edziennik.malopolska.uw.gov.pl/WDU_K/2020/1251/akt.pdf), checked in the downloaded PDF, does not change §13(6)(4); it repeals the innovative-architecture exception and changes parking requirements.
+
+The fitted house now uses pitches within 37–45°, preserving the perpendicular ridge junction and dark standing-seam finish. Its main gable stops at the upper-floor wall, with a separate flat roof over the exposed garage as requested by the user. The cited text does **not** establish general permission for this flat garage terrace; its acceptability requires project-specific confirmation. Eaves projection, roofing material and the remainder of the building have not been certified as compliant by this change. The app's 8.90 m target is a measurement over modelled terrain at roof centres, not a legal assessment of building height.
+
 ## Geometry and derived areas
 
 The supplied `Zielonki_dz54_55_58-akt-v2 (2).dwg` contains usable vector zoning dashes on `_MPZP`, despite also referring to unavailable external raster files. The relevant trace uses LINE handles `5882–589B`, with the main parcel-crossing run `5887–5896`. Labels `58EA` and `58EE` identify 06.R.21 and 06.MNU.8. The separately marked setback polyline `591A` was not used as the zoning boundary.

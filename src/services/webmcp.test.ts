@@ -530,7 +530,9 @@ describe('sunlight through run_analysis', () => {
     const griddedResult = await tool('run_analysis').execute({ kind: 'sunlight', targetRef: 'zone/lawn', month: 6, includeGrid: true }); const gridded = payload(griddedResult)
     expect(gridded.analysis.grid.width).toBeLessThanOrEqual(12)
     expect(griddedResult.content[0].text.length).toBeLessThan(1500)
-    useStudioStore.setState({ project: structuredClone(partialUpperModernBarnProject), variants: [] })
+    const source = structuredClone(partialUpperModernBarnProject)
+    source.landscape.plants = [] // Isolate the proposed roof extension from tree shade.
+    useStudioStore.setState({ project: source, variants: [] })
     const proposal = await propose([{ ...extension, spaceName: undefined, usage: undefined }])
     const committed = payload(await tool('run_analysis').execute({ kind: 'sunlight', targetRef: 'zone/terrace', month: 9 }))
     const ghost = payload(await tool('run_analysis').execute({ kind: 'sunlight', targetRef: 'zone/terrace', month: 9, variantRef: proposal.variantRef }))
