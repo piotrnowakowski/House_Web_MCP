@@ -3,8 +3,8 @@
   "ref": "project/zielonki-spatial-v2",
   "name": "Zielonki · Dom z planów",
   "units": "metric",
-  "revision": 44,
-  "updatedAt": "2026-09-09T23:14:28.319Z",
+  "revision": 43,
+  "updatedAt": "2026-09-09T23:00:37.725Z",
   "site": {
     "boundary": [
       {
@@ -1850,8 +1850,7 @@
             "space/reference-child-two"
           ],
           "platformRefs": [],
-          "ceilingFinishRefs": [],
-          "kneeWallHeightM": 1.4
+          "ceilingFinishRefs": []
         }
       ],
       "slabs": [
@@ -2466,7 +2465,7 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
-          "heightM": 1.4,
+          "heightM": 2.8,
           "openings": [
             {
               "ref": "roof/reference/front-barn/glazing-upper",
@@ -2474,7 +2473,7 @@
               "wallRef": "wall/reference-upper/1",
               "offsetM": 2.2361,
               "widthM": 3.1078,
-              "heightM": 1.24,
+              "heightM": 2.6399999999999997,
               "sillM": 0.08
             }
           ],
@@ -2548,7 +2547,7 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
-          "heightM": 1.4,
+          "heightM": 2.8,
           "openings": [],
           "finish": {
             "material": "charred-timber",
@@ -2568,7 +2567,7 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
-          "heightM": 1.4,
+          "heightM": 2.8,
           "openings": [],
           "finish": {
             "material": "charred-timber",
@@ -2588,7 +2587,7 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
-          "heightM": 1.4,
+          "heightM": 2.8,
           "openings": [
             {
               "ref": "roof/reference/rear-barn/glazing-upper",
@@ -2596,7 +2595,7 @@
               "wallRef": "wall/reference-upper/6",
               "offsetM": 3.775,
               "widthM": 6.191000000000001,
-              "heightM": 1.24,
+              "heightM": 2.6399999999999997,
               "sillM": 0.08
             }
           ],
@@ -2618,7 +2617,7 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
-          "heightM": 1.4,
+          "heightM": 2.8,
           "openings": [],
           "finish": {
             "material": "charred-timber",
@@ -2825,7 +2824,7 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
-          "heightM": 1.4,
+          "heightM": 2.8,
           "openings": [],
           "finish": {
             "material": "charred-timber",
@@ -2866,7 +2865,7 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
-          "heightM": 1.4,
+          "heightM": 2.8,
           "openings": [],
           "finish": {
             "material": "charred-timber",
@@ -2886,7 +2885,7 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
-          "heightM": 1.4,
+          "heightM": 2.8,
           "openings": [],
           "finish": {
             "material": "charred-timber",
@@ -2948,7 +2947,7 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
-          "heightM": 2.2,
+          "heightM": 2.8,
           "openings": [
             {
               "ref": "opening/reference-children-west-window",
@@ -2956,7 +2955,7 @@
               "wallRef": "wall/reference-upper/21",
               "offsetM": 1.2000000000000002,
               "widthM": 2,
-              "heightM": 2.1,
+              "heightM": 2.6799999999999997,
               "sillM": 0.040000000000000036,
               "glazed": true
             }
@@ -2979,7 +2978,7 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
-          "heightM": 1.4,
+          "heightM": 2.8,
           "openings": [],
           "finish": {
             "material": "charred-timber",
@@ -2999,7 +2998,7 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
-          "heightM": 1.4,
+          "heightM": 2.8,
           "openings": [],
           "finish": {
             "material": "charred-timber",
@@ -3019,7 +3018,7 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
-          "heightM": 2.2,
+          "heightM": 2.8,
           "openings": [
             {
               "ref": "opening/reference-children-east-window",
@@ -3027,7 +3026,7 @@
               "wallRef": "wall/reference-upper/24",
               "offsetM": 2.710000000000001,
               "widthM": 1.95,
-              "heightM": 2.1,
+              "heightM": 2.6799999999999997,
               "sillM": 0.040000000000000036,
               "glazed": true
             }
@@ -3409,7 +3408,7 @@
       "roof": {
         "ref": "roof/reference",
         "type": "gable",
-        "baseElevationM": 4.85,
+        "baseElevationM": 6.25,
         "pitchDegrees": 40.13423424862029,
         "overhangM": 0,
         "footprint": [
@@ -3464,7 +3463,7 @@
               }
             ],
             "storeyRef": "storey/reference-upper",
-            "baseElevationM": 4.85,
+            "baseElevationM": 6.25,
             "type": "gable",
             "pitchDegrees": 40.13423424862029,
             "overhangM": 0,
@@ -3520,7 +3519,7 @@
               }
             ],
             "storeyRef": "storey/reference-upper",
-            "baseElevationM": 4.85,
+            "baseElevationM": 6.25,
             "type": "gable",
             "pitchDegrees": 40.13423424862029,
             "overhangM": 0,

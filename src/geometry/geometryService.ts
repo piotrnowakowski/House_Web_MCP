@@ -1,11 +1,12 @@
 import type { BuildingModel } from '../domain/types'
+import { atticWallProfile } from '../domain/attic'
 import type { GeneratedSolid, GeometryWorkerRequest, GeometryWorkerResponse, SolidInput } from './types'
 
 type Pending = { revision: number; resolve: (solids: GeneratedSolid[]) => void; reject: (reason: unknown) => void }
 
 export const solidInputsForBuilding = (building: BuildingModel): SolidInput[] => [
   ...building.slabs.map((slab) => ({ kind: 'slab' as const, ref: slab.ref, footprint: slab.footprint, holes: slab.holes, topElevationM: slab.topElevationM, thicknessM: slab.thicknessM })),
-  ...building.walls.map((wall) => ({ kind: 'wall' as const, ref: wall.ref, start: wall.start, end: wall.end, baseElevationM: wall.baseElevationM, heightM: wall.heightM, thicknessM: wall.thicknessM, openings: wall.openings.map(({ offsetM, widthM, heightM, sillM }) => ({ offsetM, widthM, heightM, sillM })) })),
+  ...building.walls.map((wall) => ({ kind: 'wall' as const, ref: wall.ref, start: wall.start, end: wall.end, baseElevationM: wall.baseElevationM, heightM: wall.heightM, thicknessM: wall.thicknessM, topProfile: atticWallProfile(building, wall), openings: wall.openings.map(({ offsetM, widthM, heightM, sillM }) => ({ offsetM, widthM, heightM, sillM })) })),
 ]
 
 class GeometryService {

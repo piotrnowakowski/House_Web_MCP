@@ -1,6 +1,16 @@
 # Versioned Zielonki project
 
-`project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09 as revision **40**, saved **2026-09-09T14:11:23.399Z**. The current revision is **43**, retaining **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
+`project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09 as revision **40**, saved **2026-09-09T14:11:23.399Z**. The current revision is **44**, retaining **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
+
+## Revision 44 — 140 cm knee walls at the existing roof pitch
+
+Both gable segments now start at 4.85 m: 1.40 m above the upper floor at 3.45 m. Their pitches remain exactly 40.13423424862029 degrees and both ridges move down by 1.40 m. Ground-floor walls, floor slabs, connected flat terraces, house placement, landscape and furniture are retained. The cancelled terrace extension has not been added.
+
+The upper storey's additive `kneeWallHeightM` is separate from its nominal 2.8 m interior ceiling cap. Eave walls are 1.4 m; partitions and the lower gable walls follow the roof profile where necessary. `attic.ts` derives exact linear wall caps at roof boundaries, ridges and intersecting slopes. The geometry worker, interior perspective walls, opening checks and wall-height measurements use these caps; furniture placement checks available sloping clearance. Older projects without the field keep their previous behavior.
+
+The two balcony doors retain their positions and widths, with a 2.10 m height and the existing 4 cm sill. Their supporting gable wall sections reach 2.20 m, followed by the divided trapezoid panes. The large upper window bands on the other gables are 1.24 m high above their existing 8 cm sill, continuing into the roof-shaped glazing above the 1.4 m knee-wall line. This avoids glazing or wall solids protruding through the lowered roof.
+
+Before editing on 2026-09-10, the actual public-origin Codex browser workspace and its published baseline were backed up in ignored `tmp/knee-wall-recovery/`. Both still contained identical r40 data, so no additional local edits conflicted with tracked r43. `published-base-r43.json` preserves the previous published project; the immutable legacy baseline remains unchanged. The change and its migration tests retain all six surviving plants and the existing furniture.
 
 ## Revision 43 — one terrace composition across both levels
 

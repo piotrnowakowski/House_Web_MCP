@@ -5,6 +5,7 @@ import { ikeaProduct } from './ikeaCatalog'
 import { InteriorFinishSchema } from './interiorFinishes'
 import { mergeRooms, moveConnectedWall, splitRoom } from './interiorLayout'
 import { resizeInteriorRoom } from './interiorResize'
+import { atticClearanceAt } from './attic'
 
 export const interiorCatalog: { id: InteriorCatalogId; name: string; category: string; size: [number, number, number]; color: string }[] = [
   { id: 'corner-sofa', name: 'Corner sofa', category: 'Living', size: [3.45, 2.52, 0.85], color: '#20798a' },
@@ -79,6 +80,7 @@ export const itemFitsFloor = (item: InteriorItem, footprint: Polygon2, holes: Po
 export function availableInteriorHeight(item: InteriorItem, building: BuildingModel, storey: StoreyModel) {
   let height = storey.clearHeightM
   const corners = interiorCorners(item)
+  if (storey.kneeWallHeightM !== undefined) height = Math.min(height, ...corners.map((point) => atticClearanceAt(building, storey, point)))
   for (const ceiling of building.ceilingFinishes) {
     const room = building.spaces.find((room) => room.ref === ceiling.spaceRef && storey.spaceRefs.includes(room.ref))
     if (!room) continue

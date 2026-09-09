@@ -23,12 +23,12 @@ it('joins the ground terrace canopy to the garage cap and projecting wing while 
   expect(canopy.baseElevationM + 0.24 - canopy.canopy!.fasciaHeightM - canopy.canopy!.postBaseElevationM).toBeCloseTo(2.39)
   const oldBuilding = previous.buildings[0]
   expect(garage.terrace!.railingHeightM).toEqual(oldBuilding.roof.segments.find((s) => s.ref === garage.ref)!.terrace!.railingHeightM)
-  expect(building.walls.map(({ finish: _finish, ...wall }) => wall)).toEqual(oldBuilding.walls.map(({ finish: _finish, ...wall }) => wall))
+  expect(building.walls.filter((w) => w.baseElevationM < 3).map(({ finish: _finish, ...wall }) => wall)).toEqual(oldBuilding.walls.filter((w) => w.baseElevationM < 3).map(({ finish: _finish, ...wall }) => wall))
   expect(building.walls.find((w) => w.ref === 'wall/reference-ground/14')!.finish!.material).toBe('natural-timber')
   expect(building.slabs).toEqual(oldBuilding.slabs)
   expect(building.furniture).toEqual(oldBuilding.furniture)
   expect(publishedProject.landscape).toEqual(previous.landscape)
-  expect(building.roof.segments.find((s) => s.ref.endsWith('/front-barn'))).toEqual(oldBuilding.roof.segments.find((s) => s.ref.endsWith('/front-barn')))
+  expect(building.roof.segments.find((s) => s.ref.endsWith('/front-barn'))!.gableGlazing).toEqual(oldBuilding.roof.segments.find((s) => s.ref.endsWith('/front-barn'))!.gableGlazing)
 })
 
 it('merges the canopy into an r41 working copy while retaining an independent plant deletion', () => {

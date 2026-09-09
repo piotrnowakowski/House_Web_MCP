@@ -11,7 +11,16 @@ export function gableGlazingProfile(segment: RoofSegmentModel, side: 'min' | 'ma
   const max = segment.ridgeDirection === 'z' ? bounds.maxX : bounds.maxZ
   const span = max - min; const center = (min + max) / 2
   const base = segment.baseElevationM; const ridge = roofSegmentRidgeElevation(segment)
-  const bottom = base + 0.03
+  let claddingBase = base
+  const storey = building?.storeys.find((s) => s.ref === segment.storeyRef)
+  if (storey?.kneeWallHeightM !== undefined && building) {
+    const along = segment.ridgeDirection === 'z' ? 'z' : 'x'
+    const face = along === 'z' ? (side === 'min' ? bounds.minZ : bounds.maxZ) : (side === 'min' ? bounds.minX : bounds.maxX)
+    const across = along === 'z' ? 'x' : 'z'
+    const walls = building.walls.filter((wall) => storey.wallRefs.includes(wall.ref) && Math.abs(wall.start[along] - face) < 0.01 && Math.abs(wall.end[along] - face) < 0.01 && Math.min(wall.start[across], wall.end[across]) < max && Math.max(wall.start[across], wall.end[across]) > min)
+    claddingBase = Math.max(base, ...walls.map((wall) => wall.baseElevationM + wall.heightM))
+  }
+  const bottom = claddingBase + 0.03
   const topAt = (x: number) => ridge - Math.abs(x - center) * (ridge - base) / (span / 2) - glazing.roofInsetM
   const ranges = glazing.hostOpeningRefs ? glazing.hostOpeningRefs.flatMap((ref) => {
     const wall = building?.walls.find((wall) => wall.openings.some((opening) => opening.ref === ref))
@@ -34,5 +43,6 @@ export function gableGlazingProfile(segment: RoofSegmentModel, side: 'min' | 'ma
     const divisions = dividedDoor ? [0.5] : width > 5 ? [1 / 3, 2 / 3] : width > 2.6 ? [0.5] : []
     return [{ opening, mullions: divisions.map((fraction) => ({ x: left + width * fraction, bottom, top: topAt(left + width * fraction) })) }]
   })
-  return { outline: [{ x: min, z: base }, { x: max, z: base }, { x: center, z: ridge }], panels }
+  const inset = claddingBase > base ? (claddingBase - base) / Math.max(0.0001, Math.tan(segment.pitchDegrees * Math.PI / 180)) : 0
+  return { outline: [{ x: min + inset, z: claddingBase }, { x: max - inset, z: claddingBase }, { x: center, z: ridge }], panels }
 }

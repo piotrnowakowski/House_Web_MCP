@@ -60,6 +60,13 @@ const buildSolid = (element: SolidInput, module: ManifoldToplevel): GeneratedSol
     const length = Math.hypot(dx, dz)
     let current = Manifold.cube([length, element.heightM, element.thicknessM], true)
     owned.push(current)
+    if (element.topProfile) {
+      const polygon: [number, number][] = [[0, 0], [length, 0], ...[...element.topProfile].reverse().map((p): [number, number] => [p.x, p.z])]
+      const profile = Manifold.extrude([polygon], element.thicknessM)
+      owned.push(profile)
+      current = profile.translate([-length / 2, -element.heightM / 2, -element.thicknessM / 2])
+      owned.push(current)
+    }
     for (const opening of element.openings) {
       const cut = Manifold.cube([opening.widthM + 0.02, opening.heightM + 0.02, element.thicknessM * 2.2], true)
         .translate([opening.offsetM - length / 2, opening.sillM + opening.heightM / 2 - element.heightM / 2, 0])

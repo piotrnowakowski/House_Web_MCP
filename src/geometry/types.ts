@@ -18,6 +18,7 @@ export type WallSolidInput = {
   heightM: number
   thicknessM: number
   openings: Array<{ offsetM: number; widthM: number; heightM: number; sillM: number }>
+  topProfile?: Array<{ x: number; z: number }>
 }
 
 export type SolidInput = SlabSolidInput | WallSolidInput

@@ -2,7 +2,8 @@ import { floorGeometry } from './floorGeometry'
 import { Grid, Html, Line } from '@react-three/drei'
 import { useThree, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { DoubleSide, Line3, Object3D, Plane, PlaneGeometry, Raycaster, Vector2, Vector3 } from 'three'
+import { BoxGeometry, DoubleSide, ExtrudeGeometry, Line3, Object3D, Plane, PlaneGeometry, Raycaster, Shape, ShapeGeometry, Vector2, Vector3 } from 'three'
+import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
 import type { OrbitControls as OrbitControlsType } from 'three-stdlib'
 import { polygonCentroid, spaceFootprint, wallLength } from '../domain/geometry'
 import { roomDimensions } from '../domain/roomDimensions'
@@ -26,17 +27,26 @@ function Floor({ points, holes, slab, onPick, tiled = false, plan = false, finis
   </mesh>
 }
 
-function WallFace({ width, height, finish }: { width: number; height: number; finish: InteriorFinish }) {
+function WallFace({ width, height, finish, outline }: { width: number; height: number; finish: InteriorFinish; outline?: Vec2[] }) {
   const geometry = useMemo(() => {
+    if (outline) return new ShapeGeometry(new Shape(outline.map((p) => new Vector2(p.x, p.z))))
     const result = new PlaneGeometry(width, height); const uv = result.attributes.uv
     for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * width, uv.getY(i) * height)
     return result
-  }, [width, height])
+  }, [width, height, outline])
   useEffect(() => () => geometry.dispose(), [geometry])
   return <mesh geometry={geometry} receiveShadow><FinishMaterial finish={finish} /></mesh>
 }
 
-function CutawayWall({ wall, plan, fullHeight, selected, onSelect, onPick }: { wall: WallModel; plan: boolean; fullHeight?: boolean; selected?: string | null; onSelect?: (ref: string) => void; onPick?: (point: Vec2) => void }) {
+function WallBody({ width, height, thickness, outline, plan }: { width: number; height: number; thickness: number; outline?: Vec2[]; plan: boolean }) {
+  const geometry = useMemo(() => outline
+    ? new ExtrudeGeometry(new Shape(outline.map((p) => new Vector2(p.x, p.z))), { depth: thickness, bevelEnabled: false }).translate(0, 0, -thickness / 2)
+    : new BoxGeometry(width, height, thickness), [width, height, thickness, outline])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  return <mesh geometry={geometry} castShadow receiveShadow><meshStandardMaterial color={plan ? '#283b36' : '#eceae2'} roughness={0.82} /></mesh>
+}
+
+function CutawayWall({ wall, profile, plan, fullHeight, selected, onSelect, onPick }: { wall: WallModel; profile?: Vec2[]; plan: boolean; fullHeight?: boolean; selected?: string | null; onSelect?: (ref: string) => void; onPick?: (point: Vec2) => void }) {
   const length = wallLength(wall); const height = plan ? 0.14 : fullHeight ? wall.heightM : Math.min(1.15, wall.heightM)
   const openings = [...wall.openings].sort((a, b) => a.offsetM - b.offsetM)
   let cursor = 0
@@ -49,13 +59,24 @@ function CutawayWall({ wall, plan, fullHeight, selected, onSelect, onPick }: { w
     cursor = end
   }
   if (cursor < length) pieces.push({ start: cursor, end: length, height })
+  const outlineFor = (piece: typeof pieces[number]) => {
+    if (!fullHeight || !profile) return undefined
+    const base = piece.base ?? 0, top = base + piece.height, middle = (piece.start + piece.end) / 2
+    const xs = new Set([piece.start, piece.end, ...profile.filter((p) => p.x > piece.start && p.x < piece.end).map((p) => p.x)])
+    for (let i = 1; i < profile.length; i++) {
+      const a = profile[i - 1], b = profile[i]
+      if ((a.z - top) * (b.z - top) < 0) { const x = a.x + (b.x - a.x) * (top - a.z) / (b.z - a.z); if (x > piece.start && x < piece.end) xs.add(x) }
+    }
+    return [{ x: piece.start - middle, z: -piece.height / 2 }, { x: piece.end - middle, z: -piece.height / 2 },
+      ...[...xs].sort((a, b) => b - a).map((x) => ({ x: x - middle, z: Math.max(base, Math.min(top, wallProfileHeightAt(profile, x))) - base - piece.height / 2 }))]
+  }
   return <group position={[wall.start.x, 0.025, wall.start.z]} rotation={[0, -Math.atan2(wall.end.z - wall.start.z, wall.end.x - wall.start.x), 0]} onClick={(event) => { if (event.delta >= 5) return; if (onPick) { event.stopPropagation(); onPick({ x: event.point.x, z: event.point.z }) } else if (onSelect) { event.stopPropagation(); onSelect(wall.ref) } }}>
     {pieces.map((piece, index) => <group key={`finish-${index}`} position={[(piece.start + piece.end) / 2, (piece.base ?? 0) + piece.height / 2, 0]}>
-      {wall.faceFinishes?.left && <group position-z={wall.thicknessM / 2 + 0.001}><WallFace width={piece.end - piece.start} height={piece.height} finish={wall.faceFinishes.left} /></group>}
-      {wall.faceFinishes?.right && <group position-z={-wall.thicknessM / 2 - 0.001} rotation-y={Math.PI}><WallFace width={piece.end - piece.start} height={piece.height} finish={wall.faceFinishes.right} /></group>}
+      {wall.faceFinishes?.left && <group position-z={wall.thicknessM / 2 + 0.001}><WallFace width={piece.end - piece.start} height={piece.height} outline={outlineFor(piece)} finish={wall.faceFinishes.left} /></group>}
+      {wall.faceFinishes?.right && <group position-z={-wall.thicknessM / 2 - 0.001} rotation-y={Math.PI}><WallFace width={piece.end - piece.start} height={piece.height} outline={outlineFor(piece)?.map((p) => ({ x: -p.x, z: p.z })).reverse()} finish={wall.faceFinishes.right} /></group>}
     </group>)}
     {selected === wall.ref && <Line points={[[0, height + 0.03, 0], [length, height + 0.03, 0]]} color='#287466' lineWidth={5} />}
-    {pieces.map((piece, index) => <group key={index}><mesh position={[(piece.start + piece.end) / 2, (piece.base ?? 0) + piece.height / 2, 0]} castShadow receiveShadow><boxGeometry args={[piece.end - piece.start, piece.height, wall.thicknessM]} /><meshStandardMaterial color={plan ? '#283b36' : '#eceae2'} roughness={0.82} /></mesh><mesh position={[(piece.start + piece.end) / 2, 0.055, 0]}><boxGeometry args={[piece.end - piece.start, 0.09, wall.thicknessM + 0.022]} /><meshStandardMaterial color={plan ? '#283b36' : '#f7f3e9'} /></mesh></group>)}
+    {pieces.map((piece, index) => <group key={index}><group position={[(piece.start + piece.end) / 2, (piece.base ?? 0) + piece.height / 2, 0]}><WallBody width={piece.end - piece.start} height={piece.height} thickness={wall.thicknessM} outline={outlineFor(piece)} plan={plan} /></group><mesh position={[(piece.start + piece.end) / 2, 0.055, 0]}><boxGeometry args={[piece.end - piece.start, 0.09, wall.thicknessM + 0.022]} /><meshStandardMaterial color={plan ? '#283b36' : '#f7f3e9'} /></mesh></group>)}
     {openings.filter((o) => o.kind === 'window' || o.glazed).map((opening) => {
       const sill = plan ? 0.04 : Math.min(height, opening.sillM); const glassHeight = plan ? 0.035 : Math.max(0.035, Math.min(opening.heightM, height - sill))
       return <group key={opening.ref} position={[opening.offsetM, 0, 0]} onClick={(event) => { if (onSelect && event.delta < 5) { event.stopPropagation(); onSelect(opening.ref) } }}><mesh position={[0, sill + glassHeight / 2, 0]}><boxGeometry args={[opening.widthM, glassHeight, 0.035]} /><meshPhysicalMaterial color='#adc8d0' transparent opacity={plan ? 0.8 : 0.25} roughness={0.08} depthWrite={false} /></mesh>{[-1, 0, 1].map((x) => <mesh key={x} position={[x * opening.widthM / 2, sill + glassHeight / 2, 0]}><boxGeometry args={[0.045, glassHeight + 0.035, 0.055]} /><meshStandardMaterial color={opening.glazed ? '#121817' : '#f6f4ec'} /></mesh>)}{[-1, 1].map((y) => <mesh key={y} position={[0, sill + glassHeight / 2 + y * glassHeight / 2, 0]}><boxGeometry args={[opening.widthM, 0.04, 0.055]} /><meshStandardMaterial color={opening.glazed ? '#121817' : '#f6f4ec'} /></mesh>)}</group>
@@ -229,7 +250,7 @@ export function InteriorScene(props: Props) {
         return <mesh key={i} position={[(i + 0.5) * stairs.runM / stairs.steps, h / 2, stairs.widthM / 2]} castShadow receiveShadow><boxGeometry args={[stairs.runM / stairs.steps - 0.012, h, stairs.widthM]} /><meshStandardMaterial color={i % 2 ? '#b99365' : '#c49c6b'} roughness={0.8} /></mesh>
       })}{plan && <Line points={[[stairs.runM - 0.12, 0.16, stairs.widthM / 2], [0.14, 0.16, stairs.widthM / 2], [0.35, 0.16, stairs.widthM / 2 - 0.17], [0.14, 0.16, stairs.widthM / 2], [0.35, 0.16, stairs.widthM / 2 + 0.17]]} color='#675d4b' lineWidth={1} />}</group>
     })}
-    {building.walls.filter((wall) => storey.wallRefs.includes(wall.ref)).map((wall) => <CutawayWall key={wall.ref} wall={wall} plan={plan} fullHeight={props.view === 'room'} selected={selected} onPick={mode === 'partition' ? onPick : undefined} onSelect={mode === 'select' && !placing ? onSelect : undefined} />)}
+    {building.walls.filter((wall) => storey.wallRefs.includes(wall.ref)).map((wall) => <CutawayWall key={wall.ref} wall={wall} profile={atticWallProfile(building, wall)} plan={plan} fullHeight={props.view === 'room'} selected={selected} onPick={mode === 'partition' ? onPick : undefined} onSelect={mode === 'select' && !placing ? onSelect : undefined} />)}
     {building.spaces.filter((room) => storey.spaceRefs.includes(room.ref)).map((room) => {
       const footprint = spaceFootprint(building, room); const centre = polygonCentroid(footprint); const sizes = roomDimensions(building, room)
       // Merge collinear wall joins before dimensioning; dimensions follow real edges, including L-shaped rooms.

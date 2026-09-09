@@ -7,6 +7,7 @@ import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOn
 import { decomposeOrthogonalLFootprint, defaultRoofFinish, ridgeDirectionForFootprint, roofSegmentRidgeElevation, segmentContainsFootprint, supportingWallRefs } from './roofs'
 import { gableWallsForBuilding } from './roofWings'
 import { roofTerraceOutline } from './roofTerrace'
+import { atticWallProfile, wallProfileHeightAt } from './attic'
 import { sunMismatchIssues } from './sunlight'
 import { buildingCrossesAgriculturalZone } from './zoning'
 import type { BuildingModel, LandscapeZone, OpeningModel, Polygon2, ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, RoofJunctionModel, RoofSegmentDefinition, RoofSegmentModel, SpaceBoundaryUse, StoreyModel, Vec2, WallModel } from './types'
@@ -553,6 +554,13 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
     building.walls.forEach((wall) => wall.openings.forEach((opening: OpeningModel) => {
       if (opening.offsetM - opening.widthM / 2 < 0 || opening.offsetM + opening.widthM / 2 > wallLength(wall)) issues.push({ severity: 'error', code: 'opening.bounds', message: `${opening.ref} exceeds its host wall.`, subjectRef: opening.ref })
       if (opening.sillM + opening.heightM > wall.heightM) issues.push({ severity: 'error', code: 'opening.height', message: `${opening.ref} exceeds wall height.`, subjectRef: opening.ref })
+      const profile = atticWallProfile(building, wall)
+      if (profile) {
+        const left = opening.offsetM - opening.widthM / 2, right = opening.offsetM + opening.widthM / 2
+        const points = profile.filter((p) => p.x > left && p.x < right)
+        for (const x of [left, right]) points.push({ x, z: wallProfileHeightAt(profile, x) })
+        if (points.some((p) => p.z + 0.001 < opening.sillM + opening.heightM)) issues.push({ severity: 'error', code: 'opening.roof', message: `${opening.ref} exceeds the sloping roof.`, subjectRef: opening.ref })
+      }
     }))
     if (!building.roof.segments.length) issues.push({ severity: 'error', code: 'roof.segments', message: `${building.name} must have at least one semantic roof segment.`, subjectRef: building.roof.ref })
     building.roof.segments.forEach((segment) => {
@@ -578,12 +586,14 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
           issues.push({ severity: 'error', code: 'roof.canopy', message: `${segment.ref} requires a flat roof, positive clearance and posts/edges within its footprint.`, subjectRef: segment.ref })
         }
       }
-      if (storey && !supportRefs.length) {
+      const attic = segment.type === 'gable' && storey?.kneeWallHeightM !== undefined
+      if (attic && Math.abs(segment.baseElevationM - storey.elevationM - storey.kneeWallHeightM!) > 0.001) issues.push({ severity: 'error', code: 'roof.knee-wall', message: `${segment.ref} does not meet its knee wall height.`, subjectRef: segment.ref })
+      if (storey && !attic && !supportRefs.length) {
         const supportTop = storey.elevationM + storey.clearHeightM
         if (segment.baseElevationM < supportTop - 0.02) issues.push({ severity: 'error', code: 'roof.support-overlap', message: `${segment.ref} is below the top of its supporting storey.`, subjectRef: segment.ref })
         if (segment.baseElevationM > supportTop + 0.02) issues.push({ severity: 'error', code: 'roof.support-gap', message: `${segment.ref} leaves a gap above its supporting storey.`, subjectRef: segment.ref })
       }
-      supportRefs.forEach((ref) => {
+      if (!attic) supportRefs.forEach((ref) => {
         const wall = building.walls.find((item) => item.ref === ref); if (!wall) return
         const wallTop = wall.baseElevationM + wall.heightM
         if (segment.baseElevationM < wallTop - 0.02) issues.push({ severity: 'error', code: 'roof.wall-overlap', message: `${segment.ref} overlaps supporting wall ${ref}.`, subjectRef: segment.ref })

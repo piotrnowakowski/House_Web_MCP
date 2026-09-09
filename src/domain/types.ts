@@ -58,7 +58,7 @@ export interface SpaceModel { ref: string; name: string; usage: string; boundary
 export interface SlabModel { ref: string; footprint: Polygon2; holes?: Polygon2[]; topElevationM: number; thicknessM: number; locked: boolean }
 export interface CeilingFinishModel { ref: string; spaceRef: string; hostBoundaryRef: string; elevationM: number; thicknessM: number }
 export interface PlatformModel { ref: string; spaceRef: string; footprint: Polygon2; elevationM: number; thicknessM: number }
-export interface StoreyModel { ref: string; name: string; level: number; elevationM: number; clearHeightM: number; baseSlabRef: string; topBoundaryRef: string; wallRefs: string[]; spaceRefs: string[]; platformRefs: string[]; ceilingFinishRefs: string[] }
+export interface StoreyModel { ref: string; name: string; level: number; elevationM: number; clearHeightM: number; kneeWallHeightM?: number; baseSlabRef: string; topBoundaryRef: string; wallRefs: string[]; spaceRefs: string[]; platformRefs: string[]; ceilingFinishRefs: string[] }
 export interface RoofFinish { material: RoofMaterial; colorHex: string }
 export type RoofJunctionType = 'valley' | 'intersection'
 export interface RoofJunctionModel { ref: string; type: RoofJunctionType; segmentRefs: [string, string] }
