@@ -50,6 +50,53 @@ async function choose(page: Page, name = 'LACK Coffee table') {
   await expect(page.getByRole('dialog', { name: 'Furniture & fittings' })).toBeHidden()
 }
 
+for (const mobile of [false, true]) {
+  test(`IKEA expansion ${mobile ? 'mobile' : 'desktop'}: catalogue, real height variants, undo and reload`, async ({ browser }) => {
+    const context = await browser.newContext({ viewport: mobile ? { width: 390, height: 844 } : { width: 1280, height: 800 }, isMobile: mobile, hasTouch: mobile })
+    const page = await context.newPage()
+    try {
+      await start(page)
+      await page.getByRole('button', { name: 'Add', exact: true }).click()
+      await expect(page.getByRole('button', { name: 'IKEA · 64', exact: true })).toBeVisible()
+      await page.getByRole('searchbox', { name: 'Search furniture' }).fill('PLATSA')
+      await expect(page.getByRole('button', { name: /^Place PLATSA/ })).toHaveCount(2)
+      await page.screenshot({ path: `output/interior-editor/expanded-catalogue-${mobile ? 'mobile' : 'desktop'}.png` })
+      await page.getByRole('button', { name: 'Place PLATSA / FONNES Wardrobe, 3 doors', exact: true }).click()
+      await expect(page.getByRole('dialog', { name: 'Furniture & fittings' })).toBeHidden()
+      await clickPoint(page, -3, 2)
+      await expect.poll(async () => (await read(page)).project.buildings[0].furniture?.length).toBe(1)
+      await page.getByRole('button', { name: 'Edit', exact: true }).click()
+      const variant = page.getByRole('combobox', { name: 'IKEA height configuration' })
+      await expect(variant).toHaveValue('platsa')
+      const before = await read(page), oldCamera = await camera(page)
+      await variant.selectOption('platsa-tall')
+      const tall = (await read(page)).project.buildings[0].furniture[0]
+      expect(tall).toMatchObject({ productId: 'platsa-tall', widthM: 1.8, depthM: 0.57, heightM: 2.41 })
+      expect(tall.ref).toBe(before.project.buildings[0].furniture[0].ref)
+      expect((await read(page)).history).toBe(before.history + 1)
+      expect(await camera(page)).toEqual(oldCamera)
+      await expect(page.getByText(/Gap to ceiling:/)).toBeVisible()
+      await expect(page.getByRole('slider')).toHaveCount(0)
+      await page.screenshot({ path: `output/interior-editor/height-variant-${mobile ? 'mobile' : 'desktop'}.png` })
+      await page.getByRole('button', { name: 'Edit dimensions', exact: true }).click()
+      await expect(page.getByRole('dialog', { name: 'Dimensions', exact: true }).getByRole('spinbutton', { name: 'Height (m)' })).toHaveAttribute('min', '2.41')
+      await page.getByRole('button', { name: 'Cancel', exact: true }).click()
+      await page.getByRole('button', { name: 'Close panel', exact: true }).click()
+      if (mobile) await page.getByRole('button', { name: 'More', exact: true }).click()
+      await page.getByRole('button', { name: 'Undo', exact: true }).click()
+      expect((await read(page)).project.buildings[0].furniture[0]).toMatchObject({ productId: 'platsa', heightM: 1.811 })
+      await page.getByRole('button', { name: 'Redo', exact: true }).click()
+      await page.waitForTimeout(600)
+      await page.reload()
+      await page.getByRole('button', { name: /Continue · Interior browser study/ }).click()
+      await page.getByRole('button', { name: 'House interior', exact: true }).click()
+      expect((await read(page)).project.buildings[0].furniture[0]).toMatchObject({ productId: 'platsa-tall', heightM: 2.41 })
+    } finally {
+      await context.close()
+    }
+  })
+}
+
 // The new controls replace the legacy always-open inspector; all editing below uses public UI.
 for (const viewport of [
   { width: 1280, height: 800 },

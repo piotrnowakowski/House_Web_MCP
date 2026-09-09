@@ -14,6 +14,7 @@ import * as THREE from 'three'
 import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js'
 import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js'
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js'
+import { expandedFurniture } from './interior-expanded-models.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -308,7 +309,7 @@ function furniture(product, mobile) {
       box([w, h, d], [0, h / 2, 0], main, 0.003)
       break
     default:
-      throw new Error(`Missing authored model for ${product.id}`)
+      expandedFurniture(product, mobile, { add, box, cylinder, beam, legs, cabinet, material, main, oak, dark, fabric, metal })
   }
   // Normalize finished mesh bounds to the verified assembled envelope, with the origin at floor centre.
   group.updateMatrixWorld(true)

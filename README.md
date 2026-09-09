@@ -8,7 +8,7 @@ No account, credentials or paid service is required. The project was created dur
 
 ## What it does
 
-The isolated interior-editor branch adds a **24-configuration IKEA starter library**, original textured desktop/mobile furniture models, room partitions, openings, per-face finishes, undo/redo and exports. Both editors now provide a full-viewport mobile canvas with one dismissible contextual sheet and property sliders shown only on demand. See the [interior guide](docs/interior-editor.md), [asset audit](docs/ikea-assets.md) and [validation evidence](docs/interior-validation.md).
+The isolated interior-editor branch adds a **64-configuration IKEA library**, original textured desktop/mobile furniture models, standard/tall cabinet choices, room partitions, openings, per-face finishes, undo/redo and exports. Both editors provide a full-viewport mobile canvas with one dismissible contextual sheet and property sliders shown only on demand. See the [interior guide](docs/interior-editor.md), [asset audit](docs/ikea-assets.md) and [validation evidence](docs/interior-validation.md).
 
 To run this branch independently, use Node 22.12+ and `npm run dev:interior` at **http://127.0.0.1:5187**. This origin keeps saved projects separate from another development checkout. `npm run test:interior` runs its focused browser suite. These changes have not been deployed to the live planner.
 

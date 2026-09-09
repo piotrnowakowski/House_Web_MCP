@@ -2,7 +2,7 @@
  * Brief: Render original GLB furniture into reproducible catalogue thumbnails.
  * Inputs: --url local Vite origin (default http://127.0.0.1:5187); --output directory
  * (default public/models/interior); catalogue JSON and GLBs built by build-interior-assets.mjs.
- * Outputs: 24 PNG thumbnails, rendering metrics JSON and CLI progress. No environment variables.
+ * Outputs: One PNG thumbnail per catalogue configuration, rendering metrics JSON and CLI progress. No environment variables.
  * Usage: node scripts/render-interior-thumbnails.mjs --url http://127.0.0.1:5187
  */
 import { chromium } from '@playwright/test'

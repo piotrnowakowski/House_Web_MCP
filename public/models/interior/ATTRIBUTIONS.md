@@ -1,6 +1,8 @@
 # Interior furniture assets
 
-The 48 GLBs (24 configurations × desktop/mobile), 24 rendered PNG thumbnails, original linen/jute/oak/mesh/paint textures and their source generation code were independently authored for House & Garden Spatial Editor on 9 September 2026. Author: **House & Garden Spatial Editor contributors**. No IKEA preview mesh, product photograph, Scopia shop model or commercial model pack is bundled.
+The 128 GLBs (64 configurations × desktop/mobile), 64 rendered PNG thumbnails, original linen/jute/oak/mesh/paint textures and their source generation code were independently authored for House & Garden Spatial Editor on 9 September 2026. Author: **House & Garden Spatial Editor contributors**. No IKEA preview mesh, product photograph, Scopia shop model or commercial model pack is bundled.
+
+The expansion adds 32 selected products and 8 height alternatives. `scripts/interior-expanded-models.mjs` contains the new geometry studies. HEKTAR overall width and LINDBYN depth use explicitly marked planning estimates because those dimensions are absent from the inspected manufacturer listings.
 
 These original assets are dedicated under **CC0 1.0 Universal**: https://creativecommons.org/publicdomain/zero/1.0/ . They may be copied, modified and redistributed, including commercially. The project's application source remains under its repository MIT licence. Product names identify the reference configurations; this package is not supplied or endorsed by IKEA. CC0 describes the original asset files, and does not grant trademark rights in product names.
 

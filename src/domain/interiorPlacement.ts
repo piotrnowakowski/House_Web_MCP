@@ -1,4 +1,5 @@
 import { interiorCorners } from './interior'
+import { ikeaProduct } from './ikeaCatalog'
 import { closestWallPoint } from './interiorLayout'
 import type { BuildingModel, InteriorItem, Polygon2, StoreyModel, Vec2 } from './types'
 
@@ -29,11 +30,11 @@ export function placementWarnings(
   building: BuildingModel,
   storey: StoreyModel,
 ): PlacementWarning[] {
-  if (item.productId === 'lohals') return []
+  if (ikeaProduct(item.productId)?.category === 'Rugs') return []
   const footprint = interiorCorners(item)
   const warnings: PlacementWarning[] = []
   for (const other of building.furniture ?? []) {
-    if (other.ref === item.ref || other.storeyRef !== storey.ref || other.productId === 'lohals') continue
+    if (other.ref === item.ref || other.storeyRef !== storey.ref || ikeaProduct(other.productId)?.category === 'Rugs') continue
     const bottom = Math.max(item.elevationM ?? 0, other.elevationM ?? 0)
     const top = Math.min((item.elevationM ?? 0) + item.heightM, (other.elevationM ?? 0) + other.heightM)
     if (bottom >= top - 0.015) continue

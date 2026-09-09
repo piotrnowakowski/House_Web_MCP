@@ -160,7 +160,7 @@ describe('Interior layout topology', () => {
 describe('Furniture placement and project history', () => {
   it('uses catalogue variants, allows enlargement and rejects shrinking, elevation overflow and lowered ceilings', () => {
     const item = createIkeaItem('pax', base.storeyRef, { x: -3, z: 2 })
-    expect(ikeaCatalog).toHaveLength(24)
+    expect(ikeaCatalog).toHaveLength(64)
     const enlarged = applyCommand(project, { ...base, action: 'put', item: { ...item, widthM: 2 } })
     expect(enlarged.buildings[0].furniture?.[0].widthM).toBe(2)
     expect(() => applyCommand(project, { ...base, action: 'put', item: { ...item, widthM: 0.8 } })).toThrow(/catalogue size/)

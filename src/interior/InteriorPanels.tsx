@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { Heart, Pencil, SlidersHorizontal, X } from 'lucide-react'
 import { interiorCatalog, interiorOriginalSize } from '../domain/interior'
-import { ikeaCatalog, ikeaProduct } from '../domain/ikeaCatalog'
+import { ikeaCatalog, ikeaProduct, ikeaHeightVariants, withIkeaHeightVariant } from '../domain/ikeaCatalog'
 import { finishFromPreset, interiorFinishes } from '../domain/interiorFinishes'
 import { polygonBounds, spaceFootprint, wallLength } from '../domain/geometry'
 import { roomDimensions } from '../domain/roomDimensions'
@@ -146,7 +146,7 @@ export function FurnitureCatalog({ onChoose }: { onChoose: (id: string, generic:
             setCategory('All')
           }}
         >
-          IKEA · 24
+          IKEA · {ikeaCatalog.length}
         </button>
         <button
           aria-pressed={generic}
@@ -217,11 +217,16 @@ type Context = { building: BuildingModel; storey: StoreyModel; commit: Commit }
 
 const sizeLabel = (size: number[]) => `${size.map((value) => +(value * 100).toFixed(1)).join(' × ')} cm`
 
-export function ItemInspector({ item, onSave }: { item: InteriorItem; onSave: (item: InteriorItem) => boolean }) {
+export function ItemInspector({ item, onSave, availableHeight }: {
+  item: InteriorItem
+  onSave: (item: InteriorItem) => boolean
+  availableHeight: number
+}) {
   const [draft, setDraft] = useState(item)
   const [dimensionsOpen, setDimensionsOpen] = useState(false)
   useEffect(() => setDraft(item), [item])
   const product = ikeaProduct(item.productId)
+  const heightVariants = ikeaHeightVariants(item.productId)
   const originalSize = interiorOriginalSize(item)
   const currentSize = [item.widthM, item.depthM, item.heightM]
   const isOriginal = currentSize.every((value, index) => Math.abs(value - originalSize[index]) < 1e-6)
@@ -253,12 +258,35 @@ export function ItemInspector({ item, onSave }: { item: InteriorItem; onSave: (i
         </div>
         {product && (
           <>
+            {heightVariants.length > 1 && (
+              <label className="interior-field">
+                <span>IKEA height configuration</span>
+                <select
+                  aria-label="IKEA height configuration"
+                  value={item.productId}
+                  disabled={item.locked}
+                  onChange={(event) => onSave(withIkeaHeightVariant(draft, event.target.value))}
+                >
+                  {heightVariants.map((variant) => {
+                    const fits = Math.max(variant.size[2], variant.minimumCeilingM ?? 0) + (draft.elevationM ?? 0) <= availableHeight
+                    return (
+                      <option key={variant.id} value={variant.id} disabled={!fits}>
+                        {variant.heightVariant === 'tall' ? 'Tall' : 'Standard'} · {+(variant.size[2] * 100).toFixed(1)} cm
+                        {!fits ? ' · Too tall for this room' : ''}
+                      </option>
+                    )
+                  })}
+                </select>
+                <small>Gap to ceiling: {+((availableHeight - item.heightM - (item.elevationM ?? 0)) * 100).toFixed(1)} cm. Each option uses its original IKEA dimensions.</small>
+              </label>
+            )}
             <a href={product.productUrl} target="_blank" rel="noreferrer">
               IKEA Poland · {product.articleNumber}
             </a>
             <p className="interior-note">
               {product.finish} · {product.assemblyNote || 'Assembled dimensions'}
               {product.availabilityNote && ` · ${product.availabilityNote}`}
+              {product.minimumCeilingM && ` · Minimum ceiling for assembly: ${product.minimumCeilingM * 100} cm`}
             </p>
           </>
         )}

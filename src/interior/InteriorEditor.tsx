@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 import { ACESFilmicToneMapping, PCFSoftShadowMap } from 'three'
 import { polygonCentroid, spaceFootprint } from '../domain/geometry'
-import { interiorCatalog } from '../domain/interior'
+import { interiorCatalog, availableInteriorHeight } from '../domain/interior'
 import { createIkeaItem } from '../domain/ikeaCatalog'
 import { placementWarnings, snapFurniture, type SnapSettings } from '../domain/interiorPlacement'
 import { parseProject } from '../domain/schema'
@@ -644,7 +644,7 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
               {panel === 'catalog' && <FurnitureCatalog onChoose={choose} />}
               {panel === 'edit' && (
                 <>
-                  {item && <ItemInspector item={item} onSave={saveItem} />}
+                  {item && <ItemInspector item={item} onSave={saveItem} availableHeight={availableInteriorHeight(item, building, storey)} />}
                   {!!warnings.length && (
                     <div className="interior-warnings" aria-label="Placement warnings">
                       <strong>Check this placement</strong>

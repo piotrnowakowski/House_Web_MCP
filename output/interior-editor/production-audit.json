@@ -1,6 +1,6 @@
 {
   "baseUrl": "http://127.0.0.1:5189/House_Web_MCP/",
-  "checkedAt": "2026-09-09T16:04:08.384Z",
+  "checkedAt": "2026-09-09T19:31:56.063Z",
   "assets": [
     {
       "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/kivik-sofa.glb",
@@ -361,6 +361,606 @@
       "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/lohals.png",
       "bytes": 40819,
       "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/vimle.glb",
+      "bytes": 459500,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/vimle-mobile.glb",
+      "bytes": 229892,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/vimle.png",
+      "bytes": 46265,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/soderhamn.glb",
+      "bytes": 389016,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/soderhamn-mobile.glb",
+      "bytes": 183216,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/soderhamn.png",
+      "bytes": 50276,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/friheten.glb",
+      "bytes": 459504,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/friheten-mobile.glb",
+      "bytes": 229892,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/friheten.png",
+      "bytes": 50199,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/dyvlinge.glb",
+      "bytes": 915228,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/dyvlinge-mobile.glb",
+      "bytes": 137640,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/dyvlinge.png",
+      "bytes": 54528,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/stockholm-table.glb",
+      "bytes": 229920,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/stockholm-table-mobile.glb",
+      "bytes": 104768,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/stockholm-table.png",
+      "bytes": 19963,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/tonstad.glb",
+      "bytes": 356512,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/tonstad-mobile.glb",
+      "bytes": 196752,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/tonstad.png",
+      "bytes": 63840,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/brimnes.glb",
+      "bytes": 443124,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/brimnes-mobile.glb",
+      "bytes": 221932,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/brimnes.png",
+      "bytes": 38241,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/hemnes-daybed.glb",
+      "bytes": 355568,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/hemnes-daybed-mobile.glb",
+      "bytes": 192004,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/hemnes-daybed.png",
+      "bytes": 49440,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/nasinge.glb",
+      "bytes": 145680,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/nasinge-mobile.glb",
+      "bytes": 78088,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/nasinge.png",
+      "bytes": 14098,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/norden.glb",
+      "bytes": 522048,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/norden-mobile.glb",
+      "bytes": 213332,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/norden.png",
+      "bytes": 20081,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/bergmund.glb",
+      "bytes": 178892,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/bergmund-mobile.glb",
+      "bytes": 129732,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/bergmund.png",
+      "bytes": 32696,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/platsa.glb",
+      "bytes": 693860,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/platsa-mobile.glb",
+      "bytes": 274524,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/platsa.png",
+      "bytes": 12785,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/ivar.glb",
+      "bytes": 310292,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/ivar-mobile.glb",
+      "bytes": 138252,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/ivar.png",
+      "bytes": 25565,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/baggebo.glb",
+      "bytes": 440636,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/baggebo-mobile.glb",
+      "bytes": 214096,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/baggebo.png",
+      "bytes": 50389,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/trones.glb",
+      "bytes": 121156,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/trones-mobile.glb",
+      "bytes": 65852,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/trones.png",
+      "bytes": 43044,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/mittzon.glb",
+      "bytes": 236292,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/mittzon-mobile.glb",
+      "bytes": 107264,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/mittzon.png",
+      "bytes": 19861,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/jarvfjallet.glb",
+      "bytes": 357032,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/jarvfjallet-mobile.glb",
+      "bytes": 192700,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/jarvfjallet.png",
+      "bytes": 34213,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/vadholma.glb",
+      "bytes": 301544,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/vadholma-mobile.glb",
+      "bytes": 154084,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/vadholma.png",
+      "bytes": 41404,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/metod-tall.glb",
+      "bytes": 206584,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/metod-tall-mobile.glb",
+      "bytes": 95988,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/metod-tall.png",
+      "bytes": 15116,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/havback.glb",
+      "bytes": 658200,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/havback-mobile.glb",
+      "bytes": 284208,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/havback.png",
+      "bytes": 46603,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/nysjon.glb",
+      "bytes": 347312,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/nysjon-mobile.glb",
+      "bytes": 150696,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/nysjon.png",
+      "bytes": 7186,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/kura.glb",
+      "bytes": 681204,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/kura-mobile.glb",
+      "bytes": 330988,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/kura.png",
+      "bytes": 33678,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/trofast.glb",
+      "bytes": 677820,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/trofast-mobile.glb",
+      "bytes": 290740,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/trofast.png",
+      "bytes": 45394,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/flisat.glb",
+      "bytes": 201500,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/flisat-mobile.glb",
+      "bytes": 123180,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/flisat.png",
+      "bytes": 35905,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/regnskur.glb",
+      "bytes": 1328448,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/regnskur-mobile.glb",
+      "bytes": 128072,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/regnskur.png",
+      "bytes": 54134,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/hektar.glb",
+      "bytes": 74652,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/hektar-mobile.glb",
+      "bytes": 52412,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/hektar.png",
+      "bytes": 6447,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/fado.glb",
+      "bytes": 197012,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/fado-mobile.glb",
+      "bytes": 102576,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/fado.png",
+      "bytes": 29364,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/lindbyn.glb",
+      "bytes": 136076,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/lindbyn-mobile.glb",
+      "bytes": 66212,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/lindbyn.png",
+      "bytes": 13146,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/stoense.glb",
+      "bytes": 92024,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/stoense-mobile.glb",
+      "bytes": 73588,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/stoense.png",
+      "bytes": 35000,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/kallax-large.glb",
+      "bytes": 321752,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/kallax-large-mobile.glb",
+      "bytes": 137428,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/kallax-large.png",
+      "bytes": 27582,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/billy-oxberg.glb",
+      "bytes": 745284,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/billy-oxberg-mobile.glb",
+      "bytes": 292184,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/billy-oxberg.png",
+      "bytes": 15748,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/pax-wide-tall.glb",
+      "bytes": 494540,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/pax-wide-tall-mobile.glb",
+      "bytes": 199620,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/pax-wide-tall.png",
+      "bytes": 10121,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/platsa-tall.glb",
+      "bytes": 1212276,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/platsa-tall-mobile.glb",
+      "bytes": 461172,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/platsa-tall.png",
+      "bytes": 12646,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/billy-oxberg-tall.glb",
+      "bytes": 1062064,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/billy-oxberg-tall-mobile.glb",
+      "bytes": 406220,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/billy-oxberg-tall.png",
+      "bytes": 16656,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/pax-tall.glb",
+      "bytes": 264136,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/pax-tall-mobile.glb",
+      "bytes": 116680,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/pax-tall.png",
+      "bytes": 8610,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/pax-wide.glb",
+      "bytes": 494544,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/pax-wide-mobile.glb",
+      "bytes": 199624,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/pax-wide.png",
+      "bytes": 12289,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/billy-tall.glb",
+      "bytes": 465760,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/billy-tall-mobile.glb",
+      "bytes": 189272,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/billy-tall.png",
+      "bytes": 20727,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/ivar-tall.glb",
+      "bytes": 487692,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/ivar-tall-mobile.glb",
+      "bytes": 223488,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/ivar-tall.png",
+      "bytes": 26413,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/metod-high-standard.glb",
+      "bytes": 206548,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/metod-high-standard-mobile.glb",
+      "bytes": 95952,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/metod-high-standard.png",
+      "bytes": 16306,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/metod-wall-tall.glb",
+      "bytes": 177736,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/metod-wall-tall-mobile.glb",
+      "bytes": 85576,
+      "status": 200
+    },
+    {
+      "url": "http://127.0.0.1:5189/House_Web_MCP/models/interior/metod-wall-tall.png",
+      "bytes": 24326,
+      "status": 200
     }
   ],
   "reports": [
@@ -378,9 +978,9 @@
       "performance": {
         "renderer": "ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
         "frames": 299,
-        "medianMs": 16.699999999999818,
-        "p95Ms": 16.900000000001455,
-        "meanFps": 59.997993378147896
+        "medianMs": 16.69999999999891,
+        "p95Ms": 17,
+        "meanFps": 57.684145541536445
       },
       "limitation": "Stationary rendered scene in desktop Chrome; not a physical phone or navigation benchmark."
     },
@@ -398,9 +998,9 @@
       "performance": {
         "renderer": "ANGLE (Intel, Intel(R) Arc(TM) Graphics (0x00007D55) Direct3D11 vs_5_0 ps_5_0, D3D11)",
         "frames": 299,
-        "medianMs": 16.699999999999818,
-        "p95Ms": 17,
-        "meanFps": 60.0028094960968
+        "medianMs": 16.69999999999891,
+        "p95Ms": 16.80000000000109,
+        "meanFps": 59.999197335152715
       },
       "limitation": "Stationary rendered scene in desktop Chrome; not a physical phone or navigation benchmark."
     }

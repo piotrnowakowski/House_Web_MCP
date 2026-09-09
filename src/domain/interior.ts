@@ -34,7 +34,7 @@ export const InteriorItemSchema = z.object({
   ref: z.string().min(1), catalogId: z.enum(interiorCatalog.map((item) => item.id) as [InteriorCatalogId, ...InteriorCatalogId[]]),
   storeyRef: z.string().min(1), name: z.string().trim().min(1).max(100),
   position: z.object({ x: z.number().finite(), z: z.number().finite() }),
-  widthM: z.number().min(0.1).max(20), depthM: z.number().min(0.1).max(20), heightM: z.number().min(0.001).max(5),
+  widthM: z.number().min(0.001).max(20), depthM: z.number().min(0.001).max(20), heightM: z.number().min(0.001).max(5),
   rotationDegrees: z.number().finite(), color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   productId: z.string().optional(), variantId: z.string().optional(), elevationM: z.number().min(0).max(8).optional(),
   groupRef: z.string().min(1).optional(), locked: z.boolean().optional(),
@@ -138,6 +138,8 @@ export function applyInterior(building: BuildingModel, command: InteriorCommand)
     if (item.productId) {
       const product = ikeaProduct(item.productId)
       if (!product || product.articleNumber !== item.variantId || product.catalogId !== item.catalogId) throw new Error('Choose a supported IKEA product and variant.')
+      if ((!existing || existing.productId !== item.productId) && product.minimumCeilingM && Math.max(item.heightM, product.minimumCeilingM) + (item.elevationM ?? 0) > availableInteriorHeight(item, building, storey))
+        throw new Error(`This IKEA configuration needs at least ${product.minimumCeilingM * 100} cm of clear height for upright assembly.`)
       if (item.color.toLowerCase() !== product.color.toLowerCase()) throw new Error('IKEA products keep their supported finish. Choose another product to change finish.')
     }
     // Keep existing custom-sized projects movable. New or resized objects may not shrink below their catalogue size.
