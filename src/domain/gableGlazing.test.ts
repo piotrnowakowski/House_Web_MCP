@@ -13,7 +13,7 @@ describe('ICON gables and full-height living room', () => {
     const b = project.buildings[0]
     const upper = b.slabs.find((s) => s.ref === 'slab/reference-upper')!
     expect(upper.holes).toHaveLength(2)
-    expect(polygonArea(upper.holes![1])).toBeCloseTo(5.53 * 7.35, 4)
+    expect(polygonArea(upper.holes![1])).toBeCloseTo(7.09 * 7.35, 4)
     expect(b.spaces.some((s) => s.ref === 'space/reference-mezzanine')).toBe(false)
     expect(b.spaces.filter((s) => s.usage === 'bedroom')).toHaveLength(3)
     expect(b.walls.flatMap((w) => w.openings).some((o) => o.ref === 'opening/reference-mezzanine-access')).toBe(false)

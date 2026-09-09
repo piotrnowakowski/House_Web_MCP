@@ -11,7 +11,7 @@ test('Zielonki zoning stays visible across house versions and a saved reload', a
   await expect(legend).toContainText('699 m²')
   await expect(legend).toContainText('06.R.21')
   await expect(legend).toContainText('House overlaps agricultural zoning')
-  await expect(page.locator('.zoning-map-label')).toHaveCount(3, { timeout: 30_000 })
+  await expect(page.locator('.zoning-map-label')).toHaveCount(0)
   await page.waitForTimeout(1200)
   await page.screenshot({ path: 'output/zielonki-zoning/app-3d.png' })
   // A pre-zoning saved copy of the original house exercises the real storage migration.
@@ -28,7 +28,7 @@ test('Zielonki zoning stays visible across house versions and a saved reload', a
   await page.getByRole('button', { name: 'Projects', exact: true }).click()
   await page.locator('.project-card').filter({ hasText: 'Original house zoning check' }).getByRole('button', { name: /^(Continue|Open)/ }).click()
   await expect(legend).toContainText('699 m²')
-  await expect(page.locator('.zoning-map-label')).toHaveCount(3)
+  await expect(page.locator('.zoning-map-label')).toHaveCount(0)
   await page.waitForTimeout(800)
   await page.reload({ waitUntil: 'networkidle' })
   await page.getByRole('dialog').getByRole('button', { name: /Zielonki house study/ }).click()

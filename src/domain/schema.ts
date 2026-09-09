@@ -48,7 +48,7 @@ const SiteEntranceSchema = z.object({
 }).refine((entrance) => Math.hypot(entrance.end.x - entrance.start.x, entrance.end.z - entrance.start.z) > 0.5, { message: 'Site entrance must have length.' })
 const OpeningSchema = z.object({
   ref: z.string().min(1), kind: z.enum(['door', 'window']), wallRef: z.string().min(1), offsetM: z.number().min(0),
-  widthM: z.number().positive(), heightM: z.number().positive(), sillM: z.number().min(0),
+  widthM: z.number().positive(), heightM: z.number().positive(), sillM: z.number().min(0), glazed: z.boolean().optional(),
 })
 const WallSchema = z.object({
   ref: z.string().min(1), start: Vec2Schema, end: Vec2Schema, thicknessM: z.number().positive(), baseElevationM: z.number().finite(),
@@ -76,6 +76,7 @@ const RoofSegmentSchema = z.object({
   finish: RoofFinishSchema, adjacentSegmentRefs: z.array(z.string().min(1)).default([]),
   gableWallFinishes: z.object({ min: WallFinishSchema.optional(), max: WallFinishSchema.optional() }).optional(),
   gableFrame: z.object({ widthM: z.number().positive(), depthM: z.number().positive(), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) }).optional(),
+  terrace: z.object({ railingHeightM: z.number().positive(), openEdgeIndex: z.number().int().min(0), frameColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) }).optional(),
   gableGlazing: z.object({
     min: GableGlazingSchema.optional(),
     max: GableGlazingSchema.optional(),

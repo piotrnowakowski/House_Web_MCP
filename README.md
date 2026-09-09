@@ -209,7 +209,7 @@ Operation types accepted by `propose_change` and `manage_change_set` (`list_cata
 | `garden-fixture.preset` | Place a coordinated raised-bed preset |
 | `climate.update` | Edit one climate month, including night/morning/day/evening averages |
 
-Every modifying tool creates an immutable ghost variant. Only explicit human approval commits it. The centralized [WebMCP prompt catalog](prompts/webmcp-tools.ts) holds every tool prompt, field description and the operation reference; the manifest test keeps the registered catalogue, the prompts and the budget in step.
+Every modifying tool creates an immutable ghost variant. Only explicit human approval commits it. Deletion controls and proposal approval appear in the right-hand inspector, keeping the building visible in the scene. The centralized [WebMCP prompt catalog](prompts/webmcp-tools.ts) holds every tool prompt, field description and the operation reference; the manifest test keeps the registered catalogue, the prompts and the budget in step.
 
 ## Scope
 

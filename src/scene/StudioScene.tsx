@@ -13,14 +13,14 @@ import { gardenFixtureById } from '../domain/gardenFixtures'
 import { measureHeight } from '../domain/heightMeasurements'
 import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, RoofSegmentModel, SiteEntranceModel, StructureReport, Vec2, WallModel, WallMaterial } from '../domain/types'
 import { inferWallOpeningLayout } from '../domain/wallOpeningLayouts'
-import { isExteriorWall } from '../domain/zielonkiInterior'
+import { isExteriorWall, livingVoidPartitions } from '../domain/zielonkiInterior'
 import { FurnitureModel } from '../interior/FurnitureModel'
 import { resolveGableWallFinish, resolveWallFinish } from '../domain/wallFinishes'
 import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
 import type { GeneratedSolid } from '../geometry/types'
 import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
 import { gableEndWall, gableRoofJunction, gableWallsForBuilding, roofWings, type RoofWing } from '../domain/roofWings'
-import { clippedRoofBox, roofJunctionPlanes } from '../geometry/roofJunction'
+import { clippedRoofBox, gableVolumePlanes, roofJunctionCutouts, roofJunctionPlanes } from '../geometry/roofJunction'
 import { CompassRose, SUN_DISTANCE_M, SunHoursOverlay, SunLight, SunPath, sunStateFor } from './sun'
 import { CucumberTrellisVisual, FruitTreeVisual, hasFruitTreeVisual, PotatoRowVisual, SurveyTreeVisual, TomatoRowVisual } from './gardenVisuals'
 import { RealisticGrass } from './grassVisuals'
@@ -33,6 +33,7 @@ import { measurementScreenPoint, siteMeasurementEdges, snapMeasurementPoint, typ
 import { MeasurementPoint } from './MeasurementPoint'
 import { GlazedGable } from './GlazedGable'
 import { GableFrame } from './GableFrame'
+import { RoofTerrace } from './RoofTerrace'
 
 const REAL = { slab: '#d6d0bf', wall: '#e8e1d2', roof: '#6f4735', soil: '#918867' }
 const BARN = { slab: '#777269', wall: '#282d2c', roof: '#343a3b' }
@@ -566,11 +567,12 @@ function BarnGlazing({ building, ghost }: { building: BuildingModel; ghost?: boo
     const ux = dx / length; const uz = dz / length; const rotation = -Math.atan2(dz, dx)
     const x = wall.start.x + ux * opening.offsetM; const z = wall.start.z + uz * opening.offsetM
     const y = wall.baseElevationM + opening.sillM + opening.heightM / 2
-    const mullions = opening.widthM > 5 ? [-opening.widthM / 6, opening.widthM / 6] : opening.widthM > 2.6 ? [0] : []
+    const mullions = opening.kind === 'door' && opening.glazed ? [0]
+      : opening.widthM > 5 ? [-opening.widthM / 6, opening.widthM / 6] : opening.widthM > 2.6 ? [0] : []
     const frame = selectedRef === opening.ref ? '#b9e84d' : '#121817'
     return <group key={opening.ref} position={[x, y, z]} rotation={[0, rotation, 0]} userData={{ semanticRef: opening.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(opening.ref) }}>
       <mesh castShadow receiveShadow><boxGeometry args={[Math.max(0.08, opening.widthM - 0.08), Math.max(0.08, opening.heightM - 0.08), 0.045]} />
-        {building.interiorSource && opening.kind === 'door'
+        {building.interiorSource && opening.kind === 'door' && !opening.glazed
           ? <meshStandardMaterial color="#303736" roughness={0.62} metalness={0.3} transparent={Boolean(ghost)} opacity={ghost ? 0.2 : 1} />
           : <meshPhysicalMaterial color="#78959a" transparent opacity={ghost ? 0.2 : 0.42} transmission={0.55} roughness={0.08} metalness={0.08} depthWrite={false} />}
       </mesh>
@@ -579,6 +581,8 @@ function BarnGlazing({ building, ghost }: { building: BuildingModel; ghost?: boo
       <mesh position={[opening.widthM / 2, 0, 0]}><boxGeometry args={[0.075, opening.heightM, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
       <mesh position={[-opening.widthM / 2, 0, 0]}><boxGeometry args={[0.075, opening.heightM, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
       {mullions.map((offset) => <mesh key={offset} position={[offset, 0, 0]}><boxGeometry args={[0.065, opening.heightM, 0.105]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>)}
+      {opening.kind === 'door' && opening.glazed && [-0.09, 0.09].map((depth) =>
+        <mesh key={depth} position={[0.12, 1.05 - opening.heightM / 2, depth]}><boxGeometry args={[0.025, 0.24, 0.045]} /><meshStandardMaterial color={frame} metalness={0.5} roughness={0.35} /></mesh>)}
     </group>
   })}</>
 }
@@ -633,8 +637,8 @@ function roofSurfaceMaterial(segment: RoofSegmentModel, selected: boolean, ghost
   return <meshStandardMaterial color={selected ? '#b9e84d' : segment.finish.colorHex} roughness={metallic ? 0.42 : 0.78} metalness={metallic ? 0.58 : 0.04} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />
 }
 
-function RoofPanel({ size, position, rotation, planes, children, castShadow = false }: { size: [number, number, number]; position: [number, number, number]; rotation: [number, number, number]; planes: Plane[]; children: ReactNode; castShadow?: boolean }) {
-  const geometry = useMemo(() => clippedRoofBox(size, position, rotation, planes), [...size, ...position, ...rotation, planes])
+function RoofPanel({ size, position, rotation, planes, cutouts, children, castShadow = false }: { size: [number, number, number]; position: [number, number, number]; rotation: [number, number, number]; planes: Plane[]; cutouts?: Plane[][]; children: ReactNode; castShadow?: boolean }) {
+  const geometry = useMemo(() => clippedRoofBox(size, position, rotation, planes, cutouts), [...size, ...position, ...rotation, planes, cutouts])
   useEffect(() => () => geometry.dispose(), [geometry])
   return <mesh geometry={geometry} castShadow={castShadow}>{children}</mesh>
 }
@@ -651,6 +655,7 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
   const roofMaterial = roofSurfaceMaterial(segment, selected, ghost)
   const junction = useMemo(() => gableRoofJunction(building, wing), [building, wing])
   const junctionPlanes = useMemo(() => roofJunctionPlanes(junction), [junction])
+  const junctionCutouts = useMemo(() => roofJunctionCutouts(building, wing), [building, wing])
   const gable = useMemo(() => {
     const value = new BufferGeometry()
     const positions = alongZ ? [bounds.minX, base, 0, bounds.maxX, base, 0, cx, ridge, 0] : [0, base, bounds.minZ, 0, base, bounds.maxZ, 0, ridge, cz]
@@ -666,11 +671,11 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
   const frameMaterial = <meshStandardMaterial color="#111716" roughness={0.48} />
   return <group>
     {alongZ ? <>
-      <RoofPanel position={[cx - half / 2, midY, cz]} rotation={[0, 0, pitch]} size={[slope, 0.2, depth + over * 2]} planes={junctionPlanes} castShadow>{roofMaterial}</RoofPanel>
-      <RoofPanel position={[cx + half / 2, midY, cz]} rotation={[0, 0, -pitch]} size={[slope, 0.2, depth + over * 2]} planes={junctionPlanes} castShadow>{roofMaterial}</RoofPanel>
+      <RoofPanel position={[cx - half / 2, midY, cz]} rotation={[0, 0, pitch]} size={[slope, 0.2, depth + over * 2]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
+      <RoofPanel position={[cx + half / 2, midY, cz]} rotation={[0, 0, -pitch]} size={[slope, 0.2, depth + over * 2]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
     </> : <>
-      <RoofPanel position={[cx, midY, cz - half / 2]} rotation={[-pitch, 0, 0]} size={[width + over * 2, 0.2, slope]} planes={junctionPlanes} castShadow>{roofMaterial}</RoofPanel>
-      <RoofPanel position={[cx, midY, cz + half / 2]} rotation={[pitch, 0, 0]} size={[width + over * 2, 0.2, slope]} planes={junctionPlanes} castShadow>{roofMaterial}</RoofPanel>
+      <RoofPanel position={[cx, midY, cz - half / 2]} rotation={[-pitch, 0, 0]} size={[width + over * 2, 0.2, slope]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
+      <RoofPanel position={[cx, midY, cz + half / 2]} rotation={[pitch, 0, 0]} size={[width + over * 2, 0.2, slope]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
     </>}
     {ends.map((value, index) => {
       if (junction?.side === (index === 0 ? 'min' : 'max')) return null
@@ -711,11 +716,11 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
     {segment.gableFrame && (['min', 'max'] as const).filter((side) => side !== junction?.side).map((side) =>
       <GableFrame key={`portal-${side}`} building={building} segment={segment} side={side} selected={selected} ghost={ghost} />)}
     {seams.flatMap((along) => alongZ ? [
-      <RoofPanel key={`a-${along}`} position={[cx - half / 2, midY + 0.12, along]} rotation={[0, 0, pitch]} size={[slope, 0.025, 0.032]} planes={junctionPlanes}>{seamMaterial}</RoofPanel>,
-      <RoofPanel key={`b-${along}`} position={[cx + half / 2, midY + 0.12, along]} rotation={[0, 0, -pitch]} size={[slope, 0.025, 0.032]} planes={junctionPlanes}>{seamMaterial}</RoofPanel>,
+      <RoofPanel key={`a-${along}`} position={[cx - half / 2, midY + 0.12, along]} rotation={[0, 0, pitch]} size={[slope, 0.025, 0.032]} planes={junctionPlanes} cutouts={junctionCutouts}>{seamMaterial}</RoofPanel>,
+      <RoofPanel key={`b-${along}`} position={[cx + half / 2, midY + 0.12, along]} rotation={[0, 0, -pitch]} size={[slope, 0.025, 0.032]} planes={junctionPlanes} cutouts={junctionCutouts}>{seamMaterial}</RoofPanel>,
     ] : [
-      <RoofPanel key={`a-${along}`} position={[along, midY + 0.12, cz - half / 2]} rotation={[-pitch, 0, 0]} size={[0.032, 0.025, slope]} planes={junctionPlanes}>{seamMaterial}</RoofPanel>,
-      <RoofPanel key={`b-${along}`} position={[along, midY + 0.12, cz + half / 2]} rotation={[pitch, 0, 0]} size={[0.032, 0.025, slope]} planes={junctionPlanes}>{seamMaterial}</RoofPanel>,
+      <RoofPanel key={`a-${along}`} position={[along, midY + 0.12, cz - half / 2]} rotation={[-pitch, 0, 0]} size={[0.032, 0.025, slope]} planes={junctionPlanes} cutouts={junctionCutouts}>{seamMaterial}</RoofPanel>,
+      <RoofPanel key={`b-${along}`} position={[along, midY + 0.12, cz + half / 2]} rotation={[pitch, 0, 0]} size={[0.032, 0.025, slope]} planes={junctionPlanes} cutouts={junctionCutouts}>{seamMaterial}</RoofPanel>,
     ])}
   </group>
 }
@@ -748,6 +753,7 @@ function Roof({ building, selected, yOffset, ghost }: { building: BuildingModel;
       const highlighted = selected || selectedRef === wing.ref
       return <group key={wing.ref} userData={{ semanticRef: wing.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(wing.ref) }}>
         {segment.type === 'gable' ? <GableWing building={building} wing={wing} segment={segment} ghost={ghost} selected={highlighted} /> : <SegmentRoof wing={wing} segment={segment} ghost={ghost} selected={highlighted} />}
+        {segment.type === 'flat' && segment.terrace && <RoofTerrace segment={segment} selected={highlighted} ghost={ghost} />}
       </group>
     })}
   </group>
@@ -822,6 +828,31 @@ const placementValid = (project: ProjectV2, building: BuildingModel, position: {
   })
 }
 
+/** Continue the same bedroom partition vertically to the living roof's underside. */
+function LivingVoidWall({ building, wall, wing, yOffset, ghost }: { building: BuildingModel; wall: WallModel; wing: RoofWing; yOffset: number; ghost?: boolean }) {
+  const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  const geometry = useMemo(() => {
+    const bottom = wall.baseElevationM + wall.heightM
+    const height = Math.max(0, wing.ridgeElevationM - bottom)
+    // At the ridge junction the wall straddles both wings; clip only to the two roof slopes.
+    const roofSlopes = gableVolumePlanes(wing, -0.1).slice(4)
+    const value = clippedRoofBox([wall.thicknessM, height, Math.abs(wall.end.z - wall.start.z)],
+      [wall.start.x, bottom + height / 2, (wall.start.z + wall.end.z) / 2], [0, 0, 0], roofSlopes)
+    const positions = value.getAttribute('position')
+    const uvs = Array.from({ length: positions.count }, (_, i) => [positions.getZ(i) - Math.min(wall.start.z, wall.end.z), positions.getY(i) - wall.baseElevationM]).flat()
+    value.setAttribute('uv', new BufferAttribute(new Float32Array(uvs), 2))
+    return value
+  }, [wall, wing])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  const finish = resolveWallFinish(wall, building.architecturalStyle)
+  const texture = resolveWallTexture(finish); const surface = wallSurface[finish.material]
+  const selected = selectedRef === wall.ref
+  return <mesh geometry={geometry} position={[0, yOffset, 0]} castShadow receiveShadow userData={{ semanticRef: wall.ref, buildingRef: building.ref, livingVoidPartition: true }} onPointerDown={(event) => { if (ghost) return; event.stopPropagation(); setSelectedRef(wall.ref) }}>
+    {texture ? <TexturedMaterial asset={texture.id} rotation={texture.rotation} color={selected ? '#b9e84d' : tintForTexturedFinish(finish.colorHex)} fallbackColor={finish.colorHex} roughness={surface.roughness} metalness={surface.metalness} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />
+      : <meshStandardMaterial color={selected ? '#b9e84d' : finish.colorHex} roughness={surface.roughness} metalness={surface.metalness} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />}
+  </mesh>
+}
+
 function Building({ project, building, ghost }: { project: ProjectV2; building: BuildingModel; ghost?: boolean }) {
   const solids = useGeneratedSolids(project, building); const selectedRef = useStudioStore((state) => state.selectedRef); const transformMode = useStudioStore((state) => state.transformMode)
   const viewerMode = useStudioStore((state) => state.viewerMode); const explode = useStudioStore((state) => state.explodeStoreys)
@@ -843,6 +874,7 @@ function Building({ project, building, ghost }: { project: ProjectV2; building: 
       {isLShapedBarn(building) && !building.interiorSource && <BarnInteriorWarmth ghost={ghost} />}
       {!ghost && building.interiorSource && building.furniture?.map((item) => <group key={item.ref} position={[item.position.x, (building.storeys.find((s) => s.ref === item.storeyRef)?.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.level ?? 0) * explodedOffset, item.position.z]} rotation={[0, -item.rotationDegrees * Math.PI / 180, 0]}><FurnitureModel item={item} /></group>)}
       <Roof building={building} selected={selectedRef === building.roof.ref} yOffset={roofOffset} ghost={ghost} />
+      {livingVoidPartitions(building).map(({ wall, wing }) => <LivingVoidWall key={wall.ref} building={building} wall={wall} wing={wing} yOffset={offsetFor(wall.ref)} ghost={ghost} />)}
       {!ghost && <><SpaceOverlays building={building} explodedOffset={explodedOffset} explode={explode} /><PlatformsAndFinishes building={building} explodeOffset={explodedOffset} /></>}
       {!ghost && <RigidBody type="fixed" colliders={false}>{solids.map((solid) => <CuboidCollider key={solid.ref} args={solid.collider.halfExtents} position={[solid.collider.center[0], solid.collider.center[1] + offsetFor(solid.ref), solid.collider.center[2]]} rotation={[0, solid.collider.rotationY, 0]} />)}<CuboidCollider args={[roofWidth / 2, 0.2, roofDepth / 2]} position={[(roofBounds.minX + roofBounds.maxX) / 2, building.roof.baseElevationM + 0.2 + roofOffset, (roofBounds.minZ + roofBounds.maxZ) / 2]} /></RigidBody>}
     </group>
@@ -912,9 +944,6 @@ function TerrainAndSite({ project }: { project: ProjectV2 }) {
     {landUseAreas(project).map((zone) => <ParcelSurface key={zone.ref} boundary={zone.boundary} landRole={zone.landRole} planning={Boolean(zone.code)} />)}
     {project.site.parcels.some((parcel) => parcel.landUseZones?.some((zone) => zone.sourceRef === 'source/mpzp-boundary-v2')) && <group userData={{ semanticRef: 'site/zoning' }}>
       <DreiLine points={zielonkiZoningBoundary.map((point) => [point.x, 0.12, point.z] as [number, number, number])} color="#ffc15a" lineWidth={3} dashed dashSize={0.65} gapSize={0.3} depthTest={false} renderOrder={12} />
-      <Html position={[-4, 0.2, -9]} center zIndexRange={[5, 0]}><div className="zoning-map-label residential">06.MNU.8 · Residential / services</div></Html>
-      <Html position={[5, 0.2, 11]} center zIndexRange={[5, 0]}><div className="zoning-map-label agricultural">06.R.21 · Agricultural</div></Html>
-      <Html position={[10, 0.2, -1.7]} center zIndexRange={[5, 0]}><div className="zoning-map-label boundary">MPZP boundary</div></Html>
     </group>}
     {project.site.entrances.map((entrance) => <RoadEntranceMarker key={entrance.ref} entrance={entrance} />)}
     <RigidBody type="fixed" colliders={false}><CuboidCollider args={[Math.max(1, landSize.x / 2), 0.08, Math.max(1, landSize.z / 2)]} position={[landCenter.x, TERRAIN_SURFACE_Y - 0.08, landCenter.z]} /></RigidBody>

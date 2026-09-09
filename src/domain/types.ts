@@ -47,7 +47,7 @@ export interface SiteKnowledgeBase {
 }
 export interface SiteModel { boundary: Polygon2; northDegrees: number; terrain: TerrainModel; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[]; knowledgeBase: SiteKnowledgeBase }
 
-export interface OpeningModel { ref: string; kind: 'door' | 'window'; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number }
+export interface OpeningModel { ref: string; kind: 'door' | 'window'; glazed?: boolean; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number }
 export type WallMaterial = 'charred-timber' | 'natural-timber' | 'light-render' | 'brick' | 'metal-panel'
 /** `textureId` picks a scan from the texture library; omit for the material default, `none` for a flat colour. */
 export interface WallFinish { material: WallMaterial; colorHex: string; textureId?: string }
@@ -67,6 +67,8 @@ export interface RoofSegmentModel {
   /** Fractions across the gable, with a vertical inset below the roof slopes. */
   gableGlazing?: Partial<Record<'min' | 'max', { from: number; to: number; roofInsetM: number }>>
   gableFrame?: { widthM: number; depthM: number; colorHex: string }
+  /** Glass guard around a flat roof, omitting the footprint edge against the house. */
+  terrace?: { railingHeightM: number; openEdgeIndex: number; frameColorHex: string }
 }
 export interface RoofModel {
   ref: string; type: RoofType; baseElevationM: number; pitchDegrees: number; overhangM: number; footprint?: Polygon2

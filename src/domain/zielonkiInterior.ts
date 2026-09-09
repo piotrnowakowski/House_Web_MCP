@@ -1,5 +1,5 @@
 import { buildingGroundOffset, elevationAt, offsetPolygon, pointOnPolygonBoundary, polygonBounds, polygonCentroid, wallLength } from './geometry'
-import { gableEndWall, roofWings } from './roofWings'
+import { gableEndWall, gableRoofJunction, roofWings } from './roofWings'
 import { roomInsideFootprint } from './roomDimensions'
 import { decomposeOrthogonalLFootprint } from './roofs'
 import type { BuildingModel, ProjectV2, Vec2, WallModel } from './types'
@@ -7,9 +7,105 @@ import type { BuildingModel, ProjectV2, Vec2, WallModel } from './types'
 export const ZIELONKI_INTERIOR_ID = 'zielonki-reference-interior-v1'
 export const hasZielonkiInterior = (project: ProjectV2) => project.buildings.some((b) => b.interiorSource?.id === ZIELONKI_INTERIOR_ID)
 
+/** Existing upper-floor partitions along the west edge of the living void continue to its roof. */
+export function livingVoidPartitions(building: BuildingModel) {
+  if (building.interiorSource?.id !== ZIELONKI_INTERIOR_ID) return []
+  const wing = roofWings(building).find((w) => w.ref.endsWith('/rear-barn') && w.type === 'gable' && w.ridgeAxis === 'x')
+  if (!wing) return []
+  const bounds = polygonBounds(wing.footprint)
+  const slab = building.slabs.find((s) => s.ref === 'slab/reference-upper')
+  if (!slab) return []
+  const hole = slab.holes?.find((h) => Math.abs(polygonBounds(h).maxX - (bounds.maxX - 0.1)) < 0.01)
+  if (!hole) return []
+  const voidBounds = polygonBounds(hole)
+  return building.walls.filter((wall) => wall.baseElevationM >= slab.topElevationM - 0.01
+    && Math.abs(wall.start.x + wall.thicknessM / 2 - voidBounds.minX) < 0.01
+    && Math.abs(wall.end.x + wall.thicknessM / 2 - voidBounds.minX) < 0.01
+    && Math.min(wall.start.z, wall.end.z) >= bounds.minZ - 0.01
+    && Math.max(wall.start.z, wall.end.z) <= bounds.maxZ + 0.01)
+    .map((wall) => ({ wall, wing }))
+}
+
 const paperRoofNote = 'Zielonki roof revision 2026-09-09: the main gable ends at the upper-floor wall; a perpendicular gable meets its ridge, and the exposed garage has a separate flat roof at ground-floor ceiling level.'
 const ridgeHeightNote = 'Main roof pitches follow MPZP IX/55/2007, §13(6)(4): 37–45 degrees, fitted toward an 8.90 m ground-to-ridge height using the model terrain datum. Room heights are retained. The flat garage roof is a user-requested concept, not confirmed planning permission.'
 const glazingNote = 'ICON glazing revision 2026-09-09: the projecting living gable is glazed to the ridge; the former mezzanine floor is a full-height living void. The adjacent kitchen-side gable has half-width glazing aligned with the window below.'
+const terraceNote = 'Driveway terrace revision 2026-09-09: front gable glazing, two glazed bedroom exits to the garage roof terrace and a 1.10 m smoked-glass guard with black profiles on its three exposed edges.'
+const livingWallNote = 'Living partition revision 2026-09-09: the bedroom and landing wall is recessed to the meeting of the two roof ridges, with the living void enlarged to the same plane.'
+
+/** Recess the complete living partition once, maintaining connected room boundaries and the slab opening. */
+export function upgradeZielonkiLivingWall(source: ProjectV2): ProjectV2 {
+  const eligible = source.buildings.filter((building) => !building.interiorSource?.notes.includes(livingWallNote)
+    && livingVoidPartitions(building).length === 2)
+  if (!eligible.length) return source
+  const project = structuredClone(source)
+  let changed = false
+  for (const building of project.buildings.filter((b) => eligible.some((old) => old.ref === b.ref))) {
+    const partitions = livingVoidPartitions(building)
+    const { wall, wing } = partitions[0]
+    const junction = gableRoofJunction(building, wing)
+    if (!junction || junction.side !== 'min') continue
+    const host = polygonBounds(junction.host.footprint)
+    const ridgeX = (host.minX + host.maxX) / 2
+    const oldX = wall.start.x
+    const bounds = polygonBounds(wing.footprint)
+    const upper = building.storeys.find((storey) => storey.wallRefs.includes(wall.ref))!
+    const slab = building.slabs.find((s) => s.ref === upper.baseSlabRef)!
+    const hole = slab.holes!.find((h) => Math.abs(polygonBounds(h).minX - oldX - wall.thicknessM / 2) < 0.01
+      && Math.abs(polygonBounds(h).maxX - (bounds.maxX - 0.1)) < 0.01)!
+    const oldEdgeX = polygonBounds(hole).minX
+    const movingRefs = new Set(partitions.map(({ wall }) => wall.ref))
+    for (const attached of building.walls.filter((w) => upper.wallRefs.includes(w.ref))) {
+      for (const point of [attached.start, attached.end]) {
+        if (Math.abs(point.x - oldX) < 0.01 && point.z >= bounds.minZ - 0.01
+          && (point.z < bounds.maxZ - 0.01 || movingRefs.has(attached.ref))) point.x = ridgeX
+      }
+    }
+    for (const point of hole) if (Math.abs(point.x - oldEdgeX) < 0.01) point.x += ridgeX - oldX
+    // Keep the bathroom partition in place; a short return closes the landing at the back of the void.
+    if (Math.abs(ridgeX - oldX) > 0.01) {
+      const returnWall: WallModel = { ...structuredClone(wall), ref: `${wall.ref}/living-void-return`,
+        start: { x: ridgeX, z: bounds.maxZ }, end: { x: oldX, z: bounds.maxZ }, openings: [] }
+      building.walls.push(returnWall); upper.wallRefs.push(returnWall.ref)
+      const endWall = partitions.find(({ wall }) => Math.max(wall.start.z, wall.end.z) >= bounds.maxZ - 0.01)!.wall
+      const landing = building.spaces.find((space) => space.ref === 'space/reference-landing')!
+      const index = landing.boundary.findIndex((use) => use.wallRef === endWall.ref)
+      landing.boundary.splice(index + 1, 0, { wallRef: returnWall.ref, direction: 1 })
+    }
+    building.interiorSource!.notes.push(livingWallNote)
+    changed = true
+  }
+  if (!changed) return source
+  project.revision += 1; project.updatedAt = new Date().toISOString()
+  return project
+}
+
+/** Add the driveway-side glazing and terrace once, preserving subsequent saved edits. */
+export function upgradeZielonkiTerrace(source: ProjectV2): ProjectV2 {
+  const eligible = source.buildings.filter((b) => b.interiorSource?.id === ZIELONKI_INTERIOR_ID && !b.interiorSource.notes.includes(terraceNote)
+    && b.roof.segments.some((s) => s.ref.endsWith('/front-barn') && s.type === 'gable')
+    && b.roof.segments.some((s) => s.ref.endsWith('/garage-cap') && s.type === 'flat'))
+  if (!eligible.length) return source
+  const project = structuredClone(source)
+  for (const building of project.buildings.filter((b) => eligible.some((old) => old.ref === b.ref))) {
+    const front = building.roof.segments.find((s) => s.ref.endsWith('/front-barn'))!
+    const garage = building.roof.segments.find((s) => s.ref.endsWith('/garage-cap'))!
+    front.gableGlazing = { ...front.gableGlazing, max: { from: 0.09, to: 0.91, roofInsetM: 0.28 } }
+    garage.terrace = { railingHeightM: 1.1, openEdgeIndex: 0, frameColorHex: '#121817' }
+    const terraceElevation = garage.baseElevationM + 0.24
+    for (const wall of building.walls) {
+      for (const opening of wall.openings) {
+        if (!['opening/reference-children-west-window', 'opening/reference-children-east-window'].includes(opening.ref)) continue
+        opening.kind = 'door'
+        opening.glazed = true
+        opening.sillM = Math.max(0, terraceElevation - wall.baseElevationM)
+        opening.heightM = wall.heightM - opening.sillM - 0.08
+      }
+    }
+    building.interiorSource!.notes.push(terraceNote)
+  }
+  project.revision += 1; project.updatedAt = new Date().toISOString()
+  return project
+}
 
 /** Apply the requested glazed gables and living void once, also to saved copies. */
 export function upgradeZielonkiGlazing(source: ProjectV2): ProjectV2 {
@@ -145,7 +241,7 @@ export const isExteriorWall = (building: BuildingModel, wall: WallModel) => {
 /** Transfer the measured floor plan into the existing site, retaining its house placement and finishes. */
 export function fitZielonkiInterior(target: ProjectV2, reference: ProjectV2): ProjectV2 {
   const project = structuredClone(target)
-  if (hasZielonkiInterior(project)) return upgradeZielonkiGlazing(upgradeZielonkiRoof(project))
+  if (hasZielonkiInterior(project)) return upgradeZielonkiLivingWall(upgradeZielonkiTerrace(upgradeZielonkiGlazing(upgradeZielonkiRoof(project))))
   const old = project.buildings.find((b) => b.kind === 'house')
   const source = reference.buildings.find((b) => b.kind === 'house')
   if (!old || !source) throw new Error('Both projects must contain a house.')
@@ -201,5 +297,5 @@ export function fitZielonkiInterior(target: ProjectV2, reference: ProjectV2): Pr
   fitRoofPitch(project, building)
   project.name = 'Zielonki · Dom z planów'
   project.revision += 1; project.updatedAt = new Date().toISOString()
-  return upgradeZielonkiGlazing(project)
+  return upgradeZielonkiLivingWall(upgradeZielonkiTerrace(upgradeZielonkiGlazing(project)))
 }

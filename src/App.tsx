@@ -422,6 +422,7 @@ function StartScreen() {
 }
 
 function Inspector() {
+  const confirmationVariantRef = useStudioStore((state) => state.confirmationVariantRef)
   const project = useStudioStore((state) => state.project); const selectedRef = useStudioStore((state) => state.selectedRef); const issues = useStudioStore((state) => state.variants)
   const useModernBarnPreset = useStudioStore((state) => state.useModernBarnPreset)
   const beginReposition = useStudioStore((state) => state.beginReposition); const createVariant = useStudioStore((state) => state.createVariant); const reopenProposal = useStudioStore((state) => state.reopenProposal); const commitCommand = useStudioStore((state) => state.commitCommand); const setToast = useStudioStore((state) => state.setToast)
@@ -457,7 +458,8 @@ function Inspector() {
           : { type: 'landscape.update', action: 'remove', zoneRef: zone!.ref }
     const proposal = createVariant(`Delete ${selectedTitle}`, [command]); setDeleteRef(null); reopenProposal(proposal.ref)
   }
-  return <aside className="inspector">
+  if (confirmationVariantRef) return <aside className="inspector" key={confirmationVariantRef}><VariantApproval /></aside>
+  return <aside className="inspector" key="selection">
     <p className="eyebrow">PROJECTV2 / SEMANTIC MODEL</p>
     <h2>{selectedTitle}</h2>
     <p className="muted">{selectedRef ?? 'Select a wall, shared slab, space, roof, landscape zone or plant.'}</p>
@@ -673,6 +675,6 @@ export function App() {
       </> : <><span><i className="construction" />House land</span><span><i className="garden" />Garden / agricultural land</span></>}<span><i className="entrance" />Road entrance</span></div>
       </details>
     </div>
-    {dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'proposals' && <ProposalsPanel onClose={() => setDataPanel(null)} />}<ReportPanel /><VariantApproval /><StartScreen />{toast && <div className="toast" role="status">{toast}</div>}
+    {dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'proposals' && <ProposalsPanel onClose={() => setDataPanel(null)} />}<ReportPanel /><StartScreen />{toast && <div className="toast" role="status">{toast}</div>}
   </main>
 }

@@ -6,7 +6,7 @@ import { applyModernBarnPreset, isModernBarnPreset } from '../domain/presets'
 import { slugify } from '../domain/refs'
 import { modernBarnProject } from '../domain/sampleProject'
 import { createReferenceHouse, REFERENCE_HOUSE_REF } from '../domain/referenceHouse'
-import { fitZielonkiInterior, hasZielonkiInterior, upgradeZielonkiRoof, upgradeZielonkiGlazing } from '../domain/zielonkiInterior'
+import { fitZielonkiInterior, hasZielonkiInterior, upgradeZielonkiRoof, upgradeZielonkiGlazing, upgradeZielonkiTerrace, upgradeZielonkiLivingWall } from '../domain/zielonkiInterior'
 import { upgradeZielonkiPlacement } from '../domain/zielonkiPlacement'
 import { REFERENCE_YEAR, type SunTime } from '../domain/solar'
 import type { SunlightAnalysis } from '../domain/sunlight'
@@ -164,7 +164,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     if (workspace.project.landscape.plants.some((plant) => plant.surveyHandle)) {
       workspace = { ...workspace, project: ensureStarterOrchard(workspace.project) }
     }
-    workspace = { ...workspace, project: upgradeZielonkiPlacement(upgradeZielonkiGlazing(upgradeZielonkiRoof(workspace.project))) }
+    workspace = { ...workspace, project: upgradeZielonkiPlacement(upgradeZielonkiLivingWall(upgradeZielonkiTerrace(upgradeZielonkiGlazing(upgradeZielonkiRoof(workspace.project))))) }
     revokeReport(get().structureReport)
     const proposals = staleRecords(workspace.proposals, workspace.project.revision).map((proposal) =>
       proposal.status === 'pending' ? { ...proposal, issues: validateProject(proposal.project) } : proposal)
