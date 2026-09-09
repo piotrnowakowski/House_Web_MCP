@@ -22,6 +22,8 @@ async function clickPoint(page: Page, x: number, z: number, y = 0) {
 }
 async function start(page: Page) {
   await page.addInitScript(() => {
+    // The public Mikrus origin is HTTP: randomUUID is absent there, unlike localhost.
+    Object.defineProperty(crypto, 'randomUUID', { configurable: true, value: undefined })
     const tools: Record<string, unknown> = {}
     Object.assign(window, { __interiorTools: tools })
     Object.defineProperty(document, 'modelContext', {

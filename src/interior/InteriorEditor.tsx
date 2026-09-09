@@ -1,3 +1,4 @@
+import { randomId } from '../domain/randomId'
 import { Canvas } from '@react-three/fiber'
 import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
 import {
@@ -227,10 +228,10 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
       setSelectedRefs([])
   }
   const duplicate = () => {
-    const groupRef = selectedItems.length > 1 ? `group/${crypto.randomUUID()}` : undefined
+    const groupRef = selectedItems.length > 1 ? `group/${randomId()}` : undefined
     const copies = selectedItems.map((i) => ({
       ...i,
-      ref: `interior/${crypto.randomUUID()}`,
+      ref: `interior/${randomId()}`,
       locked: false,
       groupRef,
       position: { x: i.position.x + 0.3, z: i.position.z + 0.3 },
@@ -240,7 +241,7 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
   const group = () => {
     const grouped =
       selectedItems.length > 0 && selectedItems.every((i) => i.groupRef && i.groupRef === selectedItems[0].groupRef)
-    const groupRef = grouped ? undefined : `group/${crypto.randomUUID()}`
+    const groupRef = grouped ? undefined : `group/${randomId()}`
     commit(selectedItems.map((i) => put({ ...i, groupRef })))
   }
   const choose = (id: string, generic: boolean) => {
@@ -250,7 +251,7 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
     const value: InteriorItem =
       generic && product
         ? {
-            ref: `interior/${crypto.randomUUID()}`,
+            ref: `interior/${randomId()}`,
             catalogId: product.id,
             storeyRef: storey.ref,
             name: product.name,
@@ -311,8 +312,8 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
           spaceRef: room.ref,
           start: points[0],
           end: point,
-          partitionRef: `wall/${crypto.randomUUID()}`,
-          newSpaceRef: `space/${crypto.randomUUID()}`,
+          partitionRef: `wall/${randomId()}`,
+          newSpaceRef: `space/${randomId()}`,
           name: `${room.name} 2`,
           thicknessM: 0.12,
         })
@@ -387,7 +388,7 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
         draftChangeSets: state.draftChangeSets,
       })
       const copy = structuredClone(project)
-      copy.ref = `project/${crypto.randomUUID()}`
+      copy.ref = `project/${randomId()}`
       copy.name = `${project.name} — alternative`
       copy.revision = 1
       copy.updatedAt = new Date().toISOString()
@@ -997,7 +998,7 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
               const imported = parseProject(JSON.parse(await file.text()))
               const error = validateProject(imported).find((i) => i.severity === 'error')
               if (error) throw new Error(error.message)
-              imported.ref = `project/${crypto.randomUUID()}`
+              imported.ref = `project/${randomId()}`
               imported.name += ' — imported'
               const state = useStudioStore.getState()
               await saveWorkspace({

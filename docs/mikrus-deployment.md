@@ -2,6 +2,7 @@
 
 The working house branch is `codex/deploy-furnished-zielonki`, previewed locally at `http://127.0.0.1:5173/`.
 It includes the merged `codex/ikea-interior-mobile` editor and all 64 catalogue configurations.
+Interior IDs use cryptographic UUID v4 generation on both HTTP and HTTPS. The browser regression fixture also exercises the HTTP case where `crypto.randomUUID` is absent.
 The deployed house is [Mikrus on port 20203](http://natan203.mikrus.xyz:20203/).
 GitHub Pages/main remains the separately restored competition submission; deploying this branch does not change it.
 

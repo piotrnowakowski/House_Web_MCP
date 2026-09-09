@@ -1,3 +1,4 @@
+import { randomId } from '../domain/randomId'
 import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { Heart, Pencil, SlidersHorizontal, X } from 'lucide-react'
 import { interiorCatalog, interiorOriginalSize } from '../domain/interior'
@@ -727,7 +728,7 @@ export function WallInspector({
   }
   const addOpening = (kind: 'door' | 'window') => {
     const opening: OpeningModel = {
-      ref: `opening/${crypto.randomUUID()}`,
+      ref: `opening/${randomId()}`,
       wallRef: wall.ref,
       kind,
       offsetM: wallLength(wall) / 2,

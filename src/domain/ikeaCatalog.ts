@@ -1,3 +1,4 @@
+import { randomId } from './randomId'
 import products from './ikea-products.json'
 import type { InteriorCatalogId, InteriorItem, Vec2 } from './types'
 
@@ -35,7 +36,7 @@ export function createIkeaItem(productId: string, storeyRef: string, position: V
   const product = ikeaProduct(productId)
   if (!product) throw new Error('This product is not in the furniture library.')
   return {
-    ref: `interior/${crypto.randomUUID()}`,
+    ref: `interior/${randomId()}`,
     catalogId: product.catalogId,
     productId,
     variantId: product.articleNumber,
