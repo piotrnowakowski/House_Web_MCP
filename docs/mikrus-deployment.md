@@ -1,0 +1,51 @@
+# Current house deployment
+
+The working house branch is `codex/deploy-furnished-zielonki`, previewed locally at `http://127.0.0.1:5173/`.
+It includes the merged `codex/ikea-interior-mobile` editor and all 64 catalogue configurations.
+The deployed house is [Mikrus on port 20203](http://natan203.mikrus.xyz:20203/).
+GitHub Pages/main remains the separately restored competition submission; deploying this branch does not change it.
+
+## Build and verify
+
+Use Node 22.12+ (validated with Node 24). Run `npm ci` after merging dependencies, with the local Vite process stopped on Windows.
+Run `npm test`, `npm run lint` and `npm run build` with `BASE_PATH=/` for Mikrus.
+Start the normal preview with `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`.
+Set `APP_URL=http://127.0.0.1:5173` when running `npm run test:interior` against this checkout.
+The original separate editor worktree can continue on 5187.
+
+## Publish
+
+The private, ignored `.env` contains VPS_HOST, VPS_PORT, VPS_USER, VPS_PASSWORD,
+VPS_SSH_HOST_KEY (algorithm, bit count, SHA256 fingerprint), HOUSE_DEPLOY_PATH,
+HOUSE_DEPLOY_PROJECT, HOUSE_DEPLOY_PUBLIC_PORT and HOUSE_DEPLOY_URL.
+Never commit it or include it in an archive. Install Paramiko in the Python environment used for deployment.
+The existing local copy in ignored `tmp/mikrus-python` can be supplied through `PYTHONPATH`.
+
+```sh
+python scripts/deploy-mikrus.py --help
+python scripts/deploy-mikrus.py
+python scripts/deploy-mikrus.py --revision <validated-commit-sha> --deploy
+```
+
+The default command only inspects the service. Publishing packages `dist/` only, verifies the uploaded SHA256,
+builds an immutable revision-tagged Nginx image and probes its health and 64-entry catalogue in a separate container.
+It then backs up Compose and replaces only the `house-web-mcp` service in the existing project.
+If the new service fails its health/revision check, the script restores the previous Compose configuration.
+Previous images and release directories remain available; other VPS services are not restarted.
+The script checks the pinned SSH fingerprint and does not log or upload the password.
+
+Check `/health` for the deployed revision and use `scripts/audit-interior-production.mjs --url <public-url>`
+to check all model/thumbnail paths and desktop/mobile production flows in isolated browser contexts.
+Deployment records are written to the server's `deployment.json` / `deployment.txt` and locally to ignored `tmp/deployment-result.json`.
+
+## Roll back
+
+The deployment record names the exact Compose backup. On the VPS, restore that backup to
+`$HOUSE_DEPLOY_PATH/deploy/mikrus/compose.yaml`, then run Docker Compose with the recorded project name:
+
+```sh
+docker compose -p house-web-mcp-furnished -f /root/house-web-mcp/furnished-zielonki/deploy/mikrus/compose.yaml up -d --no-build --no-deps house-web-mcp
+```
+
+Local and public origins have separate IndexedDB projects. Redeployment updates the application files;
+it does not copy or replace projects saved in the browser on 5173, 5187 or the public URL.
