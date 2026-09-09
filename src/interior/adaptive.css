@@ -1,0 +1,19 @@
+.adaptive-sheet { position: absolute; z-index: 35; right: 16px; top: 68px; bottom: 82px; width: 326px; display: flex; flex-direction: column; background: var(--sheet-bg, #fbfaf6); color: var(--sheet-ink, #293e35); border: 1px solid var(--sheet-border, #dce0d5); border-radius: 12px; box-shadow: 0 12px 40px #1b332018; overflow: hidden; animation: sheet-appear .16s ease-out; }
+.sheet-header { position: relative; flex: 0 0 56px; display: flex; align-items: center; gap: 4px; padding: 0 12px 0 18px; border-bottom: 1px solid var(--sheet-border, #dce0d5); touch-action: none; }
+.sheet-header h2 { flex: 1; margin: 0; font-size: 15px; font-weight: 600; }
+.sheet-header button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0!important; background: transparent; border: 0; color: inherit; }
+.sheet-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 16px 18px; scrollbar-width: thin; }
+.sheet-grip { display: none; }
+@keyframes sheet-appear { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 900px) {
+  .adaptive-sheet { inset: auto max(8px, env(safe-area-inset-right)) calc(68px + env(safe-area-inset-bottom) + var(--keyboard-inset, 0px)) max(8px, env(safe-area-inset-left)); width: auto; height: min(40dvh, 400px); max-height: calc(var(--sheet-viewport, 100dvh) - 132px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); border-radius: 15px; }
+  .adaptive-sheet.is-expanded { height: calc(var(--sheet-viewport, 100dvh) - 132px - env(safe-area-inset-top) - env(safe-area-inset-bottom)); }
+  .sheet-header { flex-basis: 54px; padding-top: 7px; }
+  .sheet-grip { display: block; position: absolute; top: 5px; left: calc(50% - 17px); width: 34px; height: 3px; border-radius: 4px; background: var(--sheet-border, #dce0d5); }
+  .sheet-body { padding: 12px 16px 18px; }
+  .adaptive-sheet input, .adaptive-sheet select { font-size: 16px!important; }
+}
+@media (max-width: 900px) and (orientation: landscape) {
+  .adaptive-sheet, .adaptive-sheet.is-expanded { top: calc(56px + env(safe-area-inset-top)); bottom: calc(68px + env(safe-area-inset-bottom) + var(--keyboard-inset, 0px)); left: auto; right: max(8px, env(safe-area-inset-right)); width: min(340px, 44vw); height: auto; max-height: none; }
+}
+@media (prefers-reduced-motion: reduce) { .adaptive-sheet { animation: none; } }

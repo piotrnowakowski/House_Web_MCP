@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { InteriorItemSchema } from './interior'
+import { InteriorFinishSchema } from './interiorFinishes'
 import { polygonArea, polygonSelfIntersects } from './geometry'
 import { estimateDayPartTemperatures } from './climate'
 import type { PlantRecommendation, PlantingGuideCategory, PlantingSoilAnalysis, ProjectV2, SiteKnowledgeBase } from './types'
@@ -47,16 +48,19 @@ const SiteEntranceSchema = z.object({
   connectsTo: z.literal('public-road'), geometryConfidence: z.enum(['user-marked', 'surveyed']),
 }).refine((entrance) => Math.hypot(entrance.end.x - entrance.start.x, entrance.end.z - entrance.start.z) > 0.5, { message: 'Site entrance must have length.' })
 const OpeningSchema = z.object({
+  hinge: z.enum(['left', 'right']).optional(), swing: z.enum(['in', 'out']).optional(),
   ref: z.string().min(1), kind: z.enum(['door', 'window']), wallRef: z.string().min(1), offsetM: z.number().min(0),
   widthM: z.number().positive(), heightM: z.number().positive(), sillM: z.number().min(0), glazed: z.boolean().optional(),
 })
 const WallSchema = z.object({
+  faceFinishes: z.object({ left: InteriorFinishSchema.optional(), right: InteriorFinishSchema.optional() }).optional(),
   ref: z.string().min(1), start: Vec2Schema, end: Vec2Schema, thicknessM: z.number().positive(), baseElevationM: z.number().finite(),
   heightM: z.number().positive(), openings: z.array(OpeningSchema),
   finish: z.object({ material: z.enum(['charred-timber', 'natural-timber', 'light-render', 'brick', 'metal-panel']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), textureId: z.string().optional() }).optional(),
   locked: z.boolean(),
 }).refine((wall) => Math.hypot(wall.end.x - wall.start.x, wall.end.z - wall.start.z) > 0.1, { message: 'Wall must have length.' })
 const SpaceSchema = z.object({
+  floorFinish: InteriorFinishSchema.optional(), ceilingFinish: InteriorFinishSchema.optional(),
   ref: z.string().min(1), name: z.string().min(1), usage: z.string().min(1),
   boundary: z.array(z.object({ wallRef: z.string().min(1), direction: z.union([z.literal(1), z.literal(-1)]) })).min(3),
   baseSlabRef: z.string().min(1), topBoundaryRef: z.string().min(1), locked: z.boolean(),

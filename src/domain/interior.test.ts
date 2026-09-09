@@ -31,16 +31,15 @@ describe('Interior project edits', () => {
     expect(itemFitsFloor({ ...item, position: { x: 2, z: 2 }, widthM: 3, depthM: 0.4, rotationDegrees: 45 }, lShape)).toBe(false)
     expect(house.furniture).toBeUndefined()
   })
-  it('renames a real room and resizes shared wall endpoints without creating walls', () => {
+  it('renames a real room while refusing to resize its exterior envelope', () => {
     const room = house.spaces.find((s) => floor.spaceRefs.includes(s.ref))!
     const before = polygonBounds(spaceFootprint(house, room))
-    const updated = applyCommand(modernBarnProject, { type: 'interior.update', action: 'room', buildingRef: house.ref, storeyRef: floor.ref, spaceRef: room.ref, name: 'Kitchen & breakfast', widthM: before.maxX - before.minX - 0.4, depthM: before.maxZ - before.minZ - 0.4 })
-    const next = updated.buildings[0]; const resized = next.spaces.find((s) => s.ref === room.ref)!
-    expect(resized.name).toBe('Kitchen & breakfast')
-    expect(next.walls.length).toBe(house.walls.length)
-    const bounds = polygonBounds(spaceFootprint(next, resized))
-    expect(bounds.maxX - bounds.minX).toBeCloseTo(before.maxX - before.minX - 0.4)
-    expect(() => applyCommand(modernBarnProject, { type: 'interior.update', action: 'room', buildingRef: house.ref, storeyRef: floor.ref, spaceRef: room.ref, name: 'Too large', widthM: 100 })).toThrow()
+    const command = { type: 'interior.update' as const, action: 'room' as const, buildingRef: house.ref, storeyRef: floor.ref, spaceRef: room.ref, name: 'Kitchen & breakfast' }
+    const updated = applyCommand(modernBarnProject, command)
+    expect(updated.buildings[0].spaces.find((s) => s.ref === room.ref)?.name).toBe('Kitchen & breakfast')
+    expect(updated.buildings[0].walls).toEqual(house.walls)
+    expect(() => applyCommand(modernBarnProject, { ...command, widthM: before.maxX - before.minX - 0.4, depthM: before.maxZ - before.minZ - 0.4 })).toThrow(/exterior|plot tools/)
+    expect(() => applyCommand(modernBarnProject, { ...command, widthM: 100 })).toThrow()
   })
   it('uses the project history for undo and keeps furniture isolated by floor', () => {
     useStudioStore.setState({ project: structuredClone(modernBarnProject), history: [], variants: [], proposals: [], draftChangeSets: [] })

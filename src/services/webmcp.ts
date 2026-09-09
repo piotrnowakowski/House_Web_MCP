@@ -1,3 +1,6 @@
+import { ikeaCatalog } from '../domain/ikeaCatalog'
+import { interiorCatalog } from '../domain/interior'
+import { interiorFinishes } from '../domain/interiorFinishes'
 import { z } from 'zod'
 import { operationReference, webMcpToolPrompts } from '../../prompts/webmcp-tools'
 import { calculateMetrics, validateProject } from '../domain/commands'
@@ -193,6 +196,7 @@ export const webMcpTools: WebMcpTool[] = [
   } }),
   define({ ...webMcpToolPrompts.list_catalog, input: webMcpSchemas.list_catalog, readOnly: true, handler: ({ catalog, surface, type }) => {
     const revision = useStudioStore.getState().project.revision
+    if (catalog === 'ikea' || catalog === 'interior-generic' || catalog === 'interior-finishes') { const data = catalog === 'ikea' ? ikeaCatalog : catalog === 'interior-generic' ? interiorCatalog : interiorFinishes; return { status: 'ok', projectRevision: revision, summary: `Returned ${data.length} ${catalog} entries.`, data } }
     if (catalog === 'garden-fixtures') return { status: 'ok', projectRevision: revision, summary: `Returned ${gardenFixtureCatalog.length} garden fixtures.`, data: gardenFixtureCatalog }
     if (catalog === 'textures') {
       const scans = (surface ? texturesFor(surface) : textureLibrary).map(({ id, name, surfaces, tileM }) => ({ id, name, surfaces, tileM }))

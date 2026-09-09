@@ -1,0 +1,38 @@
+/** Read-only scene inspection and a deterministic project fixture for local browser regressions. */
+import { _roots } from '@react-three/fiber'
+import { Vector3 } from 'three'
+import { sampleProject } from '../src/domain/sampleProject'
+import { useStudioStore } from '../src/state/store'
+
+export function fixture() {
+  const project = structuredClone(sampleProject)
+  project.ref = 'project/interior-browser-test'
+  project.name = 'Interior browser study'
+  useStudioStore.getState().replaceProject(project)
+  useStudioStore.setState({ hydrated: true, launcherOpen: false, selectedRef: null })
+}
+export function state() {
+  const value = useStudioStore.getState()
+  return {
+    project: value.project,
+    history: value.history.length,
+    future: value.future.length,
+    selectedRef: value.selectedRef,
+  }
+}
+export function camera() {
+  const canvas = document.querySelector('canvas')!
+  const value = _roots.get(canvas)!.store.getState()
+  return {
+    position: value.camera.position.toArray(),
+    rotation: value.camera.quaternion.toArray(),
+    zoom: value.camera.zoom,
+  }
+}
+export function point(x: number, z: number, y = 0) {
+  const canvas = document.querySelector('canvas')!
+  const value = _roots.get(canvas)!.store.getState()
+  const p = new Vector3(x, y, z).project(value.camera)
+  const bounds = canvas.getBoundingClientRect()
+  return { x: bounds.x + ((p.x + 1) * bounds.width) / 2, y: bounds.y + ((1 - p.y) * bounds.height) / 2 }
+}

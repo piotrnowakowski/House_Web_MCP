@@ -1,0 +1,2007 @@
+{
+  "version": 1,
+  "generatedAt": "2026-09-09T16:00:46.078Z",
+  "license": "CC0-1.0",
+  "products": [
+    {
+      "id": "kivik-sofa",
+      "family": "KIVIK",
+      "name": "3-seat sofa",
+      "category": "Living",
+      "catalogId": "sofa",
+      "size": [
+        2.28,
+        0.95,
+        0.83
+      ],
+      "color": "#c5bcac",
+      "articleNumber": "89482830",
+      "productUrl": "https://www.ikea.com/pl/pl/p/kivik-sofa-3-osobowa-tresund-jasnobezowy-s89482830/",
+      "sourceDate": "2026-09-09",
+      "finish": "Tresund light beige",
+      "model": "models/interior/kivik-sofa.glb",
+      "mobileModel": "models/interior/kivik-sofa-mobile.glb",
+      "thumbnail": "models/interior/kivik-sofa.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "kivik-sofa.glb",
+          "bytes": 363872,
+          "triangles": 2784,
+          "bounds": {
+            "min": [
+              -1.1399999856948853,
+              0,
+              -0.4749999940395355
+            ],
+            "max": [
+              1.1399999856948853,
+              0.8299999833106995,
+              0.4749999940395355
+            ]
+          }
+        },
+        {
+          "filename": "kivik-sofa-mobile.glb",
+          "bytes": 194936,
+          "triangles": 1024,
+          "bounds": {
+            "min": [
+              -1.1399999856948853,
+              0,
+              -0.4749999940395355
+            ],
+            "max": [
+              1.1399999856948853,
+              0.8299999833106995,
+              0.4749999940395355
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -1.14,
+          -0.475
+        ],
+        [
+          1.14,
+          -0.475
+        ],
+        [
+          1.14,
+          0.475
+        ],
+        [
+          -1.14,
+          0.475
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "kivik-chaise",
+      "family": "KIVIK",
+      "name": "Sofa with chaise",
+      "category": "Living",
+      "catalogId": "corner-sofa",
+      "size": [
+        2.8,
+        1.63,
+        0.83
+      ],
+      "color": "#888b89",
+      "articleNumber": "39484775",
+      "productUrl": "https://www.ikea.com/pl/pl/p/kivik-sofa-3-osobowa-z-szezlongiem-gunnared-srednioszary-s39484775/",
+      "sourceDate": "2026-09-09",
+      "finish": "Gunnared medium grey",
+      "model": "models/interior/kivik-chaise.glb",
+      "mobileModel": "models/interior/kivik-chaise-mobile.glb",
+      "thumbnail": "models/interior/kivik-chaise.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "kivik-chaise.glb",
+          "bytes": 459496,
+          "triangles": 3780,
+          "bounds": {
+            "min": [
+              -1.399999976158142,
+              0,
+              -0.8149999976158142
+            ],
+            "max": [
+              1.399999976158142,
+              0.8299999833106995,
+              0.8149999976158142
+            ]
+          }
+        },
+        {
+          "filename": "kivik-chaise-mobile.glb",
+          "bytes": 229884,
+          "triangles": 1388,
+          "bounds": {
+            "min": [
+              -1.399999976158142,
+              0,
+              -0.8149999976158142
+            ],
+            "max": [
+              1.399999976158142,
+              0.8299999833106995,
+              0.8149999976158142
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -1.4,
+          -0.815
+        ],
+        [
+          1.4,
+          -0.815
+        ],
+        [
+          1.4,
+          0.815
+        ],
+        [
+          -1.4,
+          0.815
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "poang",
+      "family": "POÄNG",
+      "name": "Bentwood armchair",
+      "category": "Living",
+      "catalogId": "armchair",
+      "size": [
+        0.68,
+        0.82,
+        1
+      ],
+      "color": "#d7ceba",
+      "articleNumber": "39240787",
+      "productUrl": "https://www.ikea.com/pl/pl/p/poaeng-fotel-okl-brzoz-knisa-jasnobezowy-s39240787/",
+      "sourceDate": "2026-09-09",
+      "finish": "Birch veneer / Knisa light beige",
+      "model": "models/interior/poang.glb",
+      "mobileModel": "models/interior/poang-mobile.glb",
+      "thumbnail": "models/interior/poang.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "poang.glb",
+          "bytes": 253956,
+          "triangles": 1596,
+          "bounds": {
+            "min": [
+              -0.3400000035762787,
+              0,
+              -0.4099999964237213
+            ],
+            "max": [
+              0.3400000035762787,
+              1,
+              0.4099999964237213
+            ]
+          }
+        },
+        {
+          "filename": "poang-mobile.glb",
+          "bytes": 166404,
+          "triangles": 684,
+          "bounds": {
+            "min": [
+              -0.3400000035762787,
+              0,
+              -0.4099999964237213
+            ],
+            "max": [
+              0.3400000035762787,
+              1,
+              0.4099999964237213
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.34,
+          -0.41
+        ],
+        [
+          0.34,
+          -0.41
+        ],
+        [
+          0.34,
+          0.41
+        ],
+        [
+          -0.34,
+          0.41
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "strandmon",
+      "family": "STRANDMON",
+      "name": "Wing chair",
+      "category": "Living",
+      "catalogId": "armchair",
+      "size": [
+        0.82,
+        0.96,
+        1.01
+      ],
+      "color": "#626965",
+      "articleNumber": "20343224",
+      "productUrl": "https://www.ikea.com/pl/pl/p/strandmon-fotel-uszak-nordvalla-ciemnoszary-20343224/",
+      "sourceDate": "2026-09-09",
+      "finish": "Nordvalla dark grey",
+      "model": "models/interior/strandmon.glb",
+      "mobileModel": "models/interior/strandmon-mobile.glb",
+      "thumbnail": "models/interior/strandmon.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "strandmon.glb",
+          "bytes": 363804,
+          "triangles": 2740,
+          "bounds": {
+            "min": [
+              -0.4099999964237213,
+              -2.7755575615628914e-17,
+              -0.47999998927116394
+            ],
+            "max": [
+              0.4099999964237213,
+              1.0099999904632568,
+              0.47999998927116394
+            ]
+          }
+        },
+        {
+          "filename": "strandmon-mobile.glb",
+          "bytes": 185624,
+          "triangles": 884,
+          "bounds": {
+            "min": [
+              -0.4099999964237213,
+              -2.7755575615628914e-17,
+              -0.47999998927116394
+            ],
+            "max": [
+              0.4099999964237213,
+              1.0099999904632568,
+              0.47999998927116394
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.41,
+          -0.48
+        ],
+        [
+          0.41,
+          -0.48
+        ],
+        [
+          0.41,
+          0.48
+        ],
+        [
+          -0.41,
+          0.48
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "lack",
+      "family": "LACK",
+      "name": "Coffee table",
+      "category": "Living",
+      "catalogId": "coffee-table",
+      "size": [
+        0.9,
+        0.55,
+        0.45
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "90449905",
+      "productUrl": "https://www.ikea.com/pl/pl/p/lack-stolik-kawowy-bialy-90449905/",
+      "sourceDate": "2026-09-09",
+      "finish": "White",
+      "model": "models/interior/lack.glb",
+      "mobileModel": "models/interior/lack-mobile.glb",
+      "thumbnail": "models/interior/lack.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "lack.glb",
+          "bytes": 206544,
+          "triangles": 1800,
+          "bounds": {
+            "min": [
+              -0.44999998807907104,
+              0,
+              -0.2750000059604645
+            ],
+            "max": [
+              0.44999998807907104,
+              0.44999998807907104,
+              0.2750000059604645
+            ]
+          }
+        },
+        {
+          "filename": "lack-mobile.glb",
+          "bytes": 95948,
+          "triangles": 648,
+          "bounds": {
+            "min": [
+              -0.44999998807907104,
+              0,
+              -0.2750000059604645
+            ],
+            "max": [
+              0.44999998807907104,
+              0.44999998807907104,
+              0.2750000059604645
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.45,
+          -0.275
+        ],
+        [
+          0.45,
+          -0.275
+        ],
+        [
+          0.45,
+          0.275
+        ],
+        [
+          -0.45,
+          0.275
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "besta",
+      "family": "BESTÅ",
+      "name": "TV bench with doors",
+      "category": "Living",
+      "catalogId": "tv-unit",
+      "size": [
+        1.8,
+        0.42,
+        0.38
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "89330691",
+      "productUrl": "https://www.ikea.com/pl/pl/p/besta-lawa-tv-z-drzwiami-bialy-lappviken-bialy-s89330691/",
+      "sourceDate": "2026-09-09",
+      "finish": "White / Lappviken white",
+      "model": "models/interior/besta.glb",
+      "mobileModel": "models/interior/besta-mobile.glb",
+      "thumbnail": "models/interior/besta.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "besta.glb",
+          "bytes": 264152,
+          "triangles": 2400,
+          "bounds": {
+            "min": [
+              -0.8999999761581421,
+              0,
+              -0.20999999344348907
+            ],
+            "max": [
+              0.8999999761581421,
+              0.3799999952316284,
+              0.20999999344348907
+            ]
+          }
+        },
+        {
+          "filename": "besta-mobile.glb",
+          "bytes": 116696,
+          "triangles": 864,
+          "bounds": {
+            "min": [
+              -0.8999999761581421,
+              0,
+              -0.20999999344348907
+            ],
+            "max": [
+              0.8999999761581421,
+              0.3799999952316284,
+              0.20999999344348907
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.9,
+          -0.21
+        ],
+        [
+          0.9,
+          -0.21
+        ],
+        [
+          0.9,
+          0.21
+        ],
+        [
+          -0.9,
+          0.21
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "malm-bed",
+      "family": "MALM",
+      "name": "Bed frame · 160 × 200 mattress",
+      "category": "Bedroom",
+      "catalogId": "bed",
+      "size": [
+        1.76,
+        2.09,
+        1
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "09929373",
+      "productUrl": "https://www.ikea.com/pl/pl/p/malm-rama-lozka-wysoka-bialy-s09929373/",
+      "sourceDate": "2026-09-09",
+      "finish": "White",
+      "model": "models/interior/malm-bed.glb",
+      "mobileModel": "models/interior/malm-bed-mobile.glb",
+      "thumbnail": "models/interior/malm-bed.png",
+      "elevationM": 0,
+      "clearanceM": 0.6,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assemblyNote": "176 × 209 cm is the frame footprint. Mattress and bedding are shown for context and sold separately.",
+      "assets": [
+        {
+          "filename": "malm-bed.glb",
+          "bytes": 327984,
+          "triangles": 2400,
+          "bounds": {
+            "min": [
+              -0.8799999952316284,
+              0,
+              -1.0449999570846558
+            ],
+            "max": [
+              0.8799999952316284,
+              1,
+              1.0449999570846558
+            ]
+          }
+        },
+        {
+          "filename": "malm-bed-mobile.glb",
+          "bytes": 180516,
+          "triangles": 864,
+          "bounds": {
+            "min": [
+              -0.8799999952316284,
+              0,
+              -1.0449999570846558
+            ],
+            "max": [
+              0.8799999952316284,
+              1,
+              1.0449999570846558
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.88,
+          -1.045
+        ],
+        [
+          0.88,
+          -1.045
+        ],
+        [
+          0.88,
+          1.045
+        ],
+        [
+          -0.88,
+          1.045
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "malm-chest",
+      "family": "MALM",
+      "name": "4-drawer chest",
+      "category": "Bedroom",
+      "catalogId": "wardrobe",
+      "size": [
+        0.8,
+        0.48,
+        1
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "50424054",
+      "productUrl": "https://www.ikea.com/pl/pl/p/malm-komoda-4-szuflady-polysk-bialy-50424054/",
+      "sourceDate": "2026-09-09",
+      "finish": "High-gloss white",
+      "model": "models/interior/malm-chest.glb",
+      "mobileModel": "models/interior/malm-chest-mobile.glb",
+      "thumbnail": "models/interior/malm-chest.png",
+      "elevationM": 0,
+      "clearanceM": 0.6,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "malm-chest.glb",
+          "bytes": 292928,
+          "triangles": 2700,
+          "bounds": {
+            "min": [
+              -0.4000000059604645,
+              0,
+              -0.23999999463558197
+            ],
+            "max": [
+              0.4000000059604645,
+              1,
+              0.23999999463558197
+            ]
+          }
+        },
+        {
+          "filename": "malm-chest-mobile.glb",
+          "bytes": 127040,
+          "triangles": 972,
+          "bounds": {
+            "min": [
+              -0.4000000059604645,
+              0,
+              -0.23999999463558197
+            ],
+            "max": [
+              0.4000000059604645,
+              1,
+              0.23999999463558197
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.4,
+          -0.24
+        ],
+        [
+          0.4,
+          -0.24
+        ],
+        [
+          0.4,
+          0.24
+        ],
+        [
+          -0.4,
+          0.24
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "malm-bedside",
+      "family": "MALM",
+      "name": "2-drawer bedside chest",
+      "category": "Bedroom",
+      "catalogId": "wardrobe",
+      "size": [
+        0.4,
+        0.48,
+        0.55
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "50336552",
+      "productUrl": "https://www.ikea.com/pl/pl/p/malm-komoda-2-szuflady-polysk-bialy-50336552/",
+      "sourceDate": "2026-09-09",
+      "finish": "High-gloss white",
+      "model": "models/interior/malm-bedside.glb",
+      "mobileModel": "models/interior/malm-bedside-mobile.glb",
+      "thumbnail": "models/interior/malm-bedside.png",
+      "elevationM": 0,
+      "clearanceM": 0.6,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "availabilityNote": "Polish product listing may redirect; reference configuration retained, no stock claim.",
+      "assets": [
+        {
+          "filename": "malm-bedside.glb",
+          "bytes": 235356,
+          "triangles": 2100,
+          "bounds": {
+            "min": [
+              -0.20000000298023224,
+              0,
+              -0.23999999463558197
+            ],
+            "max": [
+              0.20000000298023224,
+              0.550000011920929,
+              0.23999999463558197
+            ]
+          }
+        },
+        {
+          "filename": "malm-bedside-mobile.glb",
+          "bytes": 106328,
+          "triangles": 756,
+          "bounds": {
+            "min": [
+              -0.20000000298023224,
+              0,
+              -0.23999999463558197
+            ],
+            "max": [
+              0.20000000298023224,
+              0.550000011920929,
+              0.23999999463558197
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.2,
+          -0.24
+        ],
+        [
+          0.2,
+          -0.24
+        ],
+        [
+          0.2,
+          0.24
+        ],
+        [
+          -0.2,
+          0.24
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "pax",
+      "family": "PAX / FORSAND",
+      "name": "Wardrobe",
+      "category": "Bedroom",
+      "catalogId": "wardrobe",
+      "size": [
+        1,
+        0.6,
+        2.012
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "49500652",
+      "productUrl": "https://www.ikea.com/pl/pl/p/pax-forsand-szafa-bialy-bialy-s49500652/",
+      "sourceDate": "2026-09-09",
+      "finish": "White / white",
+      "model": "models/interior/pax.glb",
+      "mobileModel": "models/interior/pax-mobile.glb",
+      "thumbnail": "models/interior/pax.png",
+      "elevationM": 0,
+      "clearanceM": 0.6,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "pax.glb",
+          "bytes": 322632,
+          "triangles": 3000,
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.30000001192092896
+            ],
+            "max": [
+              0.5,
+              2.01200008392334,
+              0.30000001192092896
+            ]
+          }
+        },
+        {
+          "filename": "pax-mobile.glb",
+          "bytes": 138300,
+          "triangles": 1080,
+          "bounds": {
+            "min": [
+              -0.5,
+              0,
+              -0.30000001192092896
+            ],
+            "max": [
+              0.5,
+              2.01200008392334,
+              0.30000001192092896
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.5,
+          -0.3
+        ],
+        [
+          0.5,
+          -0.3
+        ],
+        [
+          0.5,
+          0.3
+        ],
+        [
+          -0.5,
+          0.3
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "billy",
+      "family": "BILLY",
+      "name": "Bookcase",
+      "category": "Storage",
+      "catalogId": "wardrobe",
+      "size": [
+        0.8,
+        0.28,
+        2.02
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "00263850",
+      "productUrl": "https://www.ikea.com/pl/pl/p/billy-regal-bialy-00263850/",
+      "sourceDate": "2026-09-09",
+      "finish": "White",
+      "model": "models/interior/billy.glb",
+      "mobileModel": "models/interior/billy-mobile.glb",
+      "thumbnail": "models/interior/billy.png",
+      "elevationM": 0,
+      "clearanceM": 0.6,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "billy.glb",
+          "bytes": 321744,
+          "triangles": 3000,
+          "bounds": {
+            "min": [
+              -0.4000000059604645,
+              0,
+              -0.14000000059604645
+            ],
+            "max": [
+              0.4000000059604645,
+              2.0199999809265137,
+              0.14000000059604645
+            ]
+          }
+        },
+        {
+          "filename": "billy-mobile.glb",
+          "bytes": 137420,
+          "triangles": 1080,
+          "bounds": {
+            "min": [
+              -0.4000000059604645,
+              0,
+              -0.14000000059604645
+            ],
+            "max": [
+              0.4000000059604645,
+              2.0199999809265137,
+              0.14000000059604645
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.4,
+          -0.14
+        ],
+        [
+          0.4,
+          -0.14
+        ],
+        [
+          0.4,
+          0.14
+        ],
+        [
+          -0.4,
+          0.14
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "kallax",
+      "family": "KALLAX",
+      "name": "2 × 2 shelving",
+      "category": "Storage",
+      "catalogId": "wardrobe",
+      "size": [
+        0.765,
+        0.39,
+        0.765
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "20275814",
+      "productUrl": "https://www.ikea.com/pl/pl/p/kallax-regal-bialy-20275814/",
+      "sourceDate": "2026-09-09",
+      "finish": "White",
+      "model": "models/interior/kallax.glb",
+      "mobileModel": "models/interior/kallax-mobile.glb",
+      "thumbnail": "models/interior/kallax.png",
+      "elevationM": 0,
+      "clearanceM": 0.6,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "kallax.glb",
+          "bytes": 235368,
+          "triangles": 2100,
+          "bounds": {
+            "min": [
+              -0.3824999928474426,
+              0,
+              -0.19499999284744263
+            ],
+            "max": [
+              0.3824999928474426,
+              0.7649999856948853,
+              0.19499999284744263
+            ]
+          }
+        },
+        {
+          "filename": "kallax-mobile.glb",
+          "bytes": 106344,
+          "triangles": 756,
+          "bounds": {
+            "min": [
+              -0.3824999928474426,
+              0,
+              -0.19499999284744263
+            ],
+            "max": [
+              0.3824999928474426,
+              0.7649999856948853,
+              0.19499999284744263
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.3825,
+          -0.195
+        ],
+        [
+          0.3825,
+          -0.195
+        ],
+        [
+          0.3825,
+          0.195
+        ],
+        [
+          -0.3825,
+          0.195
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "lisabo-table",
+      "family": "LISABO",
+      "name": "Dining table",
+      "category": "Dining",
+      "catalogId": "dining-table",
+      "size": [
+        1.4,
+        0.78,
+        0.74
+      ],
+      "color": "#c7ac7c",
+      "articleNumber": "70294339",
+      "productUrl": "https://www.ikea.com/pl/pl/p/lisabo-stol-okleina-jesionowa-70294339/",
+      "sourceDate": "2026-09-09",
+      "finish": "Ash veneer",
+      "model": "models/interior/lisabo-table.glb",
+      "mobileModel": "models/interior/lisabo-table-mobile.glb",
+      "thumbnail": "models/interior/lisabo-table.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "lisabo-table.glb",
+          "bytes": 92140,
+          "triangles": 556,
+          "bounds": {
+            "min": [
+              -0.699999988079071,
+              0,
+              -0.38999998569488525
+            ],
+            "max": [
+              0.699999988079071,
+              0.7400000095367432,
+              0.38999998569488525
+            ]
+          }
+        },
+        {
+          "filename": "lisabo-table-mobile.glb",
+          "bytes": 61416,
+          "triangles": 236,
+          "bounds": {
+            "min": [
+              -0.699999988079071,
+              0,
+              -0.38999998569488525
+            ],
+            "max": [
+              0.699999988079071,
+              0.7400000095367432,
+              0.38999998569488525
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.7,
+          -0.39
+        ],
+        [
+          0.7,
+          -0.39
+        ],
+        [
+          0.7,
+          0.39
+        ],
+        [
+          -0.7,
+          0.39
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "lisabo-chair",
+      "family": "LISABO",
+      "name": "Dining chair",
+      "category": "Dining",
+      "catalogId": "armchair",
+      "size": [
+        0.46,
+        0.51,
+        0.8
+      ],
+      "color": "#c7ac7c",
+      "articleNumber": "00457235",
+      "productUrl": "https://www.ikea.com/pl/pl/p/lisabo-krzeslo-jesion-00457235/",
+      "sourceDate": "2026-09-09",
+      "finish": "Ash",
+      "model": "models/interior/lisabo-chair.glb",
+      "mobileModel": "models/interior/lisabo-chair-mobile.glb",
+      "thumbnail": "models/interior/lisabo-chair.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "lisabo-chair.glb",
+          "bytes": 133244,
+          "triangles": 984,
+          "bounds": {
+            "min": [
+              -0.23000000417232513,
+              0,
+              -0.2549999952316284
+            ],
+            "max": [
+              0.23000000417232513,
+              0.800000011920929,
+              0.2549999952316284
+            ]
+          }
+        },
+        {
+          "filename": "lisabo-chair-mobile.glb",
+          "bytes": 77936,
+          "triangles": 408,
+          "bounds": {
+            "min": [
+              -0.23000000417232513,
+              0,
+              -0.2549999952316284
+            ],
+            "max": [
+              0.23000000417232513,
+              0.800000011920929,
+              0.2549999952316284
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.23,
+          -0.255
+        ],
+        [
+          0.23,
+          -0.255
+        ],
+        [
+          0.23,
+          0.255
+        ],
+        [
+          -0.23,
+          0.255
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "ingolf",
+      "family": "INGOLF",
+      "name": "Counter stool · 63 cm seat",
+      "category": "Dining",
+      "catalogId": "bar-stool",
+      "size": [
+        0.4,
+        0.45,
+        0.91
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "10122647",
+      "productUrl": "https://www.ikea.com/pl/pl/p/ingolf-stolek-barowy-z-oparciem-bialy-10122647/",
+      "sourceDate": "2026-09-09",
+      "finish": "White",
+      "model": "models/interior/ingolf.glb",
+      "mobileModel": "models/interior/ingolf-mobile.glb",
+      "thumbnail": "models/interior/ingolf.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "availabilityNote": "Archived Polish article; current Polish URL redirects to the series.",
+      "dimensionSource": "https://www.ikea.com/at/en/p/ingolf-bar-stool-with-backrest-white-10122647/",
+      "assets": [
+        {
+          "filename": "ingolf.glb",
+          "bytes": 124020,
+          "triangles": 940,
+          "bounds": {
+            "min": [
+              -0.20000000298023224,
+              1.1102230246251565e-16,
+              -0.22499999403953552
+            ],
+            "max": [
+              0.20000000298023224,
+              0.9100000262260437,
+              0.22499999403953552
+            ]
+          }
+        },
+        {
+          "filename": "ingolf-mobile.glb",
+          "bytes": 74868,
+          "triangles": 428,
+          "bounds": {
+            "min": [
+              -0.20000000298023224,
+              1.1102230246251565e-16,
+              -0.22499999403953552
+            ],
+            "max": [
+              0.20000000298023224,
+              0.9100000262260437,
+              0.22499999403953552
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.2,
+          -0.225
+        ],
+        [
+          0.2,
+          -0.225
+        ],
+        [
+          0.2,
+          0.225
+        ],
+        [
+          -0.2,
+          0.225
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "micke",
+      "family": "MICKE",
+      "name": "Desk",
+      "category": "Office",
+      "catalogId": "desk",
+      "size": [
+        1.05,
+        0.5,
+        0.75
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "80213074",
+      "productUrl": "https://www.ikea.com/pl/pl/p/micke-biurko-bialy-80213074/",
+      "sourceDate": "2026-09-09",
+      "finish": "White",
+      "model": "models/interior/micke.glb",
+      "mobileModel": "models/interior/micke-mobile.glb",
+      "thumbnail": "models/interior/micke.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "micke.glb",
+          "bytes": 390384,
+          "triangles": 3696,
+          "bounds": {
+            "min": [
+              -0.5249999761581421,
+              0,
+              -0.25
+            ],
+            "max": [
+              0.5249999761581421,
+              0.75,
+              0.25
+            ]
+          }
+        },
+        {
+          "filename": "micke-mobile.glb",
+          "bytes": 163852,
+          "triangles": 1336,
+          "bounds": {
+            "min": [
+              -0.5249999761581421,
+              0,
+              -0.25
+            ],
+            "max": [
+              0.5249999761581421,
+              0.75,
+              0.25
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.525,
+          -0.25
+        ],
+        [
+          0.525,
+          -0.25
+        ],
+        [
+          0.525,
+          0.25
+        ],
+        [
+          -0.525,
+          0.25
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "alex",
+      "family": "ALEX",
+      "name": "5-drawer unit",
+      "category": "Office",
+      "catalogId": "wardrobe",
+      "size": [
+        0.36,
+        0.58,
+        0.7
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "00473546",
+      "productUrl": "https://www.ikea.com/pl/pl/p/alex-komoda-bialy-00473546/",
+      "sourceDate": "2026-09-09",
+      "finish": "White",
+      "model": "models/interior/alex.glb",
+      "mobileModel": "models/interior/alex-mobile.glb",
+      "thumbnail": "models/interior/alex.png",
+      "elevationM": 0,
+      "clearanceM": 0.6,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "alex.glb",
+          "bytes": 466692,
+          "triangles": 4500,
+          "bounds": {
+            "min": [
+              -0.18000000715255737,
+              0,
+              -0.28999999165534973
+            ],
+            "max": [
+              0.18000000715255737,
+              0.699999988079071,
+              0.28999999165534973
+            ]
+          }
+        },
+        {
+          "filename": "alex-mobile.glb",
+          "bytes": 190208,
+          "triangles": 1620,
+          "bounds": {
+            "min": [
+              -0.18000000715255737,
+              0,
+              -0.28999999165534973
+            ],
+            "max": [
+              0.18000000715255737,
+              0.699999988079071,
+              0.28999999165534973
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.18,
+          -0.29
+        ],
+        [
+          0.18,
+          -0.29
+        ],
+        [
+          0.18,
+          0.29
+        ],
+        [
+          -0.18,
+          0.29
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "markus",
+      "family": "MARKUS",
+      "name": "Office chair",
+      "category": "Office",
+      "catalogId": "armchair",
+      "size": [
+        0.62,
+        0.6,
+        1.4
+      ],
+      "color": "#878d8a",
+      "articleNumber": "10521858",
+      "productUrl": "https://www.ikea.com/pl/pl/p/markus-krzeslo-biurowe-vissle-jasnoszary-10521858/",
+      "sourceDate": "2026-09-09",
+      "finish": "Vissle light grey",
+      "model": "models/interior/markus.glb",
+      "mobileModel": "models/interior/markus-mobile.glb",
+      "thumbnail": "models/interior/markus.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assemblyNote": "Shown at maximum overall height; seat height is adjustable.",
+      "assets": [
+        {
+          "filename": "markus.glb",
+          "bytes": 418888,
+          "triangles": 2824,
+          "bounds": {
+            "min": [
+              -0.3100000023841858,
+              0,
+              -0.30000001192092896
+            ],
+            "max": [
+              0.3100000023841858,
+              1.399999976158142,
+              0.30000001192092896
+            ]
+          }
+        },
+        {
+          "filename": "markus-mobile.glb",
+          "bytes": 254552,
+          "triangles": 1112,
+          "bounds": {
+            "min": [
+              -0.3100000023841858,
+              0,
+              -0.30000001192092896
+            ],
+            "max": [
+              0.3100000023841858,
+              1.399999976158142,
+              0.30000001192092896
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.31,
+          -0.3
+        ],
+        [
+          0.31,
+          -0.3
+        ],
+        [
+          0.31,
+          0.3
+        ],
+        [
+          -0.31,
+          0.3
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "metod-base",
+      "family": "METOD",
+      "name": "Base cabinet frame",
+      "category": "Kitchen",
+      "catalogId": "kitchen-counter",
+      "size": [
+        0.6,
+        0.6,
+        0.8
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "50205626",
+      "productUrl": "https://www.ikea.com/pl/pl/p/metod-szafka-stojaca-bialy-50205626/",
+      "sourceDate": "2026-09-09",
+      "finish": "White",
+      "model": "models/interior/metod-base.glb",
+      "mobileModel": "models/interior/metod-base-mobile.glb",
+      "thumbnail": "models/interior/metod-base.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assemblyNote": "Open cabinet carcass: 60 cm depth with rail (59 cm without rail). Fronts, legs and worktop excluded.",
+      "assets": [
+        {
+          "filename": "metod-base.glb",
+          "bytes": 177752,
+          "triangles": 1500,
+          "bounds": {
+            "min": [
+              -0.30000001192092896,
+              0,
+              -0.30000001192092896
+            ],
+            "max": [
+              0.30000001192092896,
+              0.800000011920929,
+              0.30000001192092896
+            ]
+          }
+        },
+        {
+          "filename": "metod-base-mobile.glb",
+          "bytes": 85588,
+          "triangles": 540,
+          "bounds": {
+            "min": [
+              -0.30000001192092896,
+              0,
+              -0.30000001192092896
+            ],
+            "max": [
+              0.30000001192092896,
+              0.800000011920929,
+              0.30000001192092896
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.3,
+          -0.3
+        ],
+        [
+          0.3,
+          -0.3
+        ],
+        [
+          0.3,
+          0.3
+        ],
+        [
+          -0.3,
+          0.3
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "metod-wall",
+      "family": "METOD",
+      "name": "Wall cabinet frame",
+      "category": "Kitchen",
+      "catalogId": "kitchen-counter",
+      "size": [
+        0.6,
+        0.376,
+        0.6
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "80205535",
+      "productUrl": "https://www.ikea.com/pl/pl/p/metod-safka-scienna-bialy-80205535/",
+      "sourceDate": "2026-09-09",
+      "finish": "White",
+      "model": "models/interior/metod-wall.glb",
+      "mobileModel": "models/interior/metod-wall-mobile.glb",
+      "thumbnail": "models/interior/metod-wall.png",
+      "elevationM": 1.45,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assemblyNote": "Open cabinet carcass with suspension-rail depth 37.6 cm (36.6 cm without rail); doors and fittings excluded.",
+      "assets": [
+        {
+          "filename": "metod-wall.glb",
+          "bytes": 206552,
+          "triangles": 1800,
+          "bounds": {
+            "min": [
+              -0.30000001192092896,
+              0,
+              -0.18799999356269836
+            ],
+            "max": [
+              0.30000001192092896,
+              0.6000000238418579,
+              0.18799999356269836
+            ]
+          }
+        },
+        {
+          "filename": "metod-wall-mobile.glb",
+          "bytes": 95956,
+          "triangles": 648,
+          "bounds": {
+            "min": [
+              -0.30000001192092896,
+              0,
+              -0.18799999356269836
+            ],
+            "max": [
+              0.30000001192092896,
+              0.6000000238418579,
+              0.18799999356269836
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.3,
+          -0.188
+        ],
+        [
+          0.3,
+          -0.188
+        ],
+        [
+          0.3,
+          0.188
+        ],
+        [
+          -0.3,
+          0.188
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "enhet",
+      "family": "ENHET",
+      "name": "Washbasin frame",
+      "category": "Bathroom",
+      "catalogId": "vanity",
+      "size": [
+        0.6,
+        0.4,
+        0.6
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "40464470",
+      "productUrl": "https://www.ikea.com/pl/pl/p/enhet-szafka-stojaca-pod-umywalke-bialy-40464470/",
+      "sourceDate": "2026-09-09",
+      "finish": "White",
+      "model": "models/interior/enhet.glb",
+      "mobileModel": "models/interior/enhet-mobile.glb",
+      "thumbnail": "models/interior/enhet.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assemblyNote": "Open metal washbasin frame only; washbasin, mixer, waste trap and optional legs are separate.",
+      "assets": [
+        {
+          "filename": "enhet.glb",
+          "bytes": 292948,
+          "triangles": 2700,
+          "bounds": {
+            "min": [
+              -0.30000001192092896,
+              0,
+              -0.20000000298023224
+            ],
+            "max": [
+              0.30000001192092896,
+              0.6000000238418579,
+              0.20000000298023224
+            ]
+          }
+        },
+        {
+          "filename": "enhet-mobile.glb",
+          "bytes": 127060,
+          "triangles": 972,
+          "bounds": {
+            "min": [
+              -0.30000001192092896,
+              0,
+              -0.20000000298023224
+            ],
+            "max": [
+              0.30000001192092896,
+              0.6000000238418579,
+              0.20000000298023224
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.3,
+          -0.2
+        ],
+        [
+          0.3,
+          -0.2
+        ],
+        [
+          0.3,
+          0.2
+        ],
+        [
+          -0.3,
+          0.2
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "nissafors",
+      "family": "NISSAFORS",
+      "name": "Kitchen trolley",
+      "category": "Kitchen",
+      "catalogId": "kitchen-island",
+      "size": [
+        0.505,
+        0.3,
+        0.83
+      ],
+      "color": "#eeeae3",
+      "articleNumber": "40465733",
+      "productUrl": "https://www.ikea.com/pl/pl/p/nissafors-wozek-bialy-40465733/",
+      "sourceDate": "2026-09-09",
+      "finish": "White",
+      "model": "models/interior/nissafors.glb",
+      "mobileModel": "models/interior/nissafors-mobile.glb",
+      "thumbnail": "models/interior/nissafors.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "nissafors.glb",
+          "bytes": 618768,
+          "triangles": 6084,
+          "bounds": {
+            "min": [
+              -0.2524999976158142,
+              0,
+              -0.15000000596046448
+            ],
+            "max": [
+              0.2524999976158142,
+              0.8299999833106995,
+              0.15000000596046448
+            ]
+          }
+        },
+        {
+          "filename": "nissafors-mobile.glb",
+          "bytes": 247076,
+          "triangles": 2212,
+          "bounds": {
+            "min": [
+              -0.2524999976158142,
+              0,
+              -0.15000000596046448
+            ],
+            "max": [
+              0.2524999976158142,
+              0.8299999833106995,
+              0.15000000596046448
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.2525,
+          -0.15
+        ],
+        [
+          0.2525,
+          -0.15
+        ],
+        [
+          0.2525,
+          0.15
+        ],
+        [
+          -0.2525,
+          0.15
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "ranarp",
+      "family": "RANARP",
+      "name": "Reading floor lamp",
+      "category": "Lighting",
+      "catalogId": "bar-stool",
+      "size": [
+        0.76,
+        0.28,
+        1.53
+      ],
+      "color": "#373b37",
+      "articleNumber": "90331374",
+      "productUrl": "https://www.ikea.com/pl/pl/p/ranarp-lampa-podlogowa-do-czytania-czarny-90331374/",
+      "sourceDate": "2026-09-09",
+      "finish": "Black",
+      "model": "models/interior/ranarp.glb",
+      "mobileModel": "models/interior/ranarp-mobile.glb",
+      "thumbnail": "models/interior/ranarp.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "ranarp.glb",
+          "bytes": 94008,
+          "triangles": 608,
+          "bounds": {
+            "min": [
+              -0.3799999952316284,
+              0,
+              -0.14000000059604645
+            ],
+            "max": [
+              0.3799999952316284,
+              1.5299999713897705,
+              0.14000000059604645
+            ]
+          }
+        },
+        {
+          "filename": "ranarp-mobile.glb",
+          "bytes": 61044,
+          "triangles": 264,
+          "bounds": {
+            "min": [
+              -0.3799999952316284,
+              0,
+              -0.14000000059604645
+            ],
+            "max": [
+              0.3799999952316284,
+              1.5299999713897705,
+              0.14000000059604645
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.38,
+          -0.14
+        ],
+        [
+          0.38,
+          -0.14
+        ],
+        [
+          0.38,
+          0.14
+        ],
+        [
+          -0.38,
+          0.14
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    },
+    {
+      "id": "lohals",
+      "family": "LOHALS",
+      "name": "Flatwoven rug",
+      "category": "Rugs",
+      "catalogId": "coffee-table",
+      "size": [
+        1.6,
+        2.3,
+        0.013
+      ],
+      "color": "#bba17b",
+      "articleNumber": "50277393",
+      "productUrl": "https://www.ikea.com/pl/pl/p/lohals-dywan-tkany-na-plasko-naturalny-50277393/",
+      "sourceDate": "2026-09-09",
+      "finish": "Natural jute",
+      "model": "models/interior/lohals.glb",
+      "mobileModel": "models/interior/lohals-mobile.glb",
+      "thumbnail": "models/interior/lohals.png",
+      "elevationM": 0,
+      "clearanceM": 0.4,
+      "license": "CC0-1.0",
+      "author": "House & Garden Spatial Editor contributors",
+      "provenance": "Independently authored planning model; product names and published dimensions referenced from IKEA.",
+      "assets": [
+        {
+          "filename": "lohals.glb",
+          "bytes": 87292,
+          "triangles": 300,
+          "bounds": {
+            "min": [
+              -0.800000011920929,
+              0,
+              -1.149999976158142
+            ],
+            "max": [
+              0.800000011920929,
+              0.013000000268220901,
+              1.149999976158142
+            ]
+          }
+        },
+        {
+          "filename": "lohals-mobile.glb",
+          "bytes": 68856,
+          "triangles": 108,
+          "bounds": {
+            "min": [
+              -0.800000011920929,
+              0,
+              -1.149999976158142
+            ],
+            "max": [
+              0.800000011920929,
+              0.013000000268220901,
+              1.149999976158142
+            ]
+          }
+        }
+      ],
+      "footprintM": [
+        [
+          -0.8,
+          -1.15
+        ],
+        [
+          0.8,
+          -1.15
+        ],
+        [
+          0.8,
+          1.15
+        ],
+        [
+          -0.8,
+          1.15
+        ]
+      ],
+      "footprintType": "conservative assembled envelope",
+      "origin": "floor-centre",
+      "axes": "Y up; front +Z; metres",
+      "visualFidelity": "Independently authored product study; not an official manufacturer mesh."
+    }
+  ]
+}

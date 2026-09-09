@@ -1,3 +1,4 @@
+import { interiorCommandSchema } from '../domain/interiorCommandSchema'
 import { z } from 'zod'
 import { operationReference, webMcpFieldDescriptions, webMcpToolPrompts, type WebMcpPromptBlocks } from '../../prompts/webmcp-tools'
 
@@ -42,6 +43,7 @@ const validateRoofUpdate = (value: z.infer<typeof roofUpdateBase>, context: z.Re
  * garden-fixture.preset) expand into commands in the handler. The registered JSON Schema does not carry these shapes.
  */
 export const operationSchema = z.discriminatedUnion('type', [
+  interiorCommandSchema,
   z.object({ type: z.literal('site.update'), boundary: polygon.optional(), northDegrees: z.number().optional(), entrance: z.object({ ref, start: point, end: point }).strict().optional() }),
   z.object({ type: z.literal('terrain.update'), elevationPoints: z.array(point.extend({ elevation: z.number() })).min(1) }),
   z.object({ type: z.literal('building.update'), action: z.enum(['add', 'remove', 'move', 'set-style']), buildingRef: ref, name: z.string().optional(), kind: z.enum(['house', 'garage']).optional(), architecturalStyle: z.enum(['classic', 'futuristic', 'barn']).optional(), position: point.optional(), rotationDegrees: z.number().optional() }),
@@ -108,7 +110,7 @@ export const webMcpSchemas = {
     if (value.action === 'diff' && !value.proposalRef) context.addIssue({ code: 'custom', path: ['proposalRef'], message: 'diff requires proposalRef.' })
     if (value.action === 'compare' && !value.variantRefs?.length) context.addIssue({ code: 'custom', path: ['variantRefs'], message: 'compare requires variantRefs.' })
   }),
-  list_catalog: z.object({ catalog: z.enum(['garden-fixtures', 'textures', 'operations']), surface: z.enum(['wall', 'ground']).optional(), type: z.string().min(1).optional() }),
+  list_catalog: z.object({ catalog: z.enum(['garden-fixtures', 'textures', 'operations', 'ikea', 'interior-generic', 'interior-finishes']), surface: z.enum(['wall', 'ground']).optional(), type: z.string().min(1).optional() }),
   measure_height: z.object({
     mode: z.enum(['semantic', 'free-vertical']), objectRef: ref.optional(),
     measurement: z.enum(['auto', 'object-height', 'ground-to-eaves', 'ground-to-ridge', 'clear-height', 'opening-height', 'terrain-clearance']).default('auto'),

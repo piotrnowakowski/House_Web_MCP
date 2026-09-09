@@ -3,8 +3,8 @@
   "source": "runtime-zod-and-structured-prompts",
   "toolCount": 11,
   "budget": {
-    "chars": 12529,
-    "estimatedTokens": 3580,
+    "chars": 12604,
+    "estimatedTokens": 3602,
     "tokenLimit": 5000
   },
   "operations": [
@@ -261,6 +261,27 @@
         "origin {x,z}",
         "placement at-origin|next-to-existing",
         "rotationDegrees"
+      ]
+    },
+    {
+      "type": "interior.update",
+      "purpose": "Edit furniture, rooms, openings and finishes inside a fixed envelope. IKEA products keep catalogue dimensions. Group operations in one Apply/Reject proposal.",
+      "required": [
+        "buildingRef",
+        "storeyRef",
+        "action put|remove|lock|room|split|merge|wall|opening|opening-remove|finish"
+      ],
+      "optional": [
+        "put: item {ref,catalogId,storeyRef,name,position {x,z},widthM,depthM,heightM,rotationDegrees,color,productId?,variantId?,elevationM?,groupRef?,locked?}",
+        "remove: itemRef",
+        "lock: itemRefs[],locked",
+        "room: spaceRef,name,usage?,widthM?,depthM?",
+        "split: spaceRef,start {x,z},end {x,z},partitionRef,newSpaceRef,name,thicknessM",
+        "merge: wallRef (remove openings first)",
+        "wall: wallRef,start {x,z},end {x,z},thicknessM?,heightM?",
+        "opening: wallRef,opening {ref,wallRef,kind door|window,offsetM,widthM,heightM,sillM,hinge? left|right,swing? in|out,glazed?}",
+        "opening-remove: wallRef,openingRef",
+        "finish: targetRef,surface floor|ceiling|left|right,finish {presetId,color,rotationDegrees,tileM}"
       ]
     },
     {
@@ -567,9 +588,12 @@
             "enum": [
               "garden-fixtures",
               "textures",
-              "operations"
+              "operations",
+              "ikea",
+              "interior-generic",
+              "interior-finishes"
             ],
-            "description": "Which catalogue to read: garden-fixtures, textures or operations."
+            "description": "Catalogue: garden-fixtures, textures, ikea, interior-generic, interior-finishes or operations."
           },
           "surface": {
             "type": "string",
@@ -1301,7 +1325,7 @@
       "prompt": {
         "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
         "task": "Propose one reviewable change as a ghost variant from a list of typed operations: anything from a single wall finish to a storey extension with a roof split and new planting. Nothing is committed until the person approves. Read list_catalog operations for the fields of each type.",
-        "input": "`operations` is an array of 1 to 100 objects, each with `type` and the fields of that operation type; optional `label`. Operation types: site.update, terrain.update, building.update, storey.update, slab.update, space.update, wall.update, wall.finish, wall.opening-layout, opening.update, roof.update, platform.update, landscape.update, plant.update, planting.area, garden-fixture.update, garden-fixture.preset, climate.update.",
+        "input": "`operations` is an array of 1 to 100 objects, each with `type` and the fields of that operation type; optional `label`. Operation types: site.update, terrain.update, building.update, storey.update, slab.update, space.update, wall.update, wall.finish, wall.opening-layout, opening.update, roof.update, platform.update, landscape.update, plant.update, planting.area, garden-fixture.update, garden-fixture.preset, interior.update, climate.update.",
         "tools": "Call get_project_state first to resolve refs and list_catalog with catalog operations for field shapes. Validation errors name the operation index and field. After creating a variant, use get_proposals diff, then manage_variant request-apply only when the person should review it. Never claim a variant is committed before approval.",
         "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. A valid change returns status \"variant_created\" and variantRef; it does not modify the committed project. Also returns an operations audit, affectedRefs, metrics, issues and, when relevant, areaAddedM2, buildingHeightM, levelCount, roofChanges or plantCount.",
         "exampleOutput": "{\"label\":\"Brick exterior\",\"operations\":[{\"type\":\"wall.finish\",\"buildingRef\":\"house/main\",\"scope\":\"all-exterior\",\"material\":\"brick\",\"colorHex\":\"#8B4E3C\",\"textureId\":\"medieval-brick\"}]}"

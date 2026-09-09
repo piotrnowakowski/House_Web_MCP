@@ -1,3 +1,7 @@
+import { AdaptiveSheet, useCompactLayout } from './interior/AdaptiveSheet'
+import { PrecisionControls, PrecisionField } from './interior/InteriorPanels'
+import { Box, Eye, EyeOff, Focus, MoreHorizontal, Plus, Ruler, Settings2, Move, Check } from 'lucide-react'
+import './interior/plot-mobile.css'
 import { Canvas } from '@react-three/fiber'
 import { InteriorEditor } from './interior/InteriorEditor'
 import { Suspense, useEffect, useRef, useState } from 'react'
@@ -589,7 +593,7 @@ function SunWidget() {
       <label><span>Month</span><select aria-label="Sun month" value={sunTime.month} onChange={(event) => setSunTime({ month: Number(event.target.value) })}>{monthNames.map((name, index) => <option key={name} value={index + 1}>{name}</option>)}</select></label>
       <label><span>Day</span><input type="number" aria-label="Sun day" min={1} max={monthDays(sunTime.month)} value={sunTime.day} onChange={(event) => setSunTime({ day: Number(event.target.value) })} /></label>
     </div>
-    <label className="sun-slider"><span>Local time</span><input type="range" aria-label="Local time" min={min} max={max} step={0.25} value={Math.min(max, Math.max(min, sunTime.hour))} onChange={(event) => setSunTime({ hour: Number(event.target.value) })} /><small>{events ? `${clockLabel(events.sunriseHour)} sunrise · ${clockLabel(events.sunsetHour)} sunset` : 'No sunrise or sunset on this date'}</small></label>
+    {window.innerWidth <= 900 ? <PrecisionField label='Local time' min={min} max={max} step={0.25} value={Math.min(max, Math.max(min, sunTime.hour))} onChange={(hour) => { if (Number.isFinite(hour)) setSunTime({ hour }) }} /> : <label className="sun-slider"><span>Local time</span><input type="range" aria-label="Local time" min={min} max={max} step={0.25} value={Math.min(max, Math.max(min, sunTime.hour))} onChange={(event) => setSunTime({ hour: Number(event.target.value) })} /><small>{events ? `${clockLabel(events.sunriseHour)} sunrise · ${clockLabel(events.sunsetHour)} sunset` : 'No sunrise or sunset on this date'}</small></label>}
     <dl className="sun-readout"><div><dt>Altitude</dt><dd>{sun.altitudeDeg.toFixed(1)}°</dd></div><div><dt>Azimuth</dt><dd>{sun.azimuthDeg.toFixed(0)}°</dd></div><div><dt>Daylight</dt><dd>{events ? `${events.daylightHours.toFixed(1)} h` : '—'}</dd></div></dl>
     <div className="sun-actions">
       <button className={sunAnimation === 'day' ? 'active' : ''} aria-pressed={sunAnimation === 'day'} onClick={() => setSunAnimation(sunAnimation === 'day' ? 'none' : 'day')}>Play day</button>
@@ -606,14 +610,17 @@ function SunWidget() {
 }
 
 export function App() {
+  const compact = useCompactLayout(); const [controlsHidden, setControlsHidden] = useState(false); const [sheetExpanded, setSheetExpanded] = useState(false)
+  const selectedRef = useStudioStore((state) => state.selectedRef); const confirmationRef = useStudioStore((state) => state.confirmationVariantRef)
   const [interiorOpen, setInteriorOpen] = useState(false)
   const project = useStudioStore((state) => state.project); const toast = useStudioStore((state) => state.toast); const hydrated = useStudioStore((state) => state.hydrated); const viewerMode = useStudioStore((state) => state.viewerMode); const explode = useStudioStore((state) => state.explodeStoreys)
   const heightMeasureKind = useStudioStore((state) => state.heightMeasureKind); const setHeightMeasureKind = useStudioStore((state) => state.setHeightMeasureKind)
   const openLauncher = useStudioStore((state) => state.openLauncher); const setToast = useStudioStore((state) => state.setToast); const undo = useStudioStore((state) => state.undo)
   const refocusCamera = useStudioStore((state) => state.refocusCamera)
   const focusGardenFixtures = useStudioStore((state) => state.focusGardenFixtures)
-  const [dataPanel, setDataPanel] = useState<'climate' | 'planting' | 'fixtures' | 'mcp-tools' | 'proposals' | null>(null)
+  const [dataPanel, setDataPanel] = useState<'climate' | 'planting' | 'fixtures' | 'mcp-tools' | 'proposals' | 'inspector' | 'more' | 'measure' | null>(null)
   useEffect(() => { void openLauncher() }, [openLauncher])
+  useEffect(() => { if (compact && confirmationRef) { setControlsHidden(false); setDataPanel('inspector'); setSheetExpanded(true) } }, [compact, confirmationRef])
   useEffect(() => {
     if (!hydrated) return
     let timer: number | null = null
@@ -637,15 +644,21 @@ export function App() {
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(null), 4200); return () => window.clearTimeout(timer) }, [setToast, toast])
   useEffect(() => {
     const keyboard = (event: KeyboardEvent) => {
+      if (interiorOpen) return
       if (event.target instanceof HTMLElement && (event.target.matches('input, textarea, select') || event.target.isContentEditable)) return
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); try { undo() } catch (error) { setToast(error instanceof Error ? error.message : 'Undo failed.') } }
       if (event.key === 'Escape') { if (useStudioStore.getState().launcherOpen) return; useStudioStore.getState().setViewerMode('edit'); useStudioStore.getState().setSelectedRef(null); useStudioStore.getState().endReposition(); setDataPanel(null) }
     }
     window.addEventListener('keydown', keyboard); return () => window.removeEventListener('keydown', keyboard)
-  }, [setToast, undo])
+  }, [setToast, undo, interiorOpen])
   useEffect(() => () => useStudioStore.getState().setStructureReport(null), [])
-  if (interiorOpen) return <InteriorEditor onBack={() => setInteriorOpen(false)} />
-  return <main aria-label="ProjectV2 spatial planning workspace"><Toolbar onOpenInterior={() => { setDataPanel(null); setInteriorOpen(true) }} onOpenClimate={() => setDataPanel('climate')} onOpenPlanting={() => setDataPanel('planting')} fixturesOpen={dataPanel === 'fixtures'} onOpenFixtures={() => { const opening = dataPanel !== 'fixtures'; setDataPanel(opening ? 'fixtures' : null); if (opening) focusGardenFixtures() }} onOpenMcpTools={() => setDataPanel('mcp-tools')} onOpenProposals={() => setDataPanel('proposals')} onOpenProjects={() => { setDataPanel(null); void openLauncher() }} /><Inspector />
+  if (interiorOpen) return <InteriorEditor onBack={() => setInteriorOpen(false)} approval={<VariantApproval />} />
+  const toolbar = <Toolbar onOpenInterior={() => { setDataPanel(null); setInteriorOpen(true) }} onOpenClimate={() => setDataPanel('climate')} onOpenPlanting={() => setDataPanel('planting')} fixturesOpen={dataPanel === 'fixtures'} onOpenFixtures={() => { const opening = dataPanel !== 'fixtures'; setDataPanel(opening ? 'fixtures' : null); if (opening) focusGardenFixtures() }} onOpenMcpTools={() => setDataPanel('mcp-tools')} onOpenProposals={() => setDataPanel('proposals')} onOpenProjects={() => { setDataPanel(null); void openLauncher() }} />
+  const dataContent = <>{dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'proposals' && <ProposalsPanel onClose={() => setDataPanel(null)} />}</>
+  const movable = !!selectedRef && [...project.buildings, ...project.landscape.fixtures, ...project.landscape.plants, ...project.landscape.zones].some((value) => value.ref === selectedRef && !('locked' in value && value.locked))
+  return <PrecisionControls><main className={`${compact ? 'compact-plot' : ''} ${controlsHidden ? 'plot-controls-hidden' : ''}`} aria-label="ProjectV2 spatial planning workspace">{!compact && <>{toolbar}<Inspector /></>}
+    {compact && (controlsHidden ? <button className="plot-restore" onClick={() => setControlsHidden(false)}><Eye size={18} />Show controls</button> : <><header className="plot-compact-top"><strong>Spatial editor</strong><button disabled={!project.buildings.length} onClick={() => { setDataPanel(null); setInteriorOpen(true) }}><Box size={18} />House interior</button><button aria-label="Fit plot view" onClick={refocusCamera}><Focus size={20} /></button></header><nav className="plot-action-bar" aria-label="Plot actions">{viewerMode !== 'edit' ? <><button onClick={() => setDataPanel(dataPanel === 'measure' ? null : 'measure')}><Ruler size={19} />Measure options</button><button onClick={() => { window.dispatchEvent(new Event(CLEAR_MEASUREMENT_EVENT)); useStudioStore.getState().setViewerMode('edit'); setDataPanel(null) }}><Check size={19} />Done</button></> : <><button onClick={() => setDataPanel(dataPanel === 'fixtures' ? null : 'fixtures')}><Plus size={20} />Add</button><button onClick={() => setDataPanel(dataPanel === 'inspector' ? null : 'inspector')}><Settings2 size={19} />{selectedRef ? 'Edit selection' : 'Edit'}</button>{selectedRef && movable ? <button onClick={() => { useStudioStore.getState().beginReposition(selectedRef); setDataPanel(null) }}><Move size={19} />Move</button> : <button onClick={() => { useStudioStore.getState().setViewerMode('measure-length'); setDataPanel(null) }}><Ruler size={19} />Measure</button>}<button onClick={() => setDataPanel(dataPanel === 'more' ? null : 'more')}><MoreHorizontal size={19} />More</button></>}</nav><AdaptiveSheet open={!!dataPanel} title={dataPanel === 'inspector' ? 'Selection' : dataPanel === 'fixtures' ? 'Garden fixtures' : dataPanel === 'measure' ? 'Measure' : dataPanel === 'more' ? 'View & project' : 'Project tools'} expanded={sheetExpanded} onExpanded={setSheetExpanded} onClose={() => setDataPanel(null)}>{dataPanel === 'inspector' && <Inspector />}{dataPanel === 'more' && <><button onClick={() => { setControlsHidden(true); setDataPanel(null) }}><EyeOff size={18} />Hide controls</button>{toolbar}<SunWidget /><div className="plot-history"><button disabled={!useStudioStore.getState().history.length} onClick={undo}>Undo</button><button disabled={!useStudioStore.getState().future.length} onClick={() => useStudioStore.getState().redo()}>Redo</button></div></>}{dataPanel === 'measure' && modes.filter(([value]) => value !== 'edit').map(([value, label]) => <button key={value} onClick={() => { useStudioStore.getState().setViewerMode(value); setDataPanel(null) }}>{label}</button>)}{dataContent}</AdaptiveSheet></>)}
+
     <div className="viewport"><Canvas shadows dpr={[1, 2]} camera={{ position: [29, 23, 32], fov: 38, near: 0.1, far: 1200 }} gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' }} onCreated={({ gl }) => { gl.outputColorSpace = SRGBColorSpace; gl.toneMapping = ACESFilmicToneMapping; gl.toneMappingExposure = 1.08; gl.shadowMap.type = PCFSoftShadowMap; gl.domElement.setAttribute('role', 'application'); gl.domElement.setAttribute('aria-label', 'Interactive ProjectV2 spatial editor'); gl.domElement.tabIndex = 0 }}><Suspense fallback={null}><StudioScene /></Suspense></Canvas>
       <button className="refocus-button" onClick={refocusCamera} aria-label={project.buildings.length ? 'Refocus on Main house' : 'Refocus on the site'}>
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" /><circle cx="12" cy="12" r="3.25" /></svg>
@@ -662,7 +675,7 @@ export function App() {
         <span>EXPLODED ROOMS</span>
         <strong>{project.buildings.reduce((sum, building) => sum + building.spaces.length, 0)} rooms · {project.buildings.reduce((sum, building) => sum + building.storeys.length, 0)} levels · roof separated</strong>
       </section>}
-      <SunWidget />
+      {!compact && <SunWidget />}
       <details className="land-legend-control" key={project.ref}>
         <summary>MPZP</summary>
       <div className="land-legend" aria-label="Land-use legend">{project.site.parcels.some((parcel) => parcel.landUseZones?.length) ? <>
@@ -675,6 +688,6 @@ export function App() {
       </> : <><span><i className="construction" />House land</span><span><i className="garden" />Garden / agricultural land</span></>}<span><i className="entrance" />Road entrance</span></div>
       </details>
     </div>
-    {dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'proposals' && <ProposalsPanel onClose={() => setDataPanel(null)} />}<ReportPanel /><StartScreen />{toast && <div className="toast" role="status">{toast}</div>}
-  </main>
+    {!compact && dataContent}<ReportPanel /><StartScreen />{toast && <div className="toast" role="status">{toast}</div>}
+  </main></PrecisionControls>
 }
