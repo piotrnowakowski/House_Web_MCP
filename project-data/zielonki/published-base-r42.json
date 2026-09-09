@@ -3,8 +3,8 @@
   "ref": "project/zielonki-spatial-v2",
   "name": "Zielonki · Dom z planów",
   "units": "metric",
-  "revision": 43,
-  "updatedAt": "2026-09-09T23:00:37.725Z",
+  "revision": 42,
+  "updatedAt": "2026-09-09T22:41:04.447Z",
   "site": {
     "boundary": [
       {
@@ -3599,16 +3599,7 @@
             "terrace": {
               "railingHeightM": 1.1,
               "openEdgeIndex": 0,
-              "frameColorHex": "#303536",
-              "connectedSegmentRefs": [
-                "roof/reference/courtyard-canopy"
-              ],
-              "openEdgeIndices": [
-                0,
-                1,
-                2
-              ],
-              "fasciaHeightM": 0.65
+              "frameColorHex": "#121817"
             }
           },
           {
@@ -3639,14 +3630,17 @@
             "ridgeDirection": "z",
             "finish": {
               "material": "membrane",
-              "colorHex": "#777269"
+              "colorHex": "#303536"
             },
             "adjacentSegmentRefs": [
               "roof/reference/garage-cap"
             ],
             "canopy": {
               "fasciaHeightM": 0.65,
-              "fasciaEdgeIndices": [],
+              "fasciaEdgeIndices": [
+                1,
+                2
+              ],
               "soffitColorHex": "#D0AB7C",
               "postWidthM": 0.2,
               "postBaseElevationM": 0.45,
@@ -3659,8 +3653,7 @@
                   "x": 5.425,
                   "z": 11.395
                 }
-              ],
-              "frameColorHex": "#303536"
+              ]
             }
           }
         ],

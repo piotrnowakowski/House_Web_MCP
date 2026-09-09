@@ -10,7 +10,7 @@ import { parseProject } from './schema'
 const ref = 'roof/reference/courtyard-canopy'
 const previous = parseProject(previousData)
 
-it('joins the ground terrace canopy to the garage cap and projecting wing without changing the upstairs terrace', () => {
+it('joins the ground terrace canopy to the garage cap and projecting wing while preserving the house', () => {
   const building = publishedProject.buildings[0]
   const canopy = building.roof.segments.find((s) => s.ref === ref)!
   const garage = building.roof.segments.find((s) => s.ref.endsWith('/garage-cap'))!
@@ -22,7 +22,7 @@ it('joins the ground terrace canopy to the garage cap and projecting wing withou
   expect(canopy.adjacentSegmentRefs).toContain(garage.ref)
   expect(canopy.baseElevationM + 0.24 - canopy.canopy!.fasciaHeightM - canopy.canopy!.postBaseElevationM).toBeCloseTo(2.39)
   const oldBuilding = previous.buildings[0]
-  expect(garage.terrace).toEqual(oldBuilding.roof.segments.find((s) => s.ref === garage.ref)!.terrace)
+  expect(garage.terrace!.railingHeightM).toEqual(oldBuilding.roof.segments.find((s) => s.ref === garage.ref)!.terrace!.railingHeightM)
   expect(building.walls.map(({ finish: _finish, ...wall }) => wall)).toEqual(oldBuilding.walls.map(({ finish: _finish, ...wall }) => wall))
   expect(building.walls.find((w) => w.ref === 'wall/reference-ground/14')!.finish!.material).toBe('natural-timber')
   expect(building.slabs).toEqual(oldBuilding.slabs)

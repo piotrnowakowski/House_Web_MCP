@@ -1,6 +1,14 @@
 # Versioned Zielonki project
 
-`project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09 as revision **40**, saved **2026-09-09T14:11:23.399Z**. The current revision is **42**, retaining **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
+`project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09 as revision **40**, saved **2026-09-09T14:11:23.399Z**. The current revision is **43**, retaining **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
+
+## Revision 43 — one terrace composition across both levels
+
+Following the user's correction, the garage roof terrace and the ground-floor canopy now form one continuous L-shaped upper deck. Both retain their existing footprints and 3.49 m top elevation. A shared charcoal fascia wraps the whole exposed outer perimeter; the glass guard follows that perimeter, with no barrier across the garage/canopy seam. The former canopy top uses the same deck finish as the garage terrace. Timber lining, courtyard wall cladding, posts, rooms, glazing, furniture and landscape remain intact.
+
+Before editing on 2026-09-10, the actual public-origin Codex browser data was backed up to ignored `tmp/unified-terrace-recovery/`. Its r40 workspace still exactly matched its own r40 published baseline, so there were no additional local edits to merge. This correction extends tracked r42; `published-base-r42.json` preserves that prior published project, and the immutable legacy baseline is unchanged.
+
+`terrace.connectedSegmentRefs` derives the shared perimeter from semantic roof footprints. `openEdgeIndices` identifies the house-facing edges of that merged perimeter, while `fasciaHeightM` describes its continuous fascia. Older single-roof terraces retain `openEdgeIndex` behavior. Validation rejects missing/duplicate references, unequal deck elevations, disconnected footprints and a second guard on a connected deck. One shared perimeter helper is used for rendering and validation.
 
 ## Revision 42 — ground-floor courtyard canopy
 

@@ -763,7 +763,7 @@ function Roof({ building, selected, yOffset, ghost }: { building: BuildingModel;
       const highlighted = selected || selectedRef === wing.ref
       return <group key={wing.ref} userData={{ semanticRef: wing.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(wing.ref) }}>
         {segment.type === 'gable' ? <GableWing building={building} wing={wing} segment={segment} ghost={ghost} selected={highlighted} /> : <SegmentRoof wing={wing} segment={segment} ghost={ghost} selected={highlighted} />}
-        {segment.type === 'flat' && segment.terrace && <RoofTerrace segment={segment} selected={highlighted} ghost={ghost} />}
+        {segment.type === 'flat' && segment.terrace && <RoofTerrace building={building} segment={segment} selected={highlighted} ghost={ghost} />}
         {segment.type === 'flat' && segment.canopy && <RoofCanopy segment={segment} selected={highlighted} ghost={ghost} />}
       </group>
     })}

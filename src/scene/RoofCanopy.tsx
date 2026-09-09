@@ -12,7 +12,7 @@ export function RoofCanopy({ segment, selected, ghost }: { segment: RoofSegmentM
   const cx = (bounds.minX + bounds.maxX) / 2, cz = (bounds.minZ + bounds.maxZ) / 2
   const top = segment.baseElevationM + 0.24
   const postHeight = segment.baseElevationM - canopy.postBaseElevationM
-  const frame = <meshStandardMaterial color={selected ? '#b9e84d' : segment.finish.colorHex} roughness={0.65} metalness={0.25} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} />
+  const frame = <meshStandardMaterial color={selected ? '#b9e84d' : canopy.frameColorHex ?? segment.finish.colorHex} roughness={0.65} metalness={0.25} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} />
   const lining = useMemo(() => {
     const geometry = new PlaneGeometry(width, depth)
     const uv = geometry.getAttribute('uv')

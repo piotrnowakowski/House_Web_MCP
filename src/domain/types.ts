@@ -68,10 +68,10 @@ export interface RoofSegmentModel {
   /** Fractions across the gable, with a vertical inset below the roof slopes. */
   gableGlazing?: Partial<Record<'min' | 'max', { from: number; to: number; roofInsetM: number; hostOpeningRefs?: string[] }>>
   gableFrame?: { widthM: number; depthM: number; colorHex: string }
-  /** Glass guard around a flat roof, omitting the footprint edge against the house. */
-  terrace?: { railingHeightM: number; openEdgeIndex: number; frameColorHex: string }
+  /** Glass guard and optional fascia around connected flat decks. Open edge indices refer to their merged perimeter. */
+  terrace?: { railingHeightM: number; openEdgeIndex: number; frameColorHex: string; connectedSegmentRefs?: string[]; openEdgeIndices?: number[]; fasciaHeightM?: number }
   /** Ground-floor canopy details; elevations and post positions use building-local coordinates. */
-  canopy?: { fasciaHeightM: number; fasciaEdgeIndices: number[]; soffitColorHex: string; postWidthM: number; postBaseElevationM: number; posts: Vec2[] }
+  canopy?: { fasciaHeightM: number; fasciaEdgeIndices: number[]; frameColorHex?: string; soffitColorHex: string; postWidthM: number; postBaseElevationM: number; posts: Vec2[] }
 }
 export interface RoofModel {
   ref: string; type: RoofType; baseElevationM: number; pitchDegrees: number; overhangM: number; footprint?: Polygon2

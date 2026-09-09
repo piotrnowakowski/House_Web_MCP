@@ -6,6 +6,7 @@ import { gardenFixtureById, groupedGardenFixtures } from './gardenFixtures'
 import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
 import { decomposeOrthogonalLFootprint, defaultRoofFinish, ridgeDirectionForFootprint, roofSegmentRidgeElevation, segmentContainsFootprint, supportingWallRefs } from './roofs'
 import { gableWallsForBuilding } from './roofWings'
+import { roofTerraceOutline } from './roofTerrace'
 import { sunMismatchIssues } from './sunlight'
 import { buildingCrossesAgriculturalZone } from './zoning'
 import type { BuildingModel, LandscapeZone, OpeningModel, Polygon2, ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, RoofJunctionModel, RoofSegmentDefinition, RoofSegmentModel, SpaceBoundaryUse, StoreyModel, Vec2, WallModel } from './types'
@@ -560,6 +561,15 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
       if (segment.spaceRef && !building.spaces.some((space) => space.ref === segment.spaceRef)) issues.push({ severity: 'error', code: 'roof.space', message: `${segment.ref} references a missing supporting space.`, subjectRef: segment.ref })
       if (!/^#[0-9a-fA-F]{6}$/.test(segment.finish.colorHex)) issues.push({ severity: 'error', code: 'roof.finish', message: `${segment.ref} has an invalid finish colour.`, subjectRef: segment.ref })
       const supportRefs = supportingWallRefs(building, segment)
+      if (segment.terrace) {
+        try {
+          const outline = roofTerraceOutline(building, segment)
+          const openEdges = segment.terrace.openEdgeIndices ?? [segment.terrace.openEdgeIndex]
+          if (segment.type !== 'flat' || openEdges.some((index) => index >= outline.length)) throw new Error('Terrace guards require valid edges on a flat roof.')
+        } catch (error) {
+          issues.push({ severity: 'error', code: 'roof.terrace', message: error instanceof Error ? error.message : 'Invalid connected terrace.', subjectRef: segment.ref })
+        }
+      }
       if (segment.canopy) {
         const canopy = segment.canopy
         const postFits = canopy.posts.every((post) => [-1, 1].every((x) => [-1, 1].every((z) =>
