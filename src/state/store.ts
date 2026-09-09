@@ -17,6 +17,7 @@ import type { DraftChangeSetModel, HeightMeasureKind, PersistedWorkspace, Projec
 interface StudioState {
   project: ProjectV2
   history: ProjectV2[]
+  future: ProjectV2[]
   variants: VariantModel[]
   proposals: ProposalRecord[]
   draftChangeSets: DraftChangeSetModel[]
@@ -87,6 +88,7 @@ interface StudioState {
   commitCommand: (command: ProjectCommand) => void
   commitCommands: (commands: ProjectCommand[], message?: string) => ProjectV2
   undo: () => ProjectV2
+  redo: () => ProjectV2
 }
 
 let variantSequence = 0
@@ -106,7 +108,7 @@ const staleRecords = (records: ProposalRecord[], revision: number) => records.ma
 const staleDrafts = (drafts: DraftChangeSetModel[], revision: number) => drafts.map((draft) => draft.baseRevision === revision ? draft : { ...draft, status: 'stale' as const })
 
 export const useStudioStore = create<StudioState>((set, get) => ({
-  project: structuredClone(modernBarnProject), history: [], variants: [], proposals: [], draftChangeSets: [], selectedRef: null, repositioningRef: null,
+  project: structuredClone(modernBarnProject), history: [], future: [], variants: [], proposals: [], draftChangeSets: [], selectedRef: null, repositioningRef: null,
   transformMode: 'translate', viewerMode: 'edit', heightMeasureKind: 'auto', activePlanStoreyRef: null, month: 7,
   sunTime: { month: 7, day: 15, hour: 14 }, sunAnimation: 'none', sunOverlay: { enabled: false, targetRef: null, result: null },
   explodeStoreys: false, webMcpAvailable: false, texturesReady: false, hydrated: false, launcherOpen: true, savedWorkspaces: [], confirmationVariantRef: null, structureReport: null,
@@ -155,10 +157,10 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     const blocking = validateProject(next).filter((issue) => issue.severity === 'error')
     if (blocking.length) throw new Error(blocking[0].message)
     const houseRef = next.buildings.find((item) => item.kind === 'house')?.ref ?? null
-    set({ project: next, history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], proposals: staleRecords(state.proposals, next.revision), draftChangeSets: staleDrafts(state.draftChangeSets, next.revision), selectedRef: houseRef, cameraRefocusRequest: state.cameraRefocusRequest + 1, toast: 'Modern barn preset applied: two levels and a 45° gable.' })
+    set({ project: next, future: [], history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], proposals: staleRecords(state.proposals, next.revision), draftChangeSets: staleDrafts(state.draftChangeSets, next.revision), selectedRef: houseRef, cameraRefocusRequest: state.cameraRefocusRequest + 1, toast: 'Modern barn preset applied: two levels and a 45° gable.' })
     return next
   },
-  replaceProject: (project) => { revokeReport(get().structureReport); set((state) => ({ project, variants: [], proposals: [], draftChangeSets: [], history: [], structureReport: null, sunOverlay: { ...state.sunOverlay, result: null }, toast: `Loaded ${project.name}.` })) },
+  replaceProject: (project) => { revokeReport(get().structureReport); set((state) => ({ project, variants: [], proposals: [], draftChangeSets: [], history: [], future: [], structureReport: null, sunOverlay: { ...state.sunOverlay, result: null }, toast: `Loaded ${project.name}.` })) },
   restoreWorkspace: (workspace) => {
     // Includes saved copies with different project refs; only mapped survey inventories need correction.
     if (workspace.project.landscape.plants.some((plant) => plant.surveyHandle)) {
@@ -169,7 +171,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     const proposals = staleRecords(workspace.proposals, workspace.project.revision).map((proposal) =>
       proposal.status === 'pending' ? { ...proposal, issues: validateProject(proposal.project) } : proposal)
     const variants = proposals.filter((proposal) => proposal.status === 'pending')
-    set({ project: workspace.project, proposals, variants, draftChangeSets: staleDrafts(workspace.draftChangeSets, workspace.project.revision), history: [], structureReport: null, sunOverlay: { enabled: false, targetRef: null, result: null }, toast: `Loaded ${workspace.project.name} with ${proposals.length} proposal record${proposals.length === 1 ? '' : 's'}.` })
+    set({ project: workspace.project, proposals, variants, draftChangeSets: staleDrafts(workspace.draftChangeSets, workspace.project.revision), history: [], future: [], structureReport: null, sunOverlay: { enabled: false, targetRef: null, result: null }, toast: `Loaded ${workspace.project.name} with ${proposals.length} proposal record${proposals.length === 1 ? '' : 's'}.` })
   },
   openLauncher: async () => {
     set({ launcherOpen: true })
@@ -229,7 +231,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     const workspace = { ...target, project, proposals: staleRecords(target.proposals, project.revision), draftChangeSets: staleDrafts(target.draftChangeSets, project.revision) }
     await saveWorkspace(workspace)
     get().restoreWorkspace(workspace)
-    set({ history: [...(activeTarget ? state.history : []), structuredClone(target.project)].slice(-40), selectedRef: null, repositioningRef: null,
+    set({ future: [], history: [...(activeTarget ? state.history : []), structuredClone(target.project)].slice(-40), selectedRef: null, repositioningRef: null,
       hydrated: true, launcherOpen: false, viewerMode: 'edit', activePlanStoreyRef: null, explodeStoreys: false,
       cameraRefocusRequest: get().cameraRefocusRequest + 1, toast: 'Zielonki fitted to the measured interior. The previous house is saved in Projects.' })
   },
@@ -262,7 +264,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     const next = { ...structuredClone(variant.project), revision: state.project.revision + 1, updatedAt: new Date().toISOString() }
     const decisionAt = new Date().toISOString()
     const proposals = state.proposals.map((proposal) => proposal.ref === ref ? { ...proposal, status: 'approved' as const, decisionAt, resultingRevision: next.revision } : proposal.status === 'pending' ? { ...proposal, status: 'stale' as const } : proposal)
-    set({ project: next, history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], proposals, draftChangeSets: staleDrafts(state.draftChangeSets, next.revision), confirmationVariantRef: null, repositioningRef: null, toast: `${variant.label} applied.` })
+    set({ project: next, future: [], history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], proposals, draftChangeSets: staleDrafts(state.draftChangeSets, next.revision), confirmationVariantRef: null, repositioningRef: null, toast: `${variant.label} applied.` })
     return next
   },
   discardVariant: (ref, reason) => set((state) => ({
@@ -315,7 +317,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     const blocking = validateProject(next).filter((issue) => issue.severity === 'error')
     if (blocking.length) throw new Error(blocking[0].message)
     next.revision = state.project.revision + 1
-    set({ project: next, history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], proposals: staleRecords(state.proposals, next.revision), draftChangeSets: staleDrafts(state.draftChangeSets, next.revision), repositioningRef: null, toast: 'Spatial edit applied.' })
+    set({ project: next, future: [], history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], proposals: staleRecords(state.proposals, next.revision), draftChangeSets: staleDrafts(state.draftChangeSets, next.revision), repositioningRef: null, toast: 'Spatial edit applied.' })
   },
   commitCommands: (commands, message = 'Spatial edits applied.') => {
     const state = get(); const next = applyCommands(state.project, commands)
@@ -323,13 +325,19 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     if (blocking.length) throw new Error(blocking[0].message)
     next.revision = state.project.revision + 1
     next.updatedAt = new Date().toISOString()
-    set({ project: next, history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], proposals: staleRecords(state.proposals, next.revision), draftChangeSets: staleDrafts(state.draftChangeSets, next.revision), repositioningRef: null, toast: message })
+    set({ project: next, future: [], history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], proposals: staleRecords(state.proposals, next.revision), draftChangeSets: staleDrafts(state.draftChangeSets, next.revision), repositioningRef: null, toast: message })
     return next
   },
   undo: () => {
     const state = get(); const previous = state.history.at(-1)
     if (!previous) throw new Error('There is no committed change to undo.')
-    set({ project: previous, history: state.history.slice(0, -1), variants: [], proposals: state.proposals.map((proposal) => proposal.status === 'pending' ? { ...proposal, status: 'stale' as const } : proposal), draftChangeSets: state.draftChangeSets.map((draft) => ({ ...draft, status: 'stale' as const })), confirmationVariantRef: null, repositioningRef: null, toast: 'Last change undone.' })
+    set({ project: previous, history: state.history.slice(0, -1), future: [...state.future, structuredClone(state.project)].slice(-40), variants: [], proposals: state.proposals.map((proposal) => proposal.status === 'pending' ? { ...proposal, status: 'stale' as const } : proposal), draftChangeSets: state.draftChangeSets.map((draft) => ({ ...draft, status: 'stale' as const })), confirmationVariantRef: null, repositioningRef: null, toast: 'Last change undone.' })
     return previous
+  },
+  redo: () => {
+    const state = get(); const next = state.future.at(-1)
+    if (!next) throw new Error('There is no change to redo.')
+    set({ project: next, history: [...state.history, structuredClone(state.project)].slice(-40), future: state.future.slice(0, -1), variants: [], proposals: state.proposals.map((proposal) => proposal.status === 'pending' ? { ...proposal, status: 'stale' as const } : proposal), draftChangeSets: state.draftChangeSets.map((draft) => ({ ...draft, status: 'stale' as const })), confirmationVariantRef: null, repositioningRef: null, toast: 'Last change restored.' })
+    return next
   },
 }))

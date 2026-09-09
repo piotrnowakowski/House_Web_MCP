@@ -1,5 +1,6 @@
+import { placementWarnings } from './interiorPlacement'
 import { estimateDayPartTemperatures } from './climate'
-import { applyInterior, InteriorItemSchema, itemFitsFloor } from './interior'
+import { applyInterior, availableInteriorHeight, InteriorItemSchema, itemFitsFloor } from './interior'
 import { validateTextureChoice } from './textures'
 import { gardenFixtureById, groupedGardenFixtures } from './gardenFixtures'
 import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
@@ -533,7 +534,8 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
     for (const item of building.furniture ?? []) {
       const host = building.storeys.find((floor) => floor.ref === item.storeyRef)
       const slab = building.slabs.find((floor) => floor.ref === host?.baseSlabRef)
-      if (!InteriorItemSchema.safeParse(item).success || !host || !slab || item.heightM > host.clearHeightM || !itemFitsFloor(item, slab.footprint, slab.holes)) issues.push({ severity: 'error', code: 'interior.invalid', message: `${item.name} must fit on an existing floor with valid dimensions.`, subjectRef: item.ref })
+      if (!InteriorItemSchema.safeParse(item).success || !host || !slab || item.heightM + (item.elevationM ?? 0) > availableInteriorHeight(item, building, host) || !itemFitsFloor(item, slab.footprint, slab.holes)) issues.push({ severity: 'error', code: 'interior.invalid', message: `${item.name} must fit on an existing floor with valid dimensions.`, subjectRef: item.ref })
+      if (host) for (const warning of placementWarnings(item, building, host)) issues.push({ severity: 'warning', code: `interior.${warning.kind}`, message: `${item.name}: ${warning.message}`, subjectRef: item.ref })
     }
     building.storeys.forEach((storey) => {
       const base = building.slabs.find((slab) => slab.ref === storey.baseSlabRef)

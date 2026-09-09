@@ -11,10 +11,11 @@ import { acceleratedRaycast, computeBoundsTree, disposeBoundsTree } from 'three-
 import { buildingGroundOffset, buildingLocalBounds, elevationAt, pointInPolygon, polygonBounds, polygonCentroid, spaceFootprint } from '../domain/geometry'
 import { gardenFixtureById } from '../domain/gardenFixtures'
 import { measureHeight } from '../domain/heightMeasurements'
-import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, RoofSegmentModel, SiteEntranceModel, StructureReport, Vec2, WallModel, WallMaterial } from '../domain/types'
+import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, RoofSegmentModel, SiteEntranceModel, StructureReport, WallModel, WallMaterial } from '../domain/types'
 import { inferWallOpeningLayout } from '../domain/wallOpeningLayouts'
 import { isExteriorWall, livingVoidPartitions } from '../domain/zielonkiInterior'
-import { FurnitureModel } from '../interior/FurnitureModel'
+import { ProductModel } from '../interior/ProductModel'
+import { fitVisiblePlot } from './fitVisiblePlot'
 import { resolveGableWallFinish, resolveWallFinish } from '../domain/wallFinishes'
 import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
 import type { GeneratedSolid } from '../geometry/types'
@@ -43,6 +44,7 @@ const SCENE_FAR = 1200
 const KEYBOARD_PAN_STEP_M = 2.5
 const STOREY_EXPLODE_GAP_M = 2.8
 const ROOM_EXPLODE_DISTANCE_M = 2.6
+const handledPlotFocus = new Map<string, number>()
 export const CLEAR_MEASUREMENT_EVENT = 'projectv2:clear-measurement'
 
 CameraControls.install({
@@ -333,7 +335,7 @@ function ThatOpenBridge() {
   const project = useStudioStore((state) => state.project)
   const refocusRequest = useStudioStore((state) => state.cameraRefocusRequest)
   const gardenFocusRequest = useStudioStore((state) => state.gardenFocusRequest)
-  const handledRefocusRequest = useRef(refocusRequest)
+  const handledRefocusRequest = useRef(handledPlotFocus.get(project.ref) ?? 0)
   const handledGardenFocusRequest = useRef(gardenFocusRequest.sequence)
   const handledExplode = useRef(explode)
   const bridge = useRef<{
@@ -389,15 +391,30 @@ function ThatOpenBridge() {
     controls.maxDistance = MAX_ORBIT_DISTANCE
     controls.mouseButtons.middle = CameraControls.ACTION.DOLLY
     controls.setLookAt(22, 13, 27, 0, 3, 1.5, false)
+    const cameraKey = `plot-camera/${project.ref}`
+    try {
+      const raw = sessionStorage.getItem(cameraKey)
+      if (raw) {
+        const saved = JSON.parse(raw)
+        controls.fromJSON(saved.controls ?? raw, false)
+        const view = saved.view
+        if (view?.enabled && view.fullWidth === gl.domElement.clientWidth && view.fullHeight === gl.domElement.clientHeight) {
+          perspective.setViewOffset(view.fullWidth, view.fullHeight, view.offsetX, view.offsetY, view.width, view.height)
+        }
+      }
+    } catch { /* A missing or obsolete camera does not prevent opening a project. */ }
     bridge.current = { controls, perspective, orthographic, active: perspective }
     // camera-controls has its own event types; Drei only needs the shared enabled flag.
     set({ camera: perspective, controls: controls as unknown as RootState['controls'] })
     return () => {
+      try {
+        if (controls.camera === perspective) sessionStorage.setItem(cameraKey, JSON.stringify({ controls: controls.toJSON(), view: perspective.view }))
+      } catch { /* Navigation also works without browser storage. */ }
       controls.dispose()
       set({ controls: null })
       bridge.current = null
     }
-  }, [gl, set])
+  }, [gl, set, project.ref])
 
   useEffect(() => {
     let pointerOverViewport = false
@@ -435,12 +452,14 @@ function ThatOpenBridge() {
     if (!current) return
     const aspect = Math.max(size.width, 1) / Math.max(size.height, 1)
     current.perspective.aspect = aspect
+    const view = current.perspective.view
+    if (view && (view.fullWidth !== size.width || view.fullHeight !== size.height)) current.perspective.clearViewOffset()
     current.perspective.updateProjectionMatrix()
     const halfHeight = Math.max((current.orthographic.top - current.orthographic.bottom) * 0.5, 1)
     current.orthographic.left = -halfHeight * aspect
     current.orthographic.right = halfHeight * aspect
     current.orthographic.updateProjectionMatrix()
-  }, [size])
+  }, [size.width, size.height])
   useEffect(() => {
     const current = bridge.current
     if (!current) return
@@ -467,21 +486,11 @@ function ThatOpenBridge() {
   useEffect(() => {
     if (handledRefocusRequest.current === refocusRequest) return
     handledRefocusRequest.current = refocusRequest
-    const current = bridge.current; const building = project.buildings[0]
+    handledPlotFocus.set(project.ref, refocusRequest)
+    const current = bridge.current
     if (!current) return
-    const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches
     usePerspectiveCamera(current); current.controls.maxDistance = MAX_ORBIT_DISTANCE
-    void current.controls.setFocalOffset(0, 0, 0, smooth)
-    if (!building) {
-      // An empty plot: frame the site boundary from the south-east so the whole rectangle and the compass are in view.
-      const xs = project.site.boundary.map((point) => point.x); const zs = project.site.boundary.map((point) => point.z)
-      const centerX = (Math.min(...xs) + Math.max(...xs)) / 2; const centerZ = (Math.min(...zs) + Math.max(...zs)) / 2
-      const extent = Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...zs) - Math.min(...zs), 12)
-      void current.controls.setLookAt(centerX + extent * 0.7, extent * 0.75 + 6, centerZ + extent * 0.85, centerX, 0, centerZ, smooth)
-      return
-    }
-    const targetX = building.position.x; const targetY = isLShapedBarn(building) ? 3 : 1.4; const targetZ = building.position.z + (isLShapedBarn(building) ? 2.5 : 0)
-    void current.controls.setLookAt(targetX + 22, targetY + 10, targetZ + 25, targetX, targetY, targetZ, smooth)
+    fitVisiblePlot(project, current.controls, current.perspective, gl.domElement)
   }, [project, refocusRequest])
   useEffect(() => {
     if (handledGardenFocusRequest.current === gardenFocusRequest.sequence) return
@@ -872,7 +881,7 @@ function Building({ project, building, ghost }: { project: ProjectV2; building: 
       {isLShapedBarn(building) && <BarnGlazing building={building} ghost={ghost} />}
       {isLShapedBarn(building) && <BarnCladding building={building} ghost={ghost} />}
       {isLShapedBarn(building) && !building.interiorSource && <BarnInteriorWarmth ghost={ghost} />}
-      {!ghost && building.interiorSource && building.furniture?.map((item) => <group key={item.ref} position={[item.position.x, (building.storeys.find((s) => s.ref === item.storeyRef)?.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.level ?? 0) * explodedOffset, item.position.z]} rotation={[0, -item.rotationDegrees * Math.PI / 180, 0]}><FurnitureModel item={item} /></group>)}
+      {!ghost && building.furniture?.map((item) => <group key={item.ref} position={[item.position.x, (item.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.level ?? 0) * explodedOffset, item.position.z]} rotation={[0, item.rotationDegrees * Math.PI / 180, 0]}><ProductModel item={item} mobile={window.innerWidth <= 900} /></group>)}
       <Roof building={building} selected={selectedRef === building.roof.ref} yOffset={roofOffset} ghost={ghost} />
       {livingVoidPartitions(building).map(({ wall, wing }) => <LivingVoidWall key={wall.ref} building={building} wall={wall} wing={wing} yOffset={offsetFor(wall.ref)} ghost={ghost} />)}
       {!ghost && <><SpaceOverlays building={building} explodedOffset={explodedOffset} explode={explode} /><PlatformsAndFinishes building={building} explodeOffset={explodedOffset} /></>}
@@ -1135,7 +1144,7 @@ function GardenFixtures({ project, fixtures = project.landscape.fixtures, ghost 
 }
 
 const selectedBounds = (project: ProjectV2, refs: string[]) => refs.reduce((box, ref) => {
-  const building = project.buildings.find((item) => item.ref === ref)!; const bounds = buildingLocalBounds(building)
+  const building = project.buildings.find((item) => item.ref === ref)!
   const y0 = Math.min(...building.slabs.map((slab) => slab.topElevationM - slab.thicknessM)); const y1 = building.roof.baseElevationM + 5
   buildingCornersWorld(building).forEach((point) => { box.expandByPoint(new Vector3(point.x, y0, point.z)); box.expandByPoint(new Vector3(point.x, y1, point.z)) })
   return box

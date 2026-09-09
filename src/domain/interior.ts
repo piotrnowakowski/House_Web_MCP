@@ -1,6 +1,10 @@
 import { z } from 'zod'
-import { pointInPolygon, pointOnSegment, polygonBounds, polygonSelfIntersects, spaceFootprint, wallLength } from './geometry'
-import type { BuildingModel, InteriorCatalogId, InteriorCommand, InteriorItem, Polygon2, Vec2 } from './types'
+import { pointInPolygon, pointOnSegment, spaceFootprint, wallLength } from './geometry'
+import type { BuildingModel, InteriorCatalogId, InteriorCommand, InteriorItem, Polygon2, StoreyModel, Vec2 } from './types'
+import { ikeaProduct } from './ikeaCatalog'
+import { InteriorFinishSchema } from './interiorFinishes'
+import { mergeRooms, moveConnectedWall, splitRoom } from './interiorLayout'
+import { resizeInteriorRoom } from './interiorResize'
 
 export const interiorCatalog: { id: InteriorCatalogId; name: string; category: string; size: [number, number, number]; color: string }[] = [
   { id: 'corner-sofa', name: 'Corner sofa', category: 'Living', size: [3.45, 2.52, 0.85], color: '#20798a' },
@@ -30,9 +34,16 @@ export const InteriorItemSchema = z.object({
   ref: z.string().min(1), catalogId: z.enum(interiorCatalog.map((item) => item.id) as [InteriorCatalogId, ...InteriorCatalogId[]]),
   storeyRef: z.string().min(1), name: z.string().trim().min(1).max(100),
   position: z.object({ x: z.number().finite(), z: z.number().finite() }),
-  widthM: z.number().min(0.1).max(20), depthM: z.number().min(0.1).max(20), heightM: z.number().min(0.1).max(5),
+  widthM: z.number().min(0.001).max(20), depthM: z.number().min(0.001).max(20), heightM: z.number().min(0.001).max(5),
   rotationDegrees: z.number().finite(), color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  productId: z.string().optional(), variantId: z.string().optional(), elevationM: z.number().min(0).max(8).optional(),
+  groupRef: z.string().min(1).optional(), locked: z.boolean().optional(),
 })
+
+/** Catalogue dimensions remain the reference even when a placed object is enlarged. */
+export function interiorOriginalSize(item: Pick<InteriorItem, 'productId' | 'catalogId'>): [number, number, number] {
+  return ikeaProduct(item.productId)?.size ?? interiorCatalog.find((entry) => entry.id === item.catalogId)!.size
+}
 export const interiorCorners = (item: Pick<InteriorItem, 'position' | 'rotationDegrees' | 'widthM' | 'depthM'>): Polygon2 => {
   const angle = item.rotationDegrees * Math.PI / 180
   return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, z]) => ({
@@ -65,19 +76,84 @@ export const itemFitsFloor = (item: InteriorItem, footprint: Polygon2, holes: Po
   })
 }
 
+export function availableInteriorHeight(item: InteriorItem, building: BuildingModel, storey: StoreyModel) {
+  let height = storey.clearHeightM
+  const corners = interiorCorners(item)
+  for (const ceiling of building.ceilingFinishes) {
+    const room = building.spaces.find((room) => room.ref === ceiling.spaceRef && storey.spaceRefs.includes(room.ref))
+    if (!room) continue
+    const polygon = spaceFootprint(building, room)
+    if (corners.some((point) => inside(point, polygon)) || polygon.some((point) => inside(point, corners))) height = Math.min(height, ceiling.elevationM - storey.elevationM - ceiling.thicknessM)
+  }
+  return height
+}
+
 export function applyInterior(building: BuildingModel, command: InteriorCommand) {
   const storey = building.storeys.find((item) => item.ref === command.storeyRef)
   if (!storey) throw new Error('This floor no longer exists.')
   const slab = building.slabs.find((item) => item.ref === storey.baseSlabRef)!
+  if (command.action === 'split') { splitRoom(building, storey, command); return }
+  if (command.action === 'merge') { mergeRooms(building, storey, command.wallRef); return }
+  if (command.action === 'wall') { moveConnectedWall(building, storey, command); return }
+  if (command.action === 'lock') {
+    const items = command.itemRefs.map((ref) => building.furniture?.find((item) => item.ref === ref && item.storeyRef === storey.ref))
+    if (!items.length || items.some((item) => !item)) throw new Error('Select furniture on this floor.')
+    items.forEach((item) => { item!.locked = command.locked }); return
+  }
+  if (command.action === 'finish') {
+    const finish = InteriorFinishSchema.parse(command.finish)
+    if (command.surface === 'floor' || command.surface === 'ceiling') {
+      const room = building.spaces.find((item) => item.ref === command.targetRef && storey.spaceRefs.includes(item.ref))
+      if (!room || room.locked) throw new Error('Select an unlocked room.')
+      if (command.surface === 'floor') room.floorFinish = finish
+      else room.ceilingFinish = finish
+    } else {
+      const wall = building.walls.find((item) => item.ref === command.targetRef && storey.wallRefs.includes(item.ref))
+      if (!wall || wall.locked) throw new Error('Select an unlocked wall.')
+      wall.faceFinishes = { ...wall.faceFinishes, [command.surface]: finish }
+    }
+    return
+  }
+  if (command.action === 'opening' || command.action === 'opening-remove') {
+    const wall = building.walls.find((item) => item.ref === command.wallRef && storey.wallRefs.includes(item.ref))
+    if (!wall || wall.locked) throw new Error('Select an unlocked wall.')
+    if (command.action === 'opening-remove') {
+      if (!wall.openings.some((item) => item.ref === command.openingRef)) throw new Error('Opening not found.')
+      wall.openings = wall.openings.filter((item) => item.ref !== command.openingRef)
+    } else {
+      const opening = command.opening
+      if (opening.wallRef !== wall.ref || !opening.ref || !['door', 'window'].includes(opening.kind) || ![opening.offsetM, opening.widthM, opening.heightM, opening.sillM].every(Number.isFinite) || opening.widthM < 0.2 || opening.heightM < 0.2 || opening.sillM < 0) throw new Error('Enter valid opening dimensions.')
+      if (opening.offsetM - opening.widthM / 2 < 0 || opening.offsetM + opening.widthM / 2 > wallLength(wall) || opening.sillM + opening.heightM > wall.heightM) throw new Error('The opening must fit inside its wall.')
+      if (building.walls.some((host) => host.ref !== wall.ref && host.openings.some((item) => item.ref === opening.ref))) throw new Error('The opening belongs to another wall.')
+      if (wall.openings.some((item) => item.ref !== opening.ref && Math.abs(item.offsetM - opening.offsetM) < (item.widthM + opening.widthM) / 2 + 0.02)) throw new Error('Leave space between openings.')
+      wall.openings = [...wall.openings.filter((item) => item.ref !== opening.ref), structuredClone(opening)]
+    }
+    return
+  }
   if (command.action === 'put') {
     const item = InteriorItemSchema.parse(command.item)
-    if (item.storeyRef !== storey.ref) throw new Error('Furniture must belong to the selected floor.')
-    if (item.heightM > storey.clearHeightM) throw new Error('This item is taller than the room.')
-    if (!itemFitsFloor(item, slab.footprint, slab.holes)) throw new Error('Keep the whole item inside this floor and clear of stair openings. Try a smaller item or another position.')
     const existing = building.furniture?.find((entry) => entry.ref === item.ref)
+    if (item.storeyRef !== storey.ref) throw new Error('Furniture must belong to the selected floor.')
+    if (item.heightM + (item.elevationM ?? 0) > availableInteriorHeight(item, building, storey)) throw new Error('This item is taller than the room at its chosen elevation.')
+    if (item.productId) {
+      const product = ikeaProduct(item.productId)
+      if (!product || product.articleNumber !== item.variantId || product.catalogId !== item.catalogId) throw new Error('Choose a supported IKEA product and variant.')
+      if ((!existing || existing.productId !== item.productId) && product.minimumCeilingM && Math.max(item.heightM, product.minimumCeilingM) + (item.elevationM ?? 0) > availableInteriorHeight(item, building, storey))
+        throw new Error(`This IKEA configuration needs at least ${product.minimumCeilingM * 100} cm of clear height for upright assembly.`)
+      if (item.color.toLowerCase() !== product.color.toLowerCase()) throw new Error('IKEA products keep their supported finish. Choose another product to change finish.')
+    }
+    // Keep existing custom-sized projects movable. New or resized objects may not shrink below their catalogue size.
+    const sizeChanged = !existing || existing.catalogId !== item.catalogId || existing.productId !== item.productId ||
+      existing.widthM !== item.widthM || existing.depthM !== item.depthM || existing.heightM !== item.heightM
+    const originalSize = interiorOriginalSize(item)
+    if (sizeChanged && [item.widthM, item.depthM, item.heightM].some((value, index) => value < originalSize[index] - 1e-6))
+      throw new Error('Dimensions cannot be smaller than the original catalogue size.')
+    if (!itemFitsFloor(item, slab.footprint, slab.holes)) throw new Error('Keep the whole item inside this floor and clear of stair openings. Try a smaller item or another position.')
+    if (existing?.locked) throw new Error('Unlock this object before editing it.')
     if (existing && existing.storeyRef !== storey.ref) throw new Error('This item belongs to another floor.')
     building.furniture = [...(building.furniture ?? []).filter((entry) => entry.ref !== item.ref), item]
   } else if (command.action === 'remove') {
+    if (building.furniture?.find((item) => item.ref === command.itemRef)?.locked) throw new Error('Unlock this object before deleting it.')
     if (!building.furniture?.some((item) => item.ref === command.itemRef && item.storeyRef === storey.ref)) throw new Error('Furniture not found on this floor.')
     building.furniture = building.furniture.filter((item) => item.ref !== command.itemRef)
   } else {
@@ -85,28 +161,8 @@ export function applyInterior(building: BuildingModel, command: InteriorCommand)
     if (!room || room.locked) throw new Error('This room cannot be edited.')
     if (!command.name.trim()) throw new Error('Enter a room name.')
     room.name = command.name.trim().slice(0, 100)
+    if (command.usage !== undefined) room.usage = command.usage.trim() || 'flex'
     if (command.widthM === undefined && command.depthM === undefined) return
-    const points = spaceFootprint(building, room); const bounds = polygonBounds(points)
-    const width = command.widthM ?? bounds.maxX - bounds.minX; const depth = command.depthM ?? bounds.maxZ - bounds.minZ
-    if (!Number.isFinite(width) || !Number.isFinite(depth) || width < 1 || depth < 1 || width > 50 || depth > 50) throw new Error('Room dimensions must be between 1 and 50 m.')
-    const sx = width / (bounds.maxX - bounds.minX); const sz = depth / (bounds.maxZ - bounds.minZ)
-    const centre = { x: (bounds.minX + bounds.maxX) / 2, z: (bounds.minZ + bounds.maxZ) / 2 }
-    const transform = (p: Vec2) => ({ x: centre.x + (p.x - centre.x) * sx, z: centre.z + (p.z - centre.z) * sz })
-    const mapped = points.map(transform)
-    if (mapped.some((p) => !inside(p, slab.footprint))) throw new Error('The room must stay within this floor. Change the building footprint in the plot editor to extend it.')
-    const move = (p: Vec2) => points.some((v) => Math.hypot(v.x - p.x, v.z - p.z) < 0.001) ? transform(p) : p
-    building.walls.filter((wall) => storey.wallRefs.includes(wall.ref)).forEach((wall) => {
-      const start = move(wall.start); const end = move(wall.end)
-      if (start === wall.start && end === wall.end) return
-      if (wall.locked) throw new Error('A connected wall is locked.')
-      const oldLength = wallLength(wall); wall.start = start; wall.end = end
-      const length = wallLength(wall)
-      if (length < 0.2) throw new Error('This change would collapse a connected wall.')
-      wall.openings.forEach((opening) => {
-        opening.offsetM *= length / oldLength
-        if (opening.offsetM - opening.widthM / 2 < 0 || opening.offsetM + opening.widthM / 2 > length) throw new Error('An opening would no longer fit its wall.')
-      })
-    })
-    if (building.spaces.filter((s) => storey.spaceRefs.includes(s.ref)).some((s) => polygonSelfIntersects(spaceFootprint(building, s)))) throw new Error('This change would cross a neighbouring room wall.')
+    resizeInteriorRoom(building, storey, room, command.widthM, command.depthM)
   }
 }

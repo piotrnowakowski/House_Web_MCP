@@ -8,6 +8,10 @@ No account, credentials or paid service is required. The project was created dur
 
 ## What it does
 
+The isolated interior-editor branch adds a **64-configuration IKEA library**, original textured desktop/mobile furniture models, standard/tall cabinet choices, room partitions, openings, per-face finishes, undo/redo and exports. Both editors provide a full-viewport mobile canvas with one dismissible contextual sheet and property sliders shown only on demand. See the [interior guide](docs/interior-editor.md), [asset audit](docs/ikea-assets.md) and [validation evidence](docs/interior-validation.md).
+
+To run this branch independently, use Node 22.12+ and `npm run dev:interior` at **http://127.0.0.1:5187**. This origin keeps saved projects separate from another development checkout. `npm run test:interior` runs its focused browser suite. These changes have not been deployed to the live planner.
+
 Early house and garden planning is spatial: people need to see the building, terrain, rooms, openings, planting and seasonal effects together. A normal chat can describe a change, but it cannot safely understand or edit the exact objects in a live 3D design.
 
 This editor gives both the person and their browser agent access to one semantic `ProjectV2` model. A person can navigate and edit the 3D scene directly. An agent can inspect the same project through 34 schema-described WebMCP tools, propose coordinated changes and open visible architectural reports. The result remains an uncommitted ghost variant until the person explicitly applies or rejects it.
@@ -18,7 +22,7 @@ The top toolbar includes **Garden fixtures** and a **Climate** menu containing *
 
 Sun controls start collapsed behind the sun icon at the bottom left of the viewport. Click the icon to expand or collapse the panel; the selected date, time and sun settings are retained.
 
-Measurements snap to nearby objects and boundaries by default, with a **Snapped** preview. In the plot, length points use object surfaces and edges or site, parcel, building and garden boundaries; area stays on the ground. Interior measurements use furniture footprints, wall faces, opening jambs and floor boundaries. Click and hold either existing point to drag it and update the measurement; hold **Alt** for free placement. The interior's **Snap 10 cm** toggle controls furniture placement independently. The camera stays fixed while dragging measurement points or moving objects.
+Measurements snap to nearby objects and boundaries by default, with a **Snapped** preview. In the plot, length points use object surfaces and edges or site, parcel, building and garden boundaries; area stays on the ground. Interior measurements use furniture footprints, wall faces, opening jambs and floor boundaries. Click and hold either existing point to drag it and update the measurement; hold **Alt** for free placement. The interior's **More → Grid snapping** controls furniture placement independently. The camera stays fixed while dragging measurement points or moving objects.
 
 The bundled Zielonki project demonstrates:
 

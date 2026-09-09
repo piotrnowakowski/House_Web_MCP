@@ -13,6 +13,21 @@ const item: InteriorItem = { ref: 'interior/test-sofa', catalogId: 'sofa', store
 const put = (value = item): ProjectCommand => ({ type: 'interior.update', buildingRef: house.ref, storeyRef: floor.ref, action: 'put', item: value })
 
 describe('Interior project edits', () => {
+  it('enlarges generic furniture without changing its catalogue reference and preserves older fitted sizes', () => {
+    const bigger = { ...item, widthM: 2.8 }
+    const added = applyCommand(modernBarnProject, put(bigger))
+    expect(parseProject(JSON.parse(JSON.stringify(added))).buildings[0].furniture?.[0].widthM).toBe(2.8)
+    expect(interiorCatalog.find((entry) => entry.id === item.catalogId)!.size[0]).toBe(2.4)
+    for (const dimension of ['widthM', 'depthM', 'heightM'] as const) {
+      expect(() => applyCommand(added, put({ ...bigger, [dimension]: item[dimension] - 0.1 }))).toThrow(/catalogue size/)
+    }
+    const legacy = structuredClone(modernBarnProject)
+    const fitted = { ...item, widthM: 1.8 }
+    legacy.buildings[0].furniture = [fitted]
+    const moved = applyCommand(parseProject(JSON.parse(JSON.stringify(legacy))), put({ ...fitted, position: { x: -3, z: -2 } }))
+    expect(moved.buildings[0].furniture?.[0].widthM).toBe(1.8)
+    expect(() => applyCommand(moved, put({ ...fitted, widthM: 1.7 }))).toThrow(/catalogue size/)
+  })
   it('persists add, movement, rotation and deletion without losing other building data', () => {
     const added = applyCommand(modernBarnProject, put())
     expect(house.furniture).toBeUndefined()
@@ -31,16 +46,15 @@ describe('Interior project edits', () => {
     expect(itemFitsFloor({ ...item, position: { x: 2, z: 2 }, widthM: 3, depthM: 0.4, rotationDegrees: 45 }, lShape)).toBe(false)
     expect(house.furniture).toBeUndefined()
   })
-  it('renames a real room and resizes shared wall endpoints without creating walls', () => {
+  it('renames a real room while refusing to resize its exterior envelope', () => {
     const room = house.spaces.find((s) => floor.spaceRefs.includes(s.ref))!
     const before = polygonBounds(spaceFootprint(house, room))
-    const updated = applyCommand(modernBarnProject, { type: 'interior.update', action: 'room', buildingRef: house.ref, storeyRef: floor.ref, spaceRef: room.ref, name: 'Kitchen & breakfast', widthM: before.maxX - before.minX - 0.4, depthM: before.maxZ - before.minZ - 0.4 })
-    const next = updated.buildings[0]; const resized = next.spaces.find((s) => s.ref === room.ref)!
-    expect(resized.name).toBe('Kitchen & breakfast')
-    expect(next.walls.length).toBe(house.walls.length)
-    const bounds = polygonBounds(spaceFootprint(next, resized))
-    expect(bounds.maxX - bounds.minX).toBeCloseTo(before.maxX - before.minX - 0.4)
-    expect(() => applyCommand(modernBarnProject, { type: 'interior.update', action: 'room', buildingRef: house.ref, storeyRef: floor.ref, spaceRef: room.ref, name: 'Too large', widthM: 100 })).toThrow()
+    const command = { type: 'interior.update' as const, action: 'room' as const, buildingRef: house.ref, storeyRef: floor.ref, spaceRef: room.ref, name: 'Kitchen & breakfast' }
+    const updated = applyCommand(modernBarnProject, command)
+    expect(updated.buildings[0].spaces.find((s) => s.ref === room.ref)?.name).toBe('Kitchen & breakfast')
+    expect(updated.buildings[0].walls).toEqual(house.walls)
+    expect(() => applyCommand(modernBarnProject, { ...command, widthM: before.maxX - before.minX - 0.4, depthM: before.maxZ - before.minZ - 0.4 })).toThrow(/exterior|plot tools/)
+    expect(() => applyCommand(modernBarnProject, { ...command, widthM: 100 })).toThrow()
   })
   it('uses the project history for undo and keeps furniture isolated by floor', () => {
     useStudioStore.setState({ project: structuredClone(modernBarnProject), history: [], variants: [], proposals: [], draftChangeSets: [] })

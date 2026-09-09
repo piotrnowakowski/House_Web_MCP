@@ -47,13 +47,14 @@ export interface SiteKnowledgeBase {
 }
 export interface SiteModel { boundary: Polygon2; northDegrees: number; terrain: TerrainModel; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[]; knowledgeBase: SiteKnowledgeBase }
 
-export interface OpeningModel { ref: string; kind: 'door' | 'window'; glazed?: boolean; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number }
+export interface OpeningModel { ref: string; kind: 'door' | 'window'; glazed?: boolean; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number; hinge?: 'left' | 'right'; swing?: 'in' | 'out' }
+export interface InteriorFinish { presetId: string; color: string; rotationDegrees: number; tileM: number }
 export type WallMaterial = 'charred-timber' | 'natural-timber' | 'light-render' | 'brick' | 'metal-panel'
 /** `textureId` picks a scan from the texture library; omit for the material default, `none` for a flat colour. */
 export interface WallFinish { material: WallMaterial; colorHex: string; textureId?: string }
-export interface WallModel { ref: string; start: Vec2; end: Vec2; thicknessM: number; baseElevationM: number; heightM: number; openings: OpeningModel[]; finish?: WallFinish; locked: boolean }
+export interface WallModel { ref: string; start: Vec2; end: Vec2; thicknessM: number; baseElevationM: number; heightM: number; openings: OpeningModel[]; finish?: WallFinish; faceFinishes?: { left?: InteriorFinish; right?: InteriorFinish }; locked: boolean }
 export interface SpaceBoundaryUse { wallRef: string; direction: 1 | -1 }
-export interface SpaceModel { ref: string; name: string; usage: string; boundary: SpaceBoundaryUse[]; baseSlabRef: string; topBoundaryRef: string; locked: boolean }
+export interface SpaceModel { ref: string; name: string; usage: string; boundary: SpaceBoundaryUse[]; baseSlabRef: string; topBoundaryRef: string; floorFinish?: InteriorFinish; ceilingFinish?: InteriorFinish; locked: boolean }
 export interface SlabModel { ref: string; footprint: Polygon2; holes?: Polygon2[]; topElevationM: number; thicknessM: number; locked: boolean }
 export interface CeilingFinishModel { ref: string; spaceRef: string; hostBoundaryRef: string; elevationM: number; thicknessM: number }
 export interface PlatformModel { ref: string; spaceRef: string; footprint: Polygon2; elevationM: number; thicknessM: number }
@@ -85,10 +86,17 @@ export interface BuildingModel {
 
 export interface StairModel { ref: string; fromStoreyRef: string; toStoreyRef: string; start: Vec2; runM: number; widthM: number; steps: number }
 export type InteriorCatalogId = 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car'
-export interface InteriorItem { ref: string; catalogId: InteriorCatalogId; storeyRef: string; name: string; position: Vec2; widthM: number; depthM: number; heightM: number; rotationDegrees: number; color: string }
+export interface InteriorItem { ref: string; catalogId: InteriorCatalogId; storeyRef: string; name: string; position: Vec2; widthM: number; depthM: number; heightM: number; rotationDegrees: number; color: string; productId?: string; variantId?: string; elevationM?: number; groupRef?: string; locked?: boolean }
 export type InteriorCommand = { type: 'interior.update'; buildingRef: string; storeyRef: string } & (
   { action: 'put'; item: InteriorItem } | { action: 'remove'; itemRef: string } |
-  { action: 'room'; spaceRef: string; name: string; widthM?: number; depthM?: number }
+  { action: 'room'; spaceRef: string; name: string; usage?: string; widthM?: number; depthM?: number } |
+  { action: 'lock'; itemRefs: string[]; locked: boolean } |
+  { action: 'split'; spaceRef: string; start: Vec2; end: Vec2; partitionRef: string; newSpaceRef: string; name: string; thicknessM: number } |
+  { action: 'merge'; wallRef: string } |
+  { action: 'wall'; wallRef: string; start: Vec2; end: Vec2; thicknessM?: number; heightM?: number } |
+  { action: 'opening'; wallRef: string; opening: OpeningModel } |
+  { action: 'opening-remove'; wallRef: string; openingRef: string } |
+  { action: 'finish'; targetRef: string; surface: 'floor' | 'ceiling' | 'left' | 'right'; finish: InteriorFinish }
 )
 
 /** `textureId` picks a ground scan from the texture library; omit for the kind default, `none` for a flat colour. */

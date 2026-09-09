@@ -96,7 +96,7 @@ describe('ProjectV2 WebMCP surface', () => {
   })
 
   it('documents every operation type the union accepts, and nothing else', () => {
-    const unionTypes = operationSchema.options.map((option) => option.shape.type.value).sort()
+    const unionTypes = [...new Set(operationSchema.options.flatMap((option) => 'options' in option ? option.options.map((action) => action.shape.type.value) : [option.shape.type.value]))].sort()
     expect(operationReference.map((item) => item.type).sort()).toEqual(unionTypes)
     for (const prompt of [webMcpToolPrompts.propose_change]) for (const type of unionTypes) expect(prompt.blocks.input).toContain(type)
     for (const entry of operationReference) expect(entry.purpose.length, entry.type).toBeLessThanOrEqual(160)
