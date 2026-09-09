@@ -90,7 +90,7 @@ async function main() {
             } finally { db.close() }
           }, workspace)
         }
-        await page.goto(values.url)
+        await page.goto(values.url, { waitUntil: 'domcontentloaded', timeout: 60000 })
         const open = page.getByRole('button', { name: /Zielonki house study/ })
         await expect(open).toBeEnabled({ timeout: 30000 })
         if (scenario === 'conflict') {
@@ -106,7 +106,7 @@ async function main() {
           assert.deepEqual(saved.project.landscape.plants, published.landscape.plants)
           assert.equal(saved.project.buildings[0].roof.pitchDegrees, published.buildings[0].roof.pitchDegrees)
           if (scenario === 'recovered') assert.equal(saved.proposals.length, 19)
-          await page.reload()
+          await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 })
           await expect(open).toBeEnabled({ timeout: 30000 })
           await open.click()
           await expect(page.getByRole('button', { name: 'House interior', exact: true })).toBeVisible()
