@@ -1,12 +1,68 @@
 import { describe, expect, it } from 'vitest'
-import { Vector3 } from 'three'
+import { DoubleSide, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three'
+import { polygonBounds } from '../domain/geometry'
 import { createReferenceHouse } from '../domain/referenceHouse'
 import { gableRoofJunction, gableWallsForBuilding, roofWings } from '../domain/roofWings'
 import { modernBarnProject } from '../domain/sampleProject'
-import { fitZielonkiInterior } from '../domain/zielonkiInterior'
-import { clippedRoofBox, roofJunctionPlanes } from './roofJunction'
+import { fitZielonkiInterior, livingVoidPartitions } from '../domain/zielonkiInterior'
+import { clippedRoofBox, gableVolumePlanes, roofJunctionCutouts, roofJunctionPlanes } from './roofJunction'
 
 describe('gable valley termination', () => {
+  it('removes the host roof across the open living volume while retaining the exterior slope', () => {
+    const building = fitZielonkiInterior(modernBarnProject, createReferenceHouse()).buildings[0]
+    const host = roofWings(building).find((wing) => wing.ridgeAxis === 'z' && wing.type === 'gable')!
+    const b = polygonBounds(host.footprint)
+    const pitch = building.roof.pitchDegrees * Math.PI / 180
+    const half = (b.maxX - b.minX) / 2 + host.overhangM
+    const centerX = (b.minX + b.maxX) / 2
+    const midY = (host.baseElevationM - Math.tan(pitch) * host.overhangM + host.ridgeElevationM) / 2
+    const cutouts = roofJunctionCutouts(building, host)
+    expect(cutouts).toHaveLength(1)
+    const geometry = clippedRoofBox([half / Math.cos(pitch), 0.2, b.maxZ - b.minZ + 2 * host.overhangM],
+      [centerX + half / 2, midY, (b.minZ + b.maxZ) / 2], [0, 0, -pitch], [], cutouts)
+    const material = new MeshBasicMaterial({ side: DoubleSide })
+    const mesh = new Mesh(geometry, material)
+    const branch = roofWings(building).find((wing) => wing.ridgeAxis === 'x')!
+    const branchBounds = polygonBounds(branch.footprint)
+    const ray = new Raycaster(new Vector3(10, host.baseElevationM + 0.5, (branchBounds.minZ + branchBounds.maxZ) / 2), new Vector3(-1, 0, 0))
+    expect(ray.intersectObject(mesh)).toHaveLength(0)
+    ray.ray.origin.z = b.maxZ - 1
+    expect(ray.intersectObject(mesh).length).toBeGreaterThan(0)
+    geometry.dispose(); material.dispose()
+  })
+
+  it('closes the bedroom wall vertically under the meeting of the roof ridges', () => {
+    const building = fitZielonkiInterior(modernBarnProject, createReferenceHouse()).buildings[0]
+    const partitions = livingVoidPartitions(building)
+    expect(partitions.map(({ wall }) => wall.ref)).toEqual(['wall/reference-upper/2', 'wall/reference-upper/9'])
+    expect(building.spaces.find((s) => s.ref === 'space/reference-parents')!.boundary.some((b) => b.wallRef === partitions[0].wall.ref)).toBe(true)
+    const host = roofWings(building).find((wing) => wing.ridgeAxis === 'z' && wing.type === 'gable')!
+    const hostBounds = polygonBounds(host.footprint)
+    for (const { wall, wing } of partitions) {
+      expect(wall.start.x).toBeCloseTo((hostBounds.minX + hostBounds.maxX) / 2)
+      expect(wall.end.x).toBeCloseTo(wall.start.x)
+      const bottom = wall.baseElevationM + wall.heightM
+      const height = wing.ridgeElevationM - bottom
+      const planes = gableVolumePlanes({ ...wing, overhangM: 0 }, -0.1).slice(4)
+      const geometry = clippedRoofBox([wall.thicknessM, height, Math.abs(wall.end.z - wall.start.z)],
+        [wall.start.x, bottom + height / 2, (wall.start.z + wall.end.z) / 2], [0, 0, 0], planes)
+      const positions = geometry.getAttribute('position')
+      expect(positions.count).toBeGreaterThan(0)
+      geometry.computeBoundingBox()
+      expect(geometry.boundingBox!.min.x).toBeCloseTo(wall.start.x - wall.thicknessM / 2)
+      expect(geometry.boundingBox!.max.x).toBeCloseTo(wall.start.x + wall.thicknessM / 2)
+      for (let i = 0; i < positions.count; i++) {
+        const point = new Vector3().fromBufferAttribute(positions, i)
+        expect(Math.abs(point.x - wall.start.x)).toBeLessThanOrEqual(wall.thicknessM / 2 + 0.00001)
+        expect(planes.every((plane) => plane.distanceToPoint(point) >= -0.00001)).toBe(true)
+      }
+      geometry.dispose()
+    }
+    building.slabs.find((slab) => slab.ref === 'slab/reference-upper')!.holes = []
+    expect(livingVoidPartitions(building)).toEqual([])
+    expect(livingVoidPartitions(createReferenceHouse().buildings[0])).toEqual([])
+  })
+
   it('recognizes only the joined end and keeps the three exterior gables', () => {
     const building = fitZielonkiInterior(modernBarnProject, createReferenceHouse()).buildings[0]
     const wings = roofWings(building)

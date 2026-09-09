@@ -1,8 +1,9 @@
-import { buildingFootprintsWorld } from './geometry'
+import { buildingFootprintsWorld, polygonBounds } from './geometry'
 import { ZIELONKI_INTERIOR_ID } from './zielonkiInterior'
 import type { BuildingModel, ProjectV2, Vec2 } from './types'
 
 export const ZIELONKI_PLACEMENT_NOTE = 'Zielonki placement and portal revision 2026-09-09: parallel to the neighbour boundary, 4 m neighbour clearance and 5.25 m road clearance; road-side garage approach, no eaves and 40 cm graphite gable frames.'
+const courtyardNote = 'Courtyard terrace revision 2026-09-09: the former Sheltered L-courtyard terrace fills the inner corner of the fitted house, flush with both ground-floor facades.'
 const dot = (a: Vec2, b: Vec2) => a.x * b.x + a.z * b.z
 const subtract = (a: Vec2, b: Vec2): Vec2 => ({ x: a.x - b.x, z: a.z - b.z })
 const world = (b: BuildingModel, p: Vec2): Vec2 => {
@@ -32,7 +33,7 @@ export function zielonkiSetbackLines(project: ProjectV2) {
 /** One-time revision of the furnished study and saved copies; subsequent user edits survive reload. */
 export function upgradeZielonkiPlacement(source: ProjectV2): ProjectV2 {
   const eligible = source.buildings.filter((b) => b.interiorSource?.id === ZIELONKI_INTERIOR_ID && !b.interiorSource.notes.includes(ZIELONKI_PLACEMENT_NOTE))
-  if (!eligible.length) return source
+  if (!eligible.length) return upgradeZielonkiCourtyard(source)
   const project = structuredClone(source)
   const { corner, neighbour, roadNormal, neighbourNormal } = zielonkiSetbackLines(project)
   for (const building of project.buildings.filter((b) => eligible.some((old) => old.ref === b.ref))) {
@@ -81,6 +82,29 @@ export function upgradeZielonkiPlacement(source: ProjectV2): ProjectV2 {
     }
     building.interiorSource!.notes.push(ZIELONKI_PLACEMENT_NOTE)
   }
+  project.revision += 1; project.updatedAt = new Date().toISOString()
+  return upgradeZielonkiCourtyard(project)
+}
+
+/** Fit the legacy courtyard to the actual house once, including its current rotation and placement. */
+export function upgradeZielonkiCourtyard(source: ProjectV2): ProjectV2 {
+  const terrace = source.landscape.zones.find((zone) => zone.ref === 'zone/terrace' && zone.name === 'Sheltered L-courtyard terrace')
+  const building = source.buildings.find((b) => b.interiorSource?.id === ZIELONKI_INTERIOR_ID && !b.interiorSource.notes.includes(courtyardNote))
+  if (!terrace || !building) return source
+  const ground = [...building.storeys].sort((a, b) => a.level - b.level)[0]
+  const slab = building.slabs.find((s) => s.ref === ground?.baseSlabRef)
+  if (!slab) return source
+  const bounds = polygonBounds(slab.footprint)
+  const corner = slab.footprint.find((p) => p.x > bounds.minX + 0.01 && p.x < bounds.maxX - 0.01
+    && p.z > bounds.minZ + 0.01 && p.z < bounds.maxZ - 0.01)
+  if (!corner) return source
+  const project = structuredClone(source)
+  const updated = project.landscape.zones.find((zone) => zone.ref === terrace.ref)!
+  updated.name = 'Taras przy budynku'
+  updated.kind = 'terrace'
+  updated.footprint = [corner, { x: bounds.maxX, z: corner.z }, { x: bounds.maxX, z: bounds.maxZ }, { x: corner.x, z: bounds.maxZ }]
+    .map((point) => world(building, point))
+  project.buildings.find((b) => b.ref === building.ref)!.interiorSource!.notes.push(courtyardNote)
   project.revision += 1; project.updatedAt = new Date().toISOString()
   return project
 }

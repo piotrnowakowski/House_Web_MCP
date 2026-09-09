@@ -2,13 +2,42 @@ import { expect, it } from 'vitest'
 import { createReferenceHouse } from './referenceHouse'
 import { modernBarnProject } from './sampleProject'
 import { fitZielonkiInterior } from './zielonkiInterior'
-import { houseEnvelopeWorld, upgradeZielonkiPlacement } from './zielonkiPlacement'
-import { pointInPolygon, pointOnPolygonBoundary } from './geometry'
+import { houseEnvelopeWorld, upgradeZielonkiCourtyard, upgradeZielonkiPlacement } from './zielonkiPlacement'
+import { buildingFootprintsWorld, pointInPolygon, pointOnPolygonBoundary, polygonArea, polygonCentroid } from './geometry'
 import { parseProject } from './schema'
 import { validateProject } from './commands'
 
 const distance = (p: { x: number; z: number }, a: { x: number; z: number }, b: { x: number; z: number }) =>
   Math.abs((b.x - a.x) * (a.z - p.z) - (a.x - p.x) * (b.z - a.z)) / Math.hypot(b.x - a.x, b.z - a.z)
+
+it('fits the former courtyard flush to both house wings and preserves later terrace edits', () => {
+  const source = upgradeZielonkiPlacement(fitZielonkiInterior(modernBarnProject, createReferenceHouse()))
+  const terrace = source.landscape.zones.find((zone) => zone.ref === 'zone/terrace')!
+  expect(terrace.name).toBe('Taras przy budynku')
+  expect(terrace.kind).toBe('terrace')
+  expect(polygonArea(terrace.footprint)).toBeCloseTo(3.51 * 10.56, 4)
+  const footprint = buildingFootprintsWorld(source.buildings[0])[0]
+  for (const index of [1, 3]) {
+    const corner = terrace.footprint[0]; const end = terrace.footprint[index]
+    expect(pointOnPolygonBoundary(corner, footprint)).toBe(true)
+    expect(pointOnPolygonBoundary(end, footprint)).toBe(true)
+    expect(pointOnPolygonBoundary({ x: (corner.x + end.x) / 2, z: (corner.z + end.z) / 2 }, footprint)).toBe(true)
+  }
+  expect(pointInPolygon(polygonCentroid(terrace.footprint), footprint)).toBe(false)
+  expect(terrace.footprint.every((p) => pointInPolygon(p, source.site.boundary) || pointOnPolygonBoundary(p, source.site.boundary))).toBe(true)
+  const legacy = structuredClone(source)
+  legacy.buildings[0].interiorSource!.notes = legacy.buildings[0].interiorSource!.notes.filter((note) => !note.startsWith('Courtyard terrace revision'))
+  legacy.landscape.zones.find((zone) => zone.ref === terrace.ref)!.name = 'Sheltered L-courtyard terrace'
+  legacy.landscape.zones.find((zone) => zone.ref === terrace.ref)!.footprint = structuredClone(modernBarnProject.landscape.zones.find((zone) => zone.ref === terrace.ref)!.footprint)
+  const before = structuredClone(legacy)
+  const updated = upgradeZielonkiPlacement(legacy)
+  expect(updated.landscape.zones).toEqual(source.landscape.zones)
+  expect(updated.revision).toBe(legacy.revision + 1)
+  expect(legacy).toEqual(before)
+  terrace.footprint[1].x += 0.2
+  terrace.textureId = 'brick-pavement'
+  expect(upgradeZielonkiCourtyard(source)).toBe(source)
+})
 
 it('places the outside house faces 4 m from the neighbour and 5.25 m from the road, with a connected garage apron', () => {
   const before = fitZielonkiInterior(modernBarnProject, createReferenceHouse())

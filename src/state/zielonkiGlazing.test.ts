@@ -30,7 +30,7 @@ it('opens a saved copy with glazed gables and a living void, then preserves late
   expect(restored.site).toEqual(project.site)
   expect(restored.landscape).toEqual(project.landscape)
   expect(restored.buildings[0].furniture).toEqual(house.furniture)
-  expect(calculateMetrics(project).homeAreaM2 - calculateMetrics(restored).homeAreaM2).toBeCloseTo(5.53 * 7.35, 4)
+  expect(calculateMetrics(project).homeAreaM2 - calculateMetrics(restored).homeAreaM2).toBeCloseTo(7.09 * 7.35, 4)
   const diff = diffProjects(project, restored)
   expect(diff.changes.some((c) => c.kind === 'slab' && c.fields?.includes('holes'))).toBe(true)
   expect(diff.changes.some((c) => c.kind === 'roof-segment' && c.fields?.includes('gableGlazing'))).toBe(true)

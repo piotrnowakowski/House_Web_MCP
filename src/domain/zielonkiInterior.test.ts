@@ -1,13 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { applyModernBarnPreset } from './presets'
 import { validateProject } from './commands'
-import { polygonBounds } from './geometry'
+import { polygonArea, polygonBounds } from './geometry'
 import { measureHeight } from './heightMeasurements'
 import { createReferenceHouse } from './referenceHouse'
 import { roomDimensions } from './roomDimensions'
 import { modernBarnProject } from './sampleProject'
 import { parseProject } from './schema'
-import { fitZielonkiInterior, isExteriorWall, upgradeZielonkiRoof } from './zielonkiInterior'
+import { fitZielonkiInterior, isExteriorWall, livingVoidPartitions, upgradeZielonkiLivingWall, upgradeZielonkiRoof } from './zielonkiInterior'
 
 describe('Zielonki with the measured interior', () => {
   it('retains the rooms and barn style with MPZP gables and a flat garage roof', () => {
@@ -25,11 +25,17 @@ describe('Zielonki with the measured interior', () => {
     expect(house.furniture).toHaveLength(22)
     expect(house.spaces[4].name).toBe('Our garage')
     for (const room of reference.buildings[0].spaces) {
-      if (room.ref === 'space/reference-mezzanine') continue // Replaced by the requested living void.
+      if (['space/reference-mezzanine', 'space/reference-parents', 'space/reference-landing'].includes(room.ref)) continue // Living void and its adjoining rooms follow the requested ridge-aligned partition.
       const before = roomDimensions(reference.buildings[0], room)
       const after = roomDimensions(house, house.spaces.find((s) => s.ref === room.ref)!)
       for (const key of ['width', 'depth', 'area'] as const) expect(after[key], `${room.name} ${key}`).toBeCloseTo(before[key], 4)
     }
+    const parents = roomDimensions(house, house.spaces.find((s) => s.ref === 'space/reference-parents')!)
+    expect(parents.width).toBeCloseTo(3.59)
+    expect(parents.depth).toBeCloseTo(4.5)
+    const landing = house.spaces.find((s) => s.ref === 'space/reference-landing')!
+    const previousLanding = reference.buildings[0].spaces.find((s) => s.ref === landing.ref)!
+    expect(roomDimensions(reference.buildings[0], previousLanding).area - roomDimensions(house, landing).area).toBeCloseTo(1.56 * 2.85, 4)
     const bounds = polygonBounds(house.slabs[0].footprint)
     expect(bounds.maxX - bounds.minX).toBeCloseTo(11.19)
     expect(bounds.maxZ - bounds.minZ).toBeCloseTo(18.31)
@@ -55,6 +61,41 @@ describe('Zielonki with the measured interior', () => {
     expect(house.storeys.every((s) => s.clearHeightM === 2.8)).toBe(true)
     expect(validateProject(fitted).filter((i) => i.severity === 'error')).toEqual([])
     expect(reference.buildings[0].position).toEqual({ x: -5.4, z: -11 })
+  })
+  it('recesses a saved partition and its slab opening to the ridge once, with connected room walls', () => {
+    const current = fitZielonkiInterior(modernBarnProject, createReferenceHouse())
+    const legacy = structuredClone(current)
+    const building = legacy.buildings[0]
+    const partitions = livingVoidPartitions(building)
+    const ridgeX = partitions[0].wall.start.x
+    const wingBounds = polygonBounds(partitions[0].wing.footprint)
+    const upper = building.storeys.find((s) => s.wallRefs.includes(partitions[0].wall.ref))!
+    const returnRef = building.walls.find((wall) => wall.ref.endsWith('/living-void-return'))!.ref
+    building.walls = building.walls.filter((wall) => wall.ref !== returnRef)
+    upper.wallRefs = upper.wallRefs.filter((ref) => ref !== returnRef)
+    building.spaces.forEach((space) => { space.boundary = space.boundary.filter((use) => use.wallRef !== returnRef) })
+    for (const wall of building.walls.filter((w) => upper.wallRefs.includes(w.ref))) {
+      for (const point of [wall.start, wall.end]) if (Math.abs(point.x - ridgeX) < 0.01 && point.z <= wingBounds.maxZ + 0.01) point.x = +(point.x + 1.56).toFixed(6)
+    }
+    const slab = building.slabs.find((s) => s.ref === upper.baseSlabRef)!
+    const hole = slab.holes!.find((h) => polygonBounds(h).maxX > 5)!
+    const edgeX = polygonBounds(hole).minX
+    hole.forEach((p) => { if (Math.abs(p.x - edgeX) < 0.01) p.x += 1.56 })
+    building.interiorSource!.notes = building.interiorSource!.notes.filter((note) => !note.startsWith('Living partition revision'))
+    const before = structuredClone(legacy)
+    const updated = upgradeZielonkiLivingWall(legacy)
+    expect(legacy).toEqual(before)
+    expect(updated.revision).toBe(legacy.revision + 1)
+    expect(updated.buildings).toEqual(current.buildings)
+    expect(polygonArea(updated.buildings[0].slabs.find((s) => s.ref === slab.ref)!.holes![1])).toBeCloseTo(7.09 * 7.35, 4)
+    for (const space of updated.buildings[0].spaces) {
+      const edges = space.boundary.map((use) => {
+        const wall = updated.buildings[0].walls.find((w) => w.ref === use.wallRef)!
+        return use.direction === 1 ? [wall.start, wall.end] : [wall.end, wall.start]
+      })
+      edges.forEach((edge, i) => expect(edge[1]).toEqual(edges[(i + 1) % edges.length][0]))
+    }
+    expect(upgradeZielonkiLivingWall(updated)).toBe(updated)
   })
   it.each([false, true])('corrects a saved roof once, preserving rooms and finishes (old cap: %s)', (oldCap) => {
     const legacy = fitZielonkiInterior(modernBarnProject, createReferenceHouse())
