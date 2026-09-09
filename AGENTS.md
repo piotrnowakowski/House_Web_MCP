@@ -8,8 +8,15 @@
 - Before publishing, validate the schema and geometry, test deletions across save/reload and migration, and verify both a fresh browser and an existing saved project receive the intended data. Report code revision and project revision separately.
 - Browser edits do not automatically commit to Git. Explicitly capture and merge them before delivery. Preserve the previous published project as the migration baseline when changing canonical data; do not replace the original legacy baseline with a newer snapshot.
 
+# Zielonki roof constraints
+
+- Preserve compliance of the main roof slopes with the applicable Zielonki MPZP. For this project's MN/MNU site in plan area 06, Resolution IX/55/2007, section 13(6)(4), requires symmetric gable or hipped main slopes of 37–45 degrees. See `knowledge-bank/zielonki/ZONING.md` for official sources and amendments; recheck the applicable plan before changing this constraint.
+- The r44 house has 1.40 m attic knee walls and both main gables retain their previous pitch of approximately 40.134234 degrees. When changing knee-wall height, move eaves and ridges together to preserve pitch unless the user requests a compliant pitch change. Check each main roof segment after geometry edits and data merges.
+- A compliant main-roof pitch does not establish compliance of the whole building or permission for the flat garage terrace/canopy. Keep those separate questions explicit as documented in the zoning evidence.
+
 # Deployment
 
 - The working house branch is `codex/deploy-furnished-zielonki`, local preview port 5173, public deployment on Mikrus port 20203. Follow `docs/mikrus-deployment.md`.
 - GitHub Pages/main is the separate competition submission. Do not overwrite it when deploying the working house.
+- During the hackathon, treat `main` as frozen and protected: do not commit, merge, rebase, reset or push changes to it, and do not trigger its GitHub Pages deployment. Commit and push house changes only to `codex/deploy-furnished-zielonki` and deploy that branch to Mikrus. Lift this freeze only on the user's explicit instruction; routine requests to commit, push, merge or redeploy do not lift it.
 - Never commit browser profiles, credentials, `.env`, or unrelated browser data. Raw recovery backups belong in ignored `tmp/`; only extracted house project data belongs in Git.
