@@ -105,6 +105,8 @@ async function main() {
           const saved = (await records(page)).find((w) => w.project.ref === published.ref)
           assert.deepEqual(saved.project.landscape.plants, published.landscape.plants)
           assert.equal(saved.project.buildings[0].roof.pitchDegrees, published.buildings[0].roof.pitchDegrees)
+          assert.deepEqual(saved.project.buildings[0].roof.segments.find((segment) => segment.ref.endsWith('/front-barn')).gableGlazing,
+            published.buildings[0].roof.segments.find((segment) => segment.ref.endsWith('/front-barn')).gableGlazing)
           if (scenario === 'recovered') assert.equal(saved.proposals.length, 19)
           await page.reload({ waitUntil: 'domcontentloaded', timeout: 60000 })
           await expect(open).toBeEnabled({ timeout: 30000 })

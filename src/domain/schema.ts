@@ -73,7 +73,10 @@ const StoreySchema = z.object({
 })
 const RoofFinishSchema = z.object({ material: z.enum(['standing-seam-metal', 'tile', 'slate', 'membrane']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) })
 const WallFinishSchema = z.object({ material: z.enum(['charred-timber', 'natural-timber', 'light-render', 'brick', 'metal-panel']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), textureId: z.string().optional() })
-const GableGlazingSchema = z.object({ from: z.number().gt(0).lt(1), to: z.number().gt(0).lt(1), roofInsetM: z.number().positive() }).refine((g) => g.from < g.to)
+const GableGlazingSchema = z.object({
+  from: z.number().gt(0).lt(1), to: z.number().gt(0).lt(1), roofInsetM: z.number().positive(),
+  hostOpeningRefs: z.array(z.string().min(1)).min(1).refine((refs) => new Set(refs).size === refs.length).optional(),
+}).refine((g) => g.from < g.to)
 const RoofSegmentSchema = z.object({
   ref: z.string().min(1), footprint: PolygonSchema, storeyRef: z.string().min(1).optional(), spaceRef: z.string().min(1).optional(), baseElevationM: z.number().finite(),
   type: z.enum(['flat', 'gable', 'hip']), pitchDegrees: z.number().min(0).max(70), overhangM: z.number().min(0).max(3), ridgeDirection: z.enum(['x', 'z']),

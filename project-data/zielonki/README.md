@@ -1,6 +1,12 @@
 # Versioned Zielonki project
 
-`project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09. It is revision **40**, saved **2026-09-09T14:11:23.399Z**, with **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
+`project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09 as revision **40**, saved **2026-09-09T14:11:23.399Z**. The current revision is **41**, retaining **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
+
+## Revision 41 — divided bedroom glazing above the garage
+
+Before editing, the actual Codex browser workspace at **http://natan203.mikrus.xyz:20203/** was extracted into ignored `tmp/garage-glazing-recovery/`. Its project matched tracked r40 exactly, so there were no data conflicts. The previous published snapshot remains in Git as the merge base; `legacy-base.json` is unchanged.
+
+The driveway-side gable now references `opening/reference-children-west-window` and `opening/reference-children-east-window` through `hostOpeningRefs`. Each upper window continues its balcony door's width and central mullion, with a sloping roof-parallel top: two separate trapezoids, separated by the solid wall between bedrooms. Changes to door width/position and roof pitch update the upper panes; removing a hosted door removes its upper pane. The rest of the house and landscape are unchanged. The optional schema field keeps older project files readable.
 
 `recovered-workspace-r40.json` preserves the full source workspace, including 19 proposal records (18 approved, 1 rejected). It is an audit/recovery snapshot and is not imported into the runtime bundle. Raw browser files are backed up only in ignored `tmp/project-recovery-20260909/raw/`.
 

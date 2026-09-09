@@ -695,7 +695,7 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
       const glass = building.architecturalStyle === 'barn' && Boolean(wall) && inferWallOpeningLayout(wall!) === 'full-glass'
       const wallSelected = gableWall.ref === selectedRef
       if (segment.gableGlazing?.[gableWall.side]) return <group key={index} userData={{ semanticRef: gableWall.ref, buildingRef: building.ref }} onPointerDown={(event) => { if (ghost) return; event.stopPropagation(); setSelectedRef(gableWall.ref) }}>
-        <GlazedGable segment={segment} side={gableWall.side} value={offset} finish={finish} selected={wallSelected} ghost={ghost} />
+        <GlazedGable building={building} segment={segment} side={gableWall.side} value={offset} finish={finish} selected={wallSelected} ghost={ghost} />
       </group>
       const at = (across: number, y: number, along: number): [number, number, number] => alongZ ? [across, y, along] : [along, y, across]
       const cladding = !glass && !texture && ['charred-timber', 'metal-panel'].includes(finish.material)

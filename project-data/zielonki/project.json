@@ -3,8 +3,8 @@
   "ref": "project/zielonki-spatial-v2",
   "name": "Zielonki · Dom z planów",
   "units": "metric",
-  "revision": 40,
-  "updatedAt": "2026-09-09T14:11:23.399Z",
+  "revision": 41,
+  "updatedAt": "2026-09-09T22:22:06.512Z",
   "site": {
     "boundary": [
       {
@@ -3552,7 +3552,11 @@
               "max": {
                 "from": 0.09,
                 "to": 0.91,
-                "roofInsetM": 0.28
+                "roofInsetM": 0.28,
+                "hostOpeningRefs": [
+                  "opening/reference-children-west-window",
+                  "opening/reference-children-east-window"
+                ]
               }
             }
           },

@@ -20,7 +20,7 @@ it('adds front glazing and bedroom exits aligned with the guarded garage terrace
   const front = b.roof.segments.find((s) => s.ref.endsWith('/front-barn'))!
   const garage = b.roof.segments.find((s) => s.ref.endsWith('/garage-cap'))!
   const profile = gableGlazingProfile(front, 'max')!
-  expect(profile.opening.every((p) => pointInPolygon(p, profile.outline))).toBe(true)
+  expect(profile.panels[0].opening.every((p) => pointInPolygon(p, profile.outline))).toBe(true)
   expect(polygonBounds(front.footprint).maxZ).toBeCloseTo(polygonBounds(garage.footprint).minZ)
   expect(garage.terrace).toEqual({ railingHeightM: 1.1, openEdgeIndex: 0, frameColorHex: '#121817' })
   const doors = b.walls.flatMap((wall) => wall.openings.filter((o) => o.glazed).map((opening) => ({ wall, opening })))
