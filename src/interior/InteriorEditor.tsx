@@ -157,12 +157,11 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
   const saveItem = (changed: InteriorItem) => {
     const original = items.find((i) => i.ref === changed.ref)
     if (!original?.groupRef) {
-      commit(put(changed))
-      return
+      return commit(put(changed))
     }
     const angle = ((changed.rotationDegrees - original.rotationDegrees) * Math.PI) / 180
     const members = items.filter((i) => i.groupRef === original.groupRef)
-    commit(
+    return commit(
       members.map((i) => {
         if (i.ref === original.ref) return put(changed)
         const dx = i.position.x - original.position.x

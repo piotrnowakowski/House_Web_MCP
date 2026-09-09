@@ -1,6 +1,6 @@
 /** Read-only scene inspection and a deterministic project fixture for local browser regressions. */
 import { _roots } from '@react-three/fiber'
-import { Vector3 } from 'three'
+import { Box3, Vector3 } from 'three'
 import { sampleProject } from '../src/domain/sampleProject'
 import { useStudioStore } from '../src/state/store'
 
@@ -28,6 +28,12 @@ export function camera() {
     rotation: value.camera.quaternion.toArray(),
     zoom: value.camera.zoom,
   }
+}
+export function modelSize(ref: string) {
+  const canvas = document.querySelector('canvas')!
+  const scene = _roots.get(canvas)!.store.getState().scene
+  const model = scene.getObjectByName(`interior-product/${ref}`)
+  return model ? new Box3().setFromObject(model, true).getSize(new Vector3()).toArray() : null
 }
 export function point(x: number, z: number, y = 0) {
   const canvas = document.querySelector('canvas')!

@@ -51,6 +51,98 @@ async function choose(page: Page, name = 'LACK Coffee table') {
 }
 
 // The new controls replace the legacy always-open inspector; all editing below uses public UI.
+for (const viewport of [
+  { width: 1280, height: 800 },
+  { width: 390, height: 844 },
+]) {
+  test(`dimensions window ${viewport.width}: catalogue minimum, cancel, rendered enlargement and history`, async ({
+    browser,
+  }) => {
+    const context = await browser.newContext({
+      viewport,
+      isMobile: viewport.width < 600,
+      hasTouch: viewport.width < 600,
+    })
+    const page = await context.newPage()
+    try {
+      await start(page)
+      await choose(page)
+      await clickPoint(page, -3, 2)
+      await expect.poll(async () => (await read(page)).project.buildings[0].furniture?.length).toBe(1)
+      await page.getByRole('button', { name: 'Edit', exact: true }).click()
+      const pencil = page.getByRole('button', { name: 'Edit dimensions', exact: true })
+      const dialog = page.getByRole('dialog', { name: 'Dimensions', exact: true })
+      const width = dialog.getByRole('spinbutton', { name: 'Width (m)', exact: true })
+      const before = await read(page)
+      const beforeCamera = await camera(page)
+      await expect(page.getByRole('spinbutton', { name: 'Width (m)', exact: true })).toHaveCount(0)
+      await pencil.click()
+      await expect(width).toHaveValue('0.9')
+      await expect(width).toHaveAttribute('min', '0.9')
+      await expect(dialog.getByRole('slider')).toHaveCount(0)
+      expect(await camera(page)).toEqual(beforeCamera)
+      const bounds = await dialog.boundingBox()
+      expect(bounds!.x).toBeGreaterThanOrEqual(0)
+      expect(bounds!.y).toBeGreaterThanOrEqual(0)
+      expect(bounds!.x + bounds!.width).toBeLessThanOrEqual(viewport.width)
+      expect(bounds!.y + bounds!.height).toBeLessThanOrEqual(viewport.height)
+      await page.screenshot({ path: `output/interior-editor/dimensions-${viewport.width}.png` })
+      await width.fill('1.2')
+      await dialog.getByRole('button', { name: 'Cancel', exact: true }).click()
+      expect((await read(page)).history).toBe(before.history)
+      await expect(pencil).toBeFocused()
+      await pencil.click()
+      await page.keyboard.press('Escape')
+      await expect(dialog).toHaveCount(0)
+      await expect(pencil).toBeVisible()
+      await pencil.click()
+      await width.fill('0.8')
+      await dialog.getByRole('button', { name: 'Save dimensions', exact: true }).click()
+      await expect(dialog).toBeVisible()
+      expect((await read(page)).history).toBe(before.history)
+      await width.fill('20')
+      await dialog.getByRole('button', { name: 'Save dimensions', exact: true }).click()
+      await expect(dialog.getByRole('alert')).toBeVisible()
+      expect((await read(page)).history).toBe(before.history)
+      await width.fill('1.2')
+      await dialog.getByRole('spinbutton', { name: 'Depth (m)', exact: true }).fill('0.7')
+      await dialog.getByRole('spinbutton', { name: 'Height (m)', exact: true }).fill('0.6')
+      await dialog.getByRole('button', { name: 'Save dimensions', exact: true }).click()
+      await expect(dialog).toHaveCount(0)
+      const enlarged = (await read(page)).project.buildings[0].furniture[0]
+      expect(enlarged).toMatchObject({ widthM: 1.2, depthM: 0.7, heightM: 0.6 })
+      expect((await read(page)).history).toBe(before.history + 1)
+      await expect
+        .poll(async () =>
+          page.evaluate(
+            async ({ url, ref }) => {
+              const size = (await import(/* @vite-ignore */ url)).modelSize(ref)
+              return size?.map((value: number) => +value.toFixed(3))
+            },
+            { url: harness, ref: enlarged.ref },
+          ),
+        )
+        .toEqual([1.2, 0.6, 0.7])
+      await page.getByRole('button', { name: 'Close panel', exact: true }).click()
+      if (viewport.width < 600) await page.getByRole('button', { name: 'More', exact: true }).click()
+      await page.getByRole('button', { name: 'Undo', exact: true }).click()
+      expect((await read(page)).project.buildings[0].furniture[0].widthM).toBe(0.9)
+      await page.getByRole('button', { name: 'Redo', exact: true }).click()
+      await page.waitForTimeout(600)
+      await page.reload()
+      await page.getByRole('button', { name: /Continue · Interior browser study/ }).click()
+      await page.getByRole('button', { name: 'House interior', exact: true }).click()
+      expect((await read(page)).project.buildings[0].furniture[0]).toMatchObject({
+        widthM: 1.2,
+        depthM: 0.7,
+        heightM: 0.6,
+      })
+    } finally {
+      await context.close()
+    }
+  })
+}
+
 test('desktop furniture placement, precision, grouped history, cancellation and autosave', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (e) => errors.push(e.message))
@@ -59,7 +151,8 @@ test('desktop furniture placement, precision, grouped history, cancellation and 
   await clickPoint(page, -3, 2)
   await expect.poll(async () => (await read(page)).project.buildings[0].furniture?.length).toBe(1)
   await page.getByRole('button', { name: 'Edit', exact: true }).click()
-  await expect(page.getByRole('spinbutton', { name: 'Width (m)', exact: true })).toBeDisabled()
+  await expect(page.getByRole('spinbutton', { name: 'Width (m)', exact: true })).toHaveCount(0)
+  await expect(page.getByRole('button', { name: 'Edit dimensions', exact: true })).toBeVisible()
   await expect(page.getByRole('slider')).toHaveCount(0)
   await page.getByRole('button', { name: 'Adjust Rotation (°)', exact: true }).click()
   await expect(page.getByRole('slider', { name: 'Rotation (°) slider' })).toBeVisible()
@@ -308,12 +401,10 @@ test('project alternatives and downloads preserve the original and printable pla
   await expect.poll(async () => (await read(page)).project.ref).not.toBe(before.project.ref)
   const after = await read(page)
   expect(after.project.buildings).toEqual(before.project.buildings)
-  await page
-    .getByLabel('Import interior project file')
-    .setInputFiles({
-      name: 'project.json',
-      mimeType: 'application/json',
-      buffer: Buffer.from(JSON.stringify(before.project)),
-    })
+  await page.getByLabel('Import interior project file').setInputFiles({
+    name: 'project.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(before.project)),
+  })
   await expect.poll(async () => (await read(page)).project.name).toBe('Interior browser study — imported')
 })

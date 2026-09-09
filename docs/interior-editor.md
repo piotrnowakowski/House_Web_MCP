@@ -15,7 +15,7 @@ Worktree: `C:\Users\piotr\Documents\ChatGPT\Web_MCP-ikea-interior`, branch `code
 | Navigate | 2D Plan, 3D Cutaway, Room view; Fit; More → building/floor, Fit house or selected room. Cameras are remembered per project, building, floor and view for the session. |
 | Add furniture | Add → IKEA or generic → search/category/favourites → choose a configuration. Catalogue closes and a correctly sized placement outline appears. Tap the floor or use Place here. Rotate or Cancel before committing. |
 | Move | Select and drag. On touch, tap to select first, then drag the selected object. The camera is suspended during manipulation. Interrupted pointers, a second finger, Escape, lost capture, window blur or a hidden document cancel the draft. |
-| Precision | Edit → position, elevation, rotation and dimensions. Numeric fields and step buttons are always available. Adjust opens the one shared slider strip; opening another precision property replaces it. Apply changes commits once. IKEA dimensions/finish are fixed to the selected article; generic objects remain resizable. |
+| Precision | Edit → position, elevation and rotation. Dimensions appear as a compact readout with a pencil icon that opens a separate modal. All catalogue objects start at their original size; the modal allows each dimension to increase, or return to the catalogue minimum. Cancel/Escape discards the draft; Save dimensions commits once. Sliders open only for the selected property. IKEA finishes remain tied to the article. |
 | Multiple objects | Shift-select on desktop or Edit → Select multiple objects. More offers Group, Ungroup, Lock, Unlock, Duplicate and Delete. A group's translation/rotation/elevation changes commit atomically. |
 | Replace | Select → More → Replace furniture. The new product retains the old location and angle; incompatible size/height is rejected. |
 | Rooms | Edit → Rooms on this level → name, usage, dimensions and Draw partition. In plan view, choose two room walls to draw a straight partition. Select an internal partition and remove it to merge its two rooms. Remove its openings first. |
@@ -26,6 +26,8 @@ Worktree: `C:\Users\piotr\Documents\ChatGPT\Web_MCP-ikea-interior`, branch `code
 | History | Undo/redo, Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z or Ctrl+Y. A completed drag or group edit is one history entry. Cancel makes no history entry. History is session-only; saved project geometry survives reload. |
 
 Arrow keys nudge selected furniture by the grid step (Shift for a larger step); R rotates by 15 degrees, Delete removes and Escape cancels the active tool. Locked objects reject edits through both UI and WebMCP.
+
+Existing saved furniture keeps its fitted dimensions when loaded or moved. New placements and dimension edits cannot go below the catalogue reference size. Enlarged IKEA instances are custom planning sizes; their manufacturer reference and original asset remain unchanged. The displayed model, placement footprint, collision checks and exports use the placed dimensions.
 
 Room dimensions are inside-face measurements. Numeric resizing moves one available straight internal side while keeping the opposite side anchored. Irregular rooms, fragmented bounding sides, or dimensions bounded by two exterior walls may require editing the connected partition endpoints instead. The UI reports the unsupported resize rather than changing the envelope.
 

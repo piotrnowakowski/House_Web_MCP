@@ -76,7 +76,12 @@ export function ProductModel({ item, mobile = false }: { item: InteriorItem; mob
       }
     >
       <Suspense fallback={<FootprintFallback item={item} />}>
-        <LoadedProduct url={url} />
+        <group
+          name={`interior-product/${item.ref}`}
+          scale={[item.widthM / product.size[0], item.heightM / product.size[2], item.depthM / product.size[1]]}
+        >
+          <LoadedProduct url={url} />
+        </group>
       </Suspense>
     </ModelBoundary>
   )

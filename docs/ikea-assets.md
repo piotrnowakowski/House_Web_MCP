@@ -2,6 +2,8 @@
 
 Sources inspected on **9 September 2026**. Dimensions below are **assembled width × depth × height in centimetres**, not shipping packages. Each article defines one supported finish/configuration. No live availability, stock or price is fetched.
 
+Placements start at these dimensions. The dimensions pencil opens an optional enlargement dialog; scaled instances keep this original reference unchanged. Both GLB detail levels scale to the placed width/depth/height, while shared source meshes remain at their original dimensions. Enlarged instances are custom planning sizes, not additional IKEA variants.
+
 | Configuration | Article · Poland reference | W × D × H (cm) | Supported finish | Assembly / source note |
 | --- | --- | --- | --- | --- |
 | KIVIK 3-seat sofa | [89482830](https://www.ikea.com/pl/pl/p/kivik-sofa-3-osobowa-tresund-jasnobezowy-s89482830/) | 228 × 95 × 83 | Tresund light beige |  |

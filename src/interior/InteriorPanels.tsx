@@ -1,6 +1,6 @@
-import { createContext, useContext, useEffect, useId, useState, type ReactNode } from 'react'
-import { Heart, SlidersHorizontal } from 'lucide-react'
-import { interiorCatalog } from '../domain/interior'
+import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { Heart, Pencil, SlidersHorizontal, X } from 'lucide-react'
+import { interiorCatalog, interiorOriginalSize } from '../domain/interior'
 import { ikeaCatalog, ikeaProduct } from '../domain/ikeaCatalog'
 import { finishFromPreset, interiorFinishes } from '../domain/interiorFinishes'
 import { polygonBounds, spaceFootprint, wallLength } from '../domain/geometry'
@@ -98,7 +98,12 @@ export function PrecisionField({
   )
 }
 
-const searchText = (value: string) => value.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase().trim()
+const searchText = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .trim()
 
 export function FurnitureCatalog({ onChoose }: { onChoose: (id: string, generic: boolean) => void }) {
   const [generic, setGeneric] = useState(false)
@@ -112,7 +117,13 @@ export function FurnitureCatalog({ onChoose }: { onChoose: (id: string, generic:
     }
   })
   const entries = generic
-    ? interiorCatalog.map((p) => ({ ...p, family: '', thumbnail: '', finish: 'Resizable', assemblyNote: '' }))
+    ? interiorCatalog.map((p) => ({
+        ...p,
+        family: '',
+        thumbnail: '',
+        finish: 'Original catalogue size',
+        assemblyNote: '',
+      }))
     : ikeaCatalog
   const categories = ['All', 'Favorites', ...new Set(entries.map((p) => p.category))]
   const filtered = entries.filter(
@@ -195,7 +206,7 @@ export function FurnitureCatalog({ onChoose }: { onChoose: (id: string, generic:
       </div>
       {!filtered.length && <p>No matching furniture.</p>}
       <p className="interior-note">
-        Original planning models. IKEA references describe fixed configurations; generic fittings can be resized.
+        Objects start at their original catalogue size. Use the pencil beside Dimensions to enlarge a placed object.
       </p>
     </section>
   )
@@ -204,109 +215,225 @@ export function FurnitureCatalog({ onChoose }: { onChoose: (id: string, generic:
 type Commit = (command: ProjectCommand) => boolean
 type Context = { building: BuildingModel; storey: StoreyModel; commit: Commit }
 
-export function ItemInspector({ item, onSave }: { item: InteriorItem; onSave: (item: InteriorItem) => void }) {
+const sizeLabel = (size: number[]) => `${size.map((value) => +(value * 100).toFixed(1)).join(' × ')} cm`
+
+export function ItemInspector({ item, onSave }: { item: InteriorItem; onSave: (item: InteriorItem) => boolean }) {
   const [draft, setDraft] = useState(item)
+  const [dimensionsOpen, setDimensionsOpen] = useState(false)
   useEffect(() => setDraft(item), [item])
   const product = ikeaProduct(item.productId)
+  const originalSize = interiorOriginalSize(item)
+  const currentSize = [item.widthM, item.depthM, item.heightM]
+  const isOriginal = currentSize.every((value, index) => Math.abs(value - originalSize[index]) < 1e-6)
   return (
-    <form
-      className="interior-inspector-form"
-      onSubmit={(e) => {
-        e.preventDefault()
-        onSave(draft)
+    <>
+      <form
+        className="interior-inspector-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          onSave(draft)
+        }}
+      >
+        <h3>{item.name}</h3>
+        <div className="interior-size-summary">
+          <div>
+            <span>Dimensions · W × D × H</span>
+            <strong>{sizeLabel(currentSize)}</strong>
+            <small>{isOriginal ? 'Original catalogue size' : `Catalogue: ${sizeLabel(originalSize)}`}</small>
+          </div>
+          <button
+            type="button"
+            title="Edit dimensions"
+            aria-label="Edit dimensions"
+            disabled={item.locked}
+            onClick={() => setDimensionsOpen(true)}
+          >
+            <Pencil size={16} />
+          </button>
+        </div>
+        {product && (
+          <>
+            <a href={product.productUrl} target="_blank" rel="noreferrer">
+              IKEA Poland · {product.articleNumber}
+            </a>
+            <p className="interior-note">
+              {product.finish} · {product.assemblyNote || 'Assembled dimensions'}
+              {product.availabilityNote && ` · ${product.availabilityNote}`}
+            </p>
+          </>
+        )}
+        <label className="interior-field">
+          <span>Object name</span>
+          <input
+            value={draft.name}
+            maxLength={100}
+            required
+            disabled={item.locked}
+            onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+          />
+        </label>
+        <fieldset disabled={item.locked} className="interior-fields">
+          <PrecisionField
+            label="Position X (m)"
+            min={-100}
+            max={100}
+            value={draft.position.x}
+            onChange={(x) => setDraft({ ...draft, position: { ...draft.position, x } })}
+          />
+          <PrecisionField
+            label="Position Z (m)"
+            min={-100}
+            max={100}
+            value={draft.position.z}
+            onChange={(z) => setDraft({ ...draft, position: { ...draft.position, z } })}
+          />
+          <PrecisionField
+            label="Rotation (°)"
+            min={-360}
+            max={360}
+            step={1}
+            value={draft.rotationDegrees}
+            onChange={(rotationDegrees) => setDraft({ ...draft, rotationDegrees })}
+          />
+          <PrecisionField
+            label="Elevation (m)"
+            max={8}
+            value={draft.elevationM ?? 0}
+            onChange={(elevationM) => setDraft({ ...draft, elevationM })}
+          />
+          {!product && (
+            <label className="interior-field">
+              Finish color
+              <input type="color" value={draft.color} onChange={(e) => setDraft({ ...draft, color: e.target.value })} />
+            </label>
+          )}
+        </fieldset>
+        <button className="interior-primary" disabled={item.locked}>
+          Apply changes
+        </button>
+        <p className="interior-note">
+          {item.locked
+            ? 'Unlock to edit this object.'
+            : 'Tap to select, then drag to move. R rotates; arrow keys move; Shift selects more.'}
+        </p>
+      </form>
+      {dimensionsOpen && (
+        <ItemDimensionsDialog key={item.ref} item={item} onSave={onSave} onClose={() => setDimensionsOpen(false)} />
+      )}
+    </>
+  )
+}
+
+function ItemDimensionsDialog({
+  item,
+  onSave,
+  onClose,
+}: {
+  item: InteriorItem
+  onSave: (item: InteriorItem) => boolean
+  onClose: () => void
+}) {
+  const dialog = useRef<HTMLDialogElement>(null)
+  const heading = useId()
+  const description = useId()
+  const original = interiorOriginalSize(item)
+  const [size, setSize] = useState(() =>
+    [item.widthM, item.depthM, item.heightM].map((value, index) => Math.max(value, original[index])),
+  )
+  const [error, setError] = useState('')
+  useEffect(() => {
+    const element = dialog.current!
+    const opener = document.activeElement as HTMLElement | null
+    const viewport = window.visualViewport
+    const update = () => {
+      element.style.setProperty('--dialog-height', `${viewport?.height ?? window.innerHeight}px`)
+      element.style.setProperty('--dialog-top', `${viewport?.offsetTop ?? 0}px`)
+    }
+    update()
+    element.showModal()
+    viewport?.addEventListener('resize', update)
+    viewport?.addEventListener('scroll', update)
+    return () => {
+      viewport?.removeEventListener('resize', update)
+      viewport?.removeEventListener('scroll', update)
+      element.close()
+      opener?.focus({ preventScroll: true })
+    }
+  }, [])
+  return (
+    <dialog
+      ref={dialog}
+      className="interior-dimensions-dialog"
+      aria-labelledby={heading}
+      aria-describedby={description}
+      onKeyDown={(event) => event.stopPropagation()}
+      onPointerDown={(event) => event.stopPropagation()}
+      onCancel={(event) => {
+        event.preventDefault()
+        onClose()
       }}
     >
-      <h3>{item.name}</h3>
-      {product && (
-        <>
-          <a href={product.productUrl} target="_blank" rel="noreferrer">
-            IKEA Poland · {product.articleNumber}
-          </a>
-          <p className="interior-note">
-            {product.finish} · {product.assemblyNote || 'Assembled dimensions'}
-            {product.availabilityNote && ` · ${product.availabilityNote}`}
+      <header>
+        <h2 id={heading}>Dimensions</h2>
+        <button type="button" aria-label="Close dimensions" onClick={onClose}>
+          <X size={18} />
+        </button>
+      </header>
+      <form
+        className="interior-inspector-form"
+        onSubmit={(event) => {
+          event.preventDefault()
+          if (size[0] === item.widthM && size[1] === item.depthM && size[2] === item.heightM) {
+            onClose()
+            return
+          }
+          if (onSave({ ...item, widthM: size[0], depthM: size[1], heightM: size[2] })) onClose()
+          else setError('Cannot apply these dimensions. Check available floor space, room height and object locks.')
+        }}
+      >
+        <p className="interior-note" id={description}>
+          Original: {sizeLabel(original)}. You can enlarge each dimension; the catalogue size is the minimum.
+        </p>
+        <fieldset disabled={item.locked} className="dimension-dialog-fields">
+          {['Width (m)', 'Depth (m)', 'Height (m)'].map((label, index) => (
+            <PrecisionField
+              key={label}
+              label={label}
+              min={original[index]}
+              max={index === 2 ? 5 : 20}
+              value={size[index]}
+              onChange={(value) => {
+                setSize(size.map((current, i) => (i === index ? value : current)))
+                setError('')
+              }}
+            />
+          ))}
+        </fieldset>
+        {error && (
+          <p className="interior-warnings" role="alert">
+            {error}
           </p>
-        </>
-      )}
-      <label className="interior-field">
-        <span>Object name</span>
-        <input
-          value={draft.name}
-          maxLength={100}
-          required
-          disabled={item.locked}
-          onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-        />
-      </label>
-      <fieldset disabled={item.locked} className="interior-fields">
-        <PrecisionField
-          label="Position X (m)"
-          min={-100}
-          max={100}
-          value={draft.position.x}
-          onChange={(x) => setDraft({ ...draft, position: { ...draft.position, x } })}
-        />
-        <PrecisionField
-          label="Position Z (m)"
-          min={-100}
-          max={100}
-          value={draft.position.z}
-          onChange={(z) => setDraft({ ...draft, position: { ...draft.position, z } })}
-        />
-        <PrecisionField
-          label="Rotation (°)"
-          min={-360}
-          max={360}
-          step={1}
-          value={draft.rotationDegrees}
-          onChange={(rotationDegrees) => setDraft({ ...draft, rotationDegrees })}
-        />
-        <PrecisionField
-          label="Elevation (m)"
-          max={8}
-          value={draft.elevationM ?? 0}
-          onChange={(elevationM) => setDraft({ ...draft, elevationM })}
-        />
-        <PrecisionField
-          label="Width (m)"
-          min={0.1}
-          max={20}
-          value={draft.widthM}
-          disabled={!!product}
-          onChange={(widthM) => setDraft({ ...draft, widthM })}
-        />
-        <PrecisionField
-          label="Depth (m)"
-          min={0.1}
-          max={20}
-          value={draft.depthM}
-          disabled={!!product}
-          onChange={(depthM) => setDraft({ ...draft, depthM })}
-        />
-        <PrecisionField
-          label="Height (m)"
-          min={0.001}
-          max={5}
-          value={draft.heightM}
-          disabled={!!product}
-          onChange={(heightM) => setDraft({ ...draft, heightM })}
-        />
-        {!product && (
-          <label className="interior-field">
-            Finish color
-            <input type="color" value={draft.color} onChange={(e) => setDraft({ ...draft, color: e.target.value })} />
-          </label>
         )}
-      </fieldset>
-      <button className="interior-primary" disabled={item.locked}>
-        Apply changes
-      </button>
-      <p className="interior-note">
-        {item.locked
-          ? 'Unlock to edit this object.'
-          : 'Tap to select, then drag to move. R rotates; arrow keys move; Shift selects more.'}
-      </p>
-    </form>
+        <button
+          type="button"
+          disabled={item.locked}
+          onClick={() => {
+            setSize([...original])
+            setError('')
+          }}
+        >
+          Original size
+        </button>
+        <div className="interior-button-row">
+          <button type="button" onClick={onClose}>
+            Cancel
+          </button>
+          <button className="interior-primary" disabled={item.locked}>
+            Save dimensions
+          </button>
+        </div>
+      </form>
+    </dialog>
   )
 }
 

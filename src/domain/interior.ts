@@ -39,6 +39,11 @@ export const InteriorItemSchema = z.object({
   productId: z.string().optional(), variantId: z.string().optional(), elevationM: z.number().min(0).max(8).optional(),
   groupRef: z.string().min(1).optional(), locked: z.boolean().optional(),
 })
+
+/** Catalogue dimensions remain the reference even when a placed object is enlarged. */
+export function interiorOriginalSize(item: Pick<InteriorItem, 'productId' | 'catalogId'>): [number, number, number] {
+  return ikeaProduct(item.productId)?.size ?? interiorCatalog.find((entry) => entry.id === item.catalogId)!.size
+}
 export const interiorCorners = (item: Pick<InteriorItem, 'position' | 'rotationDegrees' | 'widthM' | 'depthM'>): Polygon2 => {
   const angle = item.rotationDegrees * Math.PI / 180
   return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([x, z]) => ({
@@ -127,15 +132,21 @@ export function applyInterior(building: BuildingModel, command: InteriorCommand)
   }
   if (command.action === 'put') {
     const item = InteriorItemSchema.parse(command.item)
+    const existing = building.furniture?.find((entry) => entry.ref === item.ref)
     if (item.storeyRef !== storey.ref) throw new Error('Furniture must belong to the selected floor.')
     if (item.heightM + (item.elevationM ?? 0) > availableInteriorHeight(item, building, storey)) throw new Error('This item is taller than the room at its chosen elevation.')
     if (item.productId) {
       const product = ikeaProduct(item.productId)
       if (!product || product.articleNumber !== item.variantId || product.catalogId !== item.catalogId) throw new Error('Choose a supported IKEA product and variant.')
-      if ([item.widthM, item.depthM, item.heightM].some((value, index) => Math.abs(value - product.size[index]) > 0.001) || item.color.toLowerCase() !== product.color.toLowerCase()) throw new Error('IKEA products keep their real dimensions and supported finish. Choose another product to change size or finish.')
+      if (item.color.toLowerCase() !== product.color.toLowerCase()) throw new Error('IKEA products keep their supported finish. Choose another product to change finish.')
     }
+    // Keep existing custom-sized projects movable. New or resized objects may not shrink below their catalogue size.
+    const sizeChanged = !existing || existing.catalogId !== item.catalogId || existing.productId !== item.productId ||
+      existing.widthM !== item.widthM || existing.depthM !== item.depthM || existing.heightM !== item.heightM
+    const originalSize = interiorOriginalSize(item)
+    if (sizeChanged && [item.widthM, item.depthM, item.heightM].some((value, index) => value < originalSize[index] - 1e-6))
+      throw new Error('Dimensions cannot be smaller than the original catalogue size.')
     if (!itemFitsFloor(item, slab.footprint, slab.holes)) throw new Error('Keep the whole item inside this floor and clear of stair openings. Try a smaller item or another position.')
-    const existing = building.furniture?.find((entry) => entry.ref === item.ref)
     if (existing?.locked) throw new Error('Unlock this object before editing it.')
     if (existing && existing.storeyRef !== storey.ref) throw new Error('This item belongs to another floor.')
     building.furniture = [...(building.furniture ?? []).filter((entry) => entry.ref !== item.ref), item]

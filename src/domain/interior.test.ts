@@ -13,6 +13,21 @@ const item: InteriorItem = { ref: 'interior/test-sofa', catalogId: 'sofa', store
 const put = (value = item): ProjectCommand => ({ type: 'interior.update', buildingRef: house.ref, storeyRef: floor.ref, action: 'put', item: value })
 
 describe('Interior project edits', () => {
+  it('enlarges generic furniture without changing its catalogue reference and preserves older fitted sizes', () => {
+    const bigger = { ...item, widthM: 2.8 }
+    const added = applyCommand(modernBarnProject, put(bigger))
+    expect(parseProject(JSON.parse(JSON.stringify(added))).buildings[0].furniture?.[0].widthM).toBe(2.8)
+    expect(interiorCatalog.find((entry) => entry.id === item.catalogId)!.size[0]).toBe(2.4)
+    for (const dimension of ['widthM', 'depthM', 'heightM'] as const) {
+      expect(() => applyCommand(added, put({ ...bigger, [dimension]: item[dimension] - 0.1 }))).toThrow(/catalogue size/)
+    }
+    const legacy = structuredClone(modernBarnProject)
+    const fitted = { ...item, widthM: 1.8 }
+    legacy.buildings[0].furniture = [fitted]
+    const moved = applyCommand(parseProject(JSON.parse(JSON.stringify(legacy))), put({ ...fitted, position: { x: -3, z: -2 } }))
+    expect(moved.buildings[0].furniture?.[0].widthM).toBe(1.8)
+    expect(() => applyCommand(moved, put({ ...fitted, widthM: 1.7 }))).toThrow(/catalogue size/)
+  })
   it('persists add, movement, rotation and deletion without losing other building data', () => {
     const added = applyCommand(modernBarnProject, put())
     expect(house.furniture).toBeUndefined()
