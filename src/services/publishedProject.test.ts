@@ -15,7 +15,7 @@ beforeEach(() => { globalThis.indexedDB = new IDBFactory() })
 it('publishes the recovered geometry, six surviving plants and the adjusted roof', () => {
   expect(parseProject(publishedProject)).toEqual(publishedProject)
   expect(validateProject(publishedProject).filter((issue) => issue.severity === 'error')).toEqual([])
-  expect(publishedProject.revision).toBe(41)
+  expect(publishedProject.revision).toBe(42)
   expect(publishedProject.landscape.plants.map((plant) => plant.ref)).toEqual([
     'plant/survey-5012', 'plant/survey-5015', 'plant/survey-5018', 'plant/survey-501b', 'plant/apple', 'plant/orchard-plum',
   ])

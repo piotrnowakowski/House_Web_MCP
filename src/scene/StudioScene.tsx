@@ -35,6 +35,7 @@ import { MeasurementPoint } from './MeasurementPoint'
 import { GlazedGable } from './GlazedGable'
 import { GableFrame } from './GableFrame'
 import { RoofTerrace } from './RoofTerrace'
+import { RoofCanopy } from './RoofCanopy'
 
 const REAL = { slab: '#d6d0bf', wall: '#e8e1d2', roof: '#6f4735', soil: '#918867' }
 const BARN = { slab: '#777269', wall: '#282d2c', roof: '#343a3b' }
@@ -763,6 +764,7 @@ function Roof({ building, selected, yOffset, ghost }: { building: BuildingModel;
       return <group key={wing.ref} userData={{ semanticRef: wing.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(wing.ref) }}>
         {segment.type === 'gable' ? <GableWing building={building} wing={wing} segment={segment} ghost={ghost} selected={highlighted} /> : <SegmentRoof wing={wing} segment={segment} ghost={ghost} selected={highlighted} />}
         {segment.type === 'flat' && segment.terrace && <RoofTerrace segment={segment} selected={highlighted} ghost={ghost} />}
+        {segment.type === 'flat' && segment.canopy && <RoofCanopy segment={segment} selected={highlighted} ghost={ghost} />}
       </group>
     })}
   </group>

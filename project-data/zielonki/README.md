@@ -1,7 +1,14 @@
 # Versioned Zielonki project
 
-`project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09 as revision **40**, saved **2026-09-09T14:11:23.399Z**. The current revision is **41**, retaining **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
+`project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09 as revision **40**, saved **2026-09-09T14:11:23.399Z**. The current revision is **42**, retaining **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
 
+## Revision 42 — ground-floor courtyard canopy
+
+The user clarified that the reference applies to the ground-floor terrace, not the terrace above the garage. A flat canopy now spans the courtyard (3.50 × 10.56 m), joining the garage cap at the same 3.49 m top elevation and meeting the projecting living wing facade. Its 65 cm charcoal fascia, textured timber soffit, warm timber courtyard wall cladding and two 20 cm posts follow the reference image. The outer fascia leaves 2.39 m above terrace level. The upstairs glass guard, divided trapezoid windows, rooms, furniture and landscape are preserved.
+
+Before editing on 2026-09-10, the actual Codex browser's public-origin workspace and published baseline were copied to ignored `tmp/terrace-style-recovery/`. Both contain identical r40 project data (saved 2026-09-09T14:11:23.399Z): there are no unmerged browser edits or conflicts. The change therefore extends tracked r41, retaining its window changes. `published-base-r41.json` preserves the immediately previous published project for recovery and merge regression tests; `legacy-base.json` remains immutable. Runtime migration still uses each browser's own stored published baseline.
+
+The additive `RoofSegmentModel.canopy` field stores fascia edges/height, timber tint and building-local post positions/elevation. It participates in schema parsing, semantic project diffs and geometry validation; the renderer uses the existing flat roof surface and shared timber texture. This is the visual architectural model, not a structural specification.
 ## Revision 41 — divided bedroom glazing above the garage
 
 Before editing, the actual Codex browser workspace at **http://natan203.mikrus.xyz:20203/** was extracted into ignored `tmp/garage-glazing-recovery/`. Its project matched tracked r40 exactly, so there were no data conflicts. The previous published snapshot remains in Git as the merge base; `legacy-base.json` is unchanged.

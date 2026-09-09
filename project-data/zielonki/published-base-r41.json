@@ -3,8 +3,8 @@
   "ref": "project/zielonki-spatial-v2",
   "name": "Zielonki · Dom z planów",
   "units": "metric",
-  "revision": 42,
-  "updatedAt": "2026-09-09T22:41:04.447Z",
+  "revision": 41,
+  "updatedAt": "2026-09-09T22:22:06.512Z",
   "site": {
     "boundary": [
       {
@@ -2041,9 +2041,8 @@
           "heightM": 2.8,
           "openings": [],
           "finish": {
-            "material": "natural-timber",
-            "colorHex": "#C8A476",
-            "textureId": "hinoki"
+            "material": "charred-timber",
+            "colorHex": "#242927"
           },
           "locked": false
         },
@@ -2339,9 +2338,8 @@
             }
           ],
           "finish": {
-            "material": "natural-timber",
-            "colorHex": "#C8A476",
-            "textureId": "hinoki"
+            "material": "charred-timber",
+            "colorHex": "#242927"
           },
           "locked": false
         },
@@ -2381,9 +2379,8 @@
           "heightM": 2.8,
           "openings": [],
           "finish": {
-            "material": "natural-timber",
-            "colorHex": "#C8A476",
-            "textureId": "hinoki"
+            "material": "charred-timber",
+            "colorHex": "#242927"
           },
           "locked": false
         },
@@ -3593,67 +3590,11 @@
               "material": "membrane",
               "colorHex": "#777269"
             },
-            "adjacentSegmentRefs": [
-              "roof/reference/courtyard-canopy"
-            ],
+            "adjacentSegmentRefs": [],
             "terrace": {
               "railingHeightM": 1.1,
               "openEdgeIndex": 0,
               "frameColorHex": "#121817"
-            }
-          },
-          {
-            "ref": "roof/reference/courtyard-canopy",
-            "footprint": [
-              {
-                "x": 2.085,
-                "z": 0.995
-              },
-              {
-                "x": 5.585,
-                "z": 0.995
-              },
-              {
-                "x": 5.585,
-                "z": 11.555
-              },
-              {
-                "x": 2.085,
-                "z": 11.555
-              }
-            ],
-            "storeyRef": "storey/reference-ground",
-            "baseElevationM": 3.25,
-            "type": "flat",
-            "pitchDegrees": 0,
-            "overhangM": 0,
-            "ridgeDirection": "z",
-            "finish": {
-              "material": "membrane",
-              "colorHex": "#303536"
-            },
-            "adjacentSegmentRefs": [
-              "roof/reference/garage-cap"
-            ],
-            "canopy": {
-              "fasciaHeightM": 0.65,
-              "fasciaEdgeIndices": [
-                1,
-                2
-              ],
-              "soffitColorHex": "#D0AB7C",
-              "postWidthM": 0.2,
-              "postBaseElevationM": 0.45,
-              "posts": [
-                {
-                  "x": 5.425,
-                  "z": 6.1
-                },
-                {
-                  "x": 5.425,
-                  "z": 11.395
-                }
-              ]
             }
           }
         ],
@@ -3664,14 +3605,6 @@
             "segmentRefs": [
               "roof/reference/rear-barn",
               "roof/reference/front-barn"
-            ]
-          },
-          {
-            "ref": "roof/reference/junction-courtyard-garage",
-            "type": "intersection",
-            "segmentRefs": [
-              "roof/reference/garage-cap",
-              "roof/reference/courtyard-canopy"
             ]
           }
         ]

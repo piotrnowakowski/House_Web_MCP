@@ -70,6 +70,8 @@ export interface RoofSegmentModel {
   gableFrame?: { widthM: number; depthM: number; colorHex: string }
   /** Glass guard around a flat roof, omitting the footprint edge against the house. */
   terrace?: { railingHeightM: number; openEdgeIndex: number; frameColorHex: string }
+  /** Ground-floor canopy details; elevations and post positions use building-local coordinates. */
+  canopy?: { fasciaHeightM: number; fasciaEdgeIndices: number[]; soffitColorHex: string; postWidthM: number; postBaseElevationM: number; posts: Vec2[] }
 }
 export interface RoofModel {
   ref: string; type: RoofType; baseElevationM: number; pitchDegrees: number; overhangM: number; footprint?: Polygon2

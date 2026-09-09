@@ -560,6 +560,14 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
       if (segment.spaceRef && !building.spaces.some((space) => space.ref === segment.spaceRef)) issues.push({ severity: 'error', code: 'roof.space', message: `${segment.ref} references a missing supporting space.`, subjectRef: segment.ref })
       if (!/^#[0-9a-fA-F]{6}$/.test(segment.finish.colorHex)) issues.push({ severity: 'error', code: 'roof.finish', message: `${segment.ref} has an invalid finish colour.`, subjectRef: segment.ref })
       const supportRefs = supportingWallRefs(building, segment)
+      if (segment.canopy) {
+        const canopy = segment.canopy
+        const postFits = canopy.posts.every((post) => [-1, 1].every((x) => [-1, 1].every((z) =>
+          pointInPolygon({ x: post.x + x * canopy.postWidthM / 2, z: post.z + z * canopy.postWidthM / 2 }, segment.footprint))))
+        if (segment.type !== 'flat' || segment.baseElevationM + 0.24 - canopy.fasciaHeightM <= canopy.postBaseElevationM || segment.baseElevationM <= canopy.postBaseElevationM || !postFits || canopy.fasciaEdgeIndices.some((index) => index >= segment.footprint.length)) {
+          issues.push({ severity: 'error', code: 'roof.canopy', message: `${segment.ref} requires a flat roof, positive clearance and posts/edges within its footprint.`, subjectRef: segment.ref })
+        }
+      }
       if (storey && !supportRefs.length) {
         const supportTop = storey.elevationM + storey.clearHeightM
         if (segment.baseElevationM < supportTop - 0.02) issues.push({ severity: 'error', code: 'roof.support-overlap', message: `${segment.ref} is below the top of its supporting storey.`, subjectRef: segment.ref })

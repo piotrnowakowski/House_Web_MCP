@@ -84,6 +84,11 @@ const RoofSegmentSchema = z.object({
   gableWallFinishes: z.object({ min: WallFinishSchema.optional(), max: WallFinishSchema.optional() }).optional(),
   gableFrame: z.object({ widthM: z.number().positive(), depthM: z.number().positive(), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) }).optional(),
   terrace: z.object({ railingHeightM: z.number().positive(), openEdgeIndex: z.number().int().min(0), frameColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) }).optional(),
+  canopy: z.object({
+    fasciaHeightM: z.number().positive(), fasciaEdgeIndices: z.array(z.number().int().nonnegative()),
+    soffitColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), postWidthM: z.number().positive(),
+    postBaseElevationM: z.number().finite(), posts: z.array(Vec2Schema).min(1),
+  }).optional(),
   gableGlazing: z.object({
     min: GableGlazingSchema.optional(),
     max: GableGlazingSchema.optional(),
