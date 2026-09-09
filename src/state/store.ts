@@ -7,6 +7,7 @@ import { slugify } from '../domain/refs'
 import { modernBarnProject } from '../domain/sampleProject'
 import { createReferenceHouse, REFERENCE_HOUSE_REF } from '../domain/referenceHouse'
 import { fitZielonkiInterior, hasZielonkiInterior, upgradeZielonkiRoof, upgradeZielonkiGlazing } from '../domain/zielonkiInterior'
+import { upgradeZielonkiPlacement } from '../domain/zielonkiPlacement'
 import { REFERENCE_YEAR, type SunTime } from '../domain/solar'
 import type { SunlightAnalysis } from '../domain/sunlight'
 import { createTerrainProject, isZielonkiProject, type TerrainInput } from '../domain/terrain'
@@ -163,7 +164,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     if (workspace.project.landscape.plants.some((plant) => plant.surveyHandle)) {
       workspace = { ...workspace, project: ensureStarterOrchard(workspace.project) }
     }
-    workspace = { ...workspace, project: upgradeZielonkiGlazing(upgradeZielonkiRoof(workspace.project)) }
+    workspace = { ...workspace, project: upgradeZielonkiPlacement(upgradeZielonkiGlazing(upgradeZielonkiRoof(workspace.project))) }
     revokeReport(get().structureReport)
     const proposals = staleRecords(workspace.proposals, workspace.project.revision).map((proposal) =>
       proposal.status === 'pending' ? { ...proposal, issues: validateProject(proposal.project) } : proposal)
@@ -202,7 +203,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       const saved = await loadWorkspace(modernBarnProject.ref)
       if (saved) await get().openWorkspace(saved.project.ref)
       else {
-        const project = fitZielonkiInterior(ensureStarterOrchard(ensureStarterGarden(structuredClone(modernBarnProject))), createReferenceHouse())
+        const project = upgradeZielonkiPlacement(fitZielonkiInterior(ensureStarterOrchard(ensureStarterGarden(structuredClone(modernBarnProject))), createReferenceHouse()))
         await saveWorkspace({ version: 1, project, proposals: [], draftChangeSets: [] })
         get().replaceProject(project)
         set((state) => ({ launcherOpen: false, hydrated: true, selectedRef: null, viewerMode: 'edit', activePlanStoreyRef: null, explodeStoreys: false,
@@ -217,7 +218,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       : await loadWorkspace(modernBarnProject.ref) ?? { version: 1 as const, project: ensureStarterOrchard(ensureStarterGarden(structuredClone(modernBarnProject))), proposals: [], draftChangeSets: [] }
     if (hasZielonkiInterior(target.project)) { get().restoreWorkspace(target); return }
     const reference = state.project.ref === REFERENCE_HOUSE_REF ? state.project : (await loadWorkspace(REFERENCE_HOUSE_REF))?.project ?? createReferenceHouse()
-    const project = fitZielonkiInterior(target.project, reference)
+    const project = upgradeZielonkiPlacement(fitZielonkiInterior(target.project, reference))
     const blocking = validateProject(project).filter((issue) => issue.severity === 'error')
     if (blocking.length) throw new Error(blocking[0].message)
     // Save the previous model as a separate recoverable project before fitting the new house.

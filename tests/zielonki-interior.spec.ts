@@ -12,7 +12,7 @@ test('Zielonki keeps its site and barn style with the measured interior, includi
     await page.waitForFunction(() => Boolean((window as unknown as { __fitTools: Record<string, unknown> }).__fitTools?.get_project_state))
     return page.evaluate(async () => {
     const tools = (window as unknown as { __fitTools: Record<string, { execute: (args: unknown) => Promise<{ content: { text: string }[] }> }> }).__fitTools
-    return JSON.parse((await tools.get_project_state.execute({ detail: 'structure' })).content[0].text).data
+    return JSON.parse((await tools.get_project_state.execute({ detail: 'full' })).content[0].text).data
     })
   }
   await page.goto(process.env.APP_URL ?? 'http://127.0.0.1:5173')
@@ -32,8 +32,8 @@ test('Zielonki keeps its site and barn style with the measured interior, includi
   await page.getByRole('button', { name: 'Save room', exact: true }).click()
   await page.screenshot({ path: 'test-results/zielonki-interior-plan.png' })
   await page.getByRole('button', { name: /1 Piętro/ }).click()
-  await expect(rooms.getByRole('button')).toHaveCount(7)
-  await expect(rooms).toContainText('40.65 m²')
+  await expect(rooms.getByRole('button')).toHaveCount(6)
+  await expect(rooms).not.toContainText('40.65 m²') // The earlier glazing revision replaced the mezzanine with a living void.
   await page.getByRole('button', { name: '3D Interior', exact: true }).click()
   await page.getByText('Plan dimensions & source notes', { exact: true }).click()
   await expect(page.locator('.interior-reference-notes')).toContainText('11.19 × 18.31 m')
@@ -41,8 +41,13 @@ test('Zielonki keeps its site and barn style with the measured interior, includi
   await page.waitForTimeout(2000)
   await page.screenshot({ path: 'test-results/zielonki-fitted-exterior.png' })
   const after = await state()
-  expect(after.site).toEqual(before.site)
-  expect(after.landscape).toEqual(before.landscape)
+  expect(after.site.boundary).toEqual(before.site.boundary)
+  expect(after.site.parcels).toEqual(before.site.parcels)
+  expect(after.landscape.plants).toEqual(before.landscape.plants)
+  expect(after.landscape.fixtures).toEqual(before.landscape.fixtures)
+  expect(after.landscape.zones.find((z: { ref: string }) => z.ref === 'zone/driveway').name).toBe('Road-side garage apron')
+  expect(after.buildings[0].rotationDegrees).toBeCloseTo(273.06927, 5)
+  expect(after.buildings[0].roof.segments.every((s: { overhangM: number }) => s.overhangM === 0)).toBe(true)
   expect(after.buildings[0].architecturalStyle).toBe('barn')
   expect(after.buildings[0].roof.segments).toHaveLength(3)
   expect(after.buildings[0].roof.segments[2].type).toBe('flat')

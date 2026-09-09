@@ -32,6 +32,7 @@ import { zielonkiZoningBoundary } from '../../knowledge-bank/zielonki/zoning'
 import { measurementScreenPoint, siteMeasurementEdges, snapMeasurementPoint, type MeasurementEdge } from './measurementSnapping'
 import { MeasurementPoint } from './MeasurementPoint'
 import { GlazedGable } from './GlazedGable'
+import { GableFrame } from './GableFrame'
 
 const REAL = { slab: '#d6d0bf', wall: '#e8e1d2', roof: '#6f4735', soil: '#918867' }
 const BARN = { slab: '#777269', wall: '#282d2c', roof: '#343a3b' }
@@ -707,6 +708,8 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
         {glass && <mesh position={at(alongZ ? cx : cz, base, frameOffset)}><boxGeometry args={alongZ ? [span, 0.09, 0.1] : [0.1, 0.09, span]} />{frameMaterial}</mesh>}
       </group>
     })}
+    {segment.gableFrame && (['min', 'max'] as const).filter((side) => side !== junction?.side).map((side) =>
+      <GableFrame key={`portal-${side}`} building={building} segment={segment} side={side} selected={selected} ghost={ghost} />)}
     {seams.flatMap((along) => alongZ ? [
       <RoofPanel key={`a-${along}`} position={[cx - half / 2, midY + 0.12, along]} rotation={[0, 0, pitch]} size={[slope, 0.025, 0.032]} planes={junctionPlanes}>{seamMaterial}</RoofPanel>,
       <RoofPanel key={`b-${along}`} position={[cx + half / 2, midY + 0.12, along]} rotation={[0, 0, -pitch]} size={[slope, 0.025, 0.032]} planes={junctionPlanes}>{seamMaterial}</RoofPanel>,

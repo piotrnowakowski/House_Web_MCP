@@ -6,13 +6,14 @@ import { diffProjects } from '../domain/diff'
 import { createReferenceHouse } from '../domain/referenceHouse'
 import { modernBarnProject } from '../domain/sampleProject'
 import { fitZielonkiInterior } from '../domain/zielonkiInterior'
+import { upgradeZielonkiPlacement } from '../domain/zielonkiPlacement'
 import { saveWorkspace } from '../services/persistence'
 import { useStudioStore } from './store'
 
 it('opens a saved copy with glazed gables and a living void, then preserves later edits', async () => {
   globalThis.indexedDB = new IDBFactory()
   const reference = createReferenceHouse()
-  const project = fitZielonkiInterior(modernBarnProject, reference)
+  const project = upgradeZielonkiPlacement(fitZielonkiInterior(modernBarnProject, reference))
   project.ref = 'project/old-interior-copy'
   const house = project.buildings[0]
   house.interiorSource!.notes = house.interiorSource!.notes.filter((n) => !n.startsWith('ICON glazing'))

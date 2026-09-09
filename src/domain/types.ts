@@ -66,6 +66,7 @@ export interface RoofSegmentModel {
   ridgeDirection: 'x' | 'z'; finish: RoofFinish; adjacentSegmentRefs: string[]; gableWallFinishes?: Partial<Record<'min' | 'max', WallFinish>>
   /** Fractions across the gable, with a vertical inset below the roof slopes. */
   gableGlazing?: Partial<Record<'min' | 'max', { from: number; to: number; roofInsetM: number }>>
+  gableFrame?: { widthM: number; depthM: number; colorHex: string }
 }
 export interface RoofModel {
   ref: string; type: RoofType; baseElevationM: number; pitchDegrees: number; overhangM: number; footprint?: Polygon2

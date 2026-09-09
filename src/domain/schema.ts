@@ -75,6 +75,7 @@ const RoofSegmentSchema = z.object({
   type: z.enum(['flat', 'gable', 'hip']), pitchDegrees: z.number().min(0).max(70), overhangM: z.number().min(0).max(3), ridgeDirection: z.enum(['x', 'z']),
   finish: RoofFinishSchema, adjacentSegmentRefs: z.array(z.string().min(1)).default([]),
   gableWallFinishes: z.object({ min: WallFinishSchema.optional(), max: WallFinishSchema.optional() }).optional(),
+  gableFrame: z.object({ widthM: z.number().positive(), depthM: z.number().positive(), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) }).optional(),
   gableGlazing: z.object({
     min: GableGlazingSchema.optional(),
     max: GableGlazingSchema.optional(),
