@@ -370,6 +370,8 @@ const timezoneOptions = (() => { try { const values = (Intl as unknown as { supp
 function StartScreen() {
   const open = useStudioStore((state) => state.launcherOpen); const saved = useStudioStore((state) => state.savedWorkspaces); const hydrated = useStudioStore((state) => state.hydrated); const project = useStudioStore((state) => state.project)
   const visibleProjects = saved.filter((item) => item.ref !== REFERENCE_HOUSE_REF)
+  const syncConflicts = useStudioStore((state) => state.projectSyncConflicts)
+  const loading = useStudioStore((state) => state.loadingWorkspaces)
   const closeLauncher = useStudioStore((state) => state.closeLauncher); const openLauncher = useStudioStore((state) => state.openLauncher); const startTerrain = useStudioStore((state) => state.startTerrain); const openWorkspace = useStudioStore((state) => state.openWorkspace); const setToast = useStudioStore((state) => state.setToast)
   const [mode, setMode] = useState<'choose' | 'terrain'>('choose'); const [values, setValues] = useState<TerrainFormValues>(terrainFormDefaults); const [errors, setErrors] = useState<Partial<TerrainFormValues>>({}); const [removeRef, setRemoveRef] = useState<string | null>(null)
   const dialog = useRef<HTMLElement>(null)
@@ -400,6 +402,8 @@ function StartScreen() {
     <p className="eyebrow">PROJECTS</p>
     <h2 id="start-screen-title">Where do you want to plan today?</h2>
     {mode === 'choose' ? <>
+      {loading && <p role="status">Loading saved and published projects…</p>}
+      {syncConflicts.length > 0 && <div role="alert"><p>The published house and your saved project have conflicting changes. Your saved project is unchanged; the new version is available as a separate “published version” project.</p><details><summary>Show conflicts ({syncConflicts.length})</summary><ul>{syncConflicts.map((path) => <li key={path}>{path}</li>)}</ul></details></div>}
       {visibleProjects.length > 0 && <div className="start-saved"><h3>Saved projects</h3>{visibleProjects.map((item, index) => <div className="project-card" key={item.ref}>
         <PlotOutline boundary={item.boundary} />
         <div><strong>{item.name}</strong><small>r{item.revision} · saved {new Date(item.updatedAt).toLocaleString()} · {item.proposalCount} proposal{item.proposalCount === 1 ? '' : 's'}</small></div>
@@ -407,7 +411,7 @@ function StartScreen() {
         {removeRef === item.ref && <div className="remove-confirm"><span>Remove {item.name} from this browser? Its proposals go with it.</span><button onClick={() => setRemoveRef(null)}>Keep</button><button className="confirm-delete" onClick={() => void remove(item.ref)}>Remove project</button></div>}
       </div>)}</div>}
       <div className="start-options">
-        <button className="start-card" onClick={() => void useStudioStore.getState().openZielonkiStudy()}><strong>Zielonki house study</strong><span>Continue your saved house, or explore the furnished modern barn with the measured interior, both floors and the Zielonki garden.</span></button>
+        <button className="start-card" disabled={loading} onClick={() => void useStudioStore.getState().openZielonkiStudy()}><strong>Zielonki house study</strong><span>Continue your saved house, or explore the furnished modern barn with the measured interior, both floors and the Zielonki garden.</span></button>
         <button className="start-card" onClick={() => setMode('terrain')}><strong>New terrain</strong><span>An empty rectangular plot with your own size, north direction and coordinates, ready for a house.</span></button>
       </div>
       {hydrated && <div className="start-actions"><button onClick={closeLauncher}>Keep working on {project.name}</button></div>}

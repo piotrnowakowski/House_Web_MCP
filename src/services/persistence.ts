@@ -1,6 +1,7 @@
 import { parseProject } from '../domain/schema'
 import { calculateMetrics, validateProject } from '../domain/commands'
 import { isZielonkiProject } from '../domain/terrain'
+import { mergeProjects, sameProject } from '../domain/projectMerge'
 import type { PersistedWorkspace, Polygon2, ProjectV2, ProposalRecord } from '../domain/types'
 import { zielonkiKnowledgeBase, zielonkiPlot } from '../../knowledge-bank/zielonki/data'
 
@@ -137,3 +138,65 @@ export const deleteWorkspace = async (ref: string) => {
 
 export const saveProject = (project: ProjectV2) => saveWorkspace({ version: 1, project, proposals: [], draftChangeSets: [] })
 export const loadProject = async (ref?: string): Promise<ProjectV2 | null> => (await loadWorkspace(ref))?.project ?? null
+
+/** Atomically merge a published snapshot into its browser working copy, preserving backups and conflicts. */
+export const synchronizePublishedProject = async (published: ProjectV2, legacyBase: ProjectV2): Promise<string[]> => {
+  const publishedErrors = validateProject(published).filter((issue) => issue.severity === 'error')
+  if (publishedErrors.length) throw new Error(`Invalid published project: ${publishedErrors[0].message}`)
+  if (published.ref !== legacyBase.ref) throw new Error('Published project and legacy baseline refs must match.')
+  await migrateLegacyRecord()
+  const database = await openDatabase()
+  try {
+    return await new Promise((resolve, reject) => {
+      const tx = database.transaction(STORE_NAME, 'readwrite')
+      const store = tx.objectStore(STORE_NAME)
+      const currentKey = workspaceKey(published.ref)
+      const baseKey = `published-base/${published.ref}`
+      const snapshotId = `${published.revision}-${published.updatedAt.replace(/\D/g, '')}`
+      const copyRef = `${published.ref}/published-${snapshotId}`
+      const requests = [currentKey, baseKey, workspaceKey(copyRef)].map((key) => store.get(key))
+      let remaining = requests.length
+      let conflicts: string[] = []
+      tx.oncomplete = () => resolve(conflicts)
+      tx.onerror = () => reject(tx.error)
+      tx.onabort = () => reject(tx.error ?? new Error('Published project update was cancelled.'))
+      for (const request of requests) request.onsuccess = () => {
+        if (--remaining) return
+        try {
+          const current = requests[0].result === undefined ? null : toWorkspace(requests[0].result)
+          const base = requests[1].result ? parseProject(requests[1].result) : legacyBase
+          if (requests[1].result && sameProject(base, published)) return
+          const incoming: PersistedWorkspace = { version: 1, project: structuredClone(published), proposals: [], draftChangeSets: [] }
+          if (!current) {
+            store.put(incoming, currentKey)
+            store.put(published, baseKey)
+            return
+          }
+          const result = mergeProjects(base, current.project, published)
+          conflicts = result.conflicts
+          if (!conflicts.length) conflicts = validateProject(result.project).filter((issue) => issue.severity === 'error').map((issue) => issue.message)
+          if (conflicts.length) {
+            // Keep both complete versions. A previous published copy may already contain user edits.
+            if (requests[2].result === undefined) {
+              incoming.project.ref = copyRef
+              incoming.project.name += ' · published version'
+              store.put(incoming, workspaceKey(copyRef))
+            }
+            return
+          }
+          if (result.changed) {
+            const backup = structuredClone(current)
+            backup.project.ref += `/before-published-${snapshotId}`
+            backup.project.name += ' · before published update'
+            store.put(backup, workspaceKey(backup.project.ref))
+            store.put({ ...current, project: result.project,
+              proposals: current.proposals.map((item) => item.status === 'pending' ? { ...item, status: 'stale' } : item),
+              draftChangeSets: current.draftChangeSets.map((item) => ({ ...item, status: 'stale' })),
+            }, currentKey)
+          }
+          store.put(published, baseKey)
+        } catch (error) { tx.abort(); reject(error) }
+      }
+    })
+  } finally { database.close() }
+}

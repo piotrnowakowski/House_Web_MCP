@@ -10,6 +10,8 @@ No account, credentials or paid service is required. The project was created dur
 
 The current working house branch is published separately on [Mikrus](http://natan203.mikrus.xyz:20203/), with a local preview on port 5173. See [deployment and rollback](docs/mikrus-deployment.md). GitHub Pages above retains the competition submission.
 
+The working house also includes [versioned project data](project-data/zielonki/README.md). Browser edits must be captured and merged with this data before release; `AGENTS.md` defines the procedure. Published updates preserve local edits and backups, and expose conflicting versions separately.
+
 The isolated interior-editor branch adds a **64-configuration IKEA library**, original textured desktop/mobile furniture models, standard/tall cabinet choices, room partitions, openings, per-face finishes, undo/redo and exports. Both editors provide a full-viewport mobile canvas with one dismissible contextual sheet and property sliders shown only on demand. See the [interior guide](docs/interior-editor.md), [asset audit](docs/ikea-assets.md) and [validation evidence](docs/interior-validation.md).
 
 To run this branch independently, use Node 22.12+ and `npm run dev:interior` at **http://127.0.0.1:5187**. This origin keeps saved projects separate from another development checkout. `npm run test:interior` runs its focused browser suite. These changes have not been deployed to the live planner.
@@ -131,7 +133,7 @@ The default project includes three timber raised beds planted with tomatoes, pot
 - A texture library of twelve Poly Haven CC0 scans (about 21 MB) dresses walls, ground zones, terrain, raised beds and the barn's interior floors at true physical scale. Every wall finish and every landscape zone can pick its scan from a thumbnail picker in the inspector, or keep the default for its material or zone kind, or go back to a flat colour. Agents read the same library with `list_textures` and choose with `textureId` on `propose_wall_finish_update` or a landscape `set-surface`. The scans a project draws load first; the rest of the library preloads in idle time so a later pick shows at once. The wall colour picker becomes a light tint over a textured finish.
 - `three-mesh-bvh` builds and disposes acceleration structures with generated geometry.
 - Rapier supplies fixed semantic colliders and constrained editing previews; it is not used for structural analysis or falling buildings.
-- IndexedDB autosaves only under the V2 key. Old records remain untouched and unread.
+- IndexedDB autosaves workspaces per project ref and migrates the supported legacy key. Published house data merges against the browser's previous published baseline; backups preserve the working copy and conflicts never silently replace it.
 
 One intermediate slab is both the upper floor and the lower ceiling. Lowered ceilings are separate linked finish elements. Polygonal spaces reuse coincident wall edges, and curved, self-intersecting, zero-area and out-of-site footprints are rejected.
 
@@ -221,7 +223,7 @@ Every modifying tool creates an immutable ghost variant. Only explicit human app
 
 The editor is desktop-first and deliberately excludes accounts, a backend, an embedded LLM, cost estimation, structural simulation and legal compliance. Placement coordinates are local `{x,z}` metres; survey coordinates and setback claims are not included in architectural report results.
 
-Project data stays in the browser's local IndexedDB. The application makes no runtime weather request and transmits no design state to an application backend.
+Working edits stay in the browser's local IndexedDB. The explicitly published house snapshot is versioned with the application; browser edits are not uploaded automatically. The application makes no runtime weather request and transmits no design state to an application backend.
 
 ## Assets and third-party software
 

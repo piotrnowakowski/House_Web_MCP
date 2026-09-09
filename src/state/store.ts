@@ -11,7 +11,8 @@ import { upgradeZielonkiPlacement } from '../domain/zielonkiPlacement'
 import { REFERENCE_YEAR, type SunTime } from '../domain/solar'
 import type { SunlightAnalysis } from '../domain/sunlight'
 import { createTerrainProject, isZielonkiProject, type TerrainInput } from '../domain/terrain'
-import { listWorkspaces, loadWorkspace, saveWorkspace, type WorkspaceSummary } from '../services/persistence'
+import { listWorkspaces, loadWorkspace, saveWorkspace, synchronizePublishedProject, type WorkspaceSummary } from '../services/persistence'
+import { legacyProjectBase, publishedProject } from '../services/publishedProject'
 import type { DraftChangeSetModel, HeightMeasureKind, PersistedWorkspace, ProjectCommand, ProjectV2, ProposalRecord, StructureReport, TransformMode, VariantModel, ViewerMode } from '../domain/types'
 
 interface StudioState {
@@ -38,6 +39,8 @@ interface StudioState {
   /** The start screen; open until a project has been chosen, and again on demand from the Projects button. */
   launcherOpen: boolean
   savedWorkspaces: WorkspaceSummary[]
+  projectSyncConflicts: string[]
+  loadingWorkspaces: boolean
   confirmationVariantRef: string | null
   structureReport: StructureReport | null
   toast: string | null
@@ -111,7 +114,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   project: structuredClone(modernBarnProject), history: [], future: [], variants: [], proposals: [], draftChangeSets: [], selectedRef: null, repositioningRef: null,
   transformMode: 'translate', viewerMode: 'edit', heightMeasureKind: 'auto', activePlanStoreyRef: null, month: 7,
   sunTime: { month: 7, day: 15, hour: 14 }, sunAnimation: 'none', sunOverlay: { enabled: false, targetRef: null, result: null },
-  explodeStoreys: false, webMcpAvailable: false, texturesReady: false, hydrated: false, launcherOpen: true, savedWorkspaces: [], confirmationVariantRef: null, structureReport: null,
+  explodeStoreys: false, webMcpAvailable: false, texturesReady: false, hydrated: false, launcherOpen: true, savedWorkspaces: [], projectSyncConflicts: [], loadingWorkspaces: true, confirmationVariantRef: null, structureReport: null,
   toast: 'Loaded the ProjectV2 Zielonki spatial model.', helpOpen: false, cameraRefocusRequest: 0, gardenFocusRequest: { sequence: 0, targetX: 0, targetZ: 0 },
   setSelectedRef: (selectedRef) => set({ selectedRef }),
   setTransformMode: (transformMode) => set({ transformMode }),
@@ -174,9 +177,13 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     set({ project: workspace.project, proposals, variants, draftChangeSets: staleDrafts(workspace.draftChangeSets, workspace.project.revision), history: [], future: [], structureReport: null, sunOverlay: { enabled: false, targetRef: null, result: null }, toast: `Loaded ${workspace.project.name} with ${proposals.length} proposal record${proposals.length === 1 ? '' : 's'}.` })
   },
   openLauncher: async () => {
-    set({ launcherOpen: true })
-    try { set({ savedWorkspaces: await listWorkspaces() }) }
+    set({ launcherOpen: true, loadingWorkspaces: true })
+    try {
+      if (!get().hydrated) set({ projectSyncConflicts: await synchronizePublishedProject(publishedProject, legacyProjectBase) })
+      set({ savedWorkspaces: await listWorkspaces() })
+    }
     catch (error) { set({ savedWorkspaces: [], toast: `Saved projects could not be read: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
+    finally { set({ loadingWorkspaces: false }) }
   },
   closeLauncher: () => set({ launcherOpen: false }),
   startTerrain: (input) => {

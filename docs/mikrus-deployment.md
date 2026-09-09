@@ -48,5 +48,11 @@ The deployment record names the exact Compose backup. On the VPS, restore that b
 docker compose -p house-web-mcp-furnished -f /root/house-web-mcp/furnished-zielonki/deploy/mikrus/compose.yaml up -d --no-build --no-deps house-web-mcp
 ```
 
-Local and public origins have separate IndexedDB projects. Redeployment updates the application files;
-it does not copy or replace projects saved in the browser on 5173, 5187 or the public URL.
+Local and public origins have separate IndexedDB working copies. The published house is now tracked in
+`project-data/zielonki/project.json` and included in the build. Before deploying, capture the user's current
+workspace, merge its data changes with the tracked project, and follow `AGENTS.md` and
+`project-data/zielonki/README.md`. A code merge alone does not capture browser edits.
+On startup the application merges published data against each browser's last published baseline, backing
+up changed workspaces. Conflicting local changes remain intact beside a separate published version.
+Check the house contents (initial recovery: r40, six plants, six garden fixtures, ~40.13° gables)
+as well as `/health`; a deployed code SHA alone is not evidence that the intended project was published.
