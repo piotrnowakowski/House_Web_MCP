@@ -415,6 +415,7 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
       >
         <section className={`interior-stage ${ghost ? 'is-placing' : ''}`} aria-label="Interior floor view">
           <Canvas
+            frameloop="demand"
             shadows
             dpr={[1, compact ? 1.5 : 2]}
             gl={{ antialias: true, preserveDrawingBuffer: true }}

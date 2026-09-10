@@ -11,12 +11,18 @@ import { upgradeZielonkiPlacement } from '../domain/zielonkiPlacement'
 import { REFERENCE_YEAR, type SunTime } from '../domain/solar'
 import type { SunlightAnalysis } from '../domain/sunlight'
 import { createTerrainProject, isZielonkiProject, type TerrainInput } from '../domain/terrain'
-import { listWorkspaces, loadWorkspace, saveWorkspace, synchronizePublishedProject, type WorkspaceSummary } from '../services/persistence'
+import { listWorkspaces, loadWorkspace, normalizeWorkspaceName, renameWorkspace, saveWorkspace, synchronizePublishedProject, type WorkspaceSummary } from '../services/persistence'
 import { legacyProjectBase, publishedProject } from '../services/publishedProject'
 import { V2_STUDY_REF, synchronizePublishedV2 } from '../services/publishedV2'
+import { REAR_CARPORT_STUDY_REF, synchronizePublishedRearCarport } from '../services/publishedRearCarport'
 import type { DraftChangeSetModel, HeightMeasureKind, PersistedWorkspace, ProjectCommand, ProjectV2, ProposalRecord, StructureReport, TransformMode, VariantModel, ViewerMode } from '../domain/types'
 
 interface StudioState {
+  transparencyMode: boolean
+  transparentRefs: string[]
+  setTransparencyMode: (enabled: boolean) => void
+  makeTransparent: (ref: string) => void
+  resetTransparency: () => void
   measurementPoints: Array<{ x: number; y: number; z: number }>
   setMeasurementPoints: (points: Array<{ x: number; y: number; z: number }>) => void
   project: ProjectV2
@@ -84,6 +90,7 @@ interface StudioState {
   fitReferenceToZielonki: () => Promise<void>
   openReferenceHouse: () => Promise<void>
   openWorkspace: (ref: string) => Promise<void>
+  renameWorkspace: (ref: string, name: string) => Promise<void>
   createVariant: (label: string, commands: ProjectCommand[], metadata?: Pick<ProposalRecord, 'sourceChangeSetRef' | 'recreatedFromRef'>) => VariantModel
   applyVariant: (ref: string) => ProjectV2
   discardVariant: (ref: string, reason?: string) => void
@@ -118,6 +125,12 @@ const staleRecords = (records: ProposalRecord[], revision: number) => records.ma
 const staleDrafts = (drafts: DraftChangeSetModel[], revision: number) => drafts.map((draft) => draft.baseRevision === revision ? draft : { ...draft, status: 'stale' as const })
 
 export const useStudioStore = create<StudioState>((set, get) => ({
+  transparencyMode: false, transparentRefs: [],
+  setTransparencyMode: (transparencyMode) => set(transparencyMode
+    ? { transparencyMode, viewerMode: 'edit', activePlanStoreyRef: null, repositioningRef: null, selectedRef: null, toast: 'Click objects to make them transparent. Reset restores all objects. Esc finishes.' }
+    : { transparencyMode }),
+  makeTransparent: (ref) => set((state) => ({ transparentRefs: state.transparentRefs.includes(ref) ? state.transparentRefs : [...state.transparentRefs, ref] })),
+  resetTransparency: () => set({ transparentRefs: [], transparencyMode: false }),
   measurementPoints: [], setMeasurementPoints: (measurementPoints) => set({ measurementPoints }),
   project: structuredClone(modernBarnProject), history: [], future: [], variants: [], proposals: [], draftChangeSets: [], selectedRef: null, repositioningRef: null,
   transformMode: 'translate', viewerMode: 'edit', heightMeasureKind: 'auto', activePlanStoreyRef: null, month: 7,
@@ -129,7 +142,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   toast: 'Loaded the ProjectV2 Zielonki spatial model.', helpOpen: false, cameraRefocusRequest: 0, gardenFocusRequest: { sequence: 0, targetX: 0, targetZ: 0 },
   setSelectedRef: (selectedRef) => set({ selectedRef }),
   setTransformMode: (transformMode) => set({ transformMode }),
-  setViewerMode: (viewerMode) => set({ viewerMode, activePlanStoreyRef: viewerMode === 'plan' ? get().activePlanStoreyRef : null }),
+  setViewerMode: (viewerMode) => set({ viewerMode, transparencyMode: false, activePlanStoreyRef: viewerMode === 'plan' ? get().activePlanStoreyRef : null }),
   setHeightMeasureKind: (heightMeasureKind) => set({ heightMeasureKind }),
   setActivePlanStoreyRef: (activePlanStoreyRef) => set({ activePlanStoreyRef, viewerMode: activePlanStoreyRef ? 'plan' : 'edit' }),
   setMonth: (month) => set((state) => { const time = clampSunTime({ ...state.sunTime, month, day: 15 }); return { month: time.month, sunTime: time } }),
@@ -144,7 +157,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   setStructureReport: (structureReport) => { revokeReport(get().structureReport); set({ structureReport }) },
   setToast: (toast) => set({ toast }),
   setHelpOpen: (helpOpen) => set({ helpOpen }),
-  beginReposition: (repositioningRef) => set({ repositioningRef, viewerMode: 'edit', transformMode: 'translate', toast: 'Drag the selected object to its new position.' }),
+  beginReposition: (repositioningRef) => set({ repositioningRef, transparencyMode: false, viewerMode: 'edit', transformMode: 'translate', toast: 'Drag the selected object to its new position.' }),
   endReposition: () => set({ repositioningRef: null }),
   refocusCamera: () => set((state) => ({
     cameraRefocusRequest: state.cameraRefocusRequest + 1,
@@ -174,8 +187,9 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     set({ project: next, future: [], history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], proposals: staleRecords(state.proposals, next.revision), draftChangeSets: staleDrafts(state.draftChangeSets, next.revision), selectedRef: houseRef, cameraRefocusRequest: state.cameraRefocusRequest + 1, toast: 'Modern barn preset applied: two levels and a 45° gable.' })
     return next
   },
-  replaceProject: (project) => { revokeReport(get().structureReport); set((state) => ({ project, variants: [], proposals: [], draftChangeSets: [], history: [], future: [], structureReport: null, sunOverlay: { ...state.sunOverlay, result: null }, toast: `Loaded ${project.name}.` })) },
+  replaceProject: (project) => { revokeReport(get().structureReport); set((state) => ({ project, transparencyMode: false, transparentRefs: [], variants: [], proposals: [], draftChangeSets: [], history: [], future: [], structureReport: null, sunOverlay: { ...state.sunOverlay, result: null }, toast: `Loaded ${project.name}.` })) },
   restoreWorkspace: (workspace) => {
+    get().resetTransparency()
     // Includes saved copies with different project refs; only mapped survey inventories need correction.
     if (workspace.project.landscape.plants.some((plant) => plant.surveyHandle)) {
       workspace = { ...workspace, project: ensureStarterOrchard(workspace.project) }
@@ -195,6 +209,8 @@ export const useStudioStore = create<StudioState>((set, get) => ({
         const v2Conflicts = await synchronizePublishedV2()
         set({ projectSyncConflicts: [...originalConflicts, ...v2Conflicts] })
       }
+      const rearCarportConflicts = await synchronizePublishedRearCarport()
+      if (rearCarportConflicts.length) set((state) => ({ projectSyncConflicts: [...state.projectSyncConflicts, ...rearCarportConflicts] }))
       set({ savedWorkspaces: await listWorkspaces() })
     }
     catch (error) { set({ savedWorkspaces: [], toast: `Saved projects could not be read: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
@@ -260,12 +276,29 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   openWorkspace: async (ref) => {
     try {
       if (ref === V2_STUDY_REF) set({ projectSyncConflicts: await synchronizePublishedV2() })
+      if (ref === REAR_CARPORT_STUDY_REF) set({ projectSyncConflicts: await synchronizePublishedRearCarport() })
       const saved = await loadWorkspace(ref)
       if (!saved) { set({ toast: `Saved project not found: ${ref}.` }); return }
       const project = isZielonkiProject(saved.project) ? ensureStarterOrchard(ensureStarterGarden(applyModernBarnPreset(saved.project))) : saved.project
       get().restoreWorkspace({ ...saved, project })
       set((state) => ({ launcherOpen: false, hydrated: true, cameraRefocusRequest: state.cameraRefocusRequest + 1 }))
     } catch (error) { set({ toast: `Saved project could not be opened: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
+  },
+  renameWorkspace: async (ref, value) => {
+    const name = normalizeWorkspaceName(value)
+    const state = get()
+    if (state.hydrated && state.project.ref === ref) {
+      const previousName = state.project.name
+      const project = { ...state.project, name }
+      set({ project })
+      try {
+        await saveWorkspace({ version: 1, project, proposals: state.proposals, draftChangeSets: state.draftChangeSets })
+      } catch (error) {
+        if (get().project.ref === ref && get().project.name === name) set({ project: { ...get().project, name: previousName } })
+        throw error
+      }
+    } else await renameWorkspace(ref, name)
+    set((current) => ({ savedWorkspaces: current.savedWorkspaces.map((item) => item.ref === ref ? { ...item, name } : item), toast: `Zapisano nazwę: ${name}.` }))
   },
   createVariant: (label, commands, metadata) => {
     const current = get().project
@@ -284,7 +317,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     if (!variant) throw new Error(`Variant not found: ${ref}`)
     if (variant.baseRevision !== state.project.revision) throw new Error('Variant is stale. Create it again from the current project.')
     if (variant.issues.some((issue) => issue.severity === 'error')) throw new Error('Variant contains blocking validation errors.')
-    const next = { ...structuredClone(variant.project), revision: state.project.revision + 1, updatedAt: new Date().toISOString() }
+    const next = { ...structuredClone(variant.project), name: state.project.name, revision: state.project.revision + 1, updatedAt: new Date().toISOString() }
     const decisionAt = new Date().toISOString()
     const proposals = state.proposals.map((proposal) => proposal.ref === ref ? { ...proposal, status: 'approved' as const, decisionAt, resultingRevision: next.revision } : proposal.status === 'pending' ? { ...proposal, status: 'stale' as const } : proposal)
     set({ project: next, future: [], history: [...state.history, structuredClone(state.project)].slice(-40), variants: [], proposals, draftChangeSets: staleDrafts(state.draftChangeSets, next.revision), confirmationVariantRef: null, repositioningRef: null, toast: `${variant.label} applied.` })
@@ -352,14 +385,16 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     return next
   },
   undo: () => {
-    const state = get(); const previous = state.history.at(-1)
-    if (!previous) throw new Error('There is no committed change to undo.')
+    const state = get(); const snapshot = state.history.at(-1)
+    if (!snapshot) throw new Error('There is no committed change to undo.')
+    const previous = { ...snapshot, name: state.project.name }
     set({ project: previous, history: state.history.slice(0, -1), future: [...state.future, structuredClone(state.project)].slice(-40), variants: [], proposals: state.proposals.map((proposal) => proposal.status === 'pending' ? { ...proposal, status: 'stale' as const } : proposal), draftChangeSets: state.draftChangeSets.map((draft) => ({ ...draft, status: 'stale' as const })), confirmationVariantRef: null, repositioningRef: null, toast: 'Last change undone.' })
     return previous
   },
   redo: () => {
-    const state = get(); const next = state.future.at(-1)
-    if (!next) throw new Error('There is no change to redo.')
+    const state = get(); const snapshot = state.future.at(-1)
+    if (!snapshot) throw new Error('There is no change to redo.')
+    const next = { ...snapshot, name: state.project.name }
     set({ project: next, history: [...state.history, structuredClone(state.project)].slice(-40), future: state.future.slice(0, -1), variants: [], proposals: state.proposals.map((proposal) => proposal.status === 'pending' ? { ...proposal, status: 'stale' as const } : proposal), draftChangeSets: state.draftChangeSets.map((draft) => ({ ...draft, status: 'stale' as const })), confirmationVariantRef: null, repositioningRef: null, toast: 'Last change restored.' })
     return next
   },

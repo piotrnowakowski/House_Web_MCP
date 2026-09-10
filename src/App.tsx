@@ -1,4 +1,5 @@
 import { HouseStudyControl } from './HouseStudyControl'
+import { TransparencyControls } from './TransparencyControls'
 import { PrecisionEditor } from './editor/PrecisionEditor'
 import { ExactMeasureTools } from './editor/ExactMeasureTools'
 import { NeighborControls, NeighborPreferences, NeighborSettings, NeighborToggle } from './NeighborControls'
@@ -6,10 +7,7 @@ import { AdaptiveSheet, useCompactLayout } from './interior/AdaptiveSheet'
 import { PrecisionControls, PrecisionField } from './interior/InteriorPanels'
 import { Box, Eye, EyeOff, Focus, MoreHorizontal, Plus, Ruler, Settings2, Move, Check } from 'lucide-react'
 import './interior/plot-mobile.css'
-import { Canvas } from '@react-three/fiber'
-import { InteriorEditor } from './interior/InteriorEditor'
-import { Suspense, useEffect, useRef, useState } from 'react'
-import { ACESFilmicToneMapping, PCFSoftShadowMap, SRGBColorSpace } from 'three'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { dayParts } from './domain/climate'
 import { calculateMetrics } from './domain/commands'
 import { gardenFixtureCatalog, nextFixturePosition, starterGardenCommands } from './domain/gardenFixtures'
@@ -23,16 +21,20 @@ import type { BuildingModel, ClimateDayPart, GardenFixtureCatalogId, HeightMeasu
 import { inferWallOpeningLayout, wallOpeningLayoutCommands, wallOpeningLayoutPresets, type WallOpeningLayoutPreset } from './domain/wallOpeningLayouts'
 import { resolveGableWallFinish, resolveWallFinish, wallFinishCatalog, wallFinishCommands, type WallFinishScope } from './domain/wallFinishes'
 import { FLAT_TEXTURE, defaultGroundTexture, defaultWallTexture, resolveWallTexture, texturePreviewFor, texturesFor, textureById, type TextureId, type TextureSurface } from './scene/materialCatalog'
-import { CLEAR_MEASUREMENT_EVENT, StudioScene } from './scene/StudioScene'
-import { sunHoursColor } from './scene/sun'
+import { CLEAR_MEASUREMENT_EVENT } from './scene/events'
+import { sunHoursColor } from './scene/sun/SunHoursOverlay'
 import { solarPosition, sunriseSunset } from './domain/solar'
 import { formatSunMoment } from './domain/sunlight'
 import { deleteWorkspace, saveWorkspace } from './services/persistence'
+import { groupWorkspaces, workspaceVersionKind } from './services/workspaceGroups'
 import { showStructureViews } from './services/structureViews'
 import { registerWebMcpTools, resolveVariantConfirmation } from './services/webmcp'
 import type { WebMcpManifest } from './services/webmcpDefinitions'
 import { useStudioStore } from './state/store'
 import { buildingCrossesAgriculturalZone, landUseAreas } from './domain/zoning'
+
+const PlotCanvas = lazy(() => import('./scene/PlotCanvas'))
+const InteriorEditor = lazy(() => import('./interior/InteriorEditor').then(module => ({ default: module.InteriorEditor })))
 
 const modes = [
   ['edit', 'Edit'], ['measure-length', 'Length'], ['measure-area', 'Area'], ['measure-height', 'Height'],
@@ -67,8 +69,8 @@ function ClimateMenu({ onOpenClimate, onOpenPlanting }: { onOpenClimate: () => v
 function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenFixtures, fixturesOpen, onOpenMcpTools, onOpenProposals, onOpenProjects }: { onOpenInterior: () => void; onOpenClimate: () => void; onOpenPlanting: () => void; onOpenFixtures: () => void; fixturesOpen: boolean; onOpenMcpTools: () => void; onOpenProposals: () => void; onOpenProjects: () => void }) {
   const project = useStudioStore((state) => state.project); const viewerMode = useStudioStore((state) => state.viewerMode); const setViewerMode = useStudioStore((state) => state.setViewerMode)
   const explode = useStudioStore((state) => state.explodeStoreys); const setExplode = useStudioStore((state) => state.setExplodeStoreys)
+  const compact = useCompactLayout()
   const setToast = useStudioStore((state) => state.setToast)
-  const proposals = useStudioStore((state) => state.proposals); const proposalCounts = { pending: proposals.filter((proposal) => proposal.status === 'pending').length, approved: proposals.filter((proposal) => proposal.status === 'approved').length, rejected: proposals.filter((proposal) => proposal.status === 'rejected').length, stale: proposals.filter((proposal) => proposal.status === 'stale').length }
   const [busy, setBusy] = useState(false)
   const generateReport = async () => {
     setBusy(true)
@@ -77,11 +79,11 @@ function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenFixtures
     finally { setBusy(false) }
   }
   return <header className="topbar">
-    <div className="brand"><span className="brand-mark">V2</span><div><strong>Spatial Editor</strong><small>{project.name} · r{project.revision}</small></div></div>
+    <div className="project-heading">{!compact && <HouseStudyControl onOpen={onOpenProjects} />}<ProjectTitle key={project.ref} projectRef={project.ref} name={project.name} /></div>
     <nav aria-label="Viewer tools">{modes.map(([value, label]) => <button key={value} className={viewerMode === value ? 'active' : ''} aria-pressed={viewerMode === value} onClick={() => setViewerMode(viewerMode === value ? 'edit' : value)} title={modeTitles[value]}>{label}</button>)}</nav>
+    {!compact && <TransparencyControls />}
     <div className="top-actions">
       <button onClick={onOpenInterior} disabled={!project.buildings.length} title="Edit rooms, furniture and house levels">House interior</button>
-      <button onClick={onOpenProjects} title="Open another project or start a new terrain">Projects</button>
       <button className={explode ? 'active' : ''} aria-pressed={explode} title="Separate every room, storey and the roof" onClick={() => {
         const next = !explode; setViewerMode('edit'); setExplode(next)
         const rooms = project.buildings.reduce((sum, building) => sum + building.spaces.length, 0)
@@ -89,11 +91,38 @@ function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenFixtures
       }}>Explode</button>
       <button className={`fixtures-button${fixturesOpen ? ' active' : ''}`} onClick={onOpenFixtures} aria-label="Open garden fixtures" aria-expanded={fixturesOpen}><span>Garden fixtures</span><small>{project.landscape.fixtures.length} placed</small></button>
       <ClimateMenu onOpenClimate={onOpenClimate} onOpenPlanting={onOpenPlanting} />
-      <button className="proposal-entry" onClick={onOpenProposals}><span>Proposals</span><small aria-label={`${proposalCounts.pending} pending, ${proposalCounts.approved} approved, ${proposalCounts.rejected} rejected, ${proposalCounts.stale} stale`}><i>P {proposalCounts.pending}</i><i>A {proposalCounts.approved}</i><i>R {proposalCounts.rejected}</i><i>S {proposalCounts.stale}</i></small></button>
+      <button onClick={onOpenProposals}>Proposals</button>
       <button onClick={onOpenMcpTools}>MCP Tools</button>
-      <button className="report-button" disabled={busy} onClick={generateReport}>{busy ? 'Rendering…' : 'Architectural set'}</button>
+      <button disabled={busy} onClick={generateReport}>{busy ? 'Rendering…' : 'Architectural set'}</button>
     </div>
   </header>
+}
+
+function ProjectTitle({ projectRef, name }: { projectRef: string; name: string }) {
+  const renameWorkspace = useStudioStore((state) => state.renameWorkspace)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(name)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const titleButton = useRef<HTMLButtonElement>(null)
+  const finish = () => { setEditing(false); setError(''); window.setTimeout(() => titleButton.current?.focus(), 0) }
+  const begin = () => { setDraft(name); setError(''); setEditing(true) }
+  const save = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (saving) return
+    setSaving(true)
+    try { await renameWorkspace(projectRef, draft); finish() }
+    catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not save the project name.') }
+    finally { setSaving(false) }
+  }
+  return <div className="brand project-title">
+    {editing ? <form onSubmit={(event) => void save(event)} onKeyDown={(event) => { event.stopPropagation(); if (event.key === 'Escape' && !saving) { event.preventDefault(); finish() } }}>
+      <input aria-label="Project name" aria-invalid={Boolean(error)} aria-describedby={error ? 'project-title-error' : undefined} value={draft} maxLength={120} autoFocus autoComplete="off" disabled={saving} onFocus={(event) => event.currentTarget.select()} onChange={(event) => { setDraft(event.target.value); setError('') }} />
+      <button type="submit" aria-label="Save project name" title="Save name (Enter)" disabled={saving || !draft.trim()}><Check size={16} /></button>
+      <button type="button" aria-label="Cancel renaming" title="Cancel (Escape)" disabled={saving} onClick={finish}>×</button>
+      {error && <span id="project-title-error" className="project-title-error" role="alert">{error}</span>}
+    </form> : <button ref={titleButton} className="project-title-button" aria-label={`Rename project: ${name}`} title={`${name} — double-click to rename`} onDoubleClick={begin} onKeyDown={(event) => { if (['Enter', ' ', 'F2'].includes(event.key)) { event.preventDefault(); begin() } }}>{name}</button>}
+  </div>
 }
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -373,18 +402,35 @@ const timezoneOptions = (() => { try { const values = (Intl as unknown as { supp
 /** The start screen: continue a saved project, reset to the bundled Zielonki study, or describe a new plot. */
 function StartScreen() {
   const open = useStudioStore((state) => state.launcherOpen); const saved = useStudioStore((state) => state.savedWorkspaces); const hydrated = useStudioStore((state) => state.hydrated); const project = useStudioStore((state) => state.project)
-  const visibleProjects = saved.filter((item) => item.ref !== REFERENCE_HOUSE_REF)
+  const visibleProjects = groupWorkspaces(saved).filter((item) => item.ref !== REFERENCE_HOUSE_REF)
+  const [expandedProjects, setExpandedProjects] = useState<string[]>([])
   const syncConflicts = useStudioStore((state) => state.projectSyncConflicts)
   const loading = useStudioStore((state) => state.loadingWorkspaces)
+  const renameWorkspace = useStudioStore((state) => state.renameWorkspace)
+  const [renameRef, setRenameRef] = useState<string | null>(null)
+  const [versionName, setVersionName] = useState('')
+  const [renameError, setRenameError] = useState('')
+  const [savingName, setSavingName] = useState(false)
+  const renameTrigger = useRef<HTMLButtonElement | null>(null)
   const closeLauncher = useStudioStore((state) => state.closeLauncher); const openLauncher = useStudioStore((state) => state.openLauncher); const startTerrain = useStudioStore((state) => state.startTerrain); const openWorkspace = useStudioStore((state) => state.openWorkspace); const setToast = useStudioStore((state) => state.setToast)
   const [mode, setMode] = useState<'choose' | 'terrain'>('choose'); const [values, setValues] = useState<TerrainFormValues>(terrainFormDefaults); const [errors, setErrors] = useState<Partial<TerrainFormValues>>({}); const [removeRef, setRemoveRef] = useState<string | null>(null)
   const dialog = useRef<HTMLElement>(null)
-  useEffect(() => { if (!open) return; setMode('choose'); setRemoveRef(null); window.setTimeout(() => dialog.current?.querySelector<HTMLElement>('button, input, select')?.focus(), 0) }, [open])
+  useEffect(() => {
+    if (!open) return
+    const trigger = document.activeElement
+    setMode('choose'); setRemoveRef(null); setRenameRef(null)
+    const timer = window.setTimeout(() => dialog.current?.querySelector<HTMLElement>('button:not([disabled]), input:not([disabled]), select:not([disabled])')?.focus(), 0)
+    return () => {
+      window.clearTimeout(timer)
+      if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus()
+    }
+  }, [open])
   useEffect(() => { if (mode === 'terrain') window.setTimeout(() => dialog.current?.querySelector<HTMLElement>('input')?.focus(), 0) }, [mode])
   if (!open) return null
-  const focusable = () => Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input, select') ?? [])
+  const focusable = () => Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select:not([disabled]), summary') ?? []).filter((item) => item.getClientRects().length > 0)
+  const cancelRename = () => { setRenameRef(null); setRenameError(''); window.setTimeout(() => renameTrigger.current?.focus(), 0) }
   const onKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Escape') { event.stopPropagation(); if (mode === 'terrain') setMode('choose'); else if (hydrated) closeLauncher(); return }
+    if (event.key === 'Escape') { event.stopPropagation(); if (savingName) return; if (renameRef) cancelRename(); else if (mode === 'terrain') setMode('choose'); else if (hydrated) closeLauncher(); return }
     if (event.key !== 'Tab') return
     const items = focusable(); if (!items.length) return
     const index = items.indexOf(document.activeElement as HTMLElement)
@@ -402,23 +448,60 @@ function StartScreen() {
     try { startTerrain(parsed.data) } catch (error) { setToast(error instanceof Error ? error.message : 'Terrain could not be created.') }
   }
   const remove = async (ref: string) => { try { await deleteWorkspace(ref); setRemoveRef(null); await openLauncher() } catch (error) { setToast(error instanceof Error ? error.message : 'Project could not be removed.') } }
+  const saveName = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!renameRef || savingName) return
+    setSavingName(true)
+    setRenameError('')
+    try { await renameWorkspace(renameRef, versionName); cancelRename() }
+    catch (error) { setRenameError(error instanceof Error ? error.message : 'Nie udało się zapisać nazwy.') }
+    finally { setSavingName(false) }
+  }
   return <div className="start-screen-scrim"><section className="start-screen" role="dialog" aria-modal="true" aria-labelledby="start-screen-title" ref={dialog} onKeyDown={onKeyDown}>
     <p className="eyebrow">PROJECTS</p>
     <h2 id="start-screen-title">Where do you want to plan today?</h2>
     {mode === 'choose' ? <>
       {loading && <p role="status">Loading saved and published projects…</p>}
-      {syncConflicts.length > 0 && <div role="alert"><p>The published house and your saved project have conflicting changes. Your saved project is unchanged; the new version is available as a separate “published version” project.</p><details><summary>Show conflicts ({syncConflicts.length})</summary><ul>{syncConflicts.map((path) => <li key={path}>{path}</li>)}</ul></details></div>}
-      {visibleProjects.length > 0 && <div className="start-saved"><h3>Saved projects</h3>{visibleProjects.map((item, index) => <div className="project-card" key={item.ref}>
-        <PlotOutline boundary={item.boundary} />
-        <div><strong>{item.name}</strong><small>r{item.revision} · saved {new Date(item.updatedAt).toLocaleString()} · {item.proposalCount} proposal{item.proposalCount === 1 ? '' : 's'}</small></div>
-        <div className="project-card-actions"><button className={index === 0 ? 'primary' : ''} onClick={() => void openWorkspace(item.ref)}>{index === 0 ? `Continue · ${item.name}` : 'Open'}</button><button onClick={() => setRemoveRef(removeRef === item.ref ? null : item.ref)} aria-label={`Remove ${item.name}`}>Remove</button></div>
-        {removeRef === item.ref && <div className="remove-confirm"><span>Remove {item.name} from this browser? Its proposals go with it.</span><button onClick={() => setRemoveRef(null)}>Keep</button><button className="confirm-delete" onClick={() => void remove(item.ref)}>Remove project</button></div>}
-      </div>)}</div>}
+      {syncConflicts.length > 0 && <div role="alert"><p>Opublikowana wersja i Twój zapis mają sprzeczne zmiany. Oba zapisy są zachowane. Rozwiń „Wersje” przy projekcie, aby otworzyć wersję oznaczoną jako konflikt.</p><details><summary>Show conflicts ({syncConflicts.length})</summary><ul>{syncConflicts.map((path) => <li key={path}>{path}</li>)}</ul></details></div>}
+      {visibleProjects.length > 0 && <div className="start-saved"><h3>Twoje projekty</h3>{visibleProjects.map((group, index) => {
+        const current = group.current
+        const versions = current ? [current, ...group.versions] : group.versions
+        const expanded = expandedProjects.includes(group.ref)
+        const renameItem = versions.find((item) => item.ref === renameRef)
+        const removeItem = versions.find((item) => item.ref === removeRef)
+        const beginRename = (event: React.MouseEvent<HTMLButtonElement>, item: typeof versions[number]) => {
+          renameTrigger.current = event.currentTarget; setRenameRef(item.ref); setVersionName(item.name); setRenameError(''); setRemoveRef(null)
+        }
+        return <article className="project-group" key={group.ref} aria-label={`Projekt: ${group.name}`}>
+          <div className="project-card">
+            <PlotOutline boundary={(current ?? group.versions[0]).boundary} />
+            <div><strong>{group.name}</strong><small>{current ? 'Bieżący projekt' : 'Zachowana historia · brak bieżącego zapisu'}</small>{group.hasConflict && <span className="project-conflict">Wersja z konfliktem do sprawdzenia</span>}</div>
+            <div className="project-card-actions">
+              {current && <><button disabled={savingName} aria-label={index === 0 ? `Continue · ${group.name}` : `Open · ${group.name}`} className={index === 0 ? 'primary' : ''} onClick={() => void openWorkspace(current.ref)}>Otwórz projekt</button><button disabled={savingName} aria-label={`Zmień nazwę: ${group.name}`} aria-expanded={renameRef === current.ref} onClick={(event) => beginRename(event, current)}>Zmień nazwę</button></>}
+              <button disabled={savingName} className="project-versions-toggle" aria-expanded={expanded} aria-controls={`versions-${group.ref}`} onClick={() => { setExpandedProjects((refs) => expanded ? refs.filter((ref) => ref !== group.ref) : [...refs, group.ref]); setRenameRef(null); setRemoveRef(null) }}><span aria-hidden="true">{expanded ? '▾' : '▸'}</span> Wersje ({versions.length})</button>
+            </div>
+          </div>
+          {expanded && <div className="project-versions" id={`versions-${group.ref}`} role="region" aria-label={`Wersje projektu: ${group.name}`}>
+            {versions.map((item) => <div className="project-version" key={item.ref}>
+              <div><strong>r{item.revision} <span>{item.ref === current?.ref ? 'Bieżąca wersja' : workspaceVersionKind(item.ref)}</span></strong><small>{new Date(item.updatedAt).toLocaleString()} · {item.proposalCount} propozycji</small>{item.ref !== current?.ref && <small className="project-version-name">{item.name}</small>}</div>
+              <div className="project-card-actions"><button disabled={savingName} aria-label={`Otwórz wersję r${item.revision}: ${item.name}`} onClick={() => void openWorkspace(item.ref)}>Otwórz</button>{item.ref !== current?.ref && <button disabled={savingName} aria-label={`Zmień nazwę wersji r${item.revision}: ${item.name}`} onClick={(event) => beginRename(event, item)}>Nazwij wersję</button>}<button disabled={savingName} aria-label={`Remove ${item.name}`} onClick={() => { cancelRename(); setRemoveRef(removeRef === item.ref ? null : item.ref) }}>Usuń zapis</button></div>
+            </div>)}
+          </div>}
+          {renameItem && <form className="project-name-form" aria-label={`Nazwa ${renameItem.ref === current?.ref ? 'projektu' : 'wersji'}: ${renameItem.name}`} onSubmit={(event) => void saveName(event)}>
+            <label htmlFor="version-name">{renameItem.ref === current?.ref ? 'Nazwa projektu' : 'Nazwa wersji'}</label>
+            <input id="version-name" value={versionName} maxLength={120} autoComplete="off" autoFocus onFocus={(event) => event.currentTarget.select()} disabled={savingName} aria-invalid={Boolean(renameError)} aria-describedby={renameError ? 'version-name-error' : undefined} onChange={(event) => { setVersionName(event.target.value); setRenameError('') }} />
+            <div className="project-name-suggestions" role="group" aria-label="Propozycje nazw"><span>Propozycje:</span>{['Bez garażu', 'Z garażem', 'Z wiatą z przodu', 'Z wiatą od ogrodu', 'Z osobnym budynkiem gospodarczym'].map((name) => <button type="button" key={name} disabled={savingName} onClick={() => { setVersionName(name); setRenameError('') }}>{name}</button>)}</div>
+            {renameError && <p id="version-name-error" className="field-error" role="alert">{renameError}</p>}
+            <div className="project-card-actions"><button type="submit" className="primary" disabled={savingName || !versionName.trim()}>{savingName ? 'Zapisywanie…' : 'Zapisz nazwę'}</button><button type="button" disabled={savingName} onClick={cancelRename}>Anuluj</button></div>
+          </form>}
+          {removeItem && <div className="remove-confirm"><span>Usunąć zapis r{removeItem.revision} „{removeItem.name}” i jego propozycje z tej przeglądarki? Pozostałe wersje zostaną zachowane.</span><button onClick={() => setRemoveRef(null)}>Zachowaj</button><button className="confirm-delete" onClick={() => void remove(removeItem.ref)}>Usuń zapis</button></div>}
+        </article>
+      })}</div>}
       <div className="start-options">
-        <button className="start-card" disabled={loading} onClick={() => void useStudioStore.getState().openZielonkiStudy()}><strong>Zielonki house study</strong><span>Continue your saved house, or explore the furnished modern barn with the measured interior, both floors and the Zielonki garden.</span></button>
-        <button className="start-card" onClick={() => setMode('terrain')}><strong>New terrain</strong><span>An empty rectangular plot with your own size, north direction and coordinates, ready for a house.</span></button>
+        <button className="start-card" disabled={loading || savingName} onClick={() => void useStudioStore.getState().openZielonkiStudy()}><strong>Zielonki house study</strong><span>Continue your saved house, or explore the furnished modern barn with the measured interior, both floors and the Zielonki garden.</span></button>
+        <button className="start-card" disabled={savingName} onClick={() => { cancelRename(); setMode('terrain') }}><strong>New terrain</strong><span>An empty rectangular plot with your own size, north direction and coordinates, ready for a house.</span></button>
       </div>
-      {hydrated && <div className="start-actions"><button onClick={closeLauncher}>Keep working on {project.name}</button></div>}
+      {hydrated && <div className="start-actions"><button disabled={savingName} onClick={closeLauncher}>Keep working on {project.name}</button></div>}
     </> : <form className="terrain-form" aria-label="New terrain" onSubmit={submit} noValidate>
       {field('name', 'Plot name', { type: 'text', maxLength: 60, autoComplete: 'off' })}
       {field('widthM', 'Width (m)', { type: 'number', min: 5, max: 500, step: 0.5, inputMode: 'decimal' })}
@@ -661,14 +744,14 @@ export function App() {
     window.addEventListener('keydown', keyboard); return () => window.removeEventListener('keydown', keyboard)
   }, [setToast, undo, interiorOpen])
   useEffect(() => () => useStudioStore.getState().setStructureReport(null), [])
-  if (interiorOpen) return <InteriorEditor onBack={() => setInteriorOpen(false)} approval={<VariantApproval />} />
+  if (interiorOpen) return <Suspense fallback={<div className="editor-loading" role="status">Opening house interior...</div>}><InteriorEditor onBack={() => setInteriorOpen(false)} approval={<VariantApproval />} /></Suspense>
   const toolbar = <Toolbar onOpenInterior={() => { setDataPanel(null); setInteriorOpen(true) }} onOpenClimate={() => setDataPanel('climate')} onOpenPlanting={() => setDataPanel('planting')} fixturesOpen={dataPanel === 'fixtures'} onOpenFixtures={() => { const opening = dataPanel !== 'fixtures'; setDataPanel(opening ? 'fixtures' : null); if (opening) focusGardenFixtures() }} onOpenMcpTools={() => setDataPanel('mcp-tools')} onOpenProposals={() => setDataPanel('proposals')} onOpenProjects={() => { setDataPanel(null); void openLauncher() }} />
   const dataContent = <>{dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'proposals' && <ProposalsPanel onClose={() => setDataPanel(null)} />}</>
   const movable = !!selectedRef && [...project.buildings, ...project.landscape.fixtures, ...project.landscape.plants, ...project.landscape.zones].some((value) => value.ref === selectedRef && !('locked' in value && value.locked))
   return <PrecisionControls><NeighborPreferences /><main className={`${compact ? 'compact-plot' : ''} ${controlsHidden ? 'plot-controls-hidden' : ''}`} aria-label="ProjectV2 spatial planning workspace">{!compact && <>{toolbar}<Inspector /></>}
-    {compact && (controlsHidden ? <button className="plot-restore" onClick={() => setControlsHidden(false)}><Eye size={18} />Show controls</button> : <><header className="plot-compact-top"><strong>Spatial editor</strong><NeighborToggle iconOnly /><HouseStudyControl /><button disabled={!project.buildings.length} onClick={() => { setDataPanel(null); setInteriorOpen(true) }}><Box size={18} />House interior</button><button aria-label="Fit plot view" onClick={refocusCamera}><Focus size={20} /></button></header><nav className="plot-action-bar" aria-label="Plot actions">{viewerMode !== 'edit' ? <><button onClick={() => setDataPanel(dataPanel === 'measure' ? null : 'measure')}><Ruler size={19} />Measure options</button><button onClick={() => { window.dispatchEvent(new Event(CLEAR_MEASUREMENT_EVENT)); useStudioStore.getState().setViewerMode('edit'); setDataPanel(null) }}><Check size={19} />Done</button></> : <><button onClick={() => setDataPanel(dataPanel === 'fixtures' ? null : 'fixtures')}><Plus size={20} />Add</button><button onClick={() => setDataPanel(dataPanel === 'inspector' ? null : 'inspector')}><Settings2 size={19} />{selectedRef ? 'Edit selection' : 'Edit'}</button>{selectedRef && movable ? <button onClick={() => { useStudioStore.getState().beginReposition(selectedRef); setDataPanel(null) }}><Move size={19} />Move</button> : <button onClick={() => { useStudioStore.getState().setViewerMode('measure-length'); setDataPanel(null) }}><Ruler size={19} />Measure</button>}<button onClick={() => setDataPanel(dataPanel === 'more' ? null : 'more')}><MoreHorizontal size={19} />More</button></>}</nav><AdaptiveSheet open={!!dataPanel} title={dataPanel === 'inspector' ? 'Selection' : dataPanel === 'fixtures' ? 'Garden fixtures' : dataPanel === 'measure' ? 'Measure' : dataPanel === 'more' ? 'View & project' : 'Project tools'} expanded={sheetExpanded} onExpanded={setSheetExpanded} onClose={() => setDataPanel(null)}>{dataPanel === 'inspector' && <Inspector />}{dataPanel === 'more' && <><NeighborSettings onView={() => setDataPanel(null)} /><button onClick={() => { setControlsHidden(true); setDataPanel(null) }}><EyeOff size={18} />Hide controls</button>{toolbar}<SunWidget /><div className="plot-history"><button disabled={!useStudioStore.getState().history.length} onClick={undo}>Undo</button><button disabled={!useStudioStore.getState().future.length} onClick={() => useStudioStore.getState().redo()}>Redo</button></div></>}{dataPanel === 'measure' && <ExactMeasureTools />}{dataPanel === 'measure' && modes.filter(([value]) => value !== 'edit').map(([value, label]) => <button key={value} onClick={() => { useStudioStore.getState().setViewerMode(value); setDataPanel(null) }}>{label}</button>)}{dataContent}</AdaptiveSheet></>)}
+    {compact && (controlsHidden ? <button className="plot-restore" onClick={() => setControlsHidden(false)}><Eye size={18} />Show controls</button> : <><header className="plot-compact-top"><strong>Spatial editor</strong><TransparencyControls /><NeighborToggle iconOnly /><HouseStudyControl /><button disabled={!project.buildings.length} onClick={() => { setDataPanel(null); setInteriorOpen(true) }}><Box size={18} />House interior</button><button aria-label="Fit plot view" onClick={refocusCamera}><Focus size={20} /></button></header><nav className="plot-action-bar" aria-label="Plot actions">{viewerMode !== 'edit' ? <><button onClick={() => setDataPanel(dataPanel === 'measure' ? null : 'measure')}><Ruler size={19} />Measure options</button><button onClick={() => { window.dispatchEvent(new Event(CLEAR_MEASUREMENT_EVENT)); useStudioStore.getState().setViewerMode('edit'); setDataPanel(null) }}><Check size={19} />Done</button></> : <><button onClick={() => setDataPanel(dataPanel === 'fixtures' ? null : 'fixtures')}><Plus size={20} />Add</button><button onClick={() => setDataPanel(dataPanel === 'inspector' ? null : 'inspector')}><Settings2 size={19} />{selectedRef ? 'Edit selection' : 'Edit'}</button>{selectedRef && movable ? <button onClick={() => { useStudioStore.getState().beginReposition(selectedRef); setDataPanel(null) }}><Move size={19} />Move</button> : <button onClick={() => { useStudioStore.getState().setViewerMode('measure-length'); setDataPanel(null) }}><Ruler size={19} />Measure</button>}<button onClick={() => setDataPanel(dataPanel === 'more' ? null : 'more')}><MoreHorizontal size={19} />More</button></>}</nav><AdaptiveSheet open={!!dataPanel} title={dataPanel === 'inspector' ? 'Selection' : dataPanel === 'fixtures' ? 'Garden fixtures' : dataPanel === 'measure' ? 'Measure' : dataPanel === 'more' ? 'View & project' : 'Project tools'} expanded={sheetExpanded} onExpanded={setSheetExpanded} onClose={() => setDataPanel(null)}>{dataPanel === 'inspector' && <Inspector />}{dataPanel === 'more' && <><NeighborSettings onView={() => setDataPanel(null)} /><button onClick={() => { setControlsHidden(true); setDataPanel(null) }}><EyeOff size={18} />Hide controls</button>{toolbar}<SunWidget /><div className="plot-history"><button disabled={!useStudioStore.getState().history.length} onClick={undo}>Undo</button><button disabled={!useStudioStore.getState().future.length} onClick={() => useStudioStore.getState().redo()}>Redo</button></div></>}{dataPanel === 'measure' && <ExactMeasureTools />}{dataPanel === 'measure' && modes.filter(([value]) => value !== 'edit').map(([value, label]) => <button key={value} onClick={() => { useStudioStore.getState().setViewerMode(value); setDataPanel(null) }}>{label}</button>)}{dataContent}</AdaptiveSheet></>)}
 
-    <div className="viewport"><Canvas shadows dpr={[1, 2]} camera={{ position: [29, 23, 32], fov: 38, near: 0.1, far: 1200 }} gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' }} onCreated={({ gl }) => { gl.outputColorSpace = SRGBColorSpace; gl.toneMapping = ACESFilmicToneMapping; gl.toneMappingExposure = 1.08; gl.shadowMap.type = PCFSoftShadowMap; gl.domElement.setAttribute('role', 'application'); gl.domElement.setAttribute('aria-label', 'Interactive ProjectV2 spatial editor'); gl.domElement.tabIndex = 0 }}><Suspense fallback={null}><StudioScene /></Suspense></Canvas>
+    <div className="viewport">{hydrated && <Suspense fallback={<div className="editor-loading" role="status">Opening plot...</div>}><PlotCanvas /></Suspense>}
       {!compact && <NeighborControls />}
       <button className="refocus-button" onClick={refocusCamera} aria-label={project.buildings.length ? 'Refocus on Main house' : 'Refocus on the site'}>
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" /><circle cx="12" cy="12" r="3.25" /></svg>

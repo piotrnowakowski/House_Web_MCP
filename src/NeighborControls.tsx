@@ -2,7 +2,6 @@ import { Building2, Eye, Settings2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useStudioStore } from './state/store'
 import './neighbors.css'
-import { HouseStudyControl } from './HouseStudyControl'
 
 export function NeighborToggle({ iconOnly = false }: { iconOnly?: boolean }) {
   const neighbors = useStudioStore((state) => state.project.site.neighbors)
@@ -60,7 +59,6 @@ export function NeighborControls() {
   return <div className='neighbor-controls' onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false) }}>
     <NeighborToggle />
     <button aria-label='Neighbor view settings' aria-expanded={open} onClick={() => setOpen(!open)}><Settings2 size={19} /></button>
-    <HouseStudyControl />
     {open && <div className='neighbor-popover'><button aria-label='Close neighbor settings' onClick={() => setOpen(false)}>Close</button><NeighborSettings onView={() => setOpen(false)} /></div>}
   </div>
 }

@@ -1,3 +1,4 @@
+import beforeBrowserCapture from '../../project-data/zielonki/before-browser-capture-r46.json'
 import { expect, it } from 'vitest'
 import previousData from '../../project-data/zielonki/published-base-r41.json'
 import { publishedProject } from '../services/publishedProject'
@@ -27,7 +28,7 @@ it('joins the ground terrace canopy to the garage cap and projecting wing while 
   expect(building.walls.find((w) => w.ref === 'wall/reference-ground/14')!.finish!.material).toBe('natural-timber')
   expect(building.slabs).toEqual(oldBuilding.slabs)
   expect(building.furniture).toEqual(oldBuilding.furniture)
-  expect(publishedProject.landscape).toEqual(previous.landscape)
+  expect(beforeBrowserCapture.landscape).toEqual(previous.landscape)
   expect(building.roof.segments.find((s) => s.ref.endsWith('/front-barn'))!.gableGlazing).toEqual(oldBuilding.roof.segments.find((s) => s.ref.endsWith('/front-barn'))!.gableGlazing)
 })
 

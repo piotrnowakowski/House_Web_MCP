@@ -10,7 +10,7 @@ export type BuildingKind = 'house' | 'garage'
 export type ArchitecturalStyle = 'classic' | 'futuristic' | 'barn'
 export type GardenZoneKind = 'lawn' | 'terrace' | 'path' | 'driveway' | 'bed' | 'rain-garden' | 'vegetable'
 export type PlantKind = 'tree' | 'hedge' | 'shrub' | 'perennial' | 'grass' | 'crop' | 'wetland'
-export type GardenFixtureCatalogId = 'raised-bed-2x1' | 'tomato-row' | 'potato-row' | 'cucumber-trellis' | 'outdoor-dining-set' | 'garden-lounge-set' | 'slatted-bench' | 'sun-lounger' | 'cantilever-parasol'
+export type GardenFixtureCatalogId = 'raised-bed-2x1' | 'tomato-row' | 'potato-row' | 'cucumber-trellis' | 'outdoor-dining-set' | 'garden-lounge-set' | 'slatted-bench' | 'sun-lounger' | 'cantilever-parasol' | 'jacuzzi' | 'outdoor-kitchen'
 
 export type ClimateDayPart = 'night' | 'morning' | 'day' | 'evening'
 export type TemperatureByDayPartC = Record<ClimateDayPart, number>
@@ -85,6 +85,8 @@ export interface RoofModel {
   finish: RoofFinish; segments: RoofSegmentModel[]; junctions: RoofJunctionModel[]
 }
 export interface BuildingModel {
+  /** A visual study may be saved outside construction land; planning issues remain visible. */
+  designStatus?: 'concept'
   interiorSource?: { id: string; notes: string[] }
   furniture?: InteriorItem[]
   stairs?: StairModel[]
@@ -94,7 +96,7 @@ export interface BuildingModel {
 }
 
 export interface StairModel { ref: string; fromStoreyRef: string; toStoreyRef: string; start: Vec2; runM: number; widthM: number; steps: number }
-export type InteriorCatalogId = 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car'
+export type InteriorCatalogId = 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car' | 'camper'
 export interface InteriorItem { ref: string; catalogId: InteriorCatalogId; storeyRef: string; name: string; position: Vec2; widthM: number; depthM: number; heightM: number; rotationDegrees: number; color: string; productId?: string; variantId?: string; elevationM?: number; groupRef?: string; locked?: boolean }
 export type InteriorCommand = { type: 'interior.update'; buildingRef: string; storeyRef: string } & (
   { action: 'put'; item: InteriorItem } | { action: 'remove'; itemRef: string } |

@@ -25,6 +25,14 @@ For MN/MNU, **§13(6)(4)** of [IX/55/2007, page 15](https://rastry.gison.pl/mpzp
 
 The fitted house now uses pitches within 37–45°, preserving the perpendicular ridge junction and dark standing-seam finish. Its main gable stops at the upper-floor wall, with a separate flat roof over the exposed garage as requested by the user. The cited text does **not** establish general permission for this flat garage terrace; its acceptability requires project-specific confirmation. Eaves projection, roofing material and the remainder of the building have not been certified as compliant by this change. The app's 8.90 m target is a measurement over modelled terrain at roof centres, not a legal assessment of building height.
 
+## Outbuilding roof follow-up — 10 September 2026
+
+The user's question about the r52 flat outbuilding roof prompted a recheck of the original plan and the official indexed text of the [2020 amendment](https://edziennik.malopolska.uw.gov.pl/GetActPdf.ashx?book=0&position=1251&year=2020). Direct retrieval of the amendment PDF returned a gateway error during this check; its indexed official text confirms the repeal of §13(2)(2), and the previously inspected local evidence records that §13(6)(4) was not amended. The municipal consultation notice still describes draft plans, not an adopted replacement.
+
+**A flat roof on this outbuilding has not been established as permissible.** In the original plan, §13(9)(1) extends §13(6)(4–12) to economic buildings associated with business activity, and §13(9)(2) gives a 7 m ridge-height limit. The below-37° provision in §13(8)(1) concerns its U/ZPU context; it is not a general flat-roof exemption for this site. Classification of the mixed private garage/workshop/sauna concept requires project-specific assessment. More fundamentally, its requested location is 06.R.21, where §28 prohibits new buildings.
+
+R53 therefore uses a symmetric 37° outbuilding gable, 0.60 m overhangs, 3.80 m eaves and approximately 6.25 m ridge as a conservative visual revision. This is not a finding that the whole building, open pergola, use or location complies. The main-house roofs remain unchanged. The prior flat-roof r52 is retained in `project-data/zielonki-v2/before-house-facing-outbuilding-r52.json` for recovery.
+
 ## Geometry and derived areas
 
 The supplied `Zielonki_dz54_55_58-akt-v2 (2).dwg` contains usable vector zoning dashes on `_MPZP`, despite also referring to unavailable external raster files. The relevant trace uses LINE handles `5882–589B`, with the main parcel-crossing run `5887–5896`. Labels `58EA` and `58EE` identify 06.R.21 and 06.MNU.8. The separately marked setback polyline `591A` was not used as the zoning boundary.

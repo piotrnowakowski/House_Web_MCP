@@ -29,6 +29,7 @@ export const interiorCatalog: { id: InteriorCatalogId; name: string; category: s
   { id: 'vanity', name: 'Bathroom vanity', category: 'Bathroom', size: [1, 0.5, 0.85], color: '#c39d72' },
   { id: 'washer', name: 'Washing machine', category: 'Bathroom', size: [0.6, 0.65, 0.85], color: '#eeeae2' },
   { id: 'car', name: 'Family car', category: 'Garage', size: [1.85, 4.5, 1.45], color: '#82949b' },
+  { id: 'camper', name: 'Kamper', category: 'Garage', size: [2.35, 7.4, 3.1], color: '#dddcd2' },
 ]
 
 export const InteriorItemSchema = z.object({

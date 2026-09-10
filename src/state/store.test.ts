@@ -4,7 +4,8 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { isModernBarnPreset } from '../domain/presets'
 import { modernBarnProject, sampleProject } from '../domain/sampleProject'
 import { ZIELONKI_PROJECT_REF, createTerrainProject } from '../domain/terrain'
-import { saveWorkspace } from '../services/persistence'
+import { listWorkspaces, loadWorkspace, saveWorkspace } from '../services/persistence'
+import { REAR_CARPORT_STUDY_REF } from '../services/publishedRearCarport'
 import { useStudioStore } from './store'
 
 beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [], history: [], month: 7, sunTime: { month: 7, day: 15, hour: 14 }, sunAnimation: 'none', sunOverlay: { enabled: false, targetRef: null, result: null } }))
@@ -38,6 +39,33 @@ describe('sun time state', () => {
 })
 
 describe('start screen and project switching', () => {
+  it('retains the active name through proposals, undo and redo and saves unsaved geometry', async () => {
+    globalThis.indexedDB = new IDBFactory()
+    useStudioStore.setState({ project: structuredClone(sampleProject), hydrated: true, proposals: [], draftChangeSets: [], future: [] })
+    const proposal = useStudioStore.getState().createVariant('Move hydrangea', [{ type: 'plant.update', action: 'move', plantRef: 'plant/hydrangea', position: { x: -7.5, z: 9 } }])
+    const before = structuredClone(useStudioStore.getState().project)
+    await useStudioStore.getState().renameWorkspace(before.ref, '  Z wiatą z przodu  ')
+    expect((await loadWorkspace(before.ref))?.project).toEqual({ ...before, name: 'Z wiatą z przodu' })
+    expect(useStudioStore.getState().proposals[0].project.name).toBe(before.name)
+    expect(useStudioStore.getState().applyVariant(proposal.ref).name).toBe('Z wiatą z przodu')
+    expect(useStudioStore.getState().undo().name).toBe('Z wiatą z przodu')
+    expect(useStudioStore.getState().redo().name).toBe('Z wiatą z przodu')
+    await useStudioStore.getState().renameWorkspace(before.ref, 'Własna nazwa')
+    expect((await loadWorkspace(before.ref))?.project.landscape).toEqual(useStudioStore.getState().project.landscape)
+  })
+
+  it('renames an unopened version without replacing the active working copy', async () => {
+    globalThis.indexedDB = new IDBFactory()
+    const saved = { ...structuredClone(sampleProject), ref: 'project/saved-copy' }
+    await saveWorkspace({ version: 1, project: saved, proposals: [], draftChangeSets: [] })
+    useStudioStore.setState({ hydrated: true, savedWorkspaces: await listWorkspaces() })
+    const active = useStudioStore.getState().project
+    await useStudioStore.getState().renameWorkspace(saved.ref, 'Bez garażu')
+    expect(useStudioStore.getState().project).toBe(active)
+    expect(useStudioStore.getState().savedWorkspaces[0].name).toBe('Bez garażu')
+    expect((await loadWorkspace(saved.ref))?.project.name).toBe('Bez garażu')
+  })
+
   it('refreshes cached warnings on pending proposals when reopening a workspace', () => {
     const project = structuredClone(modernBarnProject)
     const proposal = useStudioStore.getState().createVariant('Sedge adjustment', [{ type: 'plant.update', action: 'move', plantRef: 'plant/sedge', position: { x: -7, z: 9 } }])
@@ -114,7 +142,7 @@ describe('start screen and project switching', () => {
     useStudioStore.setState({ launcherOpen: false, hydrated: true, project: structuredClone(modernBarnProject) })
     await useStudioStore.getState().openLauncher()
     expect(useStudioStore.getState().launcherOpen).toBe(true)
-    expect(useStudioStore.getState().savedWorkspaces.map((item) => item.ref)).toEqual([terrain.ref])
+    expect(useStudioStore.getState().savedWorkspaces.map((item) => item.ref).sort()).toEqual([terrain.ref, REAR_CARPORT_STUDY_REF].sort())
     await useStudioStore.getState().openWorkspace(terrain.ref)
     expect(useStudioStore.getState().project.name).toBe('Saved plot')
     expect(useStudioStore.getState().launcherOpen).toBe(false)

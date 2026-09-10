@@ -106,6 +106,7 @@ const RoofJunctionSchema = z.object({
   segmentRefs: z.tuple([z.string().min(1), z.string().min(1)]),
 })
 const BuildingSchema = z.object({
+  designStatus: z.literal('concept').optional(),
   interiorSource: z.object({ id: z.string().min(1), notes: z.array(z.string()) }).optional(),
   furniture: z.array(InteriorItemSchema).optional(),
   stairs: z.array(z.object({ ref: z.string().min(1), fromStoreyRef: z.string().min(1), toStoreyRef: z.string().min(1), start: Vec2Schema, runM: z.number().positive(), widthM: z.number().positive(), steps: z.number().int().min(2).max(40) })).optional(),
@@ -128,7 +129,7 @@ const PlantSchema = z.object({
   attachment: z.object({ hostRef: z.string().min(1), hostFace: z.enum(['top', 'bottom', 'inside', 'outside', 'terrain']), localPosition: Vec3Schema, rotationDegrees: z.number().finite() }).optional(),
 })
 const GardenFixtureSchema = z.object({
-  ref: z.string().min(1), catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol']), name: z.string().min(1),
+  ref: z.string().min(1), catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'jacuzzi', 'outdoor-kitchen']), name: z.string().min(1),
   position: Vec2Schema, rotationDegrees: z.number().finite(), locked: z.boolean(),
 })
 const TemperatureByDayPartSchema = z.object({ night: z.number(), morning: z.number(), day: z.number(), evening: z.number() }).strict()

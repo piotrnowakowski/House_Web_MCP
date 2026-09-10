@@ -259,7 +259,11 @@ export function moveConnectedWall(
   const oldStart = { ...wall.start }
   const oldEnd = { ...wall.end }
   const map = (point: Vec2) => (same(point, oldStart) ? command.start : same(point, oldEnd) ? command.end : point)
-  moveWallEndpoints(building, storey, map)
+  const translation = same(
+    { x: command.start.x - oldStart.x, z: command.start.z - oldStart.z },
+    { x: command.end.x - oldEnd.x, z: command.end.z - oldEnd.z },
+  )
+  moveWallEndpoints(building, storey, translation ? rightAngleMap(building, storey, map) : map)
   if (command.thicknessM !== undefined) {
     if (!Number.isFinite(command.thicknessM) || command.thicknessM < 0.06 || command.thicknessM > 0.5)
       throw new Error('Wall thickness must be between 0.06 and 0.5 m.')
@@ -273,8 +277,41 @@ export function moveConnectedWall(
   validateRooms(building, storey)
 }
 
+/** Propagate perpendicular displacement along straight runs instead of bending their ends. */
+function rightAngleMap(building: BuildingModel, storey: StoreyModel, map: (point: Vec2) => Vec2) {
+  const walls = building.walls.filter(wall => storey.wallRefs.includes(wall.ref))
+  const junctions: Array<{ original: Vec2; next: Vec2 }> = []
+  const vertex = (point: Vec2) => {
+    let junction = junctions.find(item => same(item.original, point))
+    if (!junction) { junction = { original: point, next: { ...map(point) } }; junctions.push(junction) }
+    return junction
+  }
+  const constraints = walls.flatMap(wall => {
+    const axis: 'x' | 'z' | null = Math.abs(wall.start.x - wall.end.x) < .0001 ? 'x' : Math.abs(wall.start.z - wall.end.z) < .0001 ? 'z' : null
+    return axis ? [{ a: vertex(wall.start), b: vertex(wall.end), axis }] : []
+  })
+  for (let pass = 0; pass < junctions.length; pass++) {
+    let changed = false
+    for (const { a, b, axis } of constraints) {
+      const da = a.next[axis] - a.original[axis], db = b.next[axis] - b.original[axis]
+      if (Math.abs(da - db) < .0001) continue
+      if (Math.abs(da) > .0001 && Math.abs(db) > .0001) throw new Error('This move cannot keep the connected walls at right angles.')
+      if (Math.abs(da) > .0001) b.next[axis] = b.original[axis] + da
+      else a.next[axis] = a.original[axis] + db
+      changed = true
+    }
+    if (!changed) break
+  }
+  return (point: Vec2) => {
+    const junction = junctions.find(item => same(item.original, point))
+    return junction && !same(junction.original, junction.next) ? junction.next : map(point)
+  }
+}
+
 /** Map every shared junction once, before validating the final room topology. */
 function moveWallEndpoints(building: BuildingModel, storey: StoreyModel, map: (point: Vec2) => Vec2) {
+  const originalLengths = new Map(building.walls.filter(wall => storey.wallRefs.includes(wall.ref)).map(wall => [wall.ref, wallLength(wall)]))
+  const changed = new Set<string>()
   for (const connected of building.walls.filter((item) => storey.wallRefs.includes(item.ref))) {
     const start = map(connected.start)
     const end = map(connected.end)
@@ -289,13 +326,55 @@ function moveWallEndpoints(building: BuildingModel, storey: StoreyModel, map: (p
       !isEnvelopeWall(building, storey, { ...connected, start, end })
     )
       throw new Error('This edit would move the exterior envelope.')
-    const oldLength = wallLength(connected)
     connected.start = { ...start }
     connected.end = { ...end }
-    connected.openings.forEach((opening) => {
-      opening.offsetM *= wallLength(connected) / oldLength
-    })
+    changed.add(connected.ref)
   }
+  reconnectSlidingJunctions(building, storey, changed)
+  for (const ref of changed) {
+    const wall = building.walls.find(wall => wall.ref === ref)!
+    wall.openings.forEach(opening => { opening.offsetM *= wallLength(wall) / originalLengths.get(ref)! })
+  }
+}
+
+/** When a sliding T-junction passes another, transfer the return segment between rooms. */
+function reconnectSlidingJunctions(building: BuildingModel, storey: StoreyModel, changed: Set<string>) {
+  const walls = building.walls.filter(wall => storey.wallRefs.includes(wall.ref))
+  // Each repair removes one overlap; repeating allows a drag to pass multiple junctions.
+  for (let pass = 0; pass < walls.length; pass++) {
+    let repaired = false
+    for (const short of walls) for (const long of walls) {
+      if (short === long || (!changed.has(short.ref) && !changed.has(long.ref)) || wallLength(short) >= wallLength(long) - 0.0001) continue
+      const sharedStart = same(short.start, long.start) || same(short.end, long.start)
+      const sharedEnd = same(short.start, long.end) || same(short.end, long.end)
+      if (!sharedStart && !sharedEnd) continue
+      const shared = sharedStart ? long.start : long.end
+      const junction = same(short.start, shared) ? short.end : short.start
+      if (!pointOnSegment(junction, long.start, long.end)) continue
+      if (long.locked || building.spaces.some(room => room.locked && room.boundary.some(use => use.wallRef === long.ref || use.wallRef === short.ref)))
+        throw new Error('A connected wall or room is locked.')
+      const direction = (sharedStart ? same(short.start, shared) : same(short.end, shared)) ? 1 : -1
+      for (const room of building.spaces.filter(room => storey.spaceRefs.includes(room.ref))) {
+        const longUse = room.boundary.find(use => use.wallRef === long.ref)
+        if (!longUse) continue
+        const shortUse = room.boundary.find(use => use.wallRef === short.ref)
+        if (shortUse) {
+          if (shortUse.direction === longUse.direction * direction) throw new Error('This edit would overlap a room boundary.')
+          room.boundary = room.boundary.filter(use => use !== shortUse)
+        } else {
+          const transfer: SpaceBoundaryUse = { wallRef: short.ref, direction: longUse.direction * direction as 1 | -1 }
+          room.boundary = room.boundary.flatMap(use => use !== longUse ? [use]
+            : sharedStart === (use.direction === 1) ? [transfer, use] : [use, transfer])
+        }
+      }
+      if (sharedStart) long.start = { ...junction }
+      else long.end = { ...junction }
+      changed.add(long.ref)
+      repaired = true
+    }
+    if (!repaired) return
+  }
+  throw new Error('Could not reconnect the sliding wall junctions.')
 }
 
 function editableWallSelection(building: BuildingModel, storey: StoreyModel, refs: string[]) {
@@ -329,7 +408,7 @@ export function moveWallGroup(building: BuildingModel, storey: StoreyModel, refs
   if (![delta.x, delta.z].every(Number.isFinite)) throw new Error('Enter a finite movement.')
   const members = wallGroupMembers(building, storey, refs)
   const junctions = members.flatMap(w => [{ ...w.start }, { ...w.end }])
-  moveWallEndpoints(building, storey, point => junctions.some(p => same(p, point))
-    ? { x: point.x + delta.x, z: point.z + delta.z } : point)
+  moveWallEndpoints(building, storey, rightAngleMap(building, storey, point => junctions.some(p => same(p, point))
+    ? { x: point.x + delta.x, z: point.z + delta.z } : point))
   validateRooms(building, storey)
 }

@@ -19,5 +19,5 @@ export default defineConfig({
   preview: { host: '127.0.0.1' },
   build: { sourcemap: true },
   // Pre-bundle the heavy runtime libraries so a cold dev start does not re-optimise and reload the page mid-session.
-  optimizeDeps: { include: ['three', '@react-three/fiber', '@react-three/drei', '@react-three/rapier', '@thatopen/components', 'camera-controls', 'three-mesh-bvh', 'zustand', 'zod', 'manifold-3d/lib/wasm'] },
+  optimizeDeps: { include: ['three', '@react-three/fiber', '@react-three/drei', 'camera-controls', 'three-mesh-bvh', 'zustand', 'zod', 'manifold-3d/lib/wasm'] },
 })

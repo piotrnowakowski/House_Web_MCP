@@ -767,7 +767,7 @@ export function WallInspector({
           {wallLength(wall).toFixed(2)} m ·{' '}
           {exterior
             ? 'Exterior outline is fixed here. Select a partition or move the whole building.'
-              : 'Touch or click and drag this wall to move it. Shared endpoints and hosted openings move together.'}
+              : 'Drag to move this wall. Connected walls keep their right angles; room boundaries and openings adjust together.'}
         </p>
         <fieldset disabled={exterior || wall.locked} className="interior-fields">
           <label className="interior-field">Keep fixed<select aria-label="Wall length anchor" value={anchor} onChange={e => setAnchor(e.target.value as typeof anchor)}><option value="start">Start</option><option value="center">Centre</option><option value="end">End</option></select></label>

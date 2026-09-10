@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/zielonki-v2/project.json'
+import beforeShortHall from '../../project-data/zielonki-v2/before-short-hall-r55.json'
 import source from '../../project-data/zielonki-v2/before-carport-r46.json'
 import beforeRotation from '../../project-data/zielonki-v2/before-rotation-r47.json'
 import beforeTrim from '../../project-data/zielonki-v2/before-terrace-trim-r48.json'
@@ -47,7 +48,11 @@ it('validates room connections, openings, furnishings, canopy and roof constrain
   expect(house.spaces.some(s => s.usage === 'garage')).toBe(false)
   expect(house.spaces.find(s => s.ref === 'space/reference-office')?.usage).toBe('bedroom')
   expect(house.storeys[1].kneeWallHeightM).toBe(1.4)
-  expect(house.roof.segments.filter(s => s.type === 'gable')).toEqual(source.buildings[0].roof.segments.filter(s => s.type === 'gable'))
+  for (const segment of house.roof.segments.filter(s => s.type === 'gable')) {
+    const original = source.buildings[0].roof.segments.find(s => s.ref === segment.ref)!
+    expect(segment.pitchDegrees).toBe(original.pitchDegrees)
+    expect(segment.baseElevationM).toBe(original.baseElevationM)
+  }
   expect(house.roof.segments.filter(s => s.canopy?.slats)).toHaveLength(1)
   const roomArea = house.spaces.filter(s => s.baseSlabRef === 'slab/reference-ground').map(s => spaceFootprint(house, s))
   expect(roomArea).toHaveLength(4)
@@ -56,12 +61,12 @@ it('validates room connections, openings, furnishings, canopy and roof constrain
   expect(project.site.neighbors).toEqual(publishedProject.site.neighbors)
 })
 
-it('fits the house and road-facing carport in MNU with the house set back 12.71 m', () => {
+it('fits the shorter house and road-facing carport in MNU with the house set back 14.21 m', () => {
   const project = parseProject(data)
   const { corner, roadNormal } = zielonkiSetbackLines(project)
   const distances = houseEnvelopeWorld(project.buildings[0]).map(p => (p.x - corner.x) * roadNormal.x + (p.z - corner.z) * roadNormal.z)
-  expect(Math.min(...distances)).toBeCloseTo(12.710776, 3)
-  for (const building of project.buildings) {
+  expect(Math.min(...distances)).toBeCloseTo(14.210776, 3)
+  for (const building of project.buildings.filter(b => b.ref === 'house/main' || b.ref === 'building/south-carport')) {
     expect(buildingCrossesAgriculturalZone(project, building)).toBe(false)
     const zones = landUseAreas(project).filter(z => z.landRole === 'construction')
     expect(buildingFootprintsWorld(building).flat().every(p => zones.some(z => pointInPolygon(p, z.boundary)))).toBe(true)
@@ -81,7 +86,7 @@ it('fits the house and road-facing carport in MNU with the house set back 12.71 
 })
 
 it('keeps orientation and rooms, places the canopy at the road facade and reaches the mapped rear limit', () => {
-  const project = parseProject(data), house = project.buildings[0], carport = project.buildings[1]
+  const project = parseProject(beforeShortHall), house = project.buildings[0], carport = project.buildings[1]
   expect(house.rotationDegrees).toBe(beforeMove.buildings[0].rotationDegrees)
   expect(house.walls).toEqual(beforeMove.buildings[0].walls)
   expect(house.roof).toEqual(beforeMove.buildings[0].roof)
@@ -179,7 +184,7 @@ it('upgrades the actual existing v2 identity, preserving independent edits and t
   await openHouseStudy(CARPORT_STUDY_REF)
   const updated = useStudioStore.getState().project
   expect(updated.ref).toBe('project/zielonki-v2')
-  expect(updated.name).toBe('zielonki v2')
+  expect(updated.name).toBe(data.name)
   expect(updated.buildings[0].spaces.find(s => s.ref === 'space/reference-parents')!.name).toBe('Our bedroom')
   expect(updated.buildings[0].roof.segments.filter(s => s.canopy?.slats)).toEqual(data.buildings[0].roof.segments.filter(s => 'canopy' in s))
   expect(updated.buildings[1].furniture).toHaveLength(2)

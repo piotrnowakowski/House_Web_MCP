@@ -27,13 +27,15 @@ it('migrates the cadastral neighbor correction and preserves a deleted tree acro
   expect(migrated.landscape.plants).toHaveLength(5)
   await saveWorkspace(envelope(migrated))
   expect((await loadWorkspace(previous.ref))!.project).toEqual(migrated)
-  expect((await listWorkspaces()).some((w) => w.ref.includes('/before-published-46-'))).toBe(true)
+  expect((await listWorkspaces()).some((w) => w.ref.includes(`/before-published-${publishedProject.revision}-`))).toBe(true)
 })
 
 it('publishes the recovered geometry, six surviving plants and the adjusted roof', () => {
   expect(parseProject(publishedProject)).toEqual(publishedProject)
   expect(validateProject(publishedProject).filter((issue) => issue.severity === 'error')).toEqual([])
-  expect(publishedProject.revision).toBe(46)
+  expect(publishedProject.revision).toBe(49)
+  expect(publishedProject.name).toBe('Dom duży taras')
+  expect(publishedProject.landscape.zones.some((zone) => ['zone/lawn', 'zone/rain-garden'].includes(zone.ref))).toBe(false)
   expect(publishedProject.landscape.plants.map((plant) => plant.ref)).toEqual([
     'plant/survey-5012', 'plant/survey-5015', 'plant/survey-5018', 'plant/survey-501b', 'plant/apple', 'plant/orchard-plum',
   ])

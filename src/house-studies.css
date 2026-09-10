@@ -1,18 +1,6 @@
 .house-study-toggle { display:flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; padding:8px; border:1px solid #405049; border-radius:5px; background:#101815f5; color:#dce5df; cursor:pointer; }
-.house-study-toggle[aria-pressed=true] { color:#d3fa76; border-color:#b9e84d; }
-.house-study-dialog { box-sizing:border-box; width:min(420px,calc(100vw - 24px)); max-height:calc(100dvh - 32px); padding:20px; border:1px solid #405049; border-radius:12px; background:#101815; color:#dce5df; overflow:auto; box-shadow:0 16px 60px #0008; }
-.house-study-dialog::backdrop { background:#0005; }
-.house-study-dialog header { display:flex; align-items:center; justify-content:space-between; gap:12px; }
-.house-study-dialog h2 { font-size:20px; margin:0; }
-.house-study-dialog p { font-size:13px; line-height:1.5; color:#a8b7ad; }
-.house-study-dialog button { min-width:44px; min-height:44px; border:1px solid #405049; color:inherit; background:#18221c; border-radius:6px; cursor:pointer; }
-.house-study-dialog header button { display:grid; place-items:center; }
-.house-study-options { display:grid; gap:8px; }
-.house-study-options button { display:flex; align-items:center; gap:12px; text-align:left; padding:14px 12px; }
-.house-study-options button[aria-pressed=true] { border-color:#b9e84d; background:#293829; }
-.house-study-options span { flex:1; display:grid; gap:5px; }
-.house-study-options small { color:#a8b7ad; font-size:12px; }
-.house-study-dialog .house-study-note { margin-bottom:0; font-size:12px; }
-.house-study-dialog :focus-visible, .house-study-toggle:focus-visible { outline:2px solid #b9e84d; outline-offset:3px; }
-@media(max-width:900px) { .plot-compact-top strong { min-width:0; flex:1; } .house-study-dialog { margin:auto auto max(12px,env(safe-area-inset-bottom)); } }
-@media(max-height:500px) and (orientation:landscape) { .house-study-dialog { margin:auto 12px auto auto; max-height:calc(100dvh - 20px); } }
+.project-heading { display:flex; align-items:center; gap:6px; min-width:0; max-width:260px; }
+.project-heading .house-study-toggle { flex-shrink:0; }
+.plot-compact-top .house-study-toggle { order:-1; }
+.house-study-toggle:focus-visible { outline:2px solid #b9e84d; outline-offset:3px; }
+@media(max-width:900px) { .plot-compact-top strong { min-width:0; flex:1; } }

@@ -5,7 +5,7 @@ import { applyCommand, calculateMetrics, validateProject } from '../domain/comma
 import { sampleProject } from '../domain/sampleProject'
 import { createTerrainProject } from '../domain/terrain'
 import type { PersistedWorkspace, ProposalRecord } from '../domain/types'
-import { LEGACY_WORKSPACE_KEY, deleteWorkspace, listWorkspaces, loadProject, loadWorkspace, saveProject, saveWorkspace } from './persistence'
+import { LEGACY_WORKSPACE_KEY, deleteWorkspace, listWorkspaces, loadProject, loadWorkspace, renameWorkspace, saveProject, saveWorkspace } from './persistence'
 
 const workspace = (project: PersistedWorkspace['project'], proposals: PersistedWorkspace['proposals'] = []): PersistedWorkspace => ({ version: 1, project, proposals, draftChangeSets: [] })
 const terrain = createTerrainProject({ name: 'Test plot', widthM: 30, depthM: 40, northDegrees: 0, latitude: 52.23, longitude: 21.01, timezone: 'Europe/Warsaw' }, new Date('2026-09-04T09:00:00.000Z'))
@@ -32,6 +32,29 @@ const readKeys = () => new Promise<string[]>((resolve, reject) => {
 beforeEach(() => { globalThis.indexedDB = new IDBFactory() })
 
 describe('multi-project persistence', () => {
+  it('renames only metadata, retaining deletions, proposal audits and the active project', async () => {
+    const saved = workspace(structuredClone(sampleProject))
+    saved.project.landscape.plants.pop()
+    saved.proposals = [{ ref: 'variant/audit', label: 'Original audit', baseRevision: 1, createdAt: saved.project.updatedAt, commands: [], project: structuredClone(sampleProject), issues: [], metrics: calculateMetrics(sampleProject), status: 'rejected' }]
+    await saveWorkspace(saved)
+    await saveWorkspace(workspace(terrain))
+    await renameWorkspace(saved.project.ref, '  Bez garażu  ')
+    expect(await readRecord(`workspace/${saved.project.ref}`)).toEqual({ ...saved, project: { ...saved.project, name: 'Bez garażu' } })
+    expect((await loadWorkspace())?.project.ref).toBe(terrain.ref)
+    expect((await listWorkspaces()).find((item) => item.ref === saved.project.ref)?.name).toBe('Bez garażu')
+    expect((await loadWorkspace(saved.project.ref))?.project.name).toBe('Bez garażu')
+  })
+
+  it('rejects invalid names and missing projects without recreating deleted records', async () => {
+    await saveWorkspace(workspace(terrain))
+    await expect(renameWorkspace(terrain.ref, '   ')).rejects.toThrow('Wpisz nazwę')
+    await expect(renameWorkspace(terrain.ref, 'x'.repeat(121))).rejects.toThrow('120')
+    expect((await loadWorkspace())?.project.name).toBe(terrain.name)
+    await deleteWorkspace(terrain.ref)
+    await expect(renameWorkspace(terrain.ref, 'Z wiatą z przodu')).rejects.toThrow('Nie znaleziono')
+    expect(await listWorkspaces()).toEqual([])
+  })
+
   it('keeps one record per project and lists them newest first with the active one loadable by default', async () => {
     await saveWorkspace(workspace(structuredClone(sampleProject)))
     await saveWorkspace(workspace(terrain, []))

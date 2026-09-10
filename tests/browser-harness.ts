@@ -2,7 +2,7 @@
 import { _roots } from '@react-three/fiber'
 import { Box3, Vector3 } from 'three'
 import { sampleProject } from '../src/domain/sampleProject'
-import v2 from '../project-data/zielonki-v2/project.json'
+import v2 from '../project-data/zielonki-v2/before-short-hall-r55.json'
 import { parseProject } from '../src/domain/schema'
 import { useStudioStore } from '../src/state/store'
 

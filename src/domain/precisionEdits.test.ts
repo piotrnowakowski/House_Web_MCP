@@ -29,7 +29,7 @@ it('moves the complete v2 assembly in one undo step while keeping the road entra
 
 it('shortens an interior wall and updates connected endpoints and hosted openings atomically', () => {
   const state = useStudioStore.getState(), before = state.project, building = before.buildings[0], storey = building.storeys[0]
-  const wall = building.walls.find(w => w.start.z === 5.575 && w.end.z === 5.575)!
+  const wall = building.walls.find(w => w.ref === 'wall/carport-layout/ground/10')!
   const draft = wallWithLength(wall, wallLength(wall) - 0.1, 'end')
   state.commitCommand({ type: 'interior.update', action: 'wall', buildingRef: building.ref, storeyRef: storey.ref, wallRef: wall.ref, start: draft.start, end: draft.end })
   const after = useStudioStore.getState().project

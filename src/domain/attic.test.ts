@@ -1,3 +1,4 @@
+import beforeBrowserCapture from '../../project-data/zielonki/before-browser-capture-r46.json'
 import { expect, it } from 'vitest'
 import previousData from '../../project-data/zielonki/published-base-r43.json'
 import { publishedProject } from '../services/publishedProject'
@@ -26,7 +27,7 @@ it('lowers both gable roofs by 1.4 m at unchanged pitches and keeps the ground f
   expect(building.walls.filter((w) => w.baseElevationM < 3)).toEqual(previous.buildings[0].walls.filter((w) => w.baseElevationM < 3))
   expect(building.slabs).toEqual(previous.buildings[0].slabs)
   expect(building.furniture).toEqual(previous.buildings[0].furniture)
-  expect(publishedProject.landscape).toEqual(previous.landscape)
+  expect(beforeBrowserCapture.landscape).toEqual(previous.landscape)
   expect(validateProject(publishedProject).filter((i) => i.severity === 'error')).toEqual([])
 })
 

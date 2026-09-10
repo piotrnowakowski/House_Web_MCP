@@ -642,7 +642,11 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
       if (!first || !second) issues.push({ severity: 'error', code: 'roof.junction-ref', message: `${junction.ref} references a missing roof segment.`, subjectRef: junction.ref })
       else if (!polygonsTouch(first.footprint, second.footprint)) issues.push({ severity: 'error', code: 'roof.junction-geometry', message: `${junction.ref} connects roof segment footprints that do not meet.`, subjectRef: junction.ref })
     })
-    if (!buildingFootprintsWorld(building).flat().every((point) => constructionParcels.some((parcel) => pointInPolygon(point, parcel.boundary)))) issues.push({ severity: 'error', code: 'building.site', message: `${building.name} is outside the construction parcels.`, subjectRef: building.ref })
+    const footprint = buildingFootprintsWorld(building).flat()
+    if (!footprint.every((point) => constructionParcels.some((parcel) => pointInPolygon(point, parcel.boundary)))) {
+      const conceptInsideSite = building.designStatus === 'concept' && footprint.every((point) => pointInPolygon(point, project.site.boundary))
+      issues.push({ severity: conceptInsideSite ? 'warning' : 'error', code: 'building.site', message: `${building.name} is outside the construction parcels.${conceptInsideSite ? ' Concept only; this placement is not approved for construction.' : ''}`, subjectRef: building.ref })
+    }
   })
   project.landscape.zones.forEach((zone: LandscapeZone) => {
     if (polygonArea(zone.footprint) < 0.01 || polygonSelfIntersects(zone.footprint)) issues.push({ severity: 'error', code: 'landscape.polygon', message: `${zone.name} has an invalid polygon.`, subjectRef: zone.ref })

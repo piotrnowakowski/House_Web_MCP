@@ -7,6 +7,8 @@
  .compact-plot > .viewport canvas { touch-action:none; }
  .plot-compact-top { position:absolute; z-index:22; top:env(safe-area-inset-top,0px); left:max(6px,env(safe-area-inset-left)); right:max(6px,env(safe-area-inset-right)); display:flex; align-items:center; gap:6px; height:56px; }
  .plot-compact-top strong { font-size:13px; margin-right:auto; }
+ .plot-compact-top > .transparency-controls { position:absolute; top:60px; right:0; }
+ .plot-compact-top .transparency-controls button { font-size:11px; border:1px solid #354354; border-radius:6px; }
  .compact-plot button { min-width:44px; min-height:44px; }
  .plot-compact-top button { display:flex; align-items:center; justify-content:center; gap:6px; padding:8px; background:#18202cec; }
  .plot-action-bar { position:absolute; z-index:22; left:max(6px,env(safe-area-inset-left)); right:max(6px,env(safe-area-inset-right)); bottom:env(safe-area-inset-bottom,0px); height:60px; display:flex; gap:3px; align-items:center; padding:3px; background:#18202cf5; border:1px solid #354354; border-radius:12px 12px 0 0; }

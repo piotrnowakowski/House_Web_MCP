@@ -101,6 +101,38 @@ const migrateLegacyRecord = async () => {
 /** Saves the workspace under its project ref and marks that project as the one to continue. */
 export const saveWorkspace = async (workspace: PersistedWorkspace) => { await putRecords([[workspaceKey(workspace.project.ref), workspace], [ACTIVE_POINTER_KEY, workspace.project.ref]]) }
 
+export const normalizeWorkspaceName = (value: string) => {
+  const name = value.trim()
+  if (!name) throw new Error('Wpisz nazwę wersji.')
+  if (name.length > 120) throw new Error('Nazwa może mieć maksymalnie 120 znaków.')
+  return name
+}
+
+/** Rename only the saved project's metadata, preserving its contents, audit history and active pointer. */
+export const renameWorkspace = async (ref: string, value: string) => {
+  const name = normalizeWorkspaceName(value)
+  const database = await openDatabase()
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const transaction = database.transaction(STORE_NAME, 'readwrite')
+      const store = transaction.objectStore(STORE_NAME)
+      const request = store.get(workspaceKey(ref))
+      transaction.oncomplete = () => resolve()
+      transaction.onerror = () => reject(transaction.error)
+      transaction.onabort = () => reject(transaction.error ?? new Error('Nie udało się zapisać nazwy.'))
+      request.onsuccess = () => {
+        if (!request.result) {
+          transaction.abort()
+          reject(new Error('Nie znaleziono zapisanej wersji.'))
+          return
+        }
+        const workspace = request.result as PersistedWorkspace
+        store.put({ ...workspace, project: { ...workspace.project, name } }, workspaceKey(ref))
+      }
+    })
+  } finally { database.close() }
+}
+
 /** Loads one saved workspace by project ref, or the last active one when no ref is given; null when nothing matches. */
 export const loadWorkspace = async (ref?: string): Promise<PersistedWorkspace | null> => {
   await migrateLegacyRecord()

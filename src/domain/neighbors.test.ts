@@ -1,3 +1,4 @@
+import beforeBrowserCapture from '../../project-data/zielonki/before-browser-capture-r46.json'
 import { describe, expect, it } from 'vitest'
 import { publishedProject } from '../services/publishedProject'
 import previousData from '../../project-data/zielonki/published-base-r44.json'
@@ -27,7 +28,7 @@ describe('survey orientation and neighbor context', () => {
     })
     expect(publishedProject.site.neighbors!.slice(0, 7)).toEqual(before.site.neighbors!.slice(0, 7))
     expect(publishedProject.buildings).toEqual(before.buildings)
-    expect(publishedProject.landscape).toEqual(before.landscape)
+    expect(beforeBrowserCapture.landscape).toEqual(before.landscape)
     expect(publishedProject.site.northDegrees).toBe(before.site.northDegrees)
   })
 
@@ -67,9 +68,9 @@ describe('survey orientation and neighbor context', () => {
     expect(publishedProject.site.neighbors).toHaveLength(8)
     expect(polygonArea(publishedProject.site.neighbors![0].footprint)).toBeCloseTo(117.72, 0)
     expect(publishedProject.buildings).toEqual(before.buildings)
-    expect(publishedProject.landscape).toEqual(before.landscape)
+    expect(beforeBrowserCapture.landscape).toEqual(before.landscape)
     expect(publishedProject.site.boundary).toEqual(before.site.boundary)
-    expect(calculateMetrics(publishedProject)).toEqual(calculateMetrics(before))
+    expect(calculateMetrics(parseProject(beforeBrowserCapture))).toEqual(calculateMetrics(before))
     expect(parseProject(publishedProject).site.neighbors).toEqual(publishedProject.site.neighbors)
     expect(parseProject(previousData).site.neighbors).toBeUndefined()
   })

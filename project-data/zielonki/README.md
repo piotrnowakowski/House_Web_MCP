@@ -1,5 +1,33 @@
 # Versioned Zielonki project
 
+## 2026-09-10 — v2 removal of marked courtyard zones
+
+Original canonical r46 remains unchanged. Existing v2 is now tracked **r55**, deleting only `zone/rain-garden` and `zone/lawn` as circled in the user's screenshot. Raised beds, crops and the remaining model are retained. The actual **http://localhost:5173/** working v2 r60 / published r54 was backed up in ignored `tmp/remove-marked-zones-1789068240912/workspace.json`; ref/field merge found no conflicts. Previous canonical `../zielonki-v2/before-zone-removal-r54.json` is preserved without changing immutable baselines. Code baseline `6d972d4` plus existing changes; local data edit only, no deployment. See [r55 deletion provenance](../zielonki-v2/README.md#revision-55--remove-the-two-marked-courtyard-surfaces).
+
+## 2026-09-10 — v2 outbuilding inside the wider plot
+
+Original canonical r46 is unchanged. Existing v2 is now tracked **r54**: the building, terrace and SPA move 10 m toward the house to anchor (−9, 54.8) m, leaving over 10 m before the plot narrows. Building dimensions, roof and orientation are unchanged. The approach connects to the retained field entrance. Agricultural-land concept status remains applicable.
+
+The actual **http://localhost:5173/** workspace was backed up at v2 r59 / published r53 in ignored `tmp/outbuilding-wide-site-1789067814444/workspace.json`. Ref/field merge found no conflicts; the previous canonical is retained in `../zielonki-v2/before-wide-site-outbuilding-r53.json` independently of immutable baselines. Code baseline `6d972d4` plus working changes; this is a local update without deployment. See [r54 position and verification](../zielonki-v2/README.md#revision-54--clearly-inside-the-wider-site).
+
+## 2026-09-10 — v2 house-facing outbuilding and enclosed car
+
+Original canonical r46 remains unchanged. Existing v2 is now tracked **r53**: the user chose to exceed 70 m² for an enclosed car space, so the outbuilding extends by 4.5 m to 99.3476 m² and rotates to 90°, with its terrace toward the house. The garage holds a car before the camper in tandem. The main outbuilding roof becomes a symmetric 37° gable; the agricultural-land concept warning remains. Main-house roof geometry is unchanged.
+
+Source origin **http://localhost:5173/** was backed up at v2 r56 / published r52 in ignored `tmp/outbuilding-facing-house-1789067262210/workspace.json`. Entity/field merge found no conflicts. Previous canonical `../zielonki-v2/before-house-facing-outbuilding-r52.json` is preserved separately from immutable baselines. Actual browser v2 r59 matches the incoming geometry, preserving five pre-existing roundoff differences, and the original project workspace is unchanged. Code baseline `6d972d4` plus working changes; no deployment. See [r53 geometry, roof evidence and checks](../zielonki-v2/README.md#revision-53--facing-the-house-with-an-enclosed-car-space).
+
+## 2026-09-10 — v2 compact outbuilding correction
+
+Original canonical r46 is unchanged. Existing v2 is now tracked **r52**: the outbuilding becomes 69.0176 m² at external walls, one storey with a flat roof at 3.80 m, and turns to 270° so its long axis is perpendicular to the field road and its camper gate faces the existing entrance. Workshop, sauna and sanitary facilities remain indoors; relaxation occupies a separate 81.92 m² terrace. Main-house roof geometry is unchanged, and the agricultural-land concept warning remains visible.
+
+The actual **http://localhost:5173/** user profile was captured before the change at v2 r55 / published baseline r51 in ignored `tmp/compact-outbuilding-recovery-1789066562833/workspace.json`. Ref/field merge had no conflicts; five old floating-point differences are retained in the browser without changing the canonical house. The previous canonical is preserved in `../zielonki-v2/before-compact-outbuilding-r51.json`, independently of the immutable migration baselines. After migration the user browser contains v2 r56, with the original project workspace unchanged. Code baseline is `6d972d4` plus local working changes; this is a local data update without deployment. See [compact layout and verification](../zielonki-v2/README.md#revision-52--compact-outbuilding-perpendicular-to-the-road).
+
+## 2026-09-10 — v2 garden outbuilding concept
+
+Original canonical r46 is unchanged. Existing `project/zielonki-v2` now contains the r51 garden outbuilding, camper garage, workshop, sauna, relaxation room, outdoor kitchen, jacuzzi and terrace. The user's screenshot is interpreted as the left field entrance at the end of the wider part of the site, near model z=70 m, not the narrow agricultural tail at z=186 m. This is explicitly a concept on agricultural 06.R.21, where §28 of the plan prohibits new buildings. The planning warning is retained; this is not construction approval.
+
+The actual Codex in-app browser at **http://localhost:5173/** was exported before editing on 2026-09-10, with complete workspace and recovery records in ignored `tmp/outbuilding-recovery-1789064690686/workspace.json`. Active v2 r52 matches its own r50 published baseline after revision/date metadata are excluded. A three-way entity/field merge against tracked r50 found no conflicts; tracked r50 supplies the incoming geometry. The original browser project was captured separately within the same export and was not edited. `../zielonki-v2/before-outbuilding-r50.json` preserves the previous canonical v2; neither immutable migration baseline is replaced. See [v2 geometry and verification](../zielonki-v2/README.md#revision-51--garden-outbuilding-concept).
+
 `project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09 as revision **40**, saved **2026-09-09T14:11:23.399Z**. The current revision is **46**, retaining **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
 
 ## V2 terrace trim, 2026-09-10
@@ -102,3 +130,39 @@ The actual Codex public-origin profile was copied and exported read-only before 
 ## 2026-09-10 — persistent wall groups, code-only release
 
 Captured the actual Codex public-origin profile read-only into ignored tmp/wall-groups-recovery-20260910-203949/ before delivery. Its full export exactly matches tmp/direct-drag-recovery-20260910-200026/export-20203.json: active v2 r49 equals its published baseline and original r47 differs from its published r46 only in metadata. No independent browser edits or conflicts were found. This feature adds optional wall group references; published project JSON and migration baselines are unchanged by this change. The concurrent outbuilding study is managed separately.
+
+
+## 2026-09-10 — third project from the screenshot, rear carport r49
+
+The user explicitly requested the pictured rear/neighbor-side carport layout as a third project. It is stored in `../zielonki-rear-carport/project.json`, ref `project/zielonki-rear-carport`, named "Z garażem za domem przy sąsiadach". Source: preserved `../zielonki-v2/before-road-carport-r49.json`, dated 2026-09-10T16:51:13.514Z; the public-origin r49 provenance is recorded above. The screenshot matches that historical pre-road-carport arrangement and trimmed side pergola. This is a historical fork, not a new extraction of today's active browser workspace.
+
+Only top-level identity and name differ from the source. Source geometry revision r49, entity refs, deletions and main roof pitches remain intact. `initial-r49.json` is the third project's own immutable migration baseline. Neither original canonical data nor current v2 are merged or replaced. The launcher seeds the independent project on opening Projects and uses its own baseline for later updates; existing saved edits remain recoverable through the normal conflict-preserving merge. No external deployment, branch merge or Git commit is part of this change.
+
+Validation: 27 focused tests and TypeScript passed. In an isolated browser, the third list entry and three-way chooser open the exact parsed r49 model. The same-angle rendered view matches the supplied screenshot; the original two projects retain their identities. Evidence: `output/third-project-list.png` and `output/third-project-photo-view.png`. Test-profile results are not evidence of a fresh capture or transfer of the actual user profile.
+
+## 2026-09-10 — v2 shorter hall and enclosed outline, r64
+
+The current v2 **“Garaz przód”** was captured from the actual **http://localhost:5173/** in-app browser at working r63 against published r55. The user requested movement toward the day area, aligned bathroom/office walls, then specified approximately **1.5 m** and a reduced outline. Ground-floor rooms/entrances move toward the day area, the 18.5 cm return is removed, and the closing walls, slabs and long-gable end shorten by 1.5 m on both levels. Main roof slopes retain 40.13423424862029°, eaves 4.85 m and knee walls 1.40 m.
+
+Recovery: ignored `tmp/short-hall-1_5m-1789075607524/`. Previous canonical and user layout are preserved as `../zielonki-v2/before-short-hall-r55.json` and `before-short-hall-working-r63.json`. The ref/field merge preserves the user's rename, deletions and live numerical precision. After applying the explicit edit to the checked r63 workspace and capturing canonical r64, published synchronization has no conflicts. Reload confirms exact equality of canonical, saved and visible r64; all unrelated browser project records and their baselines remain unchanged. Original and third canonical projects are untouched. Full geometry decisions, verification and reproduction command are in the [v2 r64 record](../zielonki-v2/README.md#revision-64--shorter-hall-and-house-aligned-bathroomoffice-wall). Code baseline remains `6d972d4` plus working changes; no commit or deployment.
+
+## 2026-09-10 — v2 left facade narrowed 1.5 m, r65
+
+The user confirmed **1.5 m** inward movement of the entire left facade and deletion of the internal door between bathroom and storage. Source: actual **http://localhost:5173/** in-app browser, live/saved r64 against canonical r64, exported as exact JSON text to ignored `tmp/narrow-house-1789076478153/workspace-before.json`. Previous canonical is preserved as `../zielonki-v2/before-narrow-house-r64.json`. Ground-floor rooms become narrower with right angles and the aligned bathroom/office wall retained; stairs, upstairs partitions, slabs, windows and the long gable are fitted to the reduced width. Roof pitches and knee/eaves heights remain unchanged. Full decisions and verification are in the [v2 r65 record](../zielonki-v2/README.md#revision-65--left-facade-narrowed-by-15-m-storage-doorway-removed).
+
+The explicit edit was applied to the checked r64 working copy, then saved and captured as canonical r65. After reload, live/saved/canonical models match exactly with no merge conflicts; every other existing browser project and baseline record remains unchanged. Original and third canonical projects are untouched. The field/ref merge retains independent edits and the doorway deletion. All immutable migration baselines remain intact. Code baseline is `6d972d4` plus working changes; project revision is 65. No commit or external deployment.
+
+## 2026-09-10 — v2 bathroom/storage enlargement and guest doorway, r66
+
+The user requested 0.5 m additional bathroom/storage width from the guest room and a right-shifted guest doorway to fit a sofa. Source: actual **http://localhost:5173/** in-app browser, live/saved r65 against canonical r65; exact recovery export in ignored `tmp/wider-bath-storage-1789077277707/workspace-before.json`. Previous canonical is preserved as `../zielonki-v2/before-wider-bath-storage-r65.json`. The shared divider moves +0.5 m in local X, the existing guest doorway moves right, the desk is repositioned, and the two bathroom fixtures follow the divider. A 2 × 0.9 m sofa envelope fits without collisions. Main roof, building envelope, upper floor and all other projects remain unchanged.
+
+The explicit ref-preserving change was applied to the checked live r65 and saved as r66 before capturing canonical data. The removed bathroom/storage door stays deleted and all immutable migration baselines remain intact. See the [v2 r66 record](../zielonki-v2/README.md#revision-66--bathroomstorage-gain-50-cm-guest-room-doorway-moves-right) for geometry and validation. Code baseline is `6d972d4` plus working changes; project revision is 66. No commit or deployment.
+# Release capture — 11 September 2026
+
+Before the requested commit, push and Mikrus deployment, all IndexedDB project records were backed up from the actual user profile at `http://localhost:5173/` to ignored `tmp/release-1789078090935/browser-backup.json`. Each project was compared independently against its own saved published baseline and canonical JSON.
+
+- Original `project/zielonki-spatial-v2`: the saved r46 baseline exactly matched the previous canonical project. Reference-aware three-way merge preserved browser r49: name `Dom duży taras` and deletions of `zone/lawn` and `zone/rain-garden`. No other geometry changed and no conflicts occurred. `before-browser-capture-r46.json` preserves the preceding publication; `legacy-base.json` remains immutable.
+- `project/zielonki-v2`: saved/live r66 `Garaz przód` exactly matches canonical r66, including the narrower and shorter shell, larger bathroom/storage, moved guest-room door and removed bathroom/storage door.
+- `project/zielonki-rear-carport`: saved r49 exactly matches canonical r49. Its independent identity and initial baseline remain intact.
+
+This capture did not overwrite any browser working copy or another origin. Main-roof geometry is unchanged by this release capture. Public-origin migration is checked separately from the code health revision.

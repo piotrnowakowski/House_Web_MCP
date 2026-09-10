@@ -33,8 +33,8 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   expect(modelLoads.every(({ path, status }) => path.startsWith(`${appBasePath}/models/`) && status === 200)).toBe(true)
   await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/leafy_grass/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
   await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/concrete_tiles_02/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
-  // The whole library preloads after the scene's own scans, so a later pick is instant: red brick is not drawn by default.
-  await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/medieval_red_brick/diff_2k.jpg')).length, { timeout: 30_000 }).toBeGreaterThan(0)
+  // Unused scans must not compete with project textures during startup.
+  expect(textureLoads.some(path => path.endsWith('/textures/medieval_red_brick/diff_2k.jpg'))).toBe(false)
   await page.waitForTimeout(1200)
   await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-textured-realistic.png' })
   await expect(page.getByText('Spatial Editor', { exact: true })).toBeVisible()

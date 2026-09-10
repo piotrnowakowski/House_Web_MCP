@@ -13,6 +13,8 @@ export interface GardenFixtureDefinition {
 export const GARDEN_FIXTURE_CATALOG_VERSION = 1
 
 export const gardenFixtureCatalog: GardenFixtureDefinition[] = [
+  { id: 'jacuzzi', name: 'Jacuzzi ogrodowe', category: 'furniture', description: 'Four-seat spa with timber cladding, water and an entry step.', widthM: 2.6, depthM: 3.1, heightM: 1.05 },
+  { id: 'outdoor-kitchen', name: 'Kuchnia zewnętrzna', category: 'furniture', description: 'Timber and graphite worktop with grill, sink and storage.', widthM: 3.6, depthM: 0.8, heightM: 1.35 },
   { id: 'outdoor-dining-set', name: 'Teak dining set', category: 'furniture', description: 'Six-seat slatted table for long outdoor lunches.', widthM: 3.4, depthM: 2.5, heightM: 0.82 },
   { id: 'garden-lounge-set', name: 'Garden lounge set', category: 'furniture', description: 'Low sofa, two armchairs and a coffee table in charcoal and canvas.', widthM: 3.8, depthM: 3.1, heightM: 0.82 },
   { id: 'slatted-bench', name: 'Slatted garden bench', category: 'furniture', description: 'Quiet two-seat timber bench with a supportive angled back.', widthM: 1.8, depthM: 0.68, heightM: 0.9 },

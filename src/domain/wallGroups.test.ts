@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import data from '../../project-data/zielonki-v2/project.json'
+import data from '../../project-data/zielonki-v2/before-short-hall-r55.json'
 import { parseProject } from './schema'
 import { applyCommands } from './commands'
 import { dragCommands } from '../interior/directManipulation'

@@ -57,7 +57,7 @@ async function main() {
           modelRequests.push({ url: response.url(), status: response.status() })
       })
       await page.goto(values.url)
-      await page.getByRole('button', { name: /Zielonki house study/ }).click()
+      await page.getByRole('button', { name: /^(Continue|Open) · Garaz przód$/ }).click()
       await page.getByRole('button', { name: 'House interior', exact: true }).click()
       await page.getByRole('button', { name: 'More', exact: true }).click()
       const download = page.waitForEvent('download')
