@@ -3,6 +3,7 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/zielonki-v2/project.json'
 import source from '../../project-data/zielonki-v2/before-carport-r46.json'
+import beforeRotation from '../../project-data/zielonki-v2/before-rotation-r47.json'
 import { validateProject } from '../domain/commands'
 import { buildingFootprintsWorld, pointInPolygon, spaceFootprint } from '../domain/geometry'
 import { parseProject } from '../domain/schema'
@@ -10,7 +11,7 @@ import { buildingCrossesAgriculturalZone, landUseAreas } from '../domain/zoning'
 import { houseEnvelopeWorld, zielonkiSetbackLines } from '../domain/zielonkiPlacement'
 import { useStudioStore } from '../state/store'
 import { CARPORT_STUDY_REF, HOUSE_STUDY_REF, openHouseStudy } from './houseStudies'
-import { listWorkspaces, loadWorkspace, saveWorkspace } from './persistence'
+import { listWorkspaces, loadWorkspace, saveWorkspace, synchronizePublishedProject } from './persistence'
 import { publishedProject } from './publishedProject'
 
 beforeEach(() => { globalThis.indexedDB = new IDBFactory(); useStudioStore.getState().restoreWorkspace({ version: 1, project: structuredClone(publishedProject), proposals: [], draftChangeSets: [] }) })
@@ -49,8 +50,39 @@ it('fits the complete house and carport in MNU and measures 4 m to outside house
   const [house, canopy] = project.buildings.map(b => buildingFootprintsWorld(b)[0])
   const center = (points: typeof house) => points.reduce((a, p) => ({ x: a.x + p.x / points.length, z: a.z + p.z / points.length }), { x: 0, z: 0 })
   const a = center(house), b = center(canopy), north = project.site.northDegrees * Math.PI / 180
-  expect((b.x - a.x) * Math.sin(north) + (b.z - a.z) * Math.cos(north)).toBeLessThan(0)
+  expect((b.x - a.x) * Math.sin(north) + (b.z - a.z) * Math.cos(north)).toBeGreaterThan(0)
   expect(project.buildings[1].furniture).toHaveLength(2)
+})
+
+it('rotates the complete existing v2 by 180 degrees without changing rooms, roof pitch or site evidence', () => {
+  for (const building of data.buildings) {
+    const previous = beforeRotation.buildings.find(b => b.ref === building.ref)!
+    expect(building.rotationDegrees).toBeCloseTo((previous.rotationDegrees + 180) % 360, 9)
+    const { position, rotationDegrees, name, interiorSource, ...geometry } = building
+    const { position: oldPosition, rotationDegrees: oldRotation, name: oldName, interiorSource: oldSource, ...oldGeometry } = previous
+    expect(geometry).toEqual(oldGeometry)
+  }
+  expect(data.landscape.plants).toEqual(beforeRotation.landscape.plants)
+  expect(data.site.neighbors).toEqual(beforeRotation.site.neighbors)
+  expect(data.site.northDegrees).toBe(beforeRotation.site.northDegrees)
+})
+
+it('merges rotation into a saved r47 while preserving independent edits and deletions across reload', async () => {
+  await synchronizePublishedProject(parseProject(beforeRotation), parseProject(source))
+  const existing = (await loadWorkspace(CARPORT_STUDY_REF))!
+  existing.project.buildings[0].spaces[0].name = 'My living room'
+  existing.project.buildings[1].furniture!.pop()
+  existing.project.revision++
+  await saveWorkspace(existing)
+  await openHouseStudy(CARPORT_STUDY_REF)
+  const updated = useStudioStore.getState().project
+  expect(updated.buildings[0].rotationDegrees).toBe(data.buildings[0].rotationDegrees)
+  expect(updated.buildings[0].position).toEqual(data.buildings[0].position)
+  expect(updated.buildings[0].spaces[0].name).toBe('My living room')
+  expect(updated.buildings[1].furniture).toHaveLength(1)
+  await openHouseStudy(HOUSE_STUDY_REF)
+  await openHouseStudy(CARPORT_STUDY_REF)
+  expect(useStudioStore.getState().project).toEqual(updated)
 })
 
 it('saves both alternatives and preserves a deletion across switching, reopening and restore migrations', async () => {

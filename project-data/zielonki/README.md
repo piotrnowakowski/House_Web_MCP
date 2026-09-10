@@ -2,6 +2,10 @@
 
 `project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09 as revision **40**, saved **2026-09-09T14:11:23.399Z**. The current revision is **46**, retaining **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
 
+## V2 rotation, 2026-09-10
+
+The user-requested 180° turn applies only to existing `project/zielonki-v2`, now published r48; this original project stays at r46. See [v2 provenance and geometry](../zielonki-v2/README.md). Actual public-origin records captured at 18:37:30 Europe/Warsaw were unchanged from the previous deployment capture, with no new design edits or conflicts. Previous v2 r47 is preserved separately for recovery; neither original migration baseline is replaced.
+
 ## Revision 46 — cadastral correction of the eighth neighbor
 
 The optional neighbor with stable ref `neighbor/south-east-map` now uses cadastral building `120617_2.0018.64/2.1_BUD` instead of the inaccurate Google Maps estimate. Its centroid moves 14.836 m and its outline is corrected; the nearest house clearance changes from 53.431 m to 62.473 m. Heights remain estimates. All other neighbors, owner geometry, north and landscape are unchanged. See [distance verification](../../knowledge-bank/zielonki/NEIGHBOR_DISTANCES.md).

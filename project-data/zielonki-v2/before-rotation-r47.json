@@ -3,8 +3,8 @@
   "ref": "project/zielonki-v2",
   "name": "zielonki v2",
   "units": "metric",
-  "revision": 48,
-  "updatedAt": "2026-09-10T16:39:14.284Z",
+  "revision": 47,
+  "updatedAt": "2026-09-10T16:12:00.000Z",
   "site": {
     "boundary": [
       {
@@ -961,12 +961,12 @@
         "ref": "entrance/house-road",
         "name": "House-side road entrance",
         "start": {
-          "x": -19.733992804,
-          "z": -14.466373916
+          "x": -18.612515388,
+          "z": 6.437965169
         },
         "end": {
-          "x": -19.391138198,
-          "z": -8.075564055
+          "x": -18.960727096,
+          "z": -0.052701097
         },
         "connectsTo": "public-road",
         "geometryConfidence": "user-marked"
@@ -1807,8 +1807,7 @@
           "The house is rotated 180 degrees from the source study so the kitchen-side carport faces south-southeast and opens toward the road. The original house remains a separate project.",
           "Placement target: 4.00 m outside-wall distance from the surveyed road parcel edge, not a confirmed statutory minimum or verified MPZP building line. The whole roof envelope stays approximately 0.15 m inside MNU; carport corner governs placement.",
           "Two 3.20 m parking modules within a 6.40 x 6.40 m canopy. Vehicle envelopes are 1.90 x 4.70 m; access is direct from the road. Vehicle turning paths, road access consent, structure and canopy planning permission need design verification.",
-          "Five surveyed trees conflict with the carport and are proposed removals in v2 only: plant/survey-5012, plant/survey-5015, plant/survey-5018, plant/survey-501b, plant/apple. Their source records remain in before-carport-r46.json and the original house. This is not tree-removal authorization.",
-          "Rotation revision 2026-09-10 r48 supersedes the r47 orientation/placement: the complete house, both pergolas and carport rotate 180 degrees to 273.06927082481445 degrees. House anchor moves to x -6.628904317, z -3.057048028 to preserve the conceptual 4 m outside-wall road clearance and keep all roof footprints within MNU. The carport is now north-northwest; the opposite open edge serves the rebuilt road apron. Local room/roof geometry, knee walls, plants and neighbors are unchanged. Earlier proposed tree deletions remain deletions; earlier south-side placement notes describe r47 only."
+          "Five surveyed trees conflict with the carport and are proposed removals in v2 only: plant/survey-5012, plant/survey-5015, plant/survey-5018, plant/survey-501b, plant/apple. Their source records remain in before-carport-r46.json and the original house. This is not tree-removal authorization."
         ]
       },
       "furniture": [
@@ -2113,14 +2112,14 @@
         }
       ],
       "ref": "house/main",
-      "name": "House · carport layout",
+      "name": "House · south carport layout",
       "kind": "house",
       "architecturalStyle": "barn",
       "position": {
-        "x": -6.628904317,
-        "z": -3.057048028
+        "x": -8.630577683,
+        "z": -6.209756862
       },
-      "rotationDegrees": 273.06927082481445,
+      "rotationDegrees": 93.06927082481445,
       "storeys": [
         {
           "ref": "storey/reference-ground",
@@ -3973,14 +3972,14 @@
     },
     {
       "ref": "building/south-carport",
-      "name": "Carport · 2 cars",
+      "name": "South carport · 2 cars",
       "kind": "garage",
       "architecturalStyle": "barn",
       "position": {
-        "x": -6.628904317,
-        "z": -3.057048028
+        "x": -8.630577683,
+        "z": -6.209756862
       },
-      "rotationDegrees": 273.06927082481445,
+      "rotationDegrees": 93.06927082481445,
       "walls": [],
       "spaces": [],
       "platforms": [],
@@ -4163,28 +4162,28 @@
         "kind": "terrace",
         "footprint": [
           {
-            "x": -15.40130741,
-            "z": -8.18970757
+            "x": 0.14182541,
+            "z": -1.07709732
           },
           {
-            "x": -14.98474081,
-            "z": -0.420867742
+            "x": -0.27474119,
+            "z": -8.845937148
           },
           {
-            "x": -7.605341539,
-            "z": -0.816552469
+            "x": -7.654140461,
+            "z": -8.450252421
           },
           {
-            "x": -7.422759007,
-            "z": 2.58855599
+            "x": -7.836722993,
+            "z": -11.85536088
           },
           {
-            "x": -17.967611009,
-            "z": 3.153972866
+            "x": 2.708129009,
+            "z": -12.420777756
           },
           {
-            "x": -18.566760142,
-            "z": -8.019975421
+            "x": 3.307278142,
+            "z": -1.246829469
           }
         ],
         "locked": true
@@ -4219,20 +4218,20 @@
         "kind": "driveway",
         "footprint": [
           {
-            "x": -19.733992804,
-            "z": -14.466373916
+            "x": -18.612515388,
+            "z": 6.437965169
           },
           {
-            "x": -7.121732447,
-            "z": -15.142997326
+            "x": -14.528568948,
+            "z": 6.218869331
           },
           {
-            "x": -6.779055553,
-            "z": -8.752177931
+            "x": -14.876600169,
+            "z": -0.271806618
           },
           {
-            "x": -19.391138198,
-            "z": -8.075564055
+            "x": -18.960727096,
+            "z": -0.052701097
           }
         ],
         "locked": false
@@ -4243,20 +4242,20 @@
         "kind": "path",
         "footprint": [
           {
-            "x": -6.848661797,
-            "z": -10.05031312
+            "x": -8.410820203,
+            "z": 0.78350823
           },
           {
-            "x": -6.773701226,
-            "z": -8.652321377
+            "x": -8.485780774,
+            "z": -0.614483513
           },
           {
-            "x": -15.40130741,
-            "z": -8.18970757
+            "x": 0.14182541,
+            "z": -1.07709732
           },
           {
-            "x": -15.476267981,
-            "z": -9.587699313
+            "x": 0.216785981,
+            "z": 0.320894423
           }
         ],
         "locked": false
