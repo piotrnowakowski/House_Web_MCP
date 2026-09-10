@@ -10,7 +10,7 @@ import { dragCommands, type DragTarget } from './directManipulation'
 
 interface Options {
   project: ProjectV2; building: BuildingModel; storey: StoreyModel; enabled: boolean
-  snap: SnapSettings; selectedRefs: string[]
+  snap: SnapSettings; selectedRefs: string[]; selectOnly?: boolean
   onSelect: (ref: string, additive?: boolean) => void
   onCommit: (commands: ProjectCommand[]) => boolean
   onNotice: (message: string, error?: boolean) => void
@@ -65,7 +65,7 @@ export function useDirectManipulation(options: Options) {
       const wall = current.building.walls.find(w => w.ref === target!.ref)
       const item = current.building.furniture?.find(i => i.ref === target!.ref)
       const blocked = wall?.locked || item?.locked || (wall && isEnvelopeWall(current.building, current.storey, wall))
-      if (blocked || e.shiftKey) {
+      if (blocked || e.shiftKey || current.selectOnly) {
         if (blocked) current.onNotice(wall && !wall.locked ? 'Exterior outline is fixed. Drag an interior partition.' : 'Unlock this object before moving it.', true)
         if (controls) controls.enabled = true
         return

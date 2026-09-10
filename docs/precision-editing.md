@@ -19,3 +19,5 @@ Run `node scripts/audit-precision-editor.mjs --url <preview-or-public-url> --out
 Run `APP_URL=http://127.0.0.1:5173 npx playwright test tests/direct-manipulation.spec.ts tests/interior.spec.ts --config=playwright.interior.config.ts` against a development server for real mouse/touch dragging, camera stability, invalid edits, cancellation, second-finger interruption, undo/redo and reload. Fixtures are isolated; the user's browser project is never replaced by these tests.
 
 Run `node scripts/audit-direct-drag.mjs --url <built-preview-or-public-url> --output output/direct-drag-production` to verify wall/furniture dragging and reload with mouse and touch against the built application, without development hooks. It reads visible plan labels to locate gesture targets and uses a separate disposable Chrome profile for each input type.
+
+Wall sets can be saved and dragged together. See [Wall groups](wall-groups.md) for mouse/touch selection, grouping, movement and validation.

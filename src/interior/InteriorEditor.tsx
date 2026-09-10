@@ -1,3 +1,4 @@
+import { isEnvelopeWall } from '../domain/interiorLayout'
 import { randomId } from '../domain/randomId'
 import { Canvas } from '@react-three/fiber'
 import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
@@ -94,6 +95,11 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
     (w) => storey?.wallRefs.includes(w.ref) && w.openings.some((o) => o.ref === selected),
   )
   const opening = openingWall?.openings.find((o) => o.ref === selected)
+  const floorWalls = building?.walls.filter(w => storey?.wallRefs.includes(w.ref)) ?? []
+  const selectedWalls = floorWalls.filter(w => selectedRefs.includes(w.ref))
+  const wallGroup = selectedWalls[0]?.groupRef
+  const wallsGrouped = !!wallGroup && selectedWalls.every(w => w.groupRef === wallGroup)
+  const canGroupWalls = selectedWalls.length >= 2 && selectedWalls.every(w => !w.locked && !isEnvelopeWall(building, storey, w))
   const selectedItems = items.filter((i) => selectedRefs.includes(i.ref))
   useEffect(() => {
     if (confirmationRef) {
@@ -144,8 +150,9 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
       if (!multi) setSelectedRefs([])
       return
     }
-    const target = items.find((i) => i.ref === ref)
-    const refs = target?.groupRef ? items.filter((i) => i.groupRef === target.groupRef).map((i) => i.ref) : [ref]
+    const candidates = floorWalls.some(w => w.ref === ref) ? floorWalls : items
+    const target = candidates.find(i => i.ref === ref)
+    const refs = target?.groupRef ? candidates.filter(i => i.groupRef === target.groupRef).map(i => i.ref) : [ref]
     setSelectedRefs((previous) =>
       additive || multi
         ? previous.includes(ref)
@@ -447,6 +454,7 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
                 onCommit={commit}
                 onNotice={tell}
                 interactionDisabled={!!confirmationRef}
+                selectOnly={multi}
                 onHover={(point) => {
                   if (ghost && !compact)
                     setGhost({
@@ -648,6 +656,28 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
               {panel === 'catalog' && <FurnitureCatalog onChoose={choose} />}
               {panel === 'edit' && (
                 <>
+                  <section className="interior-menu" aria-label="Wall groups">
+                    <h3>Wall groups{selectedWalls.length ? ` · ${selectedWalls.length} selected` : ''}</h3>
+                    <button aria-pressed={multi} onClick={() => setMulti(!multi)}>{multi ? 'Finish selecting walls' : 'Select walls'}</button>
+                    {multi && <>
+                      <p className="interior-hint">Tap walls in the plan or choose them below. Finish selecting to drag the selection.</p>
+                      {floorWalls.filter(w => !isEnvelopeWall(building, storey, w)).map((w, index) => <button key={w.ref} disabled={w.locked} aria-pressed={selectedRefs.includes(w.ref)} onClick={() => select(w.ref)} aria-label={`Select wall ${w.ref}`}>
+                        Wall {index + 1} · {Math.hypot(w.end.x-w.start.x, w.end.z-w.start.z).toFixed(2)} m{w.groupRef ? ' · Grouped' : ''}
+                      </button>)}
+                    </>}
+                    {selectedWalls.length > 0 && <>
+                      <button disabled={!canGroupWalls && !wallsGrouped} onClick={() => {
+                        if (commit({ ...base, action: 'wall-group', wallRefs: selectedWalls.map(w => w.ref), groupRef: wallsGrouped ? null : `wall-group/${randomId()}` })) {
+                          setMulti(false)
+                          if (compact) setPanel(null)
+                        }
+                      }}>{wallsGrouped ? 'Ungroup walls' : 'Group walls'}</button>
+                      {(wallsGrouped || selectedWalls.length > 1) && <>
+                        <p className="interior-hint">Drag any selected wall to move the whole set. Connected corners and openings follow. Or move 10 cm:</p>
+                        <div className="interior-actions">{([{ x: -.1, z: 0 }, { x: .1, z: 0 }, { x: 0, z: -.1 }, { x: 0, z: .1 }]).map((delta, index) => <button key={index} aria-label={['Move walls left', 'Move walls right', 'Move walls up', 'Move walls down'][index]} onClick={() => commit({ ...base, action: 'walls-move', wallRefs: selectedWalls.map(w => w.ref), delta })}>{['Left', 'Right', 'Up', 'Down'][index]}</button>)}</div>
+                      </>}
+                    </>}
+                  </section>
                   {item && <ItemInspector item={item} onSave={saveItem} availableHeight={availableInteriorHeight(item, building, storey)} />}
                   {!!warnings.length && (
                     <div className="interior-warnings" aria-label="Placement warnings">

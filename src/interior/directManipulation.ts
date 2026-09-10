@@ -25,6 +25,13 @@ export function dragCommands(building: BuildingModel, storey: StoreyModel, targe
     if (Math.abs(offsetM - opening.offsetM) < .0001) return []
     return [{ ...base, action: 'opening', wallRef: wall.ref, opening: { ...opening, offsetM } }]
   }
+  const members = building.walls.filter(w => storey.wallRefs.includes(w.ref) &&
+    (w.ref === wall.ref || selectedRefs.includes(w.ref) || (wall.groupRef && w.groupRef === wall.groupRef)))
+  if (wall.groupRef || members.length > 1) {
+    const movement = { x: round(delta.x), z: round(delta.z) }
+    if (Math.hypot(movement.x, movement.z) < .0001) return []
+    return [{ ...base, action: 'walls-move', wallRefs: members.map(w => w.ref), delta: movement }]
+  }
   // Slide the partition perpendicular to itself, keeping its length and shared junctions.
   const distance = round(-uz * delta.x + ux * delta.z)
   if (Math.abs(distance) < .0001) return []

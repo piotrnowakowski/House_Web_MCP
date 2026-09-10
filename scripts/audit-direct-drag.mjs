@@ -57,9 +57,22 @@ async function main() {
           await session.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]})
         }else{await page.mouse.move(a.x,a.y);await page.mouse.down();await page.mouse.move(b.x,b.y,{steps:8});await page.mouse.up()}
       }
+      await page.getByRole('button',{name:'Edit',exact:true}).click()
+      await page.getByRole('button',{name:'Select walls',exact:true}).click()
+      const wallRefs=[7,6,5].map(i=>`wall/carport-layout/ground/${i}`)
+      for(const ref of wallRefs)await page.getByRole('button',{name:`Select wall ${ref}`,exact:true}).click()
+      await page.getByRole('button',{name:'Group walls',exact:true}).click()
+      if(await page.getByRole('button',{name:'Close panel',exact:true}).isVisible())await page.getByRole('button',{name:'Close panel',exact:true}).click()
       await drag(screen(-4.95,3.415),screen(-4.95,3.815))
       await expect.poll(async()=> (await stored(page,model.ref))?.buildings[0].walls.find(w=>w.ref==='wall/carport-layout/ground/7').start.z,{timeout:15000}).toBeCloseTo(3.815,2)
       if(await page.getByRole('button',{name:'Close panel',exact:true}).isVisible())await page.getByRole('button',{name:'Close panel',exact:true}).click()
+      const grouped=await stored(page,model.ref)
+      for(const ref of wallRefs){
+        const before=building.walls.find(w=>w.ref===ref),after=grouped.buildings[0].walls.find(w=>w.ref===ref)
+        assert.ok(after.groupRef)
+        assert.ok(Math.abs(after.start.z-before.start.z-.4)<.01)
+        assert.ok(Math.abs(after.end.z-before.end.z-.4)<.01)
+      }
       const sofa=building.furniture.find(i=>i.ref==='interior/reference-sofa')
       await drag(screen(sofa.position.x-.9,sofa.position.z),screen(sofa.position.x-.5,sofa.position.z))
       await expect.poll(async()=> (await stored(page,model.ref))?.buildings[0].furniture.find(i=>i.ref===sofa.ref).position.x,{timeout:15000}).not.toBe(sofa.position.x)
@@ -69,7 +82,7 @@ async function main() {
       await page.locator('.project-card').filter({has:page.getByText('zielonki v2',{exact:true})}).getByRole('button',{name:/Continue|Open/}).click()
       await expect(page.locator('.start-screen-scrim')).not.toBeVisible({timeout:30000})
       assert.deepEqual(await stored(page,model.ref),saved);assert.deepEqual(errors,[])
-      reports.push({input:touch?'touch':'mouse',passed:true,checks:['partition drag','first-contact furniture drag','reload','no page errors']})
+      reports.push({input:touch?'touch':'mouse',passed:true,checks:['wall grouping and rigid group drag','first-contact furniture drag','reload','no page errors']})
       await writeFile(`${values.output}/audit.json`,JSON.stringify({url:values.url,reports},null,2)+'\n')
       console.log(`${touch?'touch':'mouse'}: passed`)
     } finally {await browser.close()}

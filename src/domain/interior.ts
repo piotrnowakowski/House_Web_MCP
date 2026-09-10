@@ -3,7 +3,7 @@ import { pointInPolygon, pointOnSegment, spaceFootprint, wallLength } from './ge
 import type { BuildingModel, InteriorCatalogId, InteriorCommand, InteriorItem, Polygon2, StoreyModel, Vec2 } from './types'
 import { ikeaProduct } from './ikeaCatalog'
 import { InteriorFinishSchema } from './interiorFinishes'
-import { mergeRooms, moveConnectedWall, splitRoom } from './interiorLayout'
+import { groupWalls, moveWallGroup, mergeRooms, moveConnectedWall, splitRoom } from './interiorLayout'
 import { resizeInteriorRoom } from './interiorResize'
 import { atticClearanceAt } from './attic'
 
@@ -96,6 +96,8 @@ export function applyInterior(building: BuildingModel, command: InteriorCommand)
   const slab = building.slabs.find((item) => item.ref === storey.baseSlabRef)!
   if (command.action === 'split') { splitRoom(building, storey, command); return }
   if (command.action === 'merge') { mergeRooms(building, storey, command.wallRef); return }
+  if (command.action === 'wall-group') { groupWalls(building, storey, command.wallRefs, command.groupRef); return }
+  if (command.action === 'walls-move') { moveWallGroup(building, storey, command.wallRefs, command.delta); return }
   if (command.action === 'wall') { moveConnectedWall(building, storey, command); return }
   if (command.action === 'lock') {
     const items = command.itemRefs.map((ref) => building.furniture?.find((item) => item.ref === ref && item.storeyRef === storey.ref))

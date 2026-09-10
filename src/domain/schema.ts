@@ -53,6 +53,7 @@ const OpeningSchema = z.object({
   widthM: z.number().positive(), heightM: z.number().positive(), sillM: z.number().min(0), glazed: z.boolean().optional(),
 })
 const WallSchema = z.object({
+  groupRef: z.string().min(1).optional(),
   faceFinishes: z.object({ left: InteriorFinishSchema.optional(), right: InteriorFinishSchema.optional() }).optional(),
   ref: z.string().min(1), start: Vec2Schema, end: Vec2Schema, thicknessM: z.number().positive(), baseElevationM: z.number().finite(),
   heightM: z.number().positive(), openings: z.array(OpeningSchema),

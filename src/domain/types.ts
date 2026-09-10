@@ -59,7 +59,7 @@ export interface InteriorFinish { presetId: string; color: string; rotationDegre
 export type WallMaterial = 'charred-timber' | 'natural-timber' | 'light-render' | 'brick' | 'metal-panel'
 /** `textureId` picks a scan from the texture library; omit for the material default, `none` for a flat colour. */
 export interface WallFinish { material: WallMaterial; colorHex: string; textureId?: string }
-export interface WallModel { ref: string; start: Vec2; end: Vec2; thicknessM: number; baseElevationM: number; heightM: number; openings: OpeningModel[]; finish?: WallFinish; faceFinishes?: { left?: InteriorFinish; right?: InteriorFinish }; locked: boolean }
+export interface WallModel { groupRef?: string; ref: string; start: Vec2; end: Vec2; thicknessM: number; baseElevationM: number; heightM: number; openings: OpeningModel[]; finish?: WallFinish; faceFinishes?: { left?: InteriorFinish; right?: InteriorFinish }; locked: boolean }
 export interface SpaceBoundaryUse { wallRef: string; direction: 1 | -1 }
 export interface SpaceModel { ref: string; name: string; usage: string; boundary: SpaceBoundaryUse[]; baseSlabRef: string; topBoundaryRef: string; floorFinish?: InteriorFinish; ceilingFinish?: InteriorFinish; locked: boolean }
 export interface SlabModel { ref: string; footprint: Polygon2; holes?: Polygon2[]; topElevationM: number; thicknessM: number; locked: boolean }
@@ -102,6 +102,8 @@ export type InteriorCommand = { type: 'interior.update'; buildingRef: string; st
   { action: 'lock'; itemRefs: string[]; locked: boolean } |
   { action: 'split'; spaceRef: string; start: Vec2; end: Vec2; partitionRef: string; newSpaceRef: string; name: string; thicknessM: number } |
   { action: 'merge'; wallRef: string } |
+  { action: 'wall-group'; wallRefs: string[]; groupRef: string | null } |
+  { action: 'walls-move'; wallRefs: string[]; delta: Vec2 } |
   { action: 'wall'; wallRef: string; start: Vec2; end: Vec2; thicknessM?: number; heightM?: number } |
   { action: 'opening'; wallRef: string; opening: OpeningModel } |
   { action: 'opening-remove'; wallRef: string; openingRef: string } |

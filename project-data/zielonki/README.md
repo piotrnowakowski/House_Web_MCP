@@ -98,3 +98,7 @@ Captured the actual Codex profile for http://natan203.mikrus.xyz:20203/ before e
 ## 2026-09-10 — direct interior gestures, code-only release
 
 The actual Codex public-origin profile was copied and exported read-only before release; raw records are recoverable in ignored tmp/direct-drag-recovery-20260910-200026/. The complete export equals tmp/v2-road-carport-recovery-20260910-193220/export-20203.json: active v2 r49 equals its saved published baseline; original r47 has only revision/date differences from its published r46 baseline. No independent edits or conflicts were introduced since that capture. The incoming tracked v2 remains r50 and the original remains r46. Canonical JSON, entity refs, deleted elements, roof geometry and migration baselines are unchanged by this code-only gesture release. Browser regressions use disposable fixture profiles.
+
+## 2026-09-10 — persistent wall groups, code-only release
+
+Captured the actual Codex public-origin profile read-only into ignored tmp/wall-groups-recovery-20260910-203949/ before delivery. Its full export exactly matches tmp/direct-drag-recovery-20260910-200026/export-20203.json: active v2 r49 equals its published baseline and original r47 differs from its published r46 only in metadata. No independent browser edits or conflicts were found. This feature adds optional wall group references; published project JSON and migration baselines are unchanged by this change. The concurrent outbuilding study is managed separately.

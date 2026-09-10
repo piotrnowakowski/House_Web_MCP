@@ -90,14 +90,14 @@ function CutawayWall({ wall, profile, plan, fullHeight, selected, onSelect, onPi
 }
 
 interface Props {
-  projectRef: string; project: ProjectV2; onCommit: (commands: ProjectCommand[]) => boolean; onNotice: (message: string, error?: boolean) => void; interactionDisabled?: boolean
+  projectRef: string; project: ProjectV2; onCommit: (commands: ProjectCommand[]) => boolean; onNotice: (message: string, error?: boolean) => void; interactionDisabled?: boolean; selectOnly?: boolean
   building: BuildingModel; storey: StoreyModel; plan: boolean; reset: number; selected: string | null; mode: 'select' | 'measure' | 'partition'; placing: boolean; snap: boolean; labels: boolean
   view?: InteriorView; selectedRefs?: string[]; mobile?: boolean; ghost?: InteriorItem | null; snapSettings?: SnapSettings; focusFootprint?: Polygon2; bottomInset?: number; rightInset?: number; onHover?: (point: Vec2) => void
   dimensions: boolean; points: Vec2[]; onPointsChange: (points: Vec2[]) => void; onPick: (point: Vec2) => void; onSelect: (ref: string | null, additive?: boolean) => void
 }
 export function InteriorScene(props: Props) {
   const { storey, plan, selected, mode, placing, snap, labels, onPick, onSelect } = props
-  const manipulation = useDirectManipulation({ project: props.project, building: props.building, storey, enabled: mode === 'select' && !placing && !props.interactionDisabled, snap: props.snapSettings ?? { enabled: snap, gridM: .1, alignment: true }, selectedRefs: props.selectedRefs ?? [], onSelect, onCommit: props.onCommit, onNotice: props.onNotice })
+  const manipulation = useDirectManipulation({ project: props.project, building: props.building, storey, enabled: mode === 'select' && !placing && !props.interactionDisabled, snap: props.snapSettings ?? { enabled: snap, gridM: .1, alignment: true }, selectedRefs: props.selectedRefs ?? [], onSelect, selectOnly: props.selectOnly, onCommit: props.onCommit, onNotice: props.onNotice })
   const building = manipulation.preview ?? props.building
   const slab = building.slabs.find((item) => item.ref === storey.baseSlabRef)!
   const { camera, gl, scene } = useThree()
@@ -224,7 +224,7 @@ export function InteriorScene(props: Props) {
         return <mesh key={i} position={[(i + 0.5) * stairs.runM / stairs.steps, h / 2, stairs.widthM / 2]} castShadow receiveShadow><boxGeometry args={[stairs.runM / stairs.steps - 0.012, h, stairs.widthM]} /><meshStandardMaterial color={i % 2 ? '#b99365' : '#c49c6b'} roughness={0.8} /></mesh>
       })}{plan && <Line points={[[stairs.runM - 0.12, 0.16, stairs.widthM / 2], [0.14, 0.16, stairs.widthM / 2], [0.35, 0.16, stairs.widthM / 2 - 0.17], [0.14, 0.16, stairs.widthM / 2], [0.35, 0.16, stairs.widthM / 2 + 0.17]]} color='#675d4b' lineWidth={1} />}</group>
     })}
-    {building.walls.filter((wall) => storey.wallRefs.includes(wall.ref)).map((wall) => <CutawayWall key={wall.ref} wall={wall} profile={atticWallProfile(building, wall)} plan={plan} fullHeight={props.view === 'room'} selected={selected} onPick={mode === 'partition' ? onPick : undefined} onSelect={mode === 'select' && !placing ? onSelect : undefined} />)}
+    {building.walls.filter((wall) => storey.wallRefs.includes(wall.ref)).map((wall) => <CutawayWall key={wall.ref} wall={wall} profile={atticWallProfile(building, wall)} plan={plan} fullHeight={props.view === 'room'} selected={props.selectedRefs?.includes(wall.ref) ? wall.ref : selected} onPick={mode === 'partition' ? onPick : undefined} onSelect={mode === 'select' && !placing ? onSelect : undefined} />)}
     {building.spaces.filter((room) => storey.spaceRefs.includes(room.ref)).map((room) => {
       const footprint = spaceFootprint(building, room); const centre = polygonCentroid(footprint); const sizes = roomDimensions(building, room)
       // Merge collinear wall joins before dimensioning; dimensions follow real edges, including L-shaped rooms.

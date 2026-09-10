@@ -259,6 +259,22 @@ export function moveConnectedWall(
   const oldStart = { ...wall.start }
   const oldEnd = { ...wall.end }
   const map = (point: Vec2) => (same(point, oldStart) ? command.start : same(point, oldEnd) ? command.end : point)
+  moveWallEndpoints(building, storey, map)
+  if (command.thicknessM !== undefined) {
+    if (!Number.isFinite(command.thicknessM) || command.thicknessM < 0.06 || command.thicknessM > 0.5)
+      throw new Error('Wall thickness must be between 0.06 and 0.5 m.')
+    wall.thicknessM = command.thicknessM
+  }
+  if (command.heightM !== undefined) {
+    if (!Number.isFinite(command.heightM) || command.heightM < 0.2 || command.heightM > storey.clearHeightM)
+      throw new Error('Keep wall height within the storey.')
+    wall.heightM = command.heightM
+  }
+  validateRooms(building, storey)
+}
+
+/** Map every shared junction once, before validating the final room topology. */
+function moveWallEndpoints(building: BuildingModel, storey: StoreyModel, map: (point: Vec2) => Vec2) {
   for (const connected of building.walls.filter((item) => storey.wallRefs.includes(item.ref))) {
     const start = map(connected.start)
     const end = map(connected.end)
@@ -280,15 +296,40 @@ export function moveConnectedWall(
       opening.offsetM *= wallLength(connected) / oldLength
     })
   }
-  if (command.thicknessM !== undefined) {
-    if (!Number.isFinite(command.thicknessM) || command.thicknessM < 0.06 || command.thicknessM > 0.5)
-      throw new Error('Wall thickness must be between 0.06 and 0.5 m.')
-    wall.thicknessM = command.thicknessM
+}
+
+function editableWallSelection(building: BuildingModel, storey: StoreyModel, refs: string[]) {
+  const selected = [...new Set(refs)].map(ref => building.walls.find(w => w.ref === ref && storey.wallRefs.includes(ref)))
+  if (!selected.length || selected.some(w => !w || w.locked || isEnvelopeWall(building, storey, w)))
+    throw new Error('Select unlocked interior walls on this floor. The exterior envelope stays fixed.')
+  const walls = selected as WallModel[]
+  if (building.spaces.some(room => room.locked && room.boundary.some(use => refs.includes(use.wallRef))))
+    throw new Error('A selected room is locked.')
+  return walls
+}
+
+function wallGroupMembers(building: BuildingModel, storey: StoreyModel, refs: string[]) {
+  const selected = editableWallSelection(building, storey, refs)
+  const groups = new Set(selected.map(w => w.groupRef).filter(Boolean))
+  return editableWallSelection(building, storey, building.walls.filter(w =>
+    storey.wallRefs.includes(w.ref) && (refs.includes(w.ref) || (w.groupRef && groups.has(w.groupRef)))
+  ).map(w => w.ref))
+}
+
+export function groupWalls(building: BuildingModel, storey: StoreyModel, refs: string[], groupRef: string | null) {
+  const members = wallGroupMembers(building, storey, refs)
+  if (groupRef !== null && (!groupRef.trim() || members.length < 2)) throw new Error('Select at least two walls to group.')
+  for (const wall of members) {
+    if (groupRef === null) delete wall.groupRef
+    else wall.groupRef = groupRef
   }
-  if (command.heightM !== undefined) {
-    if (!Number.isFinite(command.heightM) || command.heightM < 0.2 || command.heightM > storey.clearHeightM)
-      throw new Error('Keep wall height within the storey.')
-    wall.heightM = command.heightM
-  }
+}
+
+export function moveWallGroup(building: BuildingModel, storey: StoreyModel, refs: string[], delta: Vec2) {
+  if (![delta.x, delta.z].every(Number.isFinite)) throw new Error('Enter a finite movement.')
+  const members = wallGroupMembers(building, storey, refs)
+  const junctions = members.flatMap(w => [{ ...w.start }, { ...w.end }])
+  moveWallEndpoints(building, storey, point => junctions.some(p => same(p, point))
+    ? { x: point.x + delta.x, z: point.z + delta.z } : point)
   validateRooms(building, storey)
 }

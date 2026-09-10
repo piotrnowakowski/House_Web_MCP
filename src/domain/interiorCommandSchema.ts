@@ -6,6 +6,8 @@ const ref = z.string().min(1)
 const point = z.object({ x: z.number().finite(), z: z.number().finite() }).strict()
 const base = { type: z.literal('interior.update'), buildingRef: ref, storeyRef: ref }
 export const interiorCommandSchema = z.discriminatedUnion('action', [
+  z.object({ ...base, action: z.literal('wall-group'), wallRefs: z.array(ref).min(1).max(100), groupRef: ref.nullable() }).strict(),
+  z.object({ ...base, action: z.literal('walls-move'), wallRefs: z.array(ref).min(1).max(100), delta: point }).strict(),
   z.object({ ...base, action: z.literal('put'), item: InteriorItemSchema.strict() }).strict(),
   z.object({ ...base, action: z.literal('remove'), itemRef: ref }).strict(),
   z
