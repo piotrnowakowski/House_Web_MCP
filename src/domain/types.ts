@@ -45,7 +45,14 @@ export interface SiteKnowledgeBase {
   planting: { strategy: string[]; soilAnalysis: PlantingSoilAnalysis; recommendations: PlantRecommendation[]; exclusions: string[] }
   designRules: Array<{ rule: string; basis: string; sourceRef: string }>; caveats: string[]
 }
-export interface SiteModel { boundary: Polygon2; northDegrees: number; terrain: TerrainModel; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[]; knowledgeBase: SiteKnowledgeBase }
+/** Surrounding context, excluded from the owner's editable buildings and project metrics. */
+export interface NeighborBuilding {
+  ref: string; name: string; footprint: Polygon2; groundElevationM: number
+  eavesHeightM: number; ridgeHeightM: number; ridgeDirectionDegrees: number
+  roofType: 'gable' | 'hip' | 'flat'; footprintSource: string; footprintConfidence: 'map-derived' | 'approximate'
+  heightConfidence: 'estimated'; sourceDate: string
+}
+export interface SiteModel { boundary: Polygon2; northDegrees: number; terrain: TerrainModel; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[]; knowledgeBase: SiteKnowledgeBase; neighbors?: NeighborBuilding[] }
 
 export interface OpeningModel { ref: string; kind: 'door' | 'window'; glazed?: boolean; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number; hinge?: 'left' | 'right'; swing?: 'in' | 'out' }
 export interface InteriorFinish { presetId: string; color: string; rotationDegrees: number; tileM: number }

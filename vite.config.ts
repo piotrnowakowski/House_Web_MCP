@@ -15,7 +15,7 @@ const webMcpManifestPlugin = () => ({
 export default defineConfig({
   plugins: [react(), webMcpManifestPlugin()],
   base: process.env.BASE_PATH ?? '/',
-  server: { host: '127.0.0.1' },
+  server: { host: '127.0.0.1', watch: { ignored: ['**/tmp/**', '**/output/**', '**/.playwright-mcp/**'] } },
   preview: { host: '127.0.0.1' },
   build: { sourcemap: true },
   // Pre-bundle the heavy runtime libraries so a cold dev start does not re-optimise and reload the page mid-session.

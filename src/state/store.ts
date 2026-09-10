@@ -33,6 +33,10 @@ interface StudioState {
   sunAnimation: 'none' | 'day' | 'year'
   sunOverlay: { enabled: boolean; targetRef: string | null; result: SunlightAnalysis | null }
   explodeStoreys: boolean
+  neighborsVisible: boolean
+  neighborViewRequest: { sequence: number; ref: string; eyeHeightM: number }
+  setNeighborsVisible: (value: boolean) => void
+  viewFromNeighbor: (ref: string, eyeHeightM: number) => void
   webMcpAvailable: boolean
   texturesReady: boolean
   hydrated: boolean
@@ -114,6 +118,9 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   project: structuredClone(modernBarnProject), history: [], future: [], variants: [], proposals: [], draftChangeSets: [], selectedRef: null, repositioningRef: null,
   transformMode: 'translate', viewerMode: 'edit', heightMeasureKind: 'auto', activePlanStoreyRef: null, month: 7,
   sunTime: { month: 7, day: 15, hour: 14 }, sunAnimation: 'none', sunOverlay: { enabled: false, targetRef: null, result: null },
+  neighborsVisible: false, neighborViewRequest: { sequence: 0, ref: '', eyeHeightM: 1.6 },
+  setNeighborsVisible: (neighborsVisible) => set((state) => ({ neighborsVisible, sunOverlay: { ...state.sunOverlay, result: null } })),
+  viewFromNeighbor: (ref, eyeHeightM) => set((state) => ({ neighborsVisible: true, viewerMode: 'edit', activePlanStoreyRef: null, neighborViewRequest: { sequence: state.neighborViewRequest.sequence + 1, ref, eyeHeightM }, toast: 'Approximate facade viewpoint; neighboring window locations are not surveyed.' })),
   explodeStoreys: false, webMcpAvailable: false, texturesReady: false, hydrated: false, launcherOpen: true, savedWorkspaces: [], projectSyncConflicts: [], loadingWorkspaces: true, confirmationVariantRef: null, structureReport: null,
   toast: 'Loaded the ProjectV2 Zielonki spatial model.', helpOpen: false, cameraRefocusRequest: 0, gardenFocusRequest: { sequence: 0, targetX: 0, targetZ: 0 },
   setSelectedRef: (selectedRef) => set({ selectedRef }),

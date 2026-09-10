@@ -161,14 +161,17 @@ export const webMcpTools: WebMcpTool[] = [
   define({ ...webMcpToolPrompts.get_project_state, input: webMcpSchemas.get_project_state, readOnly: true, handler: ({ detail, objectRef }) => {
     const state = useStudioStore.getState(); const project = state.project; const metrics = calculateMetrics(project)
     if (objectRef) {
+      const neighbor = project.site.neighbors?.find((item) => item.ref === objectRef)
+      if (neighbor) return { status: 'ok', projectRevision: project.revision, summary: `Returned neighbor context ${objectRef}; heights are estimated.`, data: { kind: 'neighbor', object: neighbor } }
       const found = findProjectObject(project, objectRef)
       if (!found) throw new Error(`Object not found: ${objectRef}. Use a building, storey, slab, wall, opening, space, roof, zone, plant, fixture, parcel or entrance ref.`)
       return { status: 'ok', projectRevision: project.revision, summary: `Returned ${found.kind} ${objectRef}.`, metrics, data: found }
     }
     const { knowledgeBase: _knowledgeBase, ...siteWithoutKnowledge } = project.site
+    const siteSummary = { ...siteWithoutKnowledge, neighbors: project.site.neighbors?.map(({ ref, name, ridgeHeightM }) => ({ ref, name, estimatedRidgeHeightM: ridgeHeightM })) }
     const projectWithoutKnowledge = { ...project, site: siteWithoutKnowledge }
     const data = detail === 'summary' ? { schemaVersion: 2, name: project.name, revision: project.revision, metrics, buildingRefs: project.buildings.map((building) => building.ref), variantRefs: state.variants.map((variant) => variant.ref) }
-      : detail === 'site' ? siteWithoutKnowledge : detail === 'structure' ? { buildings: project.buildings } : detail === 'landscape' ? { landscape: project.landscape, climateProfile: project.climateProfile } : projectWithoutKnowledge
+      : detail === 'site' ? siteSummary : detail === 'structure' ? { buildings: project.buildings } : detail === 'landscape' ? { landscape: project.landscape, climateProfile: project.climateProfile } : projectWithoutKnowledge
     return { status: 'ok', projectRevision: project.revision, summary: `Returned ${detail} ProjectV2 state.`, metrics, data }
   } }),
   define({ ...webMcpToolPrompts.get_site_knowledge, input: webMcpSchemas.get_site_knowledge, readOnly: true, handler: ({ section }) => {
@@ -215,14 +218,14 @@ export const webMcpTools: WebMcpTool[] = [
     const measurement = measureHeight(project, request)
     return { status: 'ok', projectRevision: project.revision, summary: `${measurement.label}: ${measurement.heightM.toFixed(2)} m.`, measurement }
   } }),
-  define({ ...webMcpToolPrompts.run_analysis, input: webMcpSchemas.run_analysis, readOnly: true, handler: ({ kind, months, targetRef, point, month, day, stepMinutes, hours, includeGrid, variantRef }) => {
+  define({ ...webMcpToolPrompts.run_analysis, input: webMcpSchemas.run_analysis, readOnly: true, handler: ({ kind, months, targetRef, point, month, day, stepMinutes, hours, includeGrid, includeNeighbors, variantRef }) => {
     const state = useStudioStore.getState(); const project = projectForVariant(state.project, state.variants, variantRef)
     if (kind === 'seasonal') {
       const selected = months ?? [1, 4, 7, 10]
       return { status: 'ok', kind, projectRevision: state.project.revision, variantRef, summary: `Seasonal analysis completed for ${selected.length} month(s).`, metrics: calculateMetrics(project), data: analyzeSeason(project, selected) }
     }
     const target = resolveSunTarget(project, targetRef, point)
-    const analysis = analyzeSunlight(project, { target, month: month!, day: day ?? 21, stepMinutes: stepMinutes ?? 30, hours, includeGrid: includeGrid ?? false })
+    const analysis = analyzeSunlight(project, { target, month: month!, day: day ?? 21, stepMinutes: stepMinutes ?? 30, hours, includeGrid: includeGrid ?? false, includeNeighbors: includeNeighbors ?? state.neighborsVisible })
     if (analysis.grid) analysis.grid = downsampleSunGrid(analysis.grid, 12)
     const label = target.kind === 'point' ? `Point ${target.x}, ${target.z}` : target.kind === 'site' ? 'Site' : target.ref
     return { status: 'ok', kind, projectRevision: state.project.revision, variantRef, summary: `${label}: ${analysis.sunHours.mean} h direct sun on ${formatSunMoment(month!, analysis.day, 12).slice(0, -6)} (${analysis.expectedSunHours} h expected after typical cloud).`, analysis }

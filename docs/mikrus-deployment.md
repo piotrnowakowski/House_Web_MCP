@@ -11,6 +11,7 @@ GitHub Pages/main remains the separately restored competition submission; deploy
 Use Node 22.12+ (validated with Node 24). Run `npm ci` after merging dependencies, with the local Vite process stopped on Windows.
 Run `npm test`, `npm run lint` and `npm run build` with `BASE_PATH=/` for Mikrus.
 Start the normal preview with `npm run dev -- --host 127.0.0.1 --port 5173 --strictPort`.
+Vite ignores recovery files in `tmp/`, browser evidence in `output/` and `.playwright-mcp/`; locked browser databases must not stop the development watcher.
 Set `APP_URL=http://127.0.0.1:5173` when running `npm run test:interior` against this checkout.
 The original separate editor worktree can continue on 5187.
 

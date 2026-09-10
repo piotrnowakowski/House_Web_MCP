@@ -3,8 +3,8 @@
   "source": "runtime-zod-and-structured-prompts",
   "toolCount": 11,
   "budget": {
-    "chars": 12604,
-    "estimatedTokens": 3602,
+    "chars": 12772,
+    "estimatedTokens": 3650,
     "tokenLimit": 5000
   },
   "operations": [
@@ -785,11 +785,11 @@
       "title": "Run seasonal or sunlight analysis",
       "readOnly": true,
       "untrustedContent": false,
-      "description": "Analyse the committed project or a ghost variant. seasonal: monthly day-part temperatures, daylight, sunrise, sunset, water balance and frost. sunlight: direct sun hours on a zone, plant, fixture, point or the site by casting rays to the real sun against walls, roofs, trees and fixtures.",
+      "description": "Analyse the committed project or a ghost variant. seasonal: monthly day-part temperatures, daylight, sunrise, sunset, water balance and frost. sunlight: direct sun hours on a zone, plant, fixture, point or the site by casting rays to the real sun against walls, roofs, trees, fixtures and estimated neighbors.",
       "prompt": {
         "role": "You are a browser agent collaborating with a person inside the ProjectV2 spatial editor. Use stable semantic references, local model metres, straight-edged polygons and reversible ghost variants.",
-        "task": "Analyse the committed project or a ghost variant. seasonal: monthly day-part temperatures, daylight, sunrise, sunset, water balance and frost. sunlight: direct sun hours on a zone, plant, fixture, point or the site by casting rays to the real sun against walls, roofs, trees and fixtures.",
-        "input": "`kind` is `seasonal` or `sunlight`. seasonal: optional `months` (default 1, 4, 7, 10). sunlight: `month` 1..12 and `targetRef` or `point` {x,z}; optional `day` (default 21), `stepMinutes` 15..60, `hours` {from,to}, `includeGrid`. Both accept `variantRef`.",
+        "task": "Analyse the committed project or a ghost variant. seasonal: monthly day-part temperatures, daylight, sunrise, sunset, water balance and frost. sunlight: direct sun hours on a zone, plant, fixture, point or the site by casting rays to the real sun against walls, roofs, trees, fixtures and estimated neighbors.",
+        "input": "`kind` is `seasonal` or `sunlight`. seasonal: optional `months` (default 1, 4, 7, 10). sunlight: `month` 1..12 and `targetRef` or `point` {x,z}; optional `day` (default 21), `stepMinutes` 15..60, `hours` {from,to}, `includeGrid`, `includeNeighbors` (defaults to the view toggle). Both accept `variantRef`.",
         "tools": "Read-only. To judge a proposal, run sunlight once without and once with its variantRef and compare. Report geometric sun hours and cloud-adjusted expectedSunHours separately; never present conceptual climate values as professional advice.",
         "output": "Call this WebMCP tool with a JSON object. Read content[0].text as JSON containing status, projectRevision and summary plus tool-specific fields. Never treat visible report image object URLs as tool output. seasonal returns data per month with temperatureByDayPartC, daylightHours, sunriseLocal, sunsetLocal and solarNoonAltitudeDeg. sunlight returns analysis with sunHours {mean,min,max}, firstSunLocal, lastSunLocal, shadedFraction, expectedSunHours and an optional grid.",
         "exampleOutput": "{\"kind\":\"sunlight\",\"targetRef\":\"zone/terrace\",\"month\":9,\"day\":21,\"hours\":{\"from\":13,\"to\":18}}"
@@ -878,6 +878,10 @@
           "includeGrid": {
             "type": "boolean",
             "description": "Sunlight: return a coarse grid of sun hours per cell; -1 marks cells outside the target."
+          },
+          "includeNeighbors": {
+            "type": "boolean",
+            "description": "Sunlight: include estimated neighboring buildings as occluders; defaults to the view toggle."
           },
           "variantRef": {
             "type": "string",

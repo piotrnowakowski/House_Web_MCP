@@ -123,7 +123,7 @@ export const webMcpSchemas = {
     kind: z.enum(['seasonal', 'sunlight']), months: z.array(z.number().int().min(1).max(12)).min(1).max(12).optional(),
     targetRef: z.string().min(1).optional(), point: point.optional(), month: z.number().int().min(1).max(12).optional(), day: z.number().int().min(1).max(31).optional(),
     stepMinutes: z.number().int().min(15).max(60).optional(), hours: z.object({ from: z.number().min(0).max(24), to: z.number().min(0).max(24) }).strict().optional(),
-    includeGrid: z.boolean().optional(), variantRef: ref.optional(),
+    includeGrid: z.boolean().optional(), includeNeighbors: z.boolean().optional(), variantRef: ref.optional(),
   }).superRefine((value, context) => {
     if (value.kind !== 'sunlight') return
     if (value.month === undefined) context.addIssue({ code: 'custom', path: ['month'], message: 'month is required for sunlight analysis.' })

@@ -1,9 +1,10 @@
 import { zielonkiClimate, zielonkiKnowledgeBase, zielonkiPlot } from '../../knowledge-bank/zielonki/data'
+import neighborData from '../../knowledge-bank/zielonki/neighbors.json'
 import { rectangle } from './geometry'
 import { ensureStarterGarden } from './gardenFixtures'
 import { applyModernBarnPreset } from './presets'
 import { ensureStarterOrchard, ZIELONKI_TREE_HEIGHT_M } from './orchard'
-import type { BuildingModel, ProjectV2, WallModel } from './types'
+import type { BuildingModel, NeighborBuilding, ProjectV2, WallModel } from './types'
 
 const wall = (ref: string, start: { x: number; z: number }, end: { x: number; z: number }, openings: WallModel['openings'] = []): WallModel => ({
   ref, start, end, thicknessM: 0.24, baseElevationM: 0.45, heightM: 3, openings, finish: { material: 'light-render', colorHex: '#E8E1D2' }, locked: false,
@@ -46,6 +47,7 @@ export const sampleProject: ProjectV2 = {
   site: {
     boundary: zielonkiPlot.boundary,
     northDegrees: zielonkiPlot.northDegrees,
+    neighbors: neighborData as NeighborBuilding[],
     terrain: { boundary: zielonkiPlot.boundary, elevationPoints: zielonkiPlot.elevationPoints },
     parcels: zielonkiPlot.parcels,
     entrances: zielonkiPlot.entrances,

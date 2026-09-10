@@ -4,6 +4,7 @@ This folder is the single source of truth for the bundled Zielonki demo. It keep
 
 ## Contents
 
+- [Neighbors and true north](NEIGHBORS.md) — optional surrounding buildings, source accuracy and verified survey-to-model orientation.
 - [Zoning verification](ZONING.md) — operative MPZP and the MNU/R split inside all three `/3` parcels.
 - [Plot and terrain](PLOT_AND_TERRAIN.md) — parcel roles, areas, geometry confidence, dimensions and levels.
 - [Weather and climate](CLIMATE_AND_WEATHER.md) — the editable monthly climate preset used by seasonal analysis.

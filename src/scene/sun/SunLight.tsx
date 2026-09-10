@@ -6,11 +6,12 @@ import { SHADOW_MARGIN_M, SUN_DISTANCE_M, shadowFocusBounds, sunColorFor, sunSta
 /** One directional light that always follows the real sun for the site and the viewer's date and time. */
 export function SunLight() {
   const project = useStudioStore((state) => state.project)
+  const neighborsVisible = useStudioStore((state) => state.neighborsVisible)
   const sunTime = useStudioStore((state) => state.sunTime)
   const light = useRef<DirectionalLight>(null)
   const target = useMemo(() => new Object3D(), [])
   const sun = useMemo(() => sunStateFor(project, sunTime), [project, sunTime])
-  const bounds = useMemo(() => shadowFocusBounds(project), [project])
+  const bounds = useMemo(() => shadowFocusBounds(project, neighborsVisible), [project, neighborsVisible])
   const centre = useMemo(() => bounds.getCenter(new Vector3()), [bounds])
   const radius = useMemo(() => bounds.getSize(new Vector3()).length() / 2 + SHADOW_MARGIN_M, [bounds])
   const daylight = Math.max(0, Math.sin(sun.altitudeDeg * Math.PI / 180))

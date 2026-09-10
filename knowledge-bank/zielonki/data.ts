@@ -1,6 +1,7 @@
 import type { ClimateMonth, ClimateProfile, PlotModel, SiteKnowledgeBase } from '../../src/domain/types'
 import { estimateDayPartTemperatures } from '../../src/domain/climate'
 import { zielonkiZoningParts } from './zoning'
+import { zielonkiOrientation } from './orientation'
 
 const climateRows: Array<Omit<ClimateMonth, 'month' | 'temperatureByDayPartC'>> = [
   { meanMinC: -4.2, meanMaxC: 2.1, precipitationMm: 38, sunshineHours: 49, et0Mm: 8, frostDays: 20, windKph: 12 },
@@ -20,8 +21,8 @@ const climateRows: Array<Omit<ClimateMonth, 'month' | 'temperatureByDayPartC'>> 
 export const zielonkiClimate: ClimateProfile = {
   ref: 'climate/zielonki-demo',
   name: 'Zielonki, Krakow — editable climate normal',
-  latitude: 50.12,
-  longitude: 19.92,
+  latitude: zielonkiOrientation.latitude,
+  longitude: zielonkiOrientation.longitude,
   timezone: 'Europe/Warsaw',
   provenance: 'Illustrative monthly normal prepared from ERA5/ERA5-Land variables exposed by Open-Meteo (CC BY 4.0). Edit before professional use.',
   soil: { texture: 'clay', ph: null, drainage: 'slow' },
@@ -37,7 +38,7 @@ export const zielonkiPlot: PlotModel = {
     { x: -18.403, z: 186.012 }, { x: -18.403, z: 15.882 }, { x: -18.403, z: 10.53 }, { x: -19.778, z: -15.1 },
     { x: -10.621, z: -15.591 }, { x: -0.838, z: -16.116 }, { x: 8.7, z: -16.628 },
   ],
-  northDegrees: -56.7,
+  northDegrees: zielonkiOrientation.northDegrees,
   elevationPoints: [
     { x: -19.2, z: -15.1, elevation: 0.51 },
     { x: 18.2, z: -15.9, elevation: 0.28 },

@@ -152,6 +152,8 @@ describe('planting sun-mismatch validation', () => {
   it('reveals extra shade in the original garden when the mapped trees are included', () => {
     // Retain the original regression scene independently of the current house-placement preset.
     const original = structuredClone(modernBarnProject)
+    // This fixture represents the historical garden orientation, not the corrected survey frame.
+    original.site.northDegrees = -56.7
     original.buildings[0].position = { x: 0, z: -1 }
     original.buildings[0].rotationDegrees = 0
     const withoutSurvey = structuredClone(original)

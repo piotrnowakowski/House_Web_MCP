@@ -1,6 +1,14 @@
 # Versioned Zielonki project
 
-`project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09 as revision **40**, saved **2026-09-09T14:11:23.399Z**. The current revision is **44**, retaining **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
+`project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09 as revision **40**, saved **2026-09-09T14:11:23.399Z**. The current revision is **45**, retaining **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
+
+## Revision 45 — optional neighbors and verified true north
+
+Eight surrounding context buildings are stored in the optional `site.neighbors` array; each has a stable ref, source and confidence. Seven footprints derive from the geodetic map and one from a Google Maps visual estimate. All heights/roof forms are estimates and no windows are invented. See [evidence and transforms](../../knowledge-bank/zielonki/NEIGHBORS.md). Owner geometry and planting are unchanged. True north is corrected from -56.7 to -124.187875 degrees, with solar coordinates at the surveyed origin (50.135450043, 19.902235433).
+
+Before editing on 10 September 2026, the actual public-origin browser workspace was backed up under ignored `tmp/neighbors/recovery-*/`. Its working r45 (saved 2026-09-10T13:21:39.726Z) has the same content as its published r44 baseline and tracked r44 after excluding revision/time metadata; there were no local design changes or conflicts to merge. The browser's r45 counter is a previous migration result, not this publication. `published-base-r44.json` preserves the previous canonical snapshot; the legacy baseline is unchanged. The new canonical r45 merges by content against each browser's baseline. Local north edits produce conflicts rather than being overwritten, and independent deletions remain deleted.
+
+View visibility is an origin-local preference, not a project edit. The layer is initially off; enabling it activates matching scene shadows and sun-hours occluders. Facade camera positions are explicitly approximate.
 
 ## Revision 44 — 140 cm knee walls at the existing roof pitch
 

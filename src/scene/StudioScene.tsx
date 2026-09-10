@@ -36,6 +36,8 @@ import { GlazedGable } from './GlazedGable'
 import { GableFrame } from './GableFrame'
 import { RoofTerrace } from './RoofTerrace'
 import { RoofCanopy } from './RoofCanopy'
+import { NeighborBuildings } from './NeighborBuildings'
+import { neighborViewpoint } from '../domain/neighbors'
 
 const REAL = { slab: '#d6d0bf', wall: '#e8e1d2', roof: '#6f4735', soil: '#918867' }
 const BARN = { slab: '#777269', wall: '#282d2c', roof: '#343a3b' }
@@ -336,6 +338,8 @@ function ThatOpenBridge() {
   const project = useStudioStore((state) => state.project)
   const refocusRequest = useStudioStore((state) => state.cameraRefocusRequest)
   const gardenFocusRequest = useStudioStore((state) => state.gardenFocusRequest)
+  const neighborViewRequest = useStudioStore((state) => state.neighborViewRequest)
+  const handledNeighborView = useRef(neighborViewRequest.sequence)
   const handledRefocusRequest = useRef(handledPlotFocus.get(project.ref) ?? 0)
   const handledGardenFocusRequest = useRef(gardenFocusRequest.sequence)
   const handledExplode = useRef(explode)
@@ -503,6 +507,18 @@ function ThatOpenBridge() {
     void current.controls.setFocalOffset(2.4, 0, 0, smooth)
     void current.controls.setLookAt(gardenFocusRequest.targetX + 5.5, 4.6, gardenFocusRequest.targetZ + 7, gardenFocusRequest.targetX, 0.65, gardenFocusRequest.targetZ, smooth)
   }, [gardenFocusRequest])
+  useEffect(() => {
+    if (handledNeighborView.current === neighborViewRequest.sequence) return
+    handledNeighborView.current = neighborViewRequest.sequence
+    const current = bridge.current, house = project.buildings[0]
+    const neighbor = project.site.neighbors?.find((item) => item.ref === neighborViewRequest.ref)
+    if (!current || !house || !neighbor) return
+    const eye = neighborViewpoint(neighbor, house.position, neighborViewRequest.eyeHeightM)
+    usePerspectiveCamera(current)
+    current.controls.setFocalOffset(0, 0, 0, false)
+    current.perspective.clearViewOffset()
+    void current.controls.setLookAt(eye.x, eye.y, eye.z, house.position.x, eye.y, house.position.z, false)
+  }, [neighborViewRequest, project])
   useEffect(() => {
     if (handledExplode.current === explode) return
     handledExplode.current = explode
@@ -1266,7 +1282,7 @@ export function StudioScene() {
   }) ?? []
   return <>
     <color attach="background" args={[sky]} /><fog attach="fog" args={[sky, 450, 1100]} />
-    <ThatOpenBridge /><InteractiveMeasurements /><StructureCaptureController /><SunLight /><SunPath /><CompassRose /><SunHoursOverlay /><TexturePreloader />
+    <ThatOpenBridge /><InteractiveMeasurements /><StructureCaptureController /><SunLight /><SunPath /><CompassRose /><SunHoursOverlay /><TexturePreloader /><NeighborBuildings />
     <Physics gravity={[0, 0, 0]}><group onPointerMissed={() => setSelectedRef(null)}><TerrainAndSite project={project} /><RealisticGrass project={project} /><Landscape project={project} /><GardenFixtures project={project} />
       {project.buildings.map((building) => <Building key={building.ref} project={project} building={building} />)}
       {ghost?.buildings.map((building) => <Building key={`ghost-${building.ref}`} project={ghost} building={building} ghost />)}

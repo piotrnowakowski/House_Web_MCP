@@ -104,6 +104,8 @@ async function main() {
           await expect.poll(async () => (await records(page)).find((w) => w.project.ref === published.ref)?.project.landscape.plants.length).toBe(6)
           const saved = (await records(page)).find((w) => w.project.ref === published.ref)
           assert.deepEqual(saved.project.landscape.plants, published.landscape.plants)
+          assert.equal(saved.project.site.northDegrees, published.site.northDegrees)
+          assert.deepEqual(saved.project.site.neighbors, published.site.neighbors)
           assert.equal(saved.project.buildings[0].roof.pitchDegrees, published.buildings[0].roof.pitchDegrees)
           assert.deepEqual(saved.project.buildings[0].roof.segments.find((segment) => segment.ref.endsWith('/front-barn')).gableGlazing,
             published.buildings[0].roof.segments.find((segment) => segment.ref.endsWith('/front-barn')).gableGlazing)
@@ -114,14 +116,14 @@ async function main() {
           await expect(page.getByRole('button', { name: 'House interior', exact: true })).toBeVisible()
           assert.equal((await records(page)).find((w) => w.project.ref === published.ref).project.landscape.plants.length, 6)
           // Wait for the suspended 3D scene to draw, rather than capturing its initial black buffer.
-          await page.waitForFunction(() => {
+          await page.waitForFunction(() => new Promise((resolve) => requestAnimationFrame(() => {
             const canvas = document.querySelector('canvas')
             const gl = canvas?.getContext('webgl2')
-            if (!gl || gl.isContextLost()) return false
+            if (!gl || gl.isContextLost()) { resolve(false); return }
             const pixel = new Uint8Array(4)
             gl.readPixels(5, 5, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel)
-            return pixel[0] + pixel[1] + pixel[2] > 30
-          }, null, { timeout: 60000 })
+            resolve(pixel[0] + pixel[1] + pixel[2] > 30)
+          })), null, { timeout: 60000 })
           await page.waitForFunction(() => window.__publishedGeometryAudit.completed > 0 && window.__publishedGeometryAudit.pending === 0, null, { timeout: 60000 })
           assert.deepEqual(await page.evaluate(() => window.__publishedGeometryAudit.errors), [])
           await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))))

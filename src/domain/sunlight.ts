@@ -1,13 +1,15 @@
 import { gardenFixtureById } from './gardenFixtures'
 import { buildingGroundOffset, elevationAt, pointInPolygon, pointOnPolygonBoundary, polygonArea, polygonBounds } from './geometry'
 import { roofWings } from './roofWings'
+import { neighborSurface, rayHitsNeighbor } from './neighbors'
 import { solarPosition, sunDirectionModel, sunriseSunset, type SolarSite, type SunTime } from './solar'
 import type { BuildingModel, Polygon2, ProjectV2, Vec2, Vec3 } from './types'
 
 export type SunTarget = { kind: 'zone'; ref: string } | { kind: 'plant'; ref: string } | { kind: 'fixture'; ref: string } | { kind: 'point'; x: number; z: number } | { kind: 'site' }
-export interface SunlightInput { target: SunTarget; month: number; day?: number; stepMinutes?: number; cellM?: number; includeGrid?: boolean; hours?: { from: number; to: number } }
+export interface SunlightInput { target: SunTarget; month: number; day?: number; stepMinutes?: number; cellM?: number; includeGrid?: boolean; includeNeighbors?: boolean; hours?: { from: number; to: number } }
 export interface SunlightGrid { width: number; height: number; originX: number; originZ: number; cellM: number; hours: number[] }
 export interface SunlightAnalysis {
+  includeNeighbors: boolean
   target: SunTarget; month: number; day: number; stepMinutes: number; cellM: number
   sunriseLocal: number | null; sunsetLocal: number | null; daylightHours: number; window: { fromLocal: number; toLocal: number } | null
   sunHours: { mean: number; min: number; max: number }; firstSunLocal: number | null; lastSunLocal: number | null
@@ -17,6 +19,7 @@ export interface SunlightAnalysis {
 type Plane = { normal: Vec3; d: number }
 /** Convex volumes keep a horizontal circle and top height for a cheap broad phase. */
 export type Occluder =
+  | { kind: 'neighbor'; ref: string; triangles: number[]; centre: Vec2; radius: number; top: number }
   | { kind: 'convex'; ref: string; planes: Plane[]; centre: Vec2; radius: number; top: number }
   | { kind: 'sphere'; ref: string; center: Vec3; radius: number }
   | { kind: 'ellipsoid'; ref: string; center: Vec3; radii: Vec3 }
@@ -93,8 +96,12 @@ const roofOccluders = (building: BuildingModel, frame: Frame): Occluder[] => roo
   return convexFromLocalPlanes(ref, [bottom, ...ends, ...slopes], [...corners.slice(0, 4), ...ridgeCorners], frame)
 })
 
-export const collectOccluders = (project: ProjectV2): Occluder[] => {
+export const collectOccluders = (project: ProjectV2, includeNeighbors = false): Occluder[] => {
   const occluders: Occluder[] = []
+  if (includeNeighbors) for (const neighbor of project.site.neighbors ?? []) {
+    const { walls, roof, centre, radius, top } = neighborSurface(neighbor)
+    occluders.push({ kind: 'neighbor', ref: neighbor.ref, triangles: [...walls, ...roof], centre, radius, top })
+  }
   for (const building of project.buildings) {
     const frame: Frame = { position: building.position, yaw: rad(building.rotationDegrees), offsetY: buildingGroundOffset(building, 0) }
     for (const wall of building.walls) {
@@ -173,7 +180,7 @@ const rayIsBlocked = (origin: Vec3, direction: Vec3, occluders: Occluder[]) => {
     if (origin.y >= occluder.top) continue
     const reach = direction.y > 1e-9 ? (occluder.top - origin.y) / direction.y * horizontal : Number.POSITIVE_INFINITY
     if (Math.hypot(occluder.centre.x - origin.x, occluder.centre.z - origin.z) - occluder.radius > reach) continue
-    if (rayHitsConvex(origin, direction, occluder)) return true
+    if (occluder.kind === 'neighbor' ? rayHitsNeighbor(origin, direction, occluder.triangles) : rayHitsConvex(origin, direction, occluder)) return true
   }
   return false
 }
@@ -231,7 +238,7 @@ export const analyzeSunlight = (project: ProjectV2, input: SunlightInput): Sunli
   const day = input.day ?? 21; const stepMinutes = input.stepMinutes ?? 30; const requestedCellM = input.cellM ?? 0.5
   const site = siteOf(project); const events = sunriseSunset(site, { month: input.month, day, hour: 12 })
   const samples = sampleTargetPoints(project, input.target, requestedCellM)
-  const occluders = collectOccluders(project).filter((occluder) => occluder.ref !== samples.excludeRef)
+  const occluders = collectOccluders(project, input.includeNeighbors).filter((occluder) => occluder.ref !== samples.excludeRef)
   const hours = new Array<number>(samples.points.length).fill(0)
   let firstSunLocal: number | null = null; let lastSunLocal: number | null = null
   const daylight = events?.daylightHours ?? 0
@@ -254,6 +261,7 @@ export const analyzeSunlight = (project: ProjectV2, input: SunlightInput): Sunli
   const mean = hours.reduce((sum, value) => sum + value, 0) / count
   const sunshine = project.climateProfile.months.find((item) => item.month === input.month)?.sunshineHours ?? 0
   const result: SunlightAnalysis = {
+    includeNeighbors: input.includeNeighbors ?? false,
     target: input.target, month: input.month, day, stepMinutes, cellM: samples.cellM,
     sunriseLocal: events ? round(events.sunriseHour, 2) : null, sunsetLocal: events ? round(events.sunsetHour, 2) : null, daylightHours: round(daylight, 2),
     window: events && span > 0 ? { fromLocal: round(windowFrom, 2), toLocal: round(windowTo, 2) } : null,

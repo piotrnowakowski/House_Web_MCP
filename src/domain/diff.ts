@@ -14,7 +14,7 @@ const round = (value: number) => Math.round(value * 1000) / 1000
 const entries = (project: ProjectV2): Array<[ChangeKind, Entry[]]> => {
   const buildings = project.buildings
   return [
-    ['site', [{ ref: 'site', fields: { boundary: project.site.boundary, northDegrees: project.site.northDegrees, terrain: project.site.terrain } }]],
+    ['site', [{ ref: 'site', fields: { boundary: project.site.boundary, northDegrees: project.site.northDegrees, terrain: project.site.terrain, neighbors: project.site.neighbors } }]],
     ['parcel', project.site.parcels.map((parcel) => ({ ref: parcel.ref, fields: pick(parcel as unknown as Record<string, unknown>, ['cadastralNumber', 'landRole', 'officialAreaM2', 'boundary', 'landUseZones']) }))],
     ['entrance', project.site.entrances.map((entrance) => ({ ref: entrance.ref, fields: pick(entrance as unknown as Record<string, unknown>, ['name', 'start', 'end']) }))],
     ['building', buildings.map((building) => ({ ref: building.ref, fields: pick(building as unknown as Record<string, unknown>, ['name', 'kind', 'architecturalStyle', 'garageMode', 'position', 'rotationDegrees']) }))],

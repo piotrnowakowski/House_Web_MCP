@@ -516,6 +516,18 @@ describe('variant explanation and viewer tools', () => {
 describe('sunlight through run_analysis', () => {
   beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), history: [], variants: [], sunTime: { month: 7, day: 15, hour: 14 } }))
 
+  it('follows the neighbor view option unless analysis explicitly overrides it', async () => {
+    useStudioStore.getState().setNeighborsVisible(true)
+    try {
+      const input = { kind: 'sunlight', point: { x: 0, z: 0 }, month: 12, stepMinutes: 60 }
+      expect(payload(await tool('run_analysis').execute(input)).analysis.includeNeighbors).toBe(true)
+      expect(payload(await tool('run_analysis').execute({ ...input, includeNeighbors: false })).analysis.includeNeighbors).toBe(false)
+      const neighbor = payload(await tool('get_project_state').execute({ objectRef: 'neighbor/34-5' }))
+      expect(neighbor.data.object.heightConfidence).toBe('estimated')
+      expect(useStudioStore.getState().history).toEqual([])
+    } finally { useStudioStore.getState().setNeighborsVisible(false) }
+  })
+
   it('analyses sun hours for a zone within the output budget and without variants', async () => {
     const result = await tool('run_analysis').execute({ kind: 'sunlight', targetRef: 'zone/lawn', month: 6, day: 21 })
     const parsed = payload(result)

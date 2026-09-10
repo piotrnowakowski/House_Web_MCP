@@ -136,6 +136,13 @@ export const ProjectSchema = z.object({
   schemaVersion: z.literal(2), ref: z.string().min(1), name: z.string().min(1), units: z.literal('metric'), revision: z.number().int().positive(), updatedAt: z.string(),
   site: z.object({
     boundary: PolygonSchema, northDegrees: z.number().finite(),
+    neighbors: z.array(z.object({
+      ref: z.string().min(1), name: z.string().min(1), footprint: PolygonSchema,
+      groundElevationM: z.number().finite(), eavesHeightM: z.number().positive().max(100), ridgeHeightM: z.number().positive().max(100),
+      ridgeDirectionDegrees: z.number().finite(), roofType: z.enum(['gable', 'hip', 'flat']),
+      footprintSource: z.string().min(1), footprintConfidence: z.enum(['map-derived', 'approximate']),
+      heightConfidence: z.literal('estimated'), sourceDate: z.string().min(1),
+    }).refine((value) => value.ridgeHeightM >= value.eavesHeightM, 'Neighbor ridge must be at or above its eaves')).refine((items) => new Set(items.map((item) => item.ref)).size === items.length, 'Neighbor references must be unique').optional(),
     terrain: z.object({ boundary: PolygonSchema, elevationPoints: z.array(Vec2Schema.extend({ elevation: z.number().finite() })).min(1) }),
     parcels: z.array(ParcelSchema).min(1), entrances: z.array(SiteEntranceSchema).default([]), knowledgeBase: z.custom<SiteKnowledgeBase>((value) => Boolean(value) && typeof value === 'object').transform(hydrateKnowledgeBase),
   }),
