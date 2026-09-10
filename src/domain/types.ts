@@ -78,7 +78,7 @@ export interface RoofSegmentModel {
   /** Glass guard and optional fascia around connected flat decks. Open edge indices refer to their merged perimeter. */
   terrace?: { railingHeightM: number; openEdgeIndex: number; frameColorHex: string; connectedSegmentRefs?: string[]; openEdgeIndices?: number[]; fasciaHeightM?: number }
   /** Ground-floor canopy details; elevations and post positions use building-local coordinates. */
-  canopy?: { fasciaHeightM: number; fasciaEdgeIndices: number[]; frameColorHex?: string; soffitColorHex: string; postWidthM: number; postBaseElevationM: number; posts: Vec2[] }
+  canopy?: { fasciaHeightM: number; fasciaEdgeIndices: number[]; frameColorHex?: string; soffitColorHex: string; postWidthM: number; postBaseElevationM: number; posts: Vec2[]; slats?: { direction: 'x' | 'z'; spacingM: number; widthM: number } }
 }
 export interface RoofModel {
   ref: string; type: RoofType; baseElevationM: number; pitchDegrees: number; overhangM: number; footprint?: Polygon2

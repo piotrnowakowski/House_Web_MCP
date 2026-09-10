@@ -13,6 +13,7 @@ import type { SunlightAnalysis } from '../domain/sunlight'
 import { createTerrainProject, isZielonkiProject, type TerrainInput } from '../domain/terrain'
 import { listWorkspaces, loadWorkspace, saveWorkspace, synchronizePublishedProject, type WorkspaceSummary } from '../services/persistence'
 import { legacyProjectBase, publishedProject } from '../services/publishedProject'
+import { V2_STUDY_REF, synchronizePublishedV2 } from '../services/publishedV2'
 import type { DraftChangeSetModel, HeightMeasureKind, PersistedWorkspace, ProjectCommand, ProjectV2, ProposalRecord, StructureReport, TransformMode, VariantModel, ViewerMode } from '../domain/types'
 
 interface StudioState {
@@ -186,7 +187,11 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   openLauncher: async () => {
     set({ launcherOpen: true, loadingWorkspaces: true })
     try {
-      if (!get().hydrated) set({ projectSyncConflicts: await synchronizePublishedProject(publishedProject, legacyProjectBase) })
+      if (!get().hydrated) {
+        const originalConflicts = await synchronizePublishedProject(publishedProject, legacyProjectBase)
+        const v2Conflicts = await synchronizePublishedV2()
+        set({ projectSyncConflicts: [...originalConflicts, ...v2Conflicts] })
+      }
       set({ savedWorkspaces: await listWorkspaces() })
     }
     catch (error) { set({ savedWorkspaces: [], toast: `Saved projects could not be read: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
@@ -251,6 +256,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
   },
   openWorkspace: async (ref) => {
     try {
+      if (ref === V2_STUDY_REF) set({ projectSyncConflicts: await synchronizePublishedV2() })
       const saved = await loadWorkspace(ref)
       if (!saved) { set({ toast: `Saved project not found: ${ref}.` }); return }
       const project = isZielonkiProject(saved.project) ? ensureStarterOrchard(ensureStarterGarden(applyModernBarnPreset(saved.project))) : saved.project

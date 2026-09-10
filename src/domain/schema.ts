@@ -93,6 +93,7 @@ const RoofSegmentSchema = z.object({
     frameColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
     soffitColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), postWidthM: z.number().positive(),
     postBaseElevationM: z.number().finite(), posts: z.array(Vec2Schema).min(1),
+    slats: z.object({ direction: z.enum(['x', 'z']), spacingM: z.number().min(0.15), widthM: z.number().positive() }).optional(),
   }).optional(),
   gableGlazing: z.object({
     min: GableGlazingSchema.optional(),

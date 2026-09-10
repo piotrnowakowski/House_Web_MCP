@@ -1,6 +1,7 @@
 import { gardenFixtureById } from './gardenFixtures'
 import { buildingGroundOffset, elevationAt, pointInPolygon, pointOnPolygonBoundary, polygonArea, polygonBounds } from './geometry'
 import { roofWings } from './roofWings'
+import { pergolaMembers } from './pergola'
 import { neighborSurface, rayHitsNeighbor } from './neighbors'
 import { solarPosition, sunDirectionModel, sunriseSunset, type SolarSite, type SunTime } from './solar'
 import type { BuildingModel, Polygon2, ProjectV2, Vec2, Vec3 } from './types'
@@ -75,7 +76,10 @@ const slopePlane = (axis: 'x' | 'z', from: number, fromY: number, to: number, to
   return { normal, d: dot(normal, axis === 'x' ? { x: from, y: fromY, z: 0 } : { x: 0, y: fromY, z: from }) }
 }
 
-const roofOccluders = (building: BuildingModel, frame: Frame): Occluder[] => roofWings(building).map((wing, index) => {
+const roofOccluders = (building: BuildingModel, frame: Frame): Occluder[] => roofWings(building).flatMap((wing, index): Occluder | Occluder[] => {
+  const segment = building.roof.segments.find((item) => item.ref === wing.ref)
+  if (segment?.canopy?.slats) return pergolaMembers(segment).map((member, i) =>
+    boxOccluder(`${segment.ref}/member-${i}`, member.centre, scale(member.size, 0.5), member.yaw, frame))
   const bounds = polygonBounds(wing.footprint); const over = wing.overhangM
   const x0 = bounds.minX - over; const x1 = bounds.maxX + over; const z0 = bounds.minZ - over; const z1 = bounds.maxZ + over
   const cx = (x0 + x1) / 2; const cz = (z0 + z1) / 2; const ridge = wing.ridgeElevationM

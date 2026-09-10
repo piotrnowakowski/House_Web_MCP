@@ -2,17 +2,16 @@ import type { BuildingModel } from '../domain/types'
 import { atticWallProfile } from '../domain/attic'
 import type { GeneratedSolid, GeometryWorkerRequest, GeometryWorkerResponse, SolidInput } from './types'
 
-type Pending = { revision: number; resolve: (solids: GeneratedSolid[]) => void; reject: (reason: unknown) => void }
+type Pending = { resolve: (solids: GeneratedSolid[]) => void; reject: (reason: unknown) => void }
 
 export const solidInputsForBuilding = (building: BuildingModel): SolidInput[] => [
   ...building.slabs.map((slab) => ({ kind: 'slab' as const, ref: slab.ref, footprint: slab.footprint, holes: slab.holes, topElevationM: slab.topElevationM, thicknessM: slab.thicknessM })),
   ...building.walls.map((wall) => ({ kind: 'wall' as const, ref: wall.ref, start: wall.start, end: wall.end, baseElevationM: wall.baseElevationM, heightM: wall.heightM, thicknessM: wall.thicknessM, topProfile: atticWallProfile(building, wall), openings: wall.openings.map(({ offsetM, widthM, heightM, sillM }) => ({ offsetM, widthM, heightM, sillM })) })),
 ]
 
-class GeometryService {
+export class GeometryService {
   private worker: Worker | null = null
   private sequence = 0
-  private latestRevision = -1
   private pending = new Map<number, Pending>()
   private cache = new Map<string, { signature: string; solid: GeneratedSolid }>()
 
@@ -24,7 +23,6 @@ class GeometryService {
       if (!pending) return
       this.pending.delete(event.data.requestId)
       if (event.data.error) { pending.reject(new Error(event.data.error)); return }
-      if (event.data.revision !== this.latestRevision) { pending.resolve([]); return }
       pending.resolve(event.data.solids)
     }
     this.worker = worker
@@ -32,22 +30,29 @@ class GeometryService {
   }
 
   async generate(revision: number, elements: SolidInput[]) {
-    this.latestRevision = Math.max(this.latestRevision, revision)
-    const uncached = elements.filter((element) => this.cache.get(element.ref)?.signature !== JSON.stringify(element))
+    // Revisions are local to a project and can decrease on undo or a study switch.
+    // Keep results per request; the consuming effect rejects superseded requests.
+    const results = new Map<string, GeneratedSolid>()
+    const uncached = elements.filter((element) => {
+      const cached = this.cache.get(element.ref)
+      if (cached?.signature !== JSON.stringify(element)) return true
+      results.set(element.ref, cached.solid)
+      return false
+    })
     if (uncached.length) {
       const requestId = ++this.sequence
       const request: GeometryWorkerRequest = { requestId, revision, elements: uncached }
       const solids = await new Promise<GeneratedSolid[]>((resolve, reject) => {
-        this.pending.set(requestId, { revision, resolve, reject })
+        this.pending.set(requestId, { resolve, reject })
         this.ensureWorker().postMessage(request)
       })
-      if (revision !== this.latestRevision) return []
       solids.forEach((solid) => {
         const input = uncached.find((element) => element.ref === solid.ref)!
         this.cache.set(solid.ref, { signature: JSON.stringify(input), solid })
+        results.set(solid.ref, solid)
       })
     }
-    return elements.map((element) => this.cache.get(element.ref)?.solid).filter((solid): solid is GeneratedSolid => Boolean(solid))
+    return elements.map((element) => results.get(element.ref)).filter((solid): solid is GeneratedSolid => Boolean(solid))
   }
 
   dispose() {

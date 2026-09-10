@@ -3,7 +3,7 @@ import { estimateDayPartTemperatures } from './climate'
 import { applyInterior, availableInteriorHeight, InteriorItemSchema, itemFitsFloor } from './interior'
 import { validateTextureChoice } from './textures'
 import { gardenFixtureById, groupedGardenFixtures } from './gardenFixtures'
-import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
+import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonBounds, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
 import { decomposeOrthogonalLFootprint, defaultRoofFinish, ridgeDirectionForFootprint, roofSegmentRidgeElevation, segmentContainsFootprint, supportingWallRefs } from './roofs'
 import { gableWallsForBuilding } from './roofWings'
 import { roofTerraceOutline } from './roofTerrace'
@@ -580,6 +580,13 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
       }
       if (segment.canopy) {
         const canopy = segment.canopy
+        if (canopy.slats) {
+          const bounds = polygonBounds(segment.footprint)
+          const rectangleArea = (bounds.maxX - bounds.minX) * (bounds.maxZ - bounds.minZ)
+          if (segment.terrace || canopy.slats.widthM >= canopy.slats.spacingM || Math.abs(polygonArea(segment.footprint) - rectangleArea) > 0.001) {
+            issues.push({ severity: 'error', code: 'roof.pergola', message: `${segment.ref} requires an axis-aligned rectangular footprint, gaps between slats and no roof terrace.`, subjectRef: segment.ref })
+          }
+        }
         const postFits = canopy.posts.every((post) => [-1, 1].every((x) => [-1, 1].every((z) =>
           pointInPolygon({ x: post.x + x * canopy.postWidthM / 2, z: post.z + z * canopy.postWidthM / 2 }, segment.footprint))))
         if (segment.type !== 'flat' || segment.baseElevationM + 0.24 - canopy.fasciaHeightM <= canopy.postBaseElevationM || segment.baseElevationM <= canopy.postBaseElevationM || !postFits || canopy.fasciaEdgeIndices.some((index) => index >= segment.footprint.length)) {

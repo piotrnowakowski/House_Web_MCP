@@ -36,6 +36,7 @@ import { GlazedGable } from './GlazedGable'
 import { GableFrame } from './GableFrame'
 import { RoofTerrace } from './RoofTerrace'
 import { RoofCanopy } from './RoofCanopy'
+import { Pergola } from './Pergola'
 import { NeighborBuildings } from './NeighborBuildings'
 import { neighborViewpoint } from '../domain/neighbors'
 
@@ -778,9 +779,9 @@ function Roof({ building, selected, yOffset, ghost }: { building: BuildingModel;
       const segment = building.roof.segments.find((item) => item.ref === wing.ref) ?? building.roof.segments[0]
       const highlighted = selected || selectedRef === wing.ref
       return <group key={wing.ref} userData={{ semanticRef: wing.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(wing.ref) }}>
-        {segment.type === 'gable' ? <GableWing building={building} wing={wing} segment={segment} ghost={ghost} selected={highlighted} /> : <SegmentRoof wing={wing} segment={segment} ghost={ghost} selected={highlighted} />}
+        {segment.canopy?.slats ? <Pergola segment={segment} selected={highlighted} ghost={ghost} /> : segment.type === 'gable' ? <GableWing building={building} wing={wing} segment={segment} ghost={ghost} selected={highlighted} /> : <SegmentRoof wing={wing} segment={segment} ghost={ghost} selected={highlighted} />}
         {segment.type === 'flat' && segment.terrace && <RoofTerrace building={building} segment={segment} selected={highlighted} ghost={ghost} />}
-        {segment.type === 'flat' && segment.canopy && <RoofCanopy segment={segment} selected={highlighted} ghost={ghost} />}
+        {segment.type === 'flat' && segment.canopy && !segment.canopy.slats && <RoofCanopy segment={segment} selected={highlighted} ghost={ghost} />}
       </group>
     })}
   </group>
@@ -1284,7 +1285,7 @@ export function StudioScene() {
     <color attach="background" args={[sky]} /><fog attach="fog" args={[sky, 450, 1100]} />
     <ThatOpenBridge /><InteractiveMeasurements /><StructureCaptureController /><SunLight /><SunPath /><CompassRose /><SunHoursOverlay /><TexturePreloader /><NeighborBuildings />
     <Physics gravity={[0, 0, 0]}><group onPointerMissed={() => setSelectedRef(null)}><TerrainAndSite project={project} /><RealisticGrass project={project} /><Landscape project={project} /><GardenFixtures project={project} />
-      {project.buildings.map((building) => <Building key={building.ref} project={project} building={building} />)}
+      {project.buildings.map((building) => <Building key={`${project.ref}/${building.ref}`} project={project} building={building} />)}
       {ghost?.buildings.map((building) => <Building key={`ghost-${building.ref}`} project={ghost} building={building} ghost />)}
       {ghost && <GardenFixtures project={ghost} fixtures={changedGhostFixtures} ghost />}
       {ghost && changedGhostPlants.map((plant) => <Plant key={`ghost-${plant.ref}`} plant={plant} project={ghost} selected={false} onSelect={() => undefined} ghost />)}
