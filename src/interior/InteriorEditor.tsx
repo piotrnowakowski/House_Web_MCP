@@ -443,7 +443,10 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
                 onPointsChange={setPoints}
                 onPick={pick}
                 onSelect={select}
-                onMove={move}
+                project={project}
+                onCommit={commit}
+                onNotice={tell}
+                interactionDisabled={!!confirmationRef}
                 onHover={(point) => {
                   if (ghost && !compact)
                     setGhost({

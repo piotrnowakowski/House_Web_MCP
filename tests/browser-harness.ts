@@ -2,12 +2,20 @@
 import { _roots } from '@react-three/fiber'
 import { Box3, Vector3 } from 'three'
 import { sampleProject } from '../src/domain/sampleProject'
+import v2 from '../project-data/zielonki-v2/project.json'
+import { parseProject } from '../src/domain/schema'
 import { useStudioStore } from '../src/state/store'
 
 export function fixture() {
   const project = structuredClone(sampleProject)
   project.ref = 'project/interior-browser-test'
   project.name = 'Interior browser study'
+  useStudioStore.getState().replaceProject(project)
+  useStudioStore.setState({ hydrated: true, launcherOpen: false, selectedRef: null })
+}
+export function dragFixture() {
+  const project = parseProject(v2)
+  project.ref = 'project/interior-drag-test'; project.name = 'Interior drag test'
   useStudioStore.getState().replaceProject(project)
   useStudioStore.setState({ hydrated: true, launcherOpen: false, selectedRef: null })
 }

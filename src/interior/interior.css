@@ -111,3 +111,5 @@
  .interior-title small { display:none; }
  .interior-tool-prompt { left:12px; transform:none; max-width:calc(100% - 370px); bottom:64px; }
 }
+.interior-drag-status { position:absolute; top:12px; left:50%; transform:translateX(-50%); max-width:80%; padding:10px 16px; border-radius:12px; background:#286253; color:white; font-size:13px; text-align:center; }
+.interior-drag-status.invalid { background:#963f2d; }

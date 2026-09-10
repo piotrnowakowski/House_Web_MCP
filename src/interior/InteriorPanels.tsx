@@ -345,7 +345,7 @@ export function ItemInspector({ item, onSave, availableHeight, interactionHint }
         <p className="interior-note">
           {item.locked
             ? 'Unlock to edit this object.'
-            : interactionHint ?? 'Tap to select, then drag to move. R rotates; arrow keys move; Shift selects more.'}
+            : interactionHint ?? 'Touch or click and drag to move. R rotates; arrow keys move; Shift selects more.'}
         </p>
       </form>
       {dimensionsOpen && (
@@ -767,7 +767,7 @@ export function WallInspector({
           {wallLength(wall).toFixed(2)} m ·{' '}
           {exterior
             ? 'Exterior outline is fixed here. Select a partition or move the whole building.'
-            : 'Shared endpoints and hosted openings move together.'}
+              : 'Touch or click and drag this wall to move it. Shared endpoints and hosted openings move together.'}
         </p>
         <fieldset disabled={exterior || wall.locked} className="interior-fields">
           <label className="interior-field">Keep fixed<select aria-label="Wall length anchor" value={anchor} onChange={e => setAnchor(e.target.value as typeof anchor)}><option value="start">Start</option><option value="center">Centre</option><option value="end">End</option></select></label>

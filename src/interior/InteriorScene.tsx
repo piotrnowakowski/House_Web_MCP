@@ -4,17 +4,17 @@ import { useThree, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { BoxGeometry, DoubleSide, ExtrudeGeometry, Line3, Object3D, Plane, PlaneGeometry, Raycaster, Shape, ShapeGeometry, Vector2, Vector3 } from 'three'
 import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
-import type { OrbitControls as OrbitControlsType } from 'three-stdlib'
-import { polygonCentroid, spaceFootprint, wallLength } from '../domain/geometry'
+import { useDirectManipulation } from './useDirectManipulation'
+import { pointInPolygon, polygonCentroid, spaceFootprint, wallLength } from '../domain/geometry'
 import { roomDimensions } from '../domain/roomDimensions'
 import { interiorCorners } from '../domain/interior'
-import type { BuildingModel, InteriorFinish, InteriorItem, Polygon2, StoreyModel, Vec2, WallModel } from '../domain/types'
+import type { BuildingModel, InteriorFinish, InteriorItem, Polygon2, ProjectV2, ProjectCommand, StoreyModel, Vec2, WallModel } from '../domain/types'
 import { interiorFloorTexture } from '../scene/materialCatalog'
 import { TexturedMaterial } from '../scene/materials'
 import { ProductModel } from './ProductModel'
 import { FinishMaterial } from './FinishMaterial'
 import { InteriorCamera, type InteriorView } from './InteriorCamera'
-import { snapFurniture, wallDistances, type SnapSettings } from '../domain/interiorPlacement'
+import { wallDistances, type SnapSettings } from '../domain/interiorPlacement'
 import { itemFitsFloor } from '../domain/interior'
 import { interiorMeasurementEdges, measurementScreenPoint, snapMeasurementPoint } from '../scene/measurementSnapping'
 import { MeasurementPoint } from '../scene/MeasurementPoint'
@@ -70,7 +70,9 @@ function CutawayWall({ wall, profile, plan, fullHeight, selected, onSelect, onPi
     return [{ x: piece.start - middle, z: -piece.height / 2 }, { x: piece.end - middle, z: -piece.height / 2 },
       ...[...xs].sort((a, b) => b - a).map((x) => ({ x: x - middle, z: Math.max(base, Math.min(top, wallProfileHeightAt(profile, x))) - base - piece.height / 2 }))]
   }
-  return <group position={[wall.start.x, 0.025, wall.start.z]} rotation={[0, -Math.atan2(wall.end.z - wall.start.z, wall.end.x - wall.start.x), 0]} onClick={(event) => { if (event.delta >= 5) return; if (onPick) { event.stopPropagation(); onPick({ x: event.point.x, z: event.point.z }) } else if (onSelect) { event.stopPropagation(); onSelect(wall.ref) } }}>
+  return <group userData={{ dragTarget: { kind: 'wall', ref: wall.ref } }} position={[wall.start.x, 0.025, wall.start.z]} rotation={[0, -Math.atan2(wall.end.z - wall.start.z, wall.end.x - wall.start.x), 0]} onClick={(event) => { if (event.delta >= 5) return; if (onPick) { event.stopPropagation(); onPick({ x: event.point.x, z: event.point.z }) } else if (onSelect) { event.stopPropagation(); onSelect(wall.ref) } }}>
+    {openings.map(opening => <mesh key={`opening-hit-${opening.ref}`} userData={{ dragTarget: { kind: 'opening', ref: opening.ref } }} position={[opening.offsetM, plan ? .2 : Math.min(height, opening.sillM) + .12, 0]}><boxGeometry args={[opening.widthM, plan ? .35 : .25, Math.max(wall.thicknessM, .28)]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>)}
+    {pieces.map((piece, index) => <mesh key={`hit-${index}`} position={[(piece.start + piece.end) / 2, height / 2, 0]}><boxGeometry args={[piece.end - piece.start, height, Math.max(wall.thicknessM, .28)]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>)}
     {pieces.map((piece, index) => <group key={`finish-${index}`} position={[(piece.start + piece.end) / 2, (piece.base ?? 0) + piece.height / 2, 0]}>
       {wall.faceFinishes?.left && <group position-z={wall.thicknessM / 2 + 0.001}><WallFace width={piece.end - piece.start} height={piece.height} outline={outlineFor(piece)} finish={wall.faceFinishes.left} /></group>}
       {wall.faceFinishes?.right && <group position-z={-wall.thicknessM / 2 - 0.001} rotation-y={Math.PI}><WallFace width={piece.end - piece.start} height={piece.height} outline={outlineFor(piece)?.map((p) => ({ x: -p.x, z: p.z })).reverse()} finish={wall.faceFinishes.right} /></group>}
@@ -79,49 +81,30 @@ function CutawayWall({ wall, profile, plan, fullHeight, selected, onSelect, onPi
     {pieces.map((piece, index) => <group key={index}><group position={[(piece.start + piece.end) / 2, (piece.base ?? 0) + piece.height / 2, 0]}><WallBody width={piece.end - piece.start} height={piece.height} thickness={wall.thicknessM} outline={outlineFor(piece)} plan={plan} /></group><mesh position={[(piece.start + piece.end) / 2, 0.055, 0]}><boxGeometry args={[piece.end - piece.start, 0.09, wall.thicknessM + 0.022]} /><meshStandardMaterial color={plan ? '#283b36' : '#f7f3e9'} /></mesh></group>)}
     {openings.filter((o) => o.kind === 'window' || o.glazed).map((opening) => {
       const sill = plan ? 0.04 : Math.min(height, opening.sillM); const glassHeight = plan ? 0.035 : Math.max(0.035, Math.min(opening.heightM, height - sill))
-      return <group key={opening.ref} position={[opening.offsetM, 0, 0]} onClick={(event) => { if (onSelect && event.delta < 5) { event.stopPropagation(); onSelect(opening.ref) } }}><mesh position={[0, sill + glassHeight / 2, 0]}><boxGeometry args={[opening.widthM, glassHeight, 0.035]} /><meshPhysicalMaterial color='#adc8d0' transparent opacity={plan ? 0.8 : 0.25} roughness={0.08} depthWrite={false} /></mesh>{[-1, 0, 1].map((x) => <mesh key={x} position={[x * opening.widthM / 2, sill + glassHeight / 2, 0]}><boxGeometry args={[0.045, glassHeight + 0.035, 0.055]} /><meshStandardMaterial color={opening.glazed ? '#121817' : '#f6f4ec'} /></mesh>)}{[-1, 1].map((y) => <mesh key={y} position={[0, sill + glassHeight / 2 + y * glassHeight / 2, 0]}><boxGeometry args={[opening.widthM, 0.04, 0.055]} /><meshStandardMaterial color={opening.glazed ? '#121817' : '#f6f4ec'} /></mesh>)}</group>
+      return <group key={opening.ref} userData={{ dragTarget: { kind: 'opening', ref: opening.ref } }} position={[opening.offsetM, 0, 0]} onClick={(event) => { if (onSelect && event.delta < 5) { event.stopPropagation(); onSelect(opening.ref) } }}><mesh position={[0, sill + glassHeight / 2, 0]}><boxGeometry args={[opening.widthM, glassHeight, 0.035]} /><meshPhysicalMaterial color='#adc8d0' transparent opacity={plan ? 0.8 : 0.25} roughness={0.08} depthWrite={false} /></mesh>{[-1, 0, 1].map((x) => <mesh key={x} position={[x * opening.widthM / 2, sill + glassHeight / 2, 0]}><boxGeometry args={[0.045, glassHeight + 0.035, 0.055]} /><meshStandardMaterial color={opening.glazed ? '#121817' : '#f6f4ec'} /></mesh>)}{[-1, 1].map((y) => <mesh key={y} position={[0, sill + glassHeight / 2 + y * glassHeight / 2, 0]}><boxGeometry args={[opening.widthM, 0.04, 0.055]} /><meshStandardMaterial color={opening.glazed ? '#121817' : '#f6f4ec'} /></mesh>)}</group>
     })}
-    {openings.filter((o) => o.kind === 'door' && !o.glazed).map((opening) => <group key={opening.ref} position={[opening.offsetM + (opening.hinge === 'right' ? 1 : -1) * opening.widthM / 2, 0, 0]} scale={[opening.hinge === 'right' ? -1 : 1, 1, opening.swing === 'out' ? -1 : 1]} onClick={(event) => { if (onSelect && event.delta < 5) { event.stopPropagation(); onSelect(opening.ref) } }}>
+    {openings.filter((o) => o.kind === 'door' && !o.glazed).map((opening) => <group key={opening.ref} userData={{ dragTarget: { kind: 'opening', ref: opening.ref } }} position={[opening.offsetM + (opening.hinge === 'right' ? 1 : -1) * opening.widthM / 2, 0, 0]} scale={[opening.hinge === 'right' ? -1 : 1, 1, opening.swing === 'out' ? -1 : 1]} onClick={(event) => { if (onSelect && event.delta < 5) { event.stopPropagation(); onSelect(opening.ref) } }}>
       {plan && opening.widthM > 3 ? <Line points={[[0, 0.17, 0], [opening.widthM, 0.17, 0]]} color='#7e9496' lineWidth={2} /> : plan ? <><Line points={[[0, 0.17, 0], [0, 0.17, opening.widthM]]} color='#8c8677' lineWidth={1} /><Line points={Array.from({ length: 25 }, (_, i) => { const a = i / 24 * Math.PI / 2; return [Math.cos(a) * opening.widthM, 0.17, Math.sin(a) * opening.widthM] as [number, number, number] })} color='#afa998' lineWidth={0.65} /></> : opening.widthM > 3 ? <group position={[opening.widthM / 2, 0.48, 0]}><mesh><boxGeometry args={[opening.widthM, 0.92, 0.065]} /><meshStandardMaterial color='#b7cbd1' roughness={0.5} /></mesh>{[0.15, 0.35, 0.55, 0.75].map((y) => <mesh key={y} position={[0, y - 0.46, 0.04]}><boxGeometry args={[opening.widthM, 0.015, 0.02]} /><meshStandardMaterial color='#e5eded' /></mesh>)}</group> : <group rotation={[0, -0.55, 0]}><mesh position={[opening.widthM / 2, (fullHeight ? opening.heightM : 1.04) / 2, 0]} castShadow><boxGeometry args={[opening.widthM - 0.04, fullHeight ? opening.heightM : 1.04, 0.045]} /><meshStandardMaterial color='#c6a477' roughness={0.7} /></mesh><mesh position={[opening.widthM - 0.15, 0.55, 0.045]}><boxGeometry args={[0.1, 0.025, 0.05]} /><meshStandardMaterial color='#6d7876' metalness={0.65} roughness={0.3} /></mesh></group>}
     </group>)}
   </group>
 }
 
 interface Props {
-  projectRef: string
+  projectRef: string; project: ProjectV2; onCommit: (commands: ProjectCommand[]) => boolean; onNotice: (message: string, error?: boolean) => void; interactionDisabled?: boolean
   building: BuildingModel; storey: StoreyModel; plan: boolean; reset: number; selected: string | null; mode: 'select' | 'measure' | 'partition'; placing: boolean; snap: boolean; labels: boolean
   view?: InteriorView; selectedRefs?: string[]; mobile?: boolean; ghost?: InteriorItem | null; snapSettings?: SnapSettings; focusFootprint?: Polygon2; bottomInset?: number; rightInset?: number; onHover?: (point: Vec2) => void
-  dimensions: boolean; points: Vec2[]; onPointsChange: (points: Vec2[]) => void; onPick: (point: Vec2) => void; onSelect: (ref: string | null, additive?: boolean) => void; onMove: (item: InteriorItem) => void
+  dimensions: boolean; points: Vec2[]; onPointsChange: (points: Vec2[]) => void; onPick: (point: Vec2) => void; onSelect: (ref: string | null, additive?: boolean) => void
 }
 export function InteriorScene(props: Props) {
-  const { building, storey, plan, selected, mode, placing, snap, labels, onPick, onSelect, onMove } = props
+  const { storey, plan, selected, mode, placing, snap, labels, onPick, onSelect } = props
+  const manipulation = useDirectManipulation({ project: props.project, building: props.building, storey, enabled: mode === 'select' && !placing && !props.interactionDisabled, snap: props.snapSettings ?? { enabled: snap, gridM: .1, alignment: true }, selectedRefs: props.selectedRefs ?? [], onSelect, onCommit: props.onCommit, onNotice: props.onNotice })
+  const building = manipulation.preview ?? props.building
   const slab = building.slabs.find((item) => item.ref === storey.baseSlabRef)!
-  const [drag, setDrag] = useState<{ item: InteriorItem; origin: Vec2; position: Vec2; pointerId: number } | null>(null)
-  const dragRef = useRef(drag); dragRef.current = drag
-  const { camera, gl, get, scene } = useThree()
+  const { camera, gl, scene } = useThree()
   const [preview, setPreview] = useState<Vector3 | null>(null)
   const pointsRef = useRef(props.points); pointsRef.current = props.points
   const measurementEdges = useMemo(() => interiorMeasurementEdges(building, storey), [building, storey])
   const plane = useMemo(() => new Plane(new Vector3(0, 1, 0), 0), [])
-  useEffect(() => {
-    const element = gl.domElement
-    const cancel = () => {
-      const active = dragRef.current
-      if (!active) return
-      dragRef.current = null; setDrag(null)
-      if (element.hasPointerCapture(active.pointerId)) element.releasePointerCapture(active.pointerId)
-      const controls = get().controls as OrbitControlsType | null
-      if (controls) controls.enabled = mode === 'select' && !placing
-    }
-    const extraPointer = (event: PointerEvent) => { if (dragRef.current && event.pointerId !== dragRef.current.pointerId) { cancel(); event.stopImmediatePropagation() } }
-    const escape = (event: KeyboardEvent) => { if (event.key === 'Escape') cancel() }
-    const visibility = () => { if (document.hidden) cancel() }
-    element.addEventListener('pointercancel', cancel, true)
-    element.addEventListener('lostpointercapture', cancel, true)
-    element.addEventListener('pointerdown', extraPointer, true)
-    window.addEventListener('blur', cancel); window.addEventListener('keydown', escape); document.addEventListener('visibilitychange', visibility)
-    return () => { cancel(); element.removeEventListener('pointercancel', cancel, true); element.removeEventListener('lostpointercapture', cancel, true); element.removeEventListener('pointerdown', extraPointer, true); window.removeEventListener('blur', cancel); window.removeEventListener('keydown', escape); document.removeEventListener('visibilitychange', visibility) }
-  }, [gl, get, mode, placing])
   useEffect(() => {
     if (mode !== 'measure') { setPreview(null); return }
     const element = gl.domElement; const raycaster = new Raycaster()
@@ -216,30 +199,21 @@ export function InteriorScene(props: Props) {
   }, [camera, gl, measurementEdges, mode, plane, props.onPointsChange, scene])
   const onFloor = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation(); if (event.button !== 0 || event.delta > 5) return
+    if (mode === 'select' && !placing) {
+      const room = building.spaces.find(r => storey.spaceRefs.includes(r.ref) && pointInPolygon({ x: event.point.x, z: event.point.z }, spaceFootprint(building, r)))
+      onSelect(room?.ref ?? null)
+      return
+    }
     onPick({ x: event.point.x, z: event.point.z })
-  }
-  const move = (event: ThreeEvent<PointerEvent>) => {
-    if (!dragRef.current) return; event.stopPropagation()
-    const point = event.ray.intersectPlane(plane, new Vector3()); if (!point) return
-    const current = dragRef.current
-    const moved = { ...current.item, position: { x: current.item.position.x + point.x - current.origin.x, z: current.item.position.z + point.z - current.origin.z } }
-    const next = { ...current, position: snapFurniture(moved, building, storey, props.snapSettings ?? { enabled: snap, gridM: 0.1, alignment: true }) }
-    dragRef.current = next; setDrag(next)
-  }
-  const finish = (event: ThreeEvent<PointerEvent>, cancel = false) => {
-    const current = dragRef.current; if (!current) return
-    event.stopPropagation(); dragRef.current = null; setDrag(null)
-    const target = event.target as HTMLElement
-    if (target.hasPointerCapture(event.pointerId)) target.releasePointerCapture(event.pointerId)
-    if (!cancel && Math.hypot(current.position.x - current.item.position.x, current.position.z - current.item.position.z) > 0.005) onMove({ ...current.item, position: current.position })
   }
   const items = (building.furniture ?? []).filter((item) => item.storeyRef === storey.ref)
   const selectedItem = items.find((item) => item.ref === selected)
   return <>
+    {manipulation.dragging && <Html fullscreen style={{ pointerEvents: 'none' }}><div className={`interior-drag-status ${manipulation.error ? 'invalid' : ''}`} role='status'>{manipulation.error ?? 'Release to save · Esc to cancel'}</div></Html>}
     <color attach='background' args={['#eeeee8']} />
     <ambientLight intensity={0.9} /><hemisphereLight args={['#e8f1ff', '#b6a387', 1.3]} />
     <directionalLight position={[-12, 20, -8]} intensity={3.1} castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-30} shadow-camera-right={30} shadow-camera-top={30} shadow-camera-bottom={-30} shadow-normalBias={0.025} shadow-bias={-0.0002} />
-    <InteriorCamera view={props.view ?? (plan ? 'plan' : 'cutaway')} footprint={props.focusFootprint ?? slab.footprint} reset={props.reset} enabled={!drag && mode === 'select' && !placing} cameraKey={`${props.projectRef}/${building.ref}/${storey.ref}`} bottomInset={props.bottomInset} rightInset={props.rightInset} />
+    <InteriorCamera view={props.view ?? (plan ? 'plan' : 'cutaway')} footprint={props.focusFootprint ?? slab.footprint} reset={props.reset} enabled={!manipulation.dragging && mode === 'select' && !placing} cameraKey={`${props.projectRef}/${building.ref}/${storey.ref}`} bottomInset={props.bottomInset} rightInset={props.rightInset} />
     <Grid position={[0, -storey.elevationM - 0.06, 0]} infiniteGrid cellSize={1} cellThickness={0.5} cellColor='#d1d4cd' sectionSize={5} sectionThickness={0.65} sectionColor='#c3c8bf' fadeDistance={95} />
     <Floor points={slab.footprint} holes={slab.holes} onPick={onFloor} onHover={props.onHover} tiled={building.kind === 'garage'} plan={plan} />
     {(building.stairs ?? []).filter((stairs) => stairs.fromStoreyRef === storey.ref || stairs.toStoreyRef === storey.ref).map((stairs) => {
@@ -265,7 +239,7 @@ export function InteriorScene(props: Props) {
         {room.floorFinish && <Floor points={footprint} holes={slab.holes} slab={slab.footprint} elevation={0.008} finish={room.floorFinish} onPick={onFloor} onHover={props.onHover} />}
         {room.ceilingFinish && props.view === 'room' && <Floor points={footprint} holes={slab.holes} slab={slab.footprint} elevation={Math.min(storey.clearHeightM, ...building.ceilingFinishes.filter((ceiling) => ceiling.spaceRef === room.ref).map((ceiling) => ceiling.elevationM - storey.elevationM - ceiling.thicknessM))} finish={room.ceilingFinish} onPick={(event) => { event.stopPropagation(); onSelect(room.ref) }} />}
         {selected === room.ref && <Line points={[...footprint, footprint[0]].map((p) => [p.x, 0.06, p.z] as [number, number, number])} color='#287466' lineWidth={2.5} />}
-        {labels && <Html center position={[centre.x, 0.06, centre.z]} zIndexRange={[8, 0]} style={{ pointerEvents: mode !== 'select' || placing ? 'none' : 'auto' }}><button className={`interior-room-label ${selected === room.ref ? 'selected' : ''}`} style={sizes.width < 3 ? { width: 72, whiteSpace: 'normal' } : undefined} onClick={() => onSelect(room.ref)}><strong>{room.name}</strong><span>{sizes.area.toFixed(2)} m²</span></button></Html>}
+        {labels && <Html center position={[centre.x, 0.06, centre.z]} zIndexRange={[8, 0]} style={{ pointerEvents: 'none' }}><div className={`interior-room-label ${selected === room.ref ? 'selected' : ''}`} style={sizes.width < 3 ? { width: 72, whiteSpace: 'normal' } : undefined}><strong>{room.name}</strong><span>{sizes.area.toFixed(2)} m²</span></div></Html>}
         {plan && props.dimensions && [horizontal, vertical].map((edge, i) => {
           if (!edge) return null
           const length = Math.hypot(edge.q.x - edge.p.x, edge.q.z - edge.p.z); const nx = -(edge.q.z - edge.p.z) / length * 0.24; const nz = (edge.q.x - edge.p.x) / length * 0.24
@@ -273,33 +247,12 @@ export function InteriorScene(props: Props) {
         })}
       </group>
     })}
-    {items.map((item) => {
-      const movingGroup = drag && (props.selectedRefs?.includes(item.ref) || (drag.item.groupRef && drag.item.groupRef === item.groupRef))
-      const current = drag?.item.ref === item.ref ? { ...item, position: drag.position } : movingGroup ? { ...item, position: { x: item.position.x + drag.position.x - drag.item.position.x, z: item.position.z + drag.position.z - drag.item.position.z } } : item
-      return <group key={item.ref} position={[current.position.x, 0.025 + (item.elevationM ?? 0), current.position.z]} rotation={[0, item.rotationDegrees * Math.PI / 180, 0]} userData={{ measurementFootprint: interiorCorners(current) }}
-        onPointerDown={(event) => {
-          if (event.button !== 0) return; event.stopPropagation()
-          if (mode !== 'select' || placing) { onPick({ x: event.point.x, z: event.point.z }); return }
-          const wasSelected = selected === item.ref || props.selectedRefs?.includes(item.ref)
-          onSelect(item.ref, event.shiftKey)
-          if (item.locked || event.shiftKey || (event.pointerType === 'touch' && !wasSelected)) return
-          const point = event.ray.intersectPlane(plane, new Vector3()); if (!point) return
-          // Disable immediately, before the next pointer event or controls update.
-          const controls = get().controls as OrbitControlsType | null
-          if (controls) {
-            const position = camera.position.clone(); const target = controls.target.clone(); const zoom = camera.zoom
-            controls.enableDamping = false; controls.update()
-            camera.position.copy(position); camera.zoom = zoom; camera.updateProjectionMatrix(); controls.target.copy(target); controls.update()
-            controls.enableDamping = true; controls.enabled = false
-          }
-          ;(event.target as HTMLElement).setPointerCapture(event.pointerId)
-          const next = { item, origin: { x: point.x, z: point.z }, position: item.position, pointerId: event.pointerId }; dragRef.current = next; setDrag(next)
-        }} onPointerMove={move} onPointerUp={(event) => finish(event)} onPointerCancel={(event) => finish(event, true)} onLostPointerCapture={(event) => finish(event, true)}>
-        <ProductModel item={item} mobile={props.mobile} />
-      </group>
-    })}
-    {items.filter((item) => item.ref === selected || props.selectedRefs?.includes(item.ref)).map((item) => <Line key={`selection-${item.ref}`} points={(() => { const corners = interiorCorners(drag?.item.ref === item.ref ? { ...item, position: drag.position } : item); return [...corners, corners[0]].map((p) => [p.x, (item.elevationM ?? 0) + 0.07, p.z] as [number, number, number]) })()} color={item.locked ? '#ad8551' : '#287466'} lineWidth={2} />)}
-    {selectedItem && !drag && mode === 'select' && wallDistances(selectedItem, building, storey).map((entry) => <group key={`distance-${entry.ref}`}>
+    {items.map((item) => <group key={item.ref} position={[item.position.x, 0.025 + (item.elevationM ?? 0), item.position.z]} rotation={[0, item.rotationDegrees * Math.PI / 180, 0]} userData={{ measurementFootprint: interiorCorners(item), dragTarget: { kind: 'item', ref: item.ref } }}
+      onPointerDown={event => { if (mode !== 'select' || placing) { event.stopPropagation(); onPick({ x: event.point.x, z: event.point.z }) } }}>
+      <ProductModel item={item} mobile={props.mobile} />
+    </group>)}
+    {items.filter((item) => item.ref === selected || props.selectedRefs?.includes(item.ref)).map((item) => <Line key={`selection-${item.ref}`} points={(() => { const corners = interiorCorners(item); return [...corners, corners[0]].map((p) => [p.x, (item.elevationM ?? 0) + 0.07, p.z] as [number, number, number]) })()} color={item.locked ? '#ad8551' : '#287466'} lineWidth={2} />)}
+    {selectedItem && !manipulation.dragging && mode === 'select' && wallDistances(selectedItem, building, storey).map((entry) => <group key={`distance-${entry.ref}`}>
       <Line points={[[entry.point.x, 0.09, entry.point.z], [entry.wallPoint.x, 0.09, entry.wallPoint.z]]} color='#287466' lineWidth={1} dashed dashSize={0.06} gapSize={0.04} />
       <Html center position={[(entry.point.x + entry.wallPoint.x) / 2, 0.1, (entry.point.z + entry.wallPoint.z) / 2]} zIndexRange={[7, 0]} style={{ pointerEvents: 'none' }}><span className='interior-dimension'>{entry.distanceM.toFixed(2)} m</span></Html>
     </group>)}
