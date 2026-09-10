@@ -4,6 +4,8 @@ import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/zielonki-v2/project.json'
 import source from '../../project-data/zielonki-v2/before-carport-r46.json'
 import beforeRotation from '../../project-data/zielonki-v2/before-rotation-r47.json'
+import beforeTrim from '../../project-data/zielonki-v2/before-terrace-trim-r48.json'
+import { pergolaMembers } from '../domain/pergola'
 import { validateProject } from '../domain/commands'
 import { buildingFootprintsWorld, pointInPolygon, spaceFootprint } from '../domain/geometry'
 import { parseProject } from '../domain/schema'
@@ -16,6 +18,27 @@ import { publishedProject } from './publishedProject'
 
 beforeEach(() => { globalThis.indexedDB = new IDBFactory(); useStudioStore.getState().restoreWorkspace({ version: 1, project: structuredClone(publishedProject), proposals: [], draftChangeSets: [] }) })
 
+it('removes the front terrace and aligns the remaining paving and pergola outside face with the house', () => {
+  const house = parseProject(data).buildings[0]
+  const wall = house.walls.find(w => w.start.z === 8.385 && w.end.z === 8.385)!
+  const outside = wall.start.z + wall.thicknessM / 2
+  const pergola = house.roof.segments.find(s => s.canopy?.slats)!
+  expect(house.roof.segments.some(s => s.ref === 'roof/zielonki-v2/garden-pergola')).toBe(false)
+  const edge = Math.max(...pergolaMembers(pergola).map(m => m.centre.z + Math.abs(Math.sin(m.yaw)) * m.size.x / 2 + Math.abs(Math.cos(m.yaw)) * m.size.z / 2))
+  expect(edge).toBeCloseTo(outside, 8)
+  const angle = house.rotationDegrees * Math.PI / 180
+  const terrace = data.landscape.zones.find(z => z.ref === 'zone/terrace')!
+  const local = terrace.footprint.map(p => {
+    const x = p.x - house.position.x, z = p.z - house.position.z
+    return { x: x * Math.cos(angle) - z * Math.sin(angle), z: x * Math.sin(angle) + z * Math.cos(angle) }
+  })
+  expect(Math.max(...local.map(p => p.z))).toBeCloseTo(outside, 8)
+  expect(Math.min(...local.map(p => p.x))).toBeCloseTo(2.185, 8)
+  expect(house.position).toEqual(beforeTrim.buildings[0].position)
+  expect(house.walls).toEqual(beforeTrim.buildings[0].walls)
+  expect(data.buildings[1]).toEqual(beforeTrim.buildings[1])
+})
+
 it('validates room connections, openings, furnishings, canopy and roof constraints', () => {
   const project = parseProject(data)
   expect(validateProject(project).filter(i => i.severity === 'error')).toEqual([])
@@ -23,8 +46,8 @@ it('validates room connections, openings, furnishings, canopy and roof constrain
   expect(house.spaces.some(s => s.usage === 'garage')).toBe(false)
   expect(house.spaces.find(s => s.ref === 'space/reference-office')?.usage).toBe('bedroom')
   expect(house.storeys[1].kneeWallHeightM).toBe(1.4)
-  expect(house.roof.segments).toEqual(source.buildings[0].roof.segments)
-  expect(house.roof.segments.filter(s => s.canopy?.slats)).toHaveLength(2)
+  expect(house.roof.segments.filter(s => s.type === 'gable')).toEqual(source.buildings[0].roof.segments.filter(s => s.type === 'gable'))
+  expect(house.roof.segments.filter(s => s.canopy?.slats)).toHaveLength(1)
   const roomArea = house.spaces.filter(s => s.baseSlabRef === 'slab/reference-ground').map(s => spaceFootprint(house, s))
   expect(roomArea).toHaveLength(4)
   expect(project.landscape.plants).toEqual(source.landscape.plants.filter(p => p.ref === 'plant/orchard-plum'))
@@ -55,7 +78,7 @@ it('fits the complete house and carport in MNU and measures 4 m to outside house
 })
 
 it('rotates the complete existing v2 by 180 degrees without changing rooms, roof pitch or site evidence', () => {
-  for (const building of data.buildings) {
+  for (const building of beforeTrim.buildings) {
     const previous = beforeRotation.buildings.find(b => b.ref === building.ref)!
     expect(building.rotationDegrees).toBeCloseTo((previous.rotationDegrees + 180) % 360, 9)
     const { position, rotationDegrees, name, interiorSource, ...geometry } = building
@@ -67,8 +90,8 @@ it('rotates the complete existing v2 by 180 degrees without changing rooms, roof
   expect(data.site.northDegrees).toBe(beforeRotation.site.northDegrees)
 })
 
-it('merges rotation into a saved r47 while preserving independent edits and deletions across reload', async () => {
-  await synchronizePublishedProject(parseProject(beforeRotation), parseProject(source))
+it('merges terrace removal into a saved r48 while preserving independent edits and deletions across reload', async () => {
+  await synchronizePublishedProject(parseProject(beforeTrim), parseProject(source))
   const existing = (await loadWorkspace(CARPORT_STUDY_REF))!
   existing.project.buildings[0].spaces[0].name = 'My living room'
   existing.project.buildings[1].furniture!.pop()
@@ -80,6 +103,7 @@ it('merges rotation into a saved r47 while preserving independent edits and dele
   expect(updated.buildings[0].position).toEqual(data.buildings[0].position)
   expect(updated.buildings[0].spaces[0].name).toBe('My living room')
   expect(updated.buildings[1].furniture).toHaveLength(1)
+  expect(updated.buildings[0].roof.segments.some(s => s.ref === 'roof/zielonki-v2/garden-pergola')).toBe(false)
   await openHouseStudy(HOUSE_STUDY_REF)
   await openHouseStudy(CARPORT_STUDY_REF)
   expect(useStudioStore.getState().project).toEqual(updated)
@@ -103,7 +127,7 @@ it('saves both alternatives and preserves a deletion across switching, reopening
   expect((await loadWorkspace())?.project).toEqual(edited)
 })
 
-it('upgrades the actual existing v2 identity, preserving independent edits and both pergolas', async () => {
+it('upgrades the actual existing v2 identity, preserving independent edits and the trimmed side pergola', async () => {
   const existing = parseProject(source)
   existing.buildings[0].spaces.find(s => s.ref === 'space/reference-parents')!.name = 'Our bedroom'
   await saveWorkspace({ version: 1, project: existing, proposals: [], draftChangeSets: [] })
@@ -112,7 +136,7 @@ it('upgrades the actual existing v2 identity, preserving independent edits and b
   expect(updated.ref).toBe('project/zielonki-v2')
   expect(updated.name).toBe('zielonki v2')
   expect(updated.buildings[0].spaces.find(s => s.ref === 'space/reference-parents')!.name).toBe('Our bedroom')
-  expect(updated.buildings[0].roof.segments.filter(s => s.canopy?.slats)).toEqual(source.buildings[0].roof.segments.filter(s => 'canopy' in s))
+  expect(updated.buildings[0].roof.segments.filter(s => s.canopy?.slats)).toEqual(data.buildings[0].roof.segments.filter(s => 'canopy' in s))
   expect(updated.buildings[1].furniture).toHaveLength(2)
   expect(updated.landscape.plants).toHaveLength(1)
   expect((await listWorkspaces()).some(w => w.ref === 'project/zielonki-south-carport')).toBe(false)

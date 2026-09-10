@@ -3,8 +3,8 @@
   "ref": "project/zielonki-v2",
   "name": "zielonki v2",
   "units": "metric",
-  "revision": 49,
-  "updatedAt": "2026-09-10T16:51:13.514Z",
+  "revision": 48,
+  "updatedAt": "2026-09-10T16:39:14.284Z",
   "site": {
     "boundary": [
       {
@@ -1808,8 +1808,7 @@
           "Placement target: 4.00 m outside-wall distance from the surveyed road parcel edge, not a confirmed statutory minimum or verified MPZP building line. The whole roof envelope stays approximately 0.15 m inside MNU; carport corner governs placement.",
           "Two 3.20 m parking modules within a 6.40 x 6.40 m canopy. Vehicle envelopes are 1.90 x 4.70 m; access is direct from the road. Vehicle turning paths, road access consent, structure and canopy planning permission need design verification.",
           "Five surveyed trees conflict with the carport and are proposed removals in v2 only: plant/survey-5012, plant/survey-5015, plant/survey-5018, plant/survey-501b, plant/apple. Their source records remain in before-carport-r46.json and the original house. This is not tree-removal authorization.",
-          "Rotation revision 2026-09-10 r48 supersedes the r47 orientation/placement: the complete house, both pergolas and carport rotate 180 degrees to 273.06927082481445 degrees. House anchor moves to x -6.628904317, z -3.057048028 to preserve the conceptual 4 m outside-wall road clearance and keep all roof footprints within MNU. The carport is now north-northwest; the opposite open edge serves the rebuilt road apron. Local room/roof geometry, knee walls, plants and neighbors are unchanged. Earlier proposed tree deletions remain deletions; earlier south-side placement notes describe r47 only.",
-          "Terrace revision 2026-09-10 r49: remove the screenshot-highlighted front garden pergola roof/zielonki-v2/garden-pergola and its paving. Shorten the remaining courtyard-side pergola: end beam centre z=8.425, outside face z=8.485 flush with the front outside house wall. Side terrace paving ends at the same z=8.485; shorten slats and relocate end posts with the frame. House/carport placement, rotation, main roofs, rooms and site evidence remain r48 values. Earlier notes describing two retained pergolas are historical."
+          "Rotation revision 2026-09-10 r48 supersedes the r47 orientation/placement: the complete house, both pergolas and carport rotate 180 degrees to 273.06927082481445 degrees. House anchor moves to x -6.628904317, z -3.057048028 to preserve the conceptual 4 m outside-wall road clearance and keep all roof footprints within MNU. The carport is now north-northwest; the opposite open edge serves the rebuilt road apron. Local room/roof geometry, knee walls, plants and neighbors are unchanged. Earlier proposed tree deletions remain deletions; earlier south-side placement notes describe r47 only."
         ]
       },
       "furniture": [
@@ -3830,11 +3829,11 @@
               },
               {
                 "x": 5.585,
-                "z": 8.425
+                "z": 11.555
               },
               {
                 "x": 2.085,
-                "z": 8.425
+                "z": 11.555
               }
             ],
             "baseElevationM": 2.86,
@@ -3870,15 +3869,90 @@
                 },
                 {
                   "x": 5.455,
-                  "z": 8.295
+                  "z": 8
+                },
+                {
+                  "x": 5.455,
+                  "z": 11.425
                 },
                 {
                   "x": 2.215,
-                  "z": 8.295
+                  "z": 11.425
                 }
               ],
               "slats": {
                 "direction": "x",
+                "spacingM": 0.45,
+                "widthM": 0.07
+              }
+            }
+          },
+          {
+            "ref": "roof/zielonki-v2/garden-pergola",
+            "footprint": [
+              {
+                "x": -5.495,
+                "z": 8.52
+              },
+              {
+                "x": 2.085,
+                "z": 8.52
+              },
+              {
+                "x": 2.085,
+                "z": 11.555
+              },
+              {
+                "x": -5.495,
+                "z": 11.555
+              }
+            ],
+            "baseElevationM": 2.86,
+            "type": "flat",
+            "pitchDegrees": 0,
+            "overhangM": 0,
+            "ridgeDirection": "z",
+            "finish": {
+              "material": "membrane",
+              "colorHex": "#777269"
+            },
+            "adjacentSegmentRefs": [],
+            "canopy": {
+              "fasciaHeightM": 0.18,
+              "fasciaEdgeIndices": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "frameColorHex": "#333A38",
+              "soffitColorHex": "#B78F60",
+              "postWidthM": 0.12,
+              "postBaseElevationM": 0.15,
+              "posts": [
+                {
+                  "x": -5.365,
+                  "z": 8.65
+                },
+                {
+                  "x": -5.365,
+                  "z": 11.425
+                },
+                {
+                  "x": -1.705,
+                  "z": 11.425
+                },
+                {
+                  "x": 1.955,
+                  "z": 11.425
+                },
+                {
+                  "x": 1.955,
+                  "z": 8.65
+                }
+              ],
+              "slats": {
+                "direction": "z",
                 "spacingM": 0.45,
                 "widthM": 0.07
               }
@@ -4085,9 +4159,17 @@
     "zones": [
       {
         "ref": "zone/terrace",
-        "name": "Side terrace flush with house wall",
+        "name": "Garden terrace beneath retained pergolas",
         "kind": "terrace",
         "footprint": [
+          {
+            "x": -15.40130741,
+            "z": -8.18970757
+          },
+          {
+            "x": -14.98474081,
+            "z": -0.420867742
+          },
           {
             "x": -7.605341539,
             "z": -0.816552469
@@ -4097,12 +4179,12 @@
             "z": 2.58855599
           },
           {
-            "x": -14.802158277,
-            "z": 2.984240717
+            "x": -17.967611009,
+            "z": 3.153972866
           },
           {
-            "x": -14.98474081,
-            "z": -0.420867742
+            "x": -18.566760142,
+            "z": -8.019975421
           }
         ],
         "locked": true

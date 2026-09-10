@@ -2,6 +2,10 @@
 
 `project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09 as revision **40**, saved **2026-09-09T14:11:23.399Z**. The current revision is **46**, retaining **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
 
+## V2 terrace trim, 2026-09-10
+
+Existing `project/zielonki-v2` is now r49: the highlighted front terrace/pergola is removed and the retained side terrace ends flush with the house wall. The actual public-origin capture contained no new changes; the previous published v2 r48 is preserved in `before-terrace-trim-r48.json`. This original project remains untouched at r46. See [v2 provenance](../zielonki-v2/README.md).
+
 ## V2 rotation, 2026-09-10
 
 The user-requested 180° turn applies only to existing `project/zielonki-v2`, now published r48; this original project stays at r46. See [v2 provenance and geometry](../zielonki-v2/README.md). Actual public-origin records captured at 18:37:30 Europe/Warsaw were unchanged from the previous deployment capture, with no new design edits or conflicts. Previous v2 r47 is preserved separately for recovery; neither original migration baseline is replaced.

@@ -1,6 +1,14 @@
 # zielonki v2
 
-Current published data: **project/zielonki-v2, revision 48**. This continues the v2 created in “Run app locally”; it does not create a third design. Open the car icon beside **Neighbors**, then **zielonki v2 · Carport**, or open v2 in Projects. The original house remains `project/zielonki-spatial-v2` r46. Both designs preserve their independent edits when switching.
+Current published data: **project/zielonki-v2, revision 49**. This continues the v2 created in “Run app locally”; it does not create a third design. Open the car icon beside **Neighbors**, then **zielonki v2 · Carport**, or open v2 in Projects. The original house remains `project/zielonki-spatial-v2` r46. Both designs preserve their independent edits when switching.
+
+## Revision 49 — remove front terrace and trim the side pergola
+
+The user highlighted the front pergola in `Zrzut ekranu 2026-09-10 184434.png`. That entire front bay (`roof/zielonki-v2/garden-pergola`) and the paving in front of the house are removed. The retained side bay (`roof/reference/courtyard-canopy`) is shortened to the front outside wall face at local z=8.485 m: its 12 cm end beam is centred at z=8.425 m, with slats and end posts moved accordingly. The remaining rectangular terrace has local corners (2.185, 1.095) and (5.595, 8.485), so its paving also ends flush with the wall.
+
+House rotation/position, carport, room geometry, main roof pitch, north, neighbors, fixtures and plants remain unchanged from r48. `before-terrace-trim-r48.json` preserves the previous published project; the original r46 migration baseline is unchanged. The normal entity-based published-data merge preserves independent edits and reports edit-versus-delete conflicts.
+
+The actual public-origin Codex browser was captured before editing in ignored `tmp/v2-terrace-trim-recovery-20260910-185010`. Its full exported records exactly match the r48 pre-deployment capture (original project only, no additional v2 working copy or new edits). This change therefore starts from tracked published v2 r48. Tests verify the physical beam/paving alignment, deletion across reload, and unchanged house/carport geometry. The original house remains published r46.
 
 ## Revision 48 — user-requested 180° rotation
 
@@ -16,7 +24,7 @@ Actual public-origin browser data was captured on 2026-09-10 at 18:37:30 Europe/
 
 The actual Codex browser profile at `http://localhost:5173/` was captured on 2026-09-10 at 18:09:26 Europe/Warsaw, with active `project/zielonki-v2` r46, saved 2026-09-10T15:07:28.021Z. Its data equals the previous tracked v2 exactly. Raw profile plus complete workspace/proposal records are recoverable in ignored `tmp/v2-carport-recovery-20260910-180926/`.
 
-- `project.json` is now v2 r48; `before-rotation-r47.json` preserves the r47 carport and room/placement changes.
+- `project.json` is now v2 r49; `before-rotation-r47.json` preserves the r47 carport and room/placement changes.
 - `before-carport-r46.json` is the immutable baseline for first publication of this existing v2 identity. Existing browser v2 projects merge against it by entity ref and field; later publications use their saved published baseline. Revision counters do not settle conflicts. A merged existing browser may display r48 while having the same design content as published r47.
 - `before-pergola-r45.json` retains the complete earlier workspace and the common baseline for shared site evidence. The reviewed cadastral neighbor correction from original-house commit `244e264` is merged by ref/field against that baseline; independent v2 data is preserved and divergent fields would stop generation. No conflicts were found in the captured data.
 - Conflicting browser placement, edit/delete and same-field changes retain both versions; Projects reports the conflicts. No profile is reset and the original project is not replaced.
