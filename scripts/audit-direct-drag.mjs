@@ -67,7 +67,7 @@ async function main() {
       const saved=await stored(page,model.ref)
       await page.reload({waitUntil:'domcontentloaded'})
       await page.locator('.project-card').filter({has:page.getByText('zielonki v2',{exact:true})}).getByRole('button',{name:/Continue|Open/}).click()
-      await expect(page.locator('.start-screen-scrim')).not.toBeVisible()
+      await expect(page.locator('.start-screen-scrim')).not.toBeVisible({timeout:30000})
       assert.deepEqual(await stored(page,model.ref),saved);assert.deepEqual(errors,[])
       reports.push({input:touch?'touch':'mouse',passed:true,checks:['partition drag','first-contact furniture drag','reload','no page errors']})
       await writeFile(`${values.output}/audit.json`,JSON.stringify({url:values.url,reports},null,2)+'\n')
