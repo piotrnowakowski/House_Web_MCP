@@ -24,6 +24,8 @@ export function neighborSurface(building: NeighborBuilding) {
   const centre = polygonCentroid(building.footprint)
   const angle = building.ridgeDirectionDegrees * Math.PI / 180, cos = Math.cos(angle), sin = Math.sin(angle)
   const points = building.footprint.map((p) => ({ x: (p.x - centre.x) * cos + (p.z - centre.z) * sin, z: -(p.x - centre.x) * sin + (p.z - centre.z) * cos }))
+  // Clockwise x/z edges give the vertical wall quads outward-facing normals.
+  if (!ShapeUtils.isClockWise(points.map((p) => new Vector2(p.x, p.z)))) points.reverse()
   const minX = Math.min(...points.map((p) => p.x)), maxX = Math.max(...points.map((p) => p.x))
   const minZ = Math.min(...points.map((p) => p.z)), maxZ = Math.max(...points.map((p) => p.z))
   const cz = (minZ + maxZ) / 2
@@ -52,6 +54,9 @@ export function neighborSurface(building: NeighborBuilding) {
     for (const other of planes) if (other !== plane) facet = clip(facet, { x: plane.x - other.x, z: plane.z - other.z, c: plane.c - other.c })
     if (facet.length < 3) continue
     for (const triangle of ShapeUtils.triangulateShape(facet.map((p) => new Vector2(p.x, p.z)), [])) {
+      const [a, b, c] = triangle.map((index) => facet[index])
+      // Roof normals must face upward so shadow normal-bias moves away from the surface.
+      if ((b.z - a.z) * (c.x - a.x) - (b.x - a.x) * (c.z - a.z) < 0) triangle.reverse()
       for (const index of triangle) roof.push(...vertex(facet[index], height(plane, facet[index])))
     }
     facet.forEach((a, i) => {

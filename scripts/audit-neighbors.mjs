@@ -38,6 +38,7 @@ async function main() {
         page.on('pageerror', (e) => errors.push(e.message))
         await page.goto(values.url, { waitUntil: 'domcontentloaded', timeout: 90000 })
         await page.getByRole('button', { name: /Zielonki house study/ }).click()
+        await expect(page.locator('.compass-label').first()).toBeVisible({ timeout: 90000 })
         const toggle = page.getByRole('button', { name: 'Neighbor buildings', exact: true })
         await expect(toggle).toHaveAttribute('aria-pressed', 'false')
         if (inspectScene) await expect.poll(async () => (await sceneState(page)).drawing, { timeout: 60000 }).toBeGreaterThan(0)
@@ -65,6 +66,7 @@ async function main() {
         await toggle.click()
         await page.reload({ waitUntil: 'domcontentloaded', timeout: 90000 })
         await page.getByRole('button', { name: /Zielonki house study/ }).click()
+        await expect(page.locator('.compass-label').first()).toBeVisible({ timeout: 90000 })
         await expect(toggle).toHaveAttribute('aria-pressed', 'true')
         const saved = await page.evaluate(async () => {
           const db = await new Promise((resolve, reject) => { const r = indexedDB.open('house-web-mcp'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error) })

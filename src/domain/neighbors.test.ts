@@ -50,6 +50,11 @@ describe('survey orientation and neighbor context', () => {
       const surface = neighborSurface(building)
       expect([...surface.walls, ...surface.roof].every(Number.isFinite)).toBe(true)
       expect(surface.roof.length).toBeGreaterThan(8)
+      for (let i = 0; i < surface.roof.length; i += 9) {
+        const r = surface.roof
+        const normalY = (r[i + 5] - r[i + 2]) * (r[i + 6] - r[i]) - (r[i + 3] - r[i]) * (r[i + 8] - r[i + 2])
+        expect(normalY).toBeGreaterThan(0)
+      }
       const eye = neighborViewpoint(building, publishedProject.buildings[0].position, 1.6)
       expect(pointInPolygon(eye, building.footprint)).toBe(false)
       expect(eye.y).toBeCloseTo(building.groundElevationM + 1.6)
