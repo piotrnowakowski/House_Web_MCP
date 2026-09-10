@@ -16,7 +16,7 @@ Vite ignores recovery files in `tmp/`, browser evidence in `output/` and `.playw
 Set `APP_URL=http://127.0.0.1:5173` when running `npm run test:interior` against this checkout.
 The original separate editor worktree can continue on 5187.
 
-The house variants icon beside Neighbors switches between the original house and the existing zielonki v2 with the carport and trimmed side pergola (r48: assembly rotated 180°; r49: front terrace removed). V2 is loaded from `project-data/zielonki-v2/project.json`, persisted under a separate ref and merged against its own immutable baseline. Include its data/chunks in releases and run `node scripts/audit-house-studies.mjs --url <preview-or-public-url>` for desktop/mobile switching and reload. Revision numbers are project-local; the geometry worker must accept a lower revision when switching projects or undoing an edit.
+The house icon beside Neighbors opens the shared variants chooser for the original house and existing zielonki v2 (r50: road-facing carport and house moved back within mapped building land; r49: front terrace removed). V2 is loaded from `project-data/zielonki-v2/project.json`, persisted under a separate ref and merged against its own immutable baseline. Include its data/chunks in releases and run `node scripts/audit-house-studies.mjs --url <preview-or-public-url>` for desktop/mobile switching and reload, including migration from a saved r49. Revision numbers are project-local; the geometry worker must accept a lower revision when switching projects or undoing an edit.
 
 ## Publish
 

@@ -1,6 +1,20 @@
 # zielonki v2
 
-Current published data: **project/zielonki-v2, revision 49**. This continues the v2 created in “Run app locally”; it does not create a third design. Open the car icon beside **Neighbors**, then **zielonki v2 · Carport**, or open v2 in Projects. The original house remains `project/zielonki-spatial-v2` r46. Both designs preserve their independent edits when switching.
+Current published data: **project/zielonki-v2, revision 50**. This continues the v2 created in “Run app locally”; it does not create a third design. Open the house icon beside **Neighbors** for the shared house-variants chooser, then **zielonki v2 · Carport**, or open v2 in Projects. The original house remains `project/zielonki-spatial-v2` r46. Both designs preserve their independent edits when switching.
+
+## Revision 50 — road-facing carport and rearward house placement
+
+The existing two-car 6.40 × 6.40 m carport moves to the road-facing +z facade. In house coordinates its slab spans x −4.905…1.495 m, z 8.485…14.885 m, meeting the outside wall at z=8.485 m. The carport's own local geometry, furniture and stable refs remain unchanged; its independent building anchor moves. Main-house rotation remains **273.06927082481445°**. Both floors, roof pitch, knee walls and remaining side pergola are unchanged.
+
+The house moves by **(+8.530350793, −3.596624316) m**, to **(1.901446476, −6.653672344) m**. The fit maximizes displacement away from the surveyed road parcel edge at the fixed rotation, subject to all house/carport/slab/roof envelopes staying in mapped MNU with a 0.15 m margin and the house retaining the existing 4 m southern neighbor separation. A 3 m carport-side separation was also retained as a concept constraint. The intersection of the translated allowed polygons gives the maximum road-normal coordinate; the MNU/R line and house neighbor separation are active limits. Physical canopy fascia extends 0.06 m beyond its centreline footprint and is included.
+
+Outside house walls are approximately **12.71 m** from the road parcel edge; the carport fascia is approximately **6.25 m** away (slab: 6.31 m). These distances reference the mapped road parcel, not an independently measured asphalt edge. About **0.15 m** remains to the digitized MNU/R division. Coordinate precision is computational: the map fit is not confirmation of the statutory building line or whole-building compliance. The [plan §6(2)(1)](https://rastry.gison.pl/mpzp-public/zielonki/uchwaly/U_06_2007_55_IX.pdf#page=4), rechecked 2026-09-10, separately requires the building line on the drawing; see [zoning evidence](../../knowledge-bank/zielonki/ZONING.md).
+
+The road approach and user-marked house-road entrance are realigned to the new carport. An L-shaped pedestrian path links the approach, main entrance and utility door. The field entrance, survey boundaries, north, neighbors, garden fixtures and plants remain fixed. The obsolete `zone/zielonki-v2/pergola-paving` front pad left from r46 is deleted to complete the previously requested front-terrace removal; no extra old pad remains at the former building position.
+
+`before-road-carport-r49.json` preserves the complete previous published data, supplementing the immutable r46 baseline. The actual public-origin Codex profile was backed up and exported before editing; its active v2 r49 exactly equalled its own published baseline and tracked r49. The original browser r47 matched published original r46 except revision/date metadata. No independent edits or conflicts required merging. Raw records, including proposals and older recoveries, remain in the ignored recovery directory recorded in `../zielonki/README.md`.
+
+Validation covers the road-facing attachment, complete MNU containment, active rear/side limits, unchanged rooms and roofs, original-project isolation, deletion and independent-edit survival across r49→r50 migration and reload. The browser variants audit now starts the desktop from a saved r49 baseline and checks the house icon, mobile targets and variant switching.
 
 ## Revision 49 — remove front terrace and trim the side pergola
 

@@ -5,6 +5,7 @@ import data from '../../project-data/zielonki-v2/project.json'
 import source from '../../project-data/zielonki-v2/before-carport-r46.json'
 import beforeRotation from '../../project-data/zielonki-v2/before-rotation-r47.json'
 import beforeTrim from '../../project-data/zielonki-v2/before-terrace-trim-r48.json'
+import beforeMove from '../../project-data/zielonki-v2/before-road-carport-r49.json'
 import { pergolaMembers } from '../domain/pergola'
 import { validateProject } from '../domain/commands'
 import { buildingFootprintsWorld, pointInPolygon, spaceFootprint } from '../domain/geometry'
@@ -19,7 +20,7 @@ import { publishedProject } from './publishedProject'
 beforeEach(() => { globalThis.indexedDB = new IDBFactory(); useStudioStore.getState().restoreWorkspace({ version: 1, project: structuredClone(publishedProject), proposals: [], draftChangeSets: [] }) })
 
 it('removes the front terrace and aligns the remaining paving and pergola outside face with the house', () => {
-  const house = parseProject(data).buildings[0]
+  const house = parseProject(beforeMove).buildings[0]
   const wall = house.walls.find(w => w.start.z === 8.385 && w.end.z === 8.385)!
   const outside = wall.start.z + wall.thicknessM / 2
   const pergola = house.roof.segments.find(s => s.canopy?.slats)!
@@ -27,7 +28,7 @@ it('removes the front terrace and aligns the remaining paving and pergola outsid
   const edge = Math.max(...pergolaMembers(pergola).map(m => m.centre.z + Math.abs(Math.sin(m.yaw)) * m.size.x / 2 + Math.abs(Math.cos(m.yaw)) * m.size.z / 2))
   expect(edge).toBeCloseTo(outside, 8)
   const angle = house.rotationDegrees * Math.PI / 180
-  const terrace = data.landscape.zones.find(z => z.ref === 'zone/terrace')!
+  const terrace = beforeMove.landscape.zones.find(z => z.ref === 'zone/terrace')!
   const local = terrace.footprint.map(p => {
     const x = p.x - house.position.x, z = p.z - house.position.z
     return { x: x * Math.cos(angle) - z * Math.sin(angle), z: x * Math.sin(angle) + z * Math.cos(angle) }
@@ -36,7 +37,7 @@ it('removes the front terrace and aligns the remaining paving and pergola outsid
   expect(Math.min(...local.map(p => p.x))).toBeCloseTo(2.185, 8)
   expect(house.position).toEqual(beforeTrim.buildings[0].position)
   expect(house.walls).toEqual(beforeTrim.buildings[0].walls)
-  expect(data.buildings[1]).toEqual(beforeTrim.buildings[1])
+  expect(beforeMove.buildings[1]).toEqual(beforeTrim.buildings[1])
 })
 
 it('validates room connections, openings, furnishings, canopy and roof constraints', () => {
@@ -55,11 +56,11 @@ it('validates room connections, openings, furnishings, canopy and roof constrain
   expect(project.site.neighbors).toEqual(publishedProject.site.neighbors)
 })
 
-it('fits the complete house and carport in MNU and measures 4 m to outside house walls', () => {
+it('fits the house and road-facing carport in MNU with the house set back 12.71 m', () => {
   const project = parseProject(data)
   const { corner, roadNormal } = zielonkiSetbackLines(project)
   const distances = houseEnvelopeWorld(project.buildings[0]).map(p => (p.x - corner.x) * roadNormal.x + (p.z - corner.z) * roadNormal.z)
-  expect(Math.min(...distances)).toBeCloseTo(4, 3)
+  expect(Math.min(...distances)).toBeCloseTo(12.710776, 3)
   for (const building of project.buildings) {
     expect(buildingCrossesAgriculturalZone(project, building)).toBe(false)
     const zones = landUseAreas(project).filter(z => z.landRole === 'construction')
@@ -72,9 +73,53 @@ it('fits the complete house and carport in MNU and measures 4 m to outside house
   }
   const [house, canopy] = project.buildings.map(b => buildingFootprintsWorld(b)[0])
   const center = (points: typeof house) => points.reduce((a, p) => ({ x: a.x + p.x / points.length, z: a.z + p.z / points.length }), { x: 0, z: 0 })
-  const a = center(house), b = center(canopy), north = project.site.northDegrees * Math.PI / 180
-  expect((b.x - a.x) * Math.sin(north) + (b.z - a.z) * Math.cos(north)).toBeGreaterThan(0)
+  const a = center(house), b = center(canopy)
+  expect((b.x - a.x) * roadNormal.x + (b.z - a.z) * roadNormal.z).toBeLessThan(-6)
+  const canopyRoad = canopy.map(p => (p.x - corner.x) * roadNormal.x + (p.z - corner.z) * roadNormal.z)
+  expect(Math.min(...canopyRoad)).toBeCloseTo(6.310796, 3)
   expect(project.buildings[1].furniture).toHaveLength(2)
+})
+
+it('keeps orientation and rooms, places the canopy at the road facade and reaches the mapped rear limit', () => {
+  const project = parseProject(data), house = project.buildings[0], carport = project.buildings[1]
+  expect(house.rotationDegrees).toBe(beforeMove.buildings[0].rotationDegrees)
+  expect(house.walls).toEqual(beforeMove.buildings[0].walls)
+  expect(house.roof).toEqual(beforeMove.buildings[0].roof)
+  expect(carport.slabs).toEqual(beforeMove.buildings[1].slabs)
+  expect(carport.furniture).toEqual(beforeMove.buildings[1].furniture)
+  const angle = house.rotationDegrees * Math.PI / 180
+  const local = buildingFootprintsWorld(carport)[0].map(p => {
+    const x=p.x-house.position.x, z=p.z-house.position.z
+    return { x:x*Math.cos(angle)-z*Math.sin(angle), z:x*Math.sin(angle)+z*Math.cos(angle) }
+  })
+  expect(Math.min(...local.map(p => p.z))).toBeCloseTo(8.485, 7)
+  expect(Math.min(...local.map(p => p.x))).toBeCloseTo(-4.905, 7)
+  expect(Math.max(...local.map(p => p.x))).toBeCloseTo(1.495, 7)
+  const { corner, neighbourNormal, roadNormal } = zielonkiSetbackLines(project)
+  const sideGap = Math.min(...houseEnvelopeWorld(house).map(p => (p.x-corner.x)*neighbourNormal.x+(p.z-corner.z)*neighbourNormal.z))
+  expect(sideGap).toBeCloseTo(4, 3)
+  const moved = structuredClone(house)
+  moved.position.x += roadNormal.x * .5; moved.position.z += roadNormal.z * .5
+  expect(buildingCrossesAgriculturalZone(project, moved)).toBe(true)
+  expect(project.landscape.zones.some(z => z.ref === 'zone/zielonki-v2/pergola-paving')).toBe(false)
+})
+
+it('merges r50 into a saved r49 and preserves independent furniture deletion and room edits', async () => {
+  await synchronizePublishedProject(parseProject(beforeMove), parseProject(source))
+  const existing = (await loadWorkspace(CARPORT_STUDY_REF))!
+  existing.project.buildings[0].spaces[0].name = 'Keep my room name'
+  existing.project.buildings[1].furniture!.pop()
+  await saveWorkspace(existing)
+  await openHouseStudy(CARPORT_STUDY_REF)
+  const merged = useStudioStore.getState().project
+  expect(merged.buildings[0].position).toEqual(data.buildings[0].position)
+  expect(merged.buildings[1].position).toEqual(data.buildings[1].position)
+  expect(merged.buildings[0].spaces[0].name).toBe('Keep my room name')
+  expect(merged.buildings[1].furniture).toHaveLength(1)
+  expect(merged.landscape.zones.some(z => z.ref === 'zone/zielonki-v2/pergola-paving')).toBe(false)
+  await openHouseStudy(HOUSE_STUDY_REF)
+  await openHouseStudy(CARPORT_STUDY_REF)
+  expect(useStudioStore.getState().project).toEqual(merged)
 })
 
 it('rotates the complete existing v2 by 180 degrees without changing rooms, roof pitch or site evidence', () => {

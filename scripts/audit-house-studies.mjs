@@ -23,7 +23,7 @@ async function main() {
   if (values.help) { console.log('Usage: node scripts/audit-house-studies.mjs [--url URL] [--output DIR]'); return }
   const original = JSON.parse(await readFile('project-data/zielonki/project.json', 'utf8'))
   const variant = JSON.parse(await readFile('project-data/zielonki-v2/project.json', 'utf8'))
-  const previousV2 = JSON.parse(await readFile('project-data/zielonki-v2/before-carport-r46.json', 'utf8'))
+  const previousV2 = JSON.parse(await readFile('project-data/zielonki-v2/before-road-carport-r49.json', 'utf8'))
   await mkdir(values.output, { recursive: true })
   const browser = await chromium.launch({ channel: 'chrome', headless: true })
   const reports = []
@@ -39,13 +39,14 @@ async function main() {
           await page.goto(bootstrap)
           await page.evaluate(async project => {
             const db = await new Promise((resolve, reject) => { const r = indexedDB.open('house-web-mcp', 2); r.onupgradeneeded = () => r.result.createObjectStore('projects'); r.onsuccess = () => resolve(r.result); r.onerror = () => reject(r.error) })
-            try { await new Promise((resolve, reject) => { const tx = db.transaction('projects', 'readwrite'); tx.objectStore('projects').put({ version: 1, project, proposals: [], draftChangeSets: [] }, `workspace/${project.ref}`); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error) }) } finally { db.close() }
+            try { await new Promise((resolve, reject) => { const tx = db.transaction('projects', 'readwrite'); tx.objectStore('projects').put({ version: 1, project, proposals: [], draftChangeSets: [] }, `workspace/${project.ref}`); tx.objectStore('projects').put(project, `published-base/${project.ref}`); tx.oncomplete = resolve; tx.onerror = () => reject(tx.error) }) } finally { db.close() }
           }, previousV2)
         }
         await page.goto(values.url, { waitUntil: 'domcontentloaded', timeout: 90000 })
         await page.getByRole('button', { name: /Zielonki house study/ }).click()
         await expect(page.locator('.compass-label').first()).toBeVisible({ timeout: 90000 })
         const toggle = page.getByRole('button', { name: 'House variants', exact: true })
+        await expect(toggle.locator('svg.lucide-house')).toBeVisible()
         await toggle.click()
         await expect(page.getByRole('dialog', { name: 'House variants' })).toBeVisible()
         await page.keyboard.press('Escape')
@@ -69,6 +70,8 @@ async function main() {
           // Reopening the page exercises persisted variant availability in the standard project launcher.
           await page.reload({ waitUntil: 'domcontentloaded' })
           await page.locator('.project-card').filter({ has: page.getByText('zielonki v2', { exact: true }) }).getByRole('button', { name: /Continue|Open/ }).click()
+          await expect(page.locator('.start-screen-scrim')).not.toBeVisible({ timeout: 30000 })
+          await expect(toggle).toHaveAttribute('aria-pressed', 'true', { timeout: 30000 })
           await expect(page.locator('.compass-label').first()).toBeVisible({ timeout: 90000 })
         }
         await toggle.click()
