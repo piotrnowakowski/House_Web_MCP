@@ -1,6 +1,12 @@
 # Versioned Zielonki project
 
-`project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09 as revision **40**, saved **2026-09-09T14:11:23.399Z**. The current revision is **45**, retaining **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
+`project.json` is the canonical published house, initially recovered from the user's Codex browser at **http://127.0.0.1:5173/** on 2026-09-09 as revision **40**, saved **2026-09-09T14:11:23.399Z**. The current revision is **46**, retaining **6 plants**, **6 garden fixtures** and the user's **40.13423424862029°** main and perpendicular gable pitch. Code, furniture catalogue and assets remain those of the merged interior editor.
+
+## Revision 46 — cadastral correction of the eighth neighbor
+
+The optional neighbor with stable ref `neighbor/south-east-map` now uses cadastral building `120617_2.0018.64/2.1_BUD` instead of the inaccurate Google Maps estimate. Its centroid moves 14.836 m and its outline is corrected; the nearest house clearance changes from 53.431 m to 62.473 m. Heights remain estimates. All other neighbors, owner geometry, north and landscape are unchanged. See [distance verification](../../knowledge-bank/zielonki/NEIGHBOR_DISTANCES.md).
+
+Before editing, the actual public-origin Codex browser was backed up under ignored `tmp/neighbors/recovery-distances-*/`. Its working r46, saved 2026-09-10T14:25:40.096Z, equals its published r45 baseline and tracked r45 after excluding revision/time metadata. No user design changes or conflicts were present. The browser counter reflects the previous migration, not this publication. `published-base-r45.json` preserves the previous canonical data; the immutable legacy baseline is unchanged. Changes to the same neighbor footprint remain merge conflicts; independent edits and deletions remain intact.
 
 ## Revision 45 — optional neighbors and verified true north
 
@@ -59,3 +65,11 @@ The six retained plants are `plant/survey-5012`, `plant/survey-5015`, `plant/sur
 The runtime does not overwrite other projects or rewrite the user's original browser profile files. Existing local proposal history remains with its working copy; proposals invalidated by a merged revision become stale. The recovered r40 history remains available in the tracked audit snapshot.
 
 Run `node scripts/audit-published-project.mjs --url http://127.0.0.1:5173/` (or the public URL) to verify a fresh desktop/mobile profile, the legacy project, recovered r40 history, conflicts and reload. It writes screenshots and `audit.json` to `output/published-project/` by default and only uses isolated browser contexts.
+
+## 2026-09-10 — independent local copy: zielonki v2
+
+Captured the user's actual Codex in-app browser workspace at http://localhost:5173/, revision 45, at 2026-09-10T14:59:25.866Z. Its JSON values match the current canonical project. Created the separately saved project project/zielonki-v2 (name "zielonki v2", revision 45), changing only project identity, name and copy time. No merge was needed; entity refs and all deletions are preserved. The original workspace, published project and migration baselines remain unchanged. The recoverable source export and browser/session backup are in ignored tmp/zielonki-v2-2026-09-10T14-59-25-899Z. See ../zielonki-v2/README.md and ../zielonki-v2/project.json for the copied data and verification. This is a local copy only, with no commit or deployment.
+
+## 2026-09-10 — v2 pergola study (separate from the published house)
+
+At 2026-09-10T15:02:44.450Z the active project/zielonki-v2 r45 workspace was captured from the actual Codex in-app browser origin http://localhost:5173/. Its complete recovery snapshot is ../zielonki-v2/before-pergola-r45.json; raw browser exports are in ignored tmp/zielonki-v2-pergola-2026-09-10T15-02-45-869Z. The independent v2 r46 removes the projecting garage bay and roof terrace, retains the upstairs rooms, converts the covered ground-floor remainder to a garden room, and replaces the heavy canopy with a slatted pergola. Stable retained refs and deletions are preserved. No merge into the canonical house or replacement of any published/legacy baseline was performed by this change. See ../zielonki-v2/README.md for geometry decisions, recovery and validation.

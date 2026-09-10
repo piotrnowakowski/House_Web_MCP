@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import { publishedProject } from '../services/publishedProject'
 import previousData from '../../project-data/zielonki/published-base-r44.json'
+import neighborBaseline from '../../project-data/zielonki/published-base-r45.json'
+import distanceEvidence from '../../knowledge-bank/zielonki/neighbor-distance-evidence.json'
 import { surveyOrigin, surveyToModel, zielonkiOrientation } from '../../knowledge-bank/zielonki/orientation'
 import { neighborSurface, neighborViewpoint, rayHitsNeighbor } from './neighbors'
 import { collectOccluders, isLitAt } from './sunlight'
@@ -14,6 +16,37 @@ import type { NeighborBuilding } from './types'
 const cube: NeighborBuilding = { ref: 'neighbor/test', name: 'Test', footprint: [{ x: -2, z: -2 }, { x: 2, z: -2 }, { x: 2, z: 2 }, { x: -2, z: 2 }], groundElevationM: 0, eavesHeightM: 3, ridgeHeightM: 5, ridgeDirectionDegrees: 0, roofType: 'gable', footprintSource: 'test', footprintConfidence: 'map-derived', heightConfidence: 'estimated', sourceDate: '2026-09-10' }
 
 describe('survey orientation and neighbor context', () => {
+  it('places the formerly estimated house at the independent cadastral coordinates', () => {
+    const before = parseProject(neighborBaseline)
+    const corrected = publishedProject.site.neighbors!.find((n) => n.ref === distanceEvidence.neighborRef)!
+    const expected = distanceEvidence.cadastralExterior.slice(0, -1).map((p) => surveyToModel(p.easting, p.northing))
+    expect(corrected.footprint).toHaveLength(expected.length)
+    corrected.footprint.forEach((point, i) => {
+      expect(point.x).toBeCloseTo(expected[i].x, 3)
+      expect(point.z).toBeCloseTo(expected[i].z, 3)
+    })
+    expect(publishedProject.site.neighbors!.slice(0, 7)).toEqual(before.site.neighbors!.slice(0, 7))
+    expect(publishedProject.buildings).toEqual(before.buildings)
+    expect(publishedProject.landscape).toEqual(before.landscape)
+    expect(publishedProject.site.northDegrees).toBe(before.site.northDegrees)
+  })
+
+  it('merges the footprint correction with independent edits and keeps conflicting moves local', () => {
+    const before = parseProject(neighborBaseline), local = structuredClone(before)
+    const neighbor = local.site.neighbors!.find((n) => n.ref === distanceEvidence.neighborRef)!
+    neighbor.ridgeHeightM = 8
+    local.landscape.plants.pop()
+    const merged = mergeProjects(before, local, publishedProject)
+    expect(merged.conflicts).toEqual([])
+    expect(merged.project.site.neighbors!.at(-1)!.ridgeHeightM).toBe(8)
+    expect(merged.project.site.neighbors!.at(-1)!.footprint).toEqual(publishedProject.site.neighbors!.at(-1)!.footprint)
+    expect(merged.project.landscape.plants).toHaveLength(5)
+    neighbor.footprint[0].x += 1
+    const conflict = mergeProjects(before, local, publishedProject)
+    expect(conflict.conflicts).toContain(`/site/neighbors/${neighbor.ref}/footprint`)
+    expect(conflict.project.site.neighbors!.at(-1)!.footprint).toEqual(neighbor.footprint)
+  })
+
   it('matches the signed CAD basis and true north, including meridian convergence', () => {
     expect(surveyToModel(surveyOrigin.easting, surveyOrigin.northing)).toEqual({ x: 0, z: -0 })
     const gridNorth = surveyToModel(surveyOrigin.easting, surveyOrigin.northing + 1)

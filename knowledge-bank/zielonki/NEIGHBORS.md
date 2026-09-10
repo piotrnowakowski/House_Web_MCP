@@ -2,12 +2,14 @@
 
 **Neighbors** is an optional layer, off in a fresh browser and remembered locally. Enabling it includes the same building surfaces in scene shadows and the sun-hours heatmap. Context buildings do not affect owner floor areas, plot coverage or room editing.
 
+**Distance recheck, r46:** the original eighth Google Maps estimate was wrong by 14.84 m at its centroid. It is now replaced by cadastral building `120617_2.0018.64/2.1_BUD`, retaining ref `neighbor/south-east-map`. The shortest gap to the designed house changes from 53.43 m to 62.47 m. The other seven footprints and the north reference are unchanged. See [independent distance verification](NEIGHBOR_DISTANCES.md).
+
 ## Sources and accuracy
 
 - Seven footprints come from black vector outlines in `Zielonki_dz54_55_58-akt-v2.pdf`, prepared 12 March 2026 and verified 1 July 2026: [surveyor's email](https://mail.google.com/mail/#all/19f27717889d2f98). They comprise three buildings across the access lane and four structures on parcel 59. Some thin outlines carry construction labels; the map alone does not establish completion or current use.
 - The [owner's email](https://mail.google.com/mail/#all/19db9693355fee25) links to [Google Maps](https://maps.app.goo.gl/KwqmoWTBDVLFcUJu6), resolving to **50.135688, 19.902641**. The north-up satellite view was inspected on 10 September 2026. It corroborates the lane, road junction and roofs, and shows an additional south-east house outside the survey's building outlines. That eighth footprint is approximate. Imagery capture date was not established. No Google imagery is bundled.
 - **All heights, ground offsets and roof forms are estimated.** Offsets of 0.3–1.4 m are conceptual, informed by nearby spot levels relative to the 246.5 m datum, not surveyed threshold heights. Windows and floor levels are unknown. The neutral masses omit fabricated windows. Viewpoints at 1.6 m and 4.6 m above assumed ground illustrate potential sight directions, not visibility from actual windows. Exact privacy/shadow assessment needs measured heights, terrain, roof forms and openings.
-- `neighbors.json` and the canonical project retain stable refs, sources, dates and confidence. PDF-derived footprints have approximately decimetric precision; the aerial footprint may differ by several metres. Roof overhangs and aerial parallax are unresolved. Context ground is conceptual, consistent with the existing flat scene terrain.
+- `neighbors.json` and the canonical project retain stable refs, sources, dates and confidence. Seven footprints are PDF-derived and the eighth now uses cadastral vectors. The original aerial footprint described below is superseded; its two-anchor calibration was insufficient for reliable placement across the lane. Roof overhangs and aerial parallax are unresolved. Context ground is conceptual, consistent with the existing flat scene terrain.
 
 ## Map-to-model transform
 

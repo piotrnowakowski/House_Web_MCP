@@ -42,7 +42,7 @@ export function NeighborSettings({ onView }: { onView?: () => void }) {
     <NeighborToggle />
     <p>{neighbors.length} context buildings. Heights and roof forms are estimates; window positions are unknown. Shadows and facade viewpoints are approximate.</p>
     <label>View from<select aria-label='Neighbor viewpoint' value={neighbor.ref} onChange={(e) => setSelected(e.target.value)}>{neighbors.map((item) => <option key={item.ref} value={item.ref}>{item.name}</option>)}</select></label>
-    <p>{neighbor.footprintConfidence === 'map-derived' ? 'Footprint from the survey map' : 'Approximate footprint from the map view'} · estimated ridge {neighbor.ridgeHeightM.toFixed(1)} m above ground.</p>
+    <p>{neighbor.footprintConfidence === 'map-derived' ? 'Footprint from survey / cadastral data' : 'Approximate footprint from the map view'} · estimated ridge {neighbor.ridgeHeightM.toFixed(1)} m above ground.</p>
     <label>Eye height<select aria-label='Neighbor eye height' value={neighbor.ridgeHeightM < 5 ? 1.6 : eyeHeight} onChange={(e) => setEyeHeight(Number(e.target.value))}>
       <option value={1.6}>Ground floor · 1.6 m</option>
       {neighbor.ridgeHeightM >= 5 && <option value={4.6}>Upper floor · 4.6 m</option>}

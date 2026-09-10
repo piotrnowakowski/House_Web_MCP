@@ -8,14 +8,32 @@ import { legacyProjectBase, publishedProject } from './publishedProject'
 import { listWorkspaces, loadWorkspace, saveWorkspace, synchronizePublishedProject } from './persistence'
 import { useStudioStore } from '../state/store'
 import type { ProjectV2 } from '../domain/types'
+import previousNeighbors from '../../project-data/zielonki/published-base-r45.json'
 
 const envelope = (project: ProjectV2) => ({ version: 1 as const, project, proposals: [], draftChangeSets: [] })
 beforeEach(() => { globalThis.indexedDB = new IDBFactory() })
 
+it('migrates the cadastral neighbor correction and preserves a deleted tree across reload', async () => {
+  const previous = parseProject(previousNeighbors)
+  await synchronizePublishedProject(previous, legacyProjectBase)
+  const local = (await loadWorkspace(previous.ref))!.project
+  local.landscape.plants.pop()
+  local.site.neighbors!.at(-1)!.ridgeHeightM = 8
+  await saveWorkspace(envelope(local))
+  expect(await synchronizePublishedProject(publishedProject, legacyProjectBase)).toEqual([])
+  const migrated = (await loadWorkspace(previous.ref))!.project
+  expect(migrated.site.neighbors!.at(-1)!.footprint).toEqual(publishedProject.site.neighbors!.at(-1)!.footprint)
+  expect(migrated.site.neighbors!.at(-1)!.ridgeHeightM).toBe(8)
+  expect(migrated.landscape.plants).toHaveLength(5)
+  await saveWorkspace(envelope(migrated))
+  expect((await loadWorkspace(previous.ref))!.project).toEqual(migrated)
+  expect((await listWorkspaces()).some((w) => w.ref.includes('/before-published-46-'))).toBe(true)
+})
+
 it('publishes the recovered geometry, six surviving plants and the adjusted roof', () => {
   expect(parseProject(publishedProject)).toEqual(publishedProject)
   expect(validateProject(publishedProject).filter((issue) => issue.severity === 'error')).toEqual([])
-  expect(publishedProject.revision).toBe(45)
+  expect(publishedProject.revision).toBe(46)
   expect(publishedProject.landscape.plants.map((plant) => plant.ref)).toEqual([
     'plant/survey-5012', 'plant/survey-5015', 'plant/survey-5018', 'plant/survey-501b', 'plant/apple', 'plant/orchard-plum',
   ])
