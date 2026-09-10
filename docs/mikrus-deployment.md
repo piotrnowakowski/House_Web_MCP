@@ -17,7 +17,9 @@ Vite ignores recovery files in `tmp/`, browser evidence in `output/` and `.playw
 Set `APP_URL=http://127.0.0.1:5173` when running `npm run test:interior` against this checkout.
 The original separate editor worktree can continue on 5187.
 
-The Projects house icon opens the shared launcher for `Dom duży taras` (r49), `Garaz przód` (existing zielonki v2, r66), and the independent rear-carport design (r49). V2 includes the shortened and narrowed shell, enlarged bathroom/storage and moved guest-room door. Each project is loaded from its own tracked `project-data/` directory and merged against its own immutable baseline. Include all three data/chunks in releases and run `node scripts/audit-house-studies.mjs --url <preview-or-public-url>` for desktop/mobile switching and reload, including migration from saved original r46 and v2 r49 with independent user edits and deletions. Revision numbers are project-local; the geometry worker must accept a lower revision when switching projects or undoing an edit.
+The Projects house icon opens the shared launcher for `Dom duży taras` (r49), `Garaz przód` (existing zielonki v2, r66), and the independent rear-carport design (r50). Both carport designs include the shortened and narrowed shell, enlarged bathroom/storage and moved guest-room door. The rear-carport design retains parking behind the house, with 4.00 m road clearance and a 0.15 m mapped construction/agricultural boundary margin. Each project is loaded from its own tracked `project-data/` directory and merged against its own immutable baseline. Include all three data/chunks in releases and run `node scripts/audit-house-studies.mjs --url <preview-or-public-url>` for desktop/mobile switching and reload, including migration from saved original r46 and v2 r49 with independent user edits and deletions. Revision numbers are project-local; the geometry worker must accept a lower revision when switching projects or undoing an edit.
+
+The migration audit also seeds rear-carport r49 with an independent house rename and tree deletion before updating to r50. It verifies that both edits survive project switching and reload.
 
 ## Publish
 

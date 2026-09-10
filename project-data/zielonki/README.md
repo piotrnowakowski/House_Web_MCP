@@ -1,5 +1,17 @@
 # Versioned Zielonki project
 
+## 2026-09-11 — rear-carport release capture
+
+Before the requested commit, push and Mikrus deployment, the actual **http://localhost:5173/** user workspace and all project/baseline records were backed up to ignored `tmp/rear-release-1789079597862/workspace.json`. Active rear-carport working r51 matches canonical r50 in content; the counter differs because of the successful published-data migration. Original r49 and front-carport r66 match their canonical snapshots. Independent ref/field merges against each saved published baseline found no conflicts or additional edits. The capture preserves proposal history and does not modify browser records. Code starts at `8232c12`; this release packages original r49, front r66 and rear r50. All immutable baselines remain unchanged.
+
+## 2026-09-11 — compact rear-carport design, r50
+
+The existing third project `project/zielonki-rear-carport` now receives the reduced house and interior from **Garaz przód r66**, retaining its rear/neighbor-side carport. Source: actual **http://localhost:5173/** profile, front r66 and rear r49, backed up with proposal history and all baseline records in ignored `tmp/rear-compact-1789078954834/`. Independent ref/field comparisons found no conflicts or additional design edits. Previous canonical `../zielonki-rear-carport/before-compact-r49.json` is preserved; its immutable `initial-r49.json` is unchanged.
+
+Ground footprint bounds become 9.69 × 13.64 m. The side pergola/terrace and entry path follow the reduced envelope; the unchanged-size rear carport follows the narrowed facade. The assembly is placed at 4.00 m from the road, with a retained 0.15 m map-fit margin inside the construction/agricultural division and no footprint outside construction zoning. Both main roof pitches remain 40.13423424862029°, with 1.40 m knee walls. See the [rear project's r50 provenance and geometry](../zielonki-rear-carport/README.md#revision-50--compact-house-from-the-front-carport-design-11-september-2026).
+
+Canonical project revision is **50**; actual saved-browser migration yields working **51**, with its previous r49 recoverable in Projects. Original r49, front r66, their browser records and all unrelated baselines are unchanged. Schema, geometry, 22 focused persistence tests, fresh/existing Chromium persistence fixtures and TypeScript pass. Code baseline **8232c12**; no commit, push or deployment.
+
 ## 2026-09-10 — v2 removal of marked courtyard zones
 
 Original canonical r46 remains unchanged. Existing v2 is now tracked **r55**, deleting only `zone/rain-garden` and `zone/lawn` as circled in the user's screenshot. Raised beds, crops and the remaining model are retained. The actual **http://localhost:5173/** working v2 r60 / published r54 was backed up in ignored `tmp/remove-marked-zones-1789068240912/workspace.json`; ref/field merge found no conflicts. Previous canonical `../zielonki-v2/before-zone-removal-r54.json` is preserved without changing immutable baselines. Code baseline `6d972d4` plus existing changes; local data edit only, no deployment. See [r55 deletion provenance](../zielonki-v2/README.md#revision-55--remove-the-two-marked-courtyard-surfaces).

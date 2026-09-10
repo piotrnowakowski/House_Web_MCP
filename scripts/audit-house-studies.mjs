@@ -22,7 +22,7 @@ async function main() {
   const { values } = parseArgs({ options: { url: { type: 'string', default: 'http://127.0.0.1:5173/' }, output: { type: 'string', default: 'output/carport-study' }, help: { type: 'boolean' } } })
   if (values.help) { console.log('Usage: node scripts/audit-house-studies.mjs [--url URL] [--output DIR]'); return }
   const projects = await Promise.all(['zielonki', 'zielonki-v2', 'zielonki-rear-carport'].map(async slug => JSON.parse(await readFile('project-data/' + slug + '/project.json', 'utf8'))))
-  const baselines = await Promise.all(['zielonki/before-browser-capture-r46.json', 'zielonki-v2/before-road-carport-r49.json'].map(async path => JSON.parse(await readFile('project-data/' + path, 'utf8'))))
+  const baselines = await Promise.all(['zielonki/before-browser-capture-r46.json', 'zielonki-v2/before-road-carport-r49.json', 'zielonki-rear-carport/initial-r49.json'].map(async path => JSON.parse(await readFile('project-data/' + path, 'utf8'))))
   await mkdir(values.output, { recursive: true })
   const browser = await chromium.launch({ channel: 'chrome', headless: true })
   const reports = []
