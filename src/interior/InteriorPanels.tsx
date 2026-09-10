@@ -7,6 +7,7 @@ import { finishFromPreset, interiorFinishes } from '../domain/interiorFinishes'
 import { polygonBounds, spaceFootprint, wallLength } from '../domain/geometry'
 import { roomDimensions } from '../domain/roomDimensions'
 import { isEnvelopeWall } from '../domain/interiorLayout'
+import { wallWithLength } from '../domain/precisionEdits'
 import type {
   BuildingModel,
   InteriorFinish,
@@ -218,10 +219,11 @@ type Context = { building: BuildingModel; storey: StoreyModel; commit: Commit }
 
 const sizeLabel = (size: number[]) => `${size.map((value) => +(value * 100).toFixed(1)).join(' × ')} cm`
 
-export function ItemInspector({ item, onSave, availableHeight }: {
+export function ItemInspector({ item, onSave, availableHeight, interactionHint }: {
   item: InteriorItem
   onSave: (item: InteriorItem) => boolean
   availableHeight: number
+  interactionHint?: string
 }) {
   const [draft, setDraft] = useState(item)
   const [dimensionsOpen, setDimensionsOpen] = useState(false)
@@ -343,7 +345,7 @@ export function ItemInspector({ item, onSave, availableHeight }: {
         <p className="interior-note">
           {item.locked
             ? 'Unlock to edit this object.'
-            : 'Tap to select, then drag to move. R rotates; arrow keys move; Shift selects more.'}
+            : interactionHint ?? 'Tap to select, then drag to move. R rotates; arrow keys move; Shift selects more.'}
         </p>
       </form>
       {dimensionsOpen && (
@@ -643,6 +645,8 @@ export function OpeningInspector({ wall, opening, ...context }: Context & { wall
       }}
     >
       <h3>{opening.kind === 'door' ? 'Door' : 'Window'}</h3>
+      <p className="interior-note">Centre measured along the wall. Clearances: {(draft.offsetM - draft.widthM / 2).toFixed(3)} m from start · {(wallLength(wall) - draft.offsetM - draft.widthM / 2).toFixed(3)} m from end.</p>
+      <div className="interior-button-row"><button type="button" disabled={wall.locked} onClick={() => setDraft({ ...draft, offsetM: +(draft.offsetM - 0.01).toFixed(4) })}>← 1 cm</button><button type="button" disabled={wall.locked} onClick={() => setDraft({ ...draft, offsetM: +(draft.offsetM + 0.01).toFixed(4) })}>1 cm →</button></div>
       <div className="interior-fields">
         <PrecisionField
           label="Distance from wall start (m)"
@@ -718,7 +722,9 @@ export function WallInspector({
   ...context
 }: Context & { wall: WallModel; onSelect: (ref: string) => void }) {
   const [draft, setDraft] = useState(wall)
-  useEffect(() => setDraft(wall), [wall])
+  const [anchor, setAnchor] = useState<'start' | 'center' | 'end'>('start')
+  const [length, setLength] = useState(wallLength(wall))
+  useEffect(() => { setDraft(wall); setLength(wallLength(wall)) }, [wall])
   const exterior = isEnvelopeWall(context.building, context.storey, wall)
   const command = {
     type: 'interior.update' as const,
@@ -760,10 +766,13 @@ export function WallInspector({
         <p className="interior-note">
           {wallLength(wall).toFixed(2)} m ·{' '}
           {exterior
-            ? 'Use plot tools to change the building envelope.'
+            ? 'Exterior outline is fixed here. Select a partition or move the whole building.'
             : 'Shared endpoints and hosted openings move together.'}
         </p>
         <fieldset disabled={exterior || wall.locked} className="interior-fields">
+          <label className="interior-field">Keep fixed<select aria-label="Wall length anchor" value={anchor} onChange={e => setAnchor(e.target.value as typeof anchor)}><option value="start">Start</option><option value="center">Centre</option><option value="end">End</option></select></label>
+          <PrecisionField label="Wall length (m)" min={0.11} value={length} onChange={value => { setLength(value); if (Number.isFinite(value) && value >= 0.11) setDraft(wallWithLength(draft, value, anchor)) }} />
+          <PrecisionField label="Wall height (m)" min={0.2} max={context.storey.clearHeightM} value={draft.heightM} onChange={heightM => setDraft({ ...draft, heightM })} />
           {(['start', 'end'] as const).flatMap((end) =>
             (['x', 'z'] as const).map((axis) => (
               <PrecisionField
@@ -772,7 +781,7 @@ export function WallInspector({
                 min={-100}
                 max={100}
                 value={draft[end][axis]}
-                onChange={(value) => setDraft({ ...draft, [end]: { ...draft[end], [axis]: value } })}
+                onChange={(value) => { const next = { ...draft, [end]: { ...draft[end], [axis]: value } }; setDraft(next); setLength(wallLength(next)) }}
               />
             )),
           )}

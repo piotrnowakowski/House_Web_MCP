@@ -122,7 +122,7 @@ export interface ProjectMetrics { homeAreaM2: number; garageAreaM2: number; land
 
 export type SiteUpdateCommand = { type: 'site.update'; boundary?: Polygon2; northDegrees?: number; entrance?: { ref: string; start: Vec2; end: Vec2 } }
 export type TerrainUpdateCommand = { type: 'terrain.update'; elevationPoints: TerrainModel['elevationPoints'] }
-export type BuildingUpdateCommand = { type: 'building.update'; action: 'add' | 'remove' | 'move' | 'set-style'; buildingRef: string; name?: string; kind?: BuildingKind; architecturalStyle?: ArchitecturalStyle; position?: Vec2; rotationDegrees?: number }
+export type BuildingUpdateCommand = { type: 'building.update'; action: 'add' | 'remove' | 'move' | 'set-style'; buildingRef: string; name?: string; kind?: BuildingKind; architecturalStyle?: ArchitecturalStyle; position?: Vec2; rotationDegrees?: number; moveLinkedFeatures?: boolean }
 export type StoreyUpdateCommand = {
   type: 'storey.update'; action: 'add' | 'remove' | 'set-height' | 'extend-footprint'; buildingRef: string; storeyRef: string
   name?: string; clearHeightM?: number; footprint?: Polygon2; extensionFootprint?: Polygon2; spaceRef?: string; spaceName?: string; usage?: string

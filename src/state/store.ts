@@ -17,6 +17,8 @@ import { V2_STUDY_REF, synchronizePublishedV2 } from '../services/publishedV2'
 import type { DraftChangeSetModel, HeightMeasureKind, PersistedWorkspace, ProjectCommand, ProjectV2, ProposalRecord, StructureReport, TransformMode, VariantModel, ViewerMode } from '../domain/types'
 
 interface StudioState {
+  measurementPoints: Array<{ x: number; y: number; z: number }>
+  setMeasurementPoints: (points: Array<{ x: number; y: number; z: number }>) => void
   project: ProjectV2
   history: ProjectV2[]
   future: ProjectV2[]
@@ -116,6 +118,7 @@ const staleRecords = (records: ProposalRecord[], revision: number) => records.ma
 const staleDrafts = (drafts: DraftChangeSetModel[], revision: number) => drafts.map((draft) => draft.baseRevision === revision ? draft : { ...draft, status: 'stale' as const })
 
 export const useStudioStore = create<StudioState>((set, get) => ({
+  measurementPoints: [], setMeasurementPoints: (measurementPoints) => set({ measurementPoints }),
   project: structuredClone(modernBarnProject), history: [], future: [], variants: [], proposals: [], draftChangeSets: [], selectedRef: null, repositioningRef: null,
   transformMode: 'translate', viewerMode: 'edit', heightMeasureKind: 'auto', activePlanStoreyRef: null, month: 7,
   sunTime: { month: 7, day: 15, hour: 14 }, sunAnimation: 'none', sunOverlay: { enabled: false, targetRef: null, result: null },

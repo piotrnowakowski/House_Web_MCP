@@ -95,10 +95,12 @@ function InteractiveMeasurements() {
   const heightMeasureKind = useStudioStore((state) => state.heightMeasureKind)
   const project = useStudioStore((state) => state.project)
   const setToast = useStudioStore((state) => state.setToast)
-  const [lengthPoints, setLengthPointsState] = useState<Vector3[]>([])
+  const measuredPoints = useStudioStore(s => s.measurementPoints)
+  const lengthPoints = useMemo(() => measuredPoints.map(p => new Vector3(p.x, p.y, p.z)), [measuredPoints])
   const [areaRect, setAreaRectState] = useState<{ start: Vector3; end: Vector3; dragging: boolean } | null>(null)
   const [freeHeightPoints, setFreeHeightPointsState] = useState<Vector3[]>([])
   const lengthRef = useRef<Vector3[]>([])
+  lengthRef.current = lengthPoints
   const areaRef = useRef<{ start: Vector3; end: Vector3; dragging: boolean } | null>(null)
   const freeHeightRef = useRef<Vector3[]>([])
   const raycaster = useMemo(() => new Raycaster(), [])
@@ -106,12 +108,12 @@ function InteractiveMeasurements() {
   const snapEdges = useMemo(() => siteMeasurementEdges(project), [project])
   const [snapPreview, setSnapPreview] = useState<Vector3 | null>(null)
   const semanticHeightRef = useRef<Vector3[]>([])
-  const setLengthPoints = (points: Vector3[]) => { lengthRef.current = points; setLengthPointsState(points) }
+  const setLengthPoints = (points: Vector3[]) => { lengthRef.current = points; useStudioStore.getState().setMeasurementPoints(points.map(p => ({ x: p.x, y: p.y, z: p.z }))) }
   const setAreaRect = (rect: { start: Vector3; end: Vector3; dragging: boolean } | null) => { areaRef.current = rect; setAreaRectState(rect) }
   const setFreeHeightPoints = (points: Vector3[]) => { freeHeightRef.current = points; setFreeHeightPointsState(points) }
   const clear = () => { setLengthPoints([]); setAreaRect(null); setFreeHeightPoints([]); setSnapPreview(null); setToast(null) }
 
-  useEffect(() => { setLengthPoints([]); setAreaRect(null); setFreeHeightPoints([]); setSnapPreview(null) }, [viewerMode])
+  useEffect(() => { setLengthPoints([]); setAreaRect(null); setFreeHeightPoints([]); setSnapPreview(null) }, [viewerMode, project.ref])
   useEffect(() => {
     const onClear = () => clear()
     window.addEventListener(CLEAR_MEASUREMENT_EVENT, onClear)
@@ -900,7 +902,7 @@ function Building({ project, building, ghost }: { project: ProjectV2; building: 
       {isLShapedBarn(building) && <BarnGlazing building={building} ghost={ghost} />}
       {isLShapedBarn(building) && <BarnCladding building={building} ghost={ghost} />}
       {isLShapedBarn(building) && !building.interiorSource && <BarnInteriorWarmth ghost={ghost} />}
-      {!ghost && building.furniture?.map((item) => <group key={item.ref} position={[item.position.x, (item.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.level ?? 0) * explodedOffset, item.position.z]} rotation={[0, item.rotationDegrees * Math.PI / 180, 0]}><ProductModel item={item} mobile={window.innerWidth <= 900} /></group>)}
+      {!ghost && building.furniture?.map((item) => <group key={item.ref} userData={{ semanticRef: item.ref, buildingRef: building.ref }} onClick={event => { if (event.delta < 5 && viewerMode === 'edit') { event.stopPropagation(); useStudioStore.getState().setSelectedRef(item.ref) } }} position={[item.position.x, (item.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.level ?? 0) * explodedOffset, item.position.z]} rotation={[0, item.rotationDegrees * Math.PI / 180, 0]}><ProductModel item={item} mobile={window.innerWidth <= 900} />{selectedRef === item.ref && <mesh position-y={item.heightM / 2}><boxGeometry args={[item.widthM + 0.025, item.heightM + 0.025, item.depthM + 0.025]} /><meshBasicMaterial color='#b9e84d' wireframe depthTest={false} /></mesh>}</group>)}
       <Roof building={building} selected={selectedRef === building.roof.ref} yOffset={roofOffset} ghost={ghost} />
       {livingVoidPartitions(building).map(({ wall, wing }) => <LivingVoidWall key={wall.ref} building={building} wall={wall} wing={wing} yOffset={offsetFor(wall.ref)} ghost={ghost} />)}
       {!ghost && <><SpaceOverlays building={building} explodedOffset={explodedOffset} explode={explode} /><PlatformsAndFinishes building={building} explodeOffset={explodedOffset} /></>}

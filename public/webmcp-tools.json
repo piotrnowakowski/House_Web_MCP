@@ -38,7 +38,8 @@
         "kind house|garage",
         "architecturalStyle classic|futuristic|barn",
         "position {x,z}",
-        "rotationDegrees"
+        "rotationDegrees",
+        "moveLinkedFeatures boolean (move only, project/zielonki-v2 house/main: carry carport, terrace, entrance path and house-side driveway edge; road entrance stays fixed)"
       ]
     },
     {

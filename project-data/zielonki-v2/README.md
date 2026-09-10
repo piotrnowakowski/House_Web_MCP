@@ -74,3 +74,7 @@ The v2 option is saved in IndexedDB at http://localhost:5173/. This data is not 
 RoofSegmentModel.canopy.slats optionally specifies direction (x or z, the beam span), spacingM and widthM. Only axis-aligned rectangular flat segments with open gaps and no roof terrace are valid. The shared pergolaMembers helper supplies the renderer and sunlight occluders, so light passes through the gaps. Existing solid canopies keep their behavior.
 
 Schema/domain validation and TypeScript checks passed. Tests cover open-versus-solid shade, schema round trips, post/beam connections, and v2 save/load, restore migrations and canonical synchronization without recreating deleted garage elements. Actual-browser reload/open preserved the exact v2 JSON. Both main gables and bedrooms equal the r45 baseline.
+
+## Precision editor release — 2026-09-10
+
+V2 remains r49 without model changes. See ../zielonki/README.md for the actual public-origin recovery comparison; no v2 working copy was present in that captured profile. New controls permit precise editing of this existing variant without creating another project. Canonical geometry, deletions and the immutable before-carport r46 baseline are unchanged.

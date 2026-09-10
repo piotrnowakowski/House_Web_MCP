@@ -46,7 +46,7 @@ export const operationSchema = z.discriminatedUnion('type', [
   interiorCommandSchema,
   z.object({ type: z.literal('site.update'), boundary: polygon.optional(), northDegrees: z.number().optional(), entrance: z.object({ ref, start: point, end: point }).strict().optional() }),
   z.object({ type: z.literal('terrain.update'), elevationPoints: z.array(point.extend({ elevation: z.number() })).min(1) }),
-  z.object({ type: z.literal('building.update'), action: z.enum(['add', 'remove', 'move', 'set-style']), buildingRef: ref, name: z.string().optional(), kind: z.enum(['house', 'garage']).optional(), architecturalStyle: z.enum(['classic', 'futuristic', 'barn']).optional(), position: point.optional(), rotationDegrees: z.number().optional() }),
+  z.object({ type: z.literal('building.update'), action: z.enum(['add', 'remove', 'move', 'set-style']), buildingRef: ref, name: z.string().optional(), kind: z.enum(['house', 'garage']).optional(), architecturalStyle: z.enum(['classic', 'futuristic', 'barn']).optional(), position: point.optional(), rotationDegrees: z.number().optional(), moveLinkedFeatures: z.boolean().optional() }),
   z.object({
     type: z.literal('storey.update'), action: z.enum(['add', 'remove', 'set-height', 'extend-footprint']), buildingRef: ref, storeyRef: ref, name: z.string().optional(), clearHeightM: z.number().min(2).max(8).optional(),
     footprint: polygon.optional(), extensionFootprint: polygon.optional(), spaceRef: ref.optional(), spaceName: z.string().optional(), usage: z.string().optional(),

@@ -1,5 +1,6 @@
 import {
   pointInPolygon,
+  offsetPolygon,
   pointOnSegment,
   polygonArea,
   polygonSelfIntersects,
@@ -59,11 +60,11 @@ export function closestWallPoint(point: Vec2, wall: Pick<WallModel, 'start' | 'e
 
 export function isEnvelopeWall(building: BuildingModel, storey: StoreyModel, wall: WallModel) {
   const slab = building.slabs.find((item) => item.ref === storey.baseSlabRef)!
-  return slab.footprint.some(
+  return [slab.footprint, offsetPolygon(slab.footprint, wall.thicknessM / 2)].some(outline => outline.some(
     (a, i) =>
-      pointOnSegment(wall.start, a, slab.footprint[(i + 1) % slab.footprint.length]) &&
-      pointOnSegment(wall.end, a, slab.footprint[(i + 1) % slab.footprint.length]),
-  )
+      pointOnSegment(wall.start, a, outline[(i + 1) % outline.length]) &&
+      pointOnSegment(wall.end, a, outline[(i + 1) % outline.length]),
+  ))
 }
 
 function validateRooms(building: BuildingModel, storey: StoreyModel) {
@@ -257,7 +258,6 @@ export function moveConnectedWall(
     throw new Error('The exterior envelope stays fixed. Select an unlocked interior wall.')
   const oldStart = { ...wall.start }
   const oldEnd = { ...wall.end }
-  const slab = building.slabs.find((item) => item.ref === storey.baseSlabRef)!
   const map = (point: Vec2) => (same(point, oldStart) ? command.start : same(point, oldEnd) ? command.end : point)
   for (const connected of building.walls.filter((item) => storey.wallRefs.includes(item.ref))) {
     const start = map(connected.start)
@@ -270,11 +270,7 @@ export function moveConnectedWall(
       throw new Error('A connected wall or room is locked.')
     if (
       isEnvelopeWall(building, storey, connected) &&
-      !slab.footprint.some(
-        (a, i) =>
-          pointOnSegment(start, a, slab.footprint[(i + 1) % slab.footprint.length]) &&
-          pointOnSegment(end, a, slab.footprint[(i + 1) % slab.footprint.length]),
-      )
+      !isEnvelopeWall(building, storey, { ...connected, start, end })
     )
       throw new Error('This edit would move the exterior envelope.')
     const oldLength = wallLength(connected)

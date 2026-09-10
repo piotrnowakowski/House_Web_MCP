@@ -1,4 +1,5 @@
 import { placementWarnings } from './interiorPlacement'
+import { transformedPoint } from './precisionEdits'
 import { estimateDayPartTemperatures } from './climate'
 import { applyInterior, availableInteriorHeight, InteriorItemSchema, itemFitsFloor } from './interior'
 import { validateTextureChoice } from './textures'
@@ -140,6 +141,22 @@ const applyBuilding = (project: ProjectV2, command: Extract<ProjectCommand, { ty
   }
   if (command.action === 'remove') { project.buildings = project.buildings.filter((item) => item.ref !== command.buildingRef); return }
   const building = getBuilding(project, command.buildingRef)
+  if (command.action === 'move') {
+    const target = command.position ?? building.position
+    const rotation = command.rotationDegrees ?? building.rotationDegrees
+    if (![target.x, target.z, rotation].every(Number.isFinite)) throw new Error('Enter finite building coordinates and angle.')
+    if (command.moveLinkedFeatures) {
+      if (project.ref !== 'project/zielonki-v2' || building.ref !== 'house/main') throw new Error('This building has no linked site features.')
+      const angle = rotation - building.rotationDegrees
+      const transform = (p: Vec2) => transformedPoint(p, building.position, target, angle)
+      const carport = project.buildings.find(b => b.ref === 'building/south-carport')
+      if (carport) { carport.position = transform(carport.position); carport.rotationDegrees += angle }
+      // These fixed local outlines follow their parent assembly, without unlocking their shape.
+      for (const zone of project.landscape.zones.filter(z => ['zone/terrace', 'zone/path'].includes(z.ref))) zone.footprint = zone.footprint.map(transform)
+      const driveway = project.landscape.zones.find(z => z.ref === 'zone/driveway')
+      if (driveway?.footprint.length === 4) driveway.footprint = driveway.footprint.map((p, i) => i === 1 || i === 2 ? transform(p) : p)
+    }
+  }
   if (command.position) building.position = clone(command.position)
   if (command.rotationDegrees !== undefined) building.rotationDegrees = command.rotationDegrees
   if (command.architecturalStyle) {
