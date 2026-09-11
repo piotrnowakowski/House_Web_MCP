@@ -33,7 +33,11 @@ export function RendererLifecycle() {
     useRenderingPreferences.getState().setSoftware(/swiftshader|llvmpipe|software|softpipe/i.test(renderer))
     const onLost = (event: Event) => { event.preventDefault(); setLost(true) }
     gl.domElement.addEventListener('webglcontextlost', onLost)
-    return () => gl.domElement.removeEventListener('webglcontextlost', onLost)
+    return () => {
+      gl.domElement.removeEventListener('webglcontextlost', onLost)
+      // A replacement canvas must initialize conservatively too.
+      useRenderingPreferences.getState().setSoftware(null)
+    }
   }, [gl])
   if (lost) throw new Error('The graphics context was lost.')
   return null

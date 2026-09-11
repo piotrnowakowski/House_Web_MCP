@@ -20,6 +20,7 @@ test('GitHub Pages base path serves every requested garden model', async ({ page
     if (path.includes('/models/garden/')) modelResponses.push({ path, status: response.status() })
   })
 
+  await page.addInitScript(() => sessionStorage.setItem('render-quality', 'detailed'))
   await openZielonkiStudy(page)
 
   await expect.poll(() => modelResponses.length, { timeout: 20_000 }).toBeGreaterThan(0)
@@ -38,6 +39,7 @@ test('editor stays usable when optional garden models fail', async ({ page }) =>
     return route.abort('failed')
   })
 
+  await page.addInitScript(() => sessionStorage.setItem('render-quality', 'detailed'))
   await openZielonkiStudy(page)
 
   await expect.poll(() => blockedModelRequests, { timeout: 20_000 }).toBeGreaterThan(0)

@@ -14,7 +14,7 @@ export const useRenderingPreferences = create<{
   quality: RenderQuality
   software: boolean | null
   setQuality: (quality: RenderQuality) => void
-  setSoftware: (software: boolean) => void
+  setSoftware: (software: boolean | null) => void
 }>((set) => ({
   quality: savedQuality(),
   software: null,

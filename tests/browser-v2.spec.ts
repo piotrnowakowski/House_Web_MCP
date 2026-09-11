@@ -37,7 +37,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   expect(textureLoads.some(path => path.endsWith('/textures/medieval_red_brick/diff_2k.jpg'))).toBe(false)
   await page.waitForTimeout(1200)
   await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-textured-realistic.png' })
-  await expect(page.getByText('Spatial Editor', { exact: true })).toBeVisible()
+  await expect(page.getByRole('main', { name: 'ProjectV2 spatial planning workspace' })).toBeVisible()
   await expect(page.getByText('PROJECTV2 / SEMANTIC MODEL')).toBeVisible()
   await expect(page.getByText('L-shaped modern barn')).toBeVisible()
   const modernBarn = page.getByRole('button', { name: /Modern barn/ })
@@ -490,6 +490,7 @@ test('house remains visible when zoomed out across the long plot', async ({ page
 })
 
 test('editor remains usable when optional garden models cannot be loaded', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('render-quality', 'detailed'))
   const pageErrors: string[] = []
   page.on('pageerror', (error) => pageErrors.push(error.message))
   let blockedModelRequests = 0
@@ -502,11 +503,11 @@ test('editor remains usable when optional garden models cannot be loaded', async
   await startScreen.getByRole('button', { name: /Zielonki house study/ }).click()
   await expect(startScreen).toBeHidden()
   await expect(page.locator('canvas')).toHaveCount(1)
-  await expect(page.getByText('Spatial Editor', { exact: true })).toBeVisible()
+  await expect(page.getByRole('main', { name: 'ProjectV2 spatial planning workspace' })).toBeVisible()
   await page.getByRole('button', { name: 'Open garden fixtures' }).click()
   await expect(page.getByRole('region', { name: 'Garden fixture library' })).toBeVisible()
   await expect.poll(() => blockedModelRequests, { timeout: 20_000 }).toBeGreaterThan(0)
-  expect(pageErrors.every((message) => /^Could not load \/.*\/models\/garden\/.*\.glb: Failed to fetch$/.test(message))).toBe(true)
+  expect(pageErrors.every((message) => /^Could not load \/.*\/models\/garden\/.*\.glb(?:\?v=[a-f0-9]+)?: Failed to fetch$/.test(message))).toBe(true)
 })
 
 const savedBuildingCount = (page: Page, name: string) => page.evaluate((projectName) => new Promise<number>((resolve) => {

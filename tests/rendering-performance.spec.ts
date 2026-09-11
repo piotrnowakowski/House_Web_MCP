@@ -104,7 +104,11 @@ test('editors load on demand, stop drawing when idle, and wake for navigation', 
   await expectIdle(page)
   await page.screenshot({ path: testInfo.outputPath('interior.png') })
   await page.getByRole('button', { name: 'Back to plot', exact: true }).click()
-  await expect(canvas).toHaveAttribute('aria-label', 'Interactive ProjectV2 spatial editor')
+  // Recreating the GPU context may finish after the HTML tools are usable.
+  await page.getByRole('button', { name: 'MCP Tools', exact: true }).click({ timeout: 5000 })
+  await expect(page.getByRole('region', { name: 'WebMCP tool catalog' })).toBeVisible({ timeout: 5000 })
+  await page.getByRole('button', { name: 'Close MCP tools', exact: true }).click({ timeout: 5000 })
+  await expect(canvas).toHaveAttribute('aria-label', 'Interactive ProjectV2 spatial editor', { timeout: 15_000 })
   await expectIdle(page)
   expect(errors).toEqual([])
 })

@@ -61,6 +61,16 @@ test('tools remain usable while loading and reports use asynchronous readback', 
   await page.getByRole('button', { name: 'Architectural set', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Architectural structure report' })).toBeVisible({ timeout: 30_000 })
   await expect.poll(() => page.locator('.report-panel .thumbs img').evaluateAll(images => images.length === 10 && images.every(image => (image as HTMLImageElement).naturalWidth === 960))).toBe(true)
+  const drawingColors = await page.locator('.report-panel .thumbs img').evaluateAll(images => images.map(element => {
+    const image = element as HTMLImageElement
+    const canvas = document.createElement('canvas')
+    canvas.width = canvas.height = 64
+    const context = canvas.getContext('2d', { willReadFrequently: true })!
+    // Exclude captions and scale labels: successfully decoded headers are not a drawing.
+    context.drawImage(image, 0, 70, image.naturalWidth, image.naturalHeight - 120, 0, 0, 64, 64)
+    return new Set(new Uint32Array(context.getImageData(0, 0, 64, 64).data.buffer)).size
+  }))
+  expect(drawingColors.every(colors => colors > 20)).toBe(true)
   await page.screenshot({ path: testInfo.outputPath('detailed-report.png') })
   expect(errors).toEqual([])
 })

@@ -206,3 +206,7 @@ Both actual `https://natan203-20203.mikrus.cloud` profiles exactly match the thr
 Codex's older HTTP original r47/front r49 are unchanged from their own older published baselines apart from metadata. Its separate `http://127.0.0.1:5173` original r40 has no published baseline and remains a preserved historical working copy. Historical backups/proposals were retained. No origin was transferred or overwritten, and no historical layout was merged into a current project.
 
 Decision: no project-data merge or revision increment is needed for this rendering/configuration release. All canonical JSON and immutable migration baselines remain unchanged. Unit checks cover schema, final roof geometry and migration/deletion behavior; the local production browser audit verifies all three projects across desktop/mobile switching, fresh loading, existing-workspace migration with independent deletions, and reload. The deployed code revision is recorded separately in `/health` and `deployment.json`.
+
+Before the follow-up report-camera correction, both actual profiles were captured again into `tmp/webgl-chrome-report-fix` and `tmp/webgl-codex-report-fix`. All extracted entries exactly matched the prior captures. Project JSON, geometry, revisions and migration baselines remain unchanged.
+
+The final lower-cost vegetation and renderer-reentry release was preceded by another unchanged capture of both actual profiles in `tmp/webgl-chrome-release-final` and `tmp/webgl-codex-release-final`. No tracked project content changed.

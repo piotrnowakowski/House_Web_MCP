@@ -30,7 +30,7 @@ class AssetErrorBoundary extends Component<{ children: ReactNode; fallback: Reac
 
 function AssetBoundary({ children, fallback }: { children: ReactNode; fallback: ReactNode }) {
   const quality = useRenderQuality()
-  if (quality === 'fast') return fallback
+  if (quality !== 'detailed') return fallback
   return <AssetErrorBoundary fallback={fallback}><Suspense fallback={fallback}>{children}</Suspense></AssetErrorBoundary>
 }
 

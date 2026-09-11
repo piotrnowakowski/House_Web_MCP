@@ -1182,7 +1182,7 @@ const makeCaptureCamera = (view: ExpandedStructureView, project: ProjectV2, aspe
     : view.type === 'sun-study' ? selectedBounds(project, view.buildingRefs).expandByScalar(20) : selectedBounds(project, view.buildingRefs)
   const center = bounds.getCenter(new Vector3()); const size = bounds.getSize(new Vector3()); const span = Math.max(size.x, size.y, size.z, 10)
   if (view.type === 'axonometric') { const camera = new PerspectiveCamera(34, aspect, 0.1, 500); camera.position.copy(center).add(new Vector3(span * 1.5, span, span * 1.5)); camera.lookAt(center); camera.updateProjectionMatrix(); return camera }
-  const camera = new OrthographicCamera(-span * aspect * 0.62, span * aspect * 0.62, span * 0.62, -span * 0.62, 0.1, 500)
+  const camera = new OrthographicCamera(-span * aspect * 0.62, span * aspect * 0.62, span * 0.62, -span * 0.62, 0.1, Math.max(500, span * 6))
   if (view.type === 'site-plan' || view.type === 'storey-plan' || view.type === 'sun-study') camera.position.copy(center).add(new Vector3(0, span * 3, 0.001))
   else {
     const north = MathUtils.degToRad(project.site.northDegrees); let angle = north

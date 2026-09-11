@@ -48,17 +48,17 @@ The existing unit tests cover project persistence, deletion preservation, migrat
 
 Both local and Mikrus builds use the same client-side rendering policy. WebGL runs on the browser's GPU (or its software renderer); the static VPS does not render the house. Test release performance with `npm run build` and `npm run preview -- --port 5189 --strictPort`, not Vite's development server, whose module loading and hot reload add overhead.
 
-The **View quality** selector is a session preference, independent of saved project data:
+The **View quality** selector (inside **More** on compact screens) is a session preference, independent of saved project data:
 
 | Mode | Rendering cost |
 | --- | --- |
-| Automatic, hardware detected | DPR 1, 1024px shadows, diffuse textures, scanned models, 90,000 grass candidates in a worker |
+| Automatic, hardware detected | DPR 1, 1024px shadows, diffuse textures, procedural vegetation, 90,000 grass candidates in a worker |
 | Automatic, software detected / Fast | DPR 1, no shadow maps or grass blades, flat finishes and procedural model fallbacks |
-| Detailed | DPR up to 2 (1.5 on compact interiors), 2048px shadows, full texture maps, 360,000 grass candidates in a worker |
+| Detailed | DPR up to 2 (1.5 on compact interiors), 2048px shadows, full texture maps and scanned vegetation, 360,000 grass candidates in a worker |
 
-Automatic starts conservatively until the renderer is detected. If a browser conceals its GPU identity or a weak hardware GPU remains slow, select Fast manually. Detailed prioritizes appearance and is not a software-renderer performance guarantee. All modes keep transparent glass but omit physical refraction passes; this avoids the framebuffer/texture feedback loop reproduced during this audit. Antialiasing and preserved drawing buffers are disabled. PNG export explicitly renders immediately before capture.
+Automatic starts conservatively each time a canvas is created, including when returning from the interior, until the new renderer is detected. If a browser conceals its GPU identity or a weak hardware GPU remains slow, select Fast manually. Detailed prioritizes appearance and is not a software-renderer performance guarantee. All modes keep transparent glass but omit physical refraction passes; this avoids the framebuffer/texture feedback loop reproduced during this audit. Antialiasing and preserved drawing buffers are disabled. PNG export explicitly renders immediately before capture.
 
-Grass geometry is generated off the UI thread, cached for three placement configurations, and cancelled when superseded. Changing finishes or furniture does not rebuild it. Optional models have local loading fallbacks. Texture loading no longer eagerly initializes every texture through Drei. Both editors still render only when invalidated, including controls, edits and sun playback.
+Grass geometry is generated off the UI thread, cached for three placement configurations, and cancelled when superseded. Changing finishes or furniture does not rebuild it. Optional models have local loading fallbacks. Plot texture loading no longer eagerly initializes every texture through Drei. Both editors still render only when invalidated, including controls, edits and sun playback.
 
 Architectural sets reuse a 960×640 render target and use Three's asynchronous pixel readback. Temporary scene visibility, materials, clipping and lights are restored before awaiting the GPU. Reports can be cancelled; concurrent captures are rejected, and abandoned image URLs are released. WebGL creation failure or context loss leaves the HTML tools accessible with a retry action.
 
@@ -74,3 +74,5 @@ npx playwright test tests/rendering-performance.spec.ts tests/webgl-resilience.s
 The software test deliberately enables SwiftShader only in its isolated trusted QA browser. This flag is not required or recommended for normal users or the VPS. Tests cover MCP search, length/area/sun controls, all ten report images, asynchronous readback, texture-unit bounds, Detailed cancellation, unavailable/lost context, nonblank interior PNG and idle rendering. The original QA `activeTexture INVALID_ENUM` was not reproduced on the inspected Intel Arc hardware; absence in these tests cannot establish compatibility with every driver.
 
 See [Mikrus configuration](mikrus-deployment.md) for origin compression, strict missing-asset responses and versioned caching. Build warnings about the large entry bundle remain a startup optimization opportunity; lowering the warning threshold or adding server GPU resources would not fix browser rendering stalls.
+
+Visual report validation also caught a pre-existing blank site plan: the roughly 203 m plot placed its overhead camera beyond the fixed 500 m far clipping plane. Orthographic report cameras now scale their clipping range with the view bounds. Browser checks sample the drawing pixels separately from annotation headers so a blank but valid PNG fails.
