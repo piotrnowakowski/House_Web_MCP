@@ -1,5 +1,7 @@
 # WebGL responsiveness: investigation and proposed fixes
 
+Historical investigation before the rendering changes. See [release validation](webgl-release-validation-2026-09-11.md) for the implemented fixes and final local/production results.
+
 Investigated 2026-09-11 at https://natan203-20203.mikrus.cloud/. This is a diagnosis and fix proposal; application code and published project data were not changed.
 
 ## Reproduction and scope

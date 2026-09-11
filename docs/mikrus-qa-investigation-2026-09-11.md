@@ -1,5 +1,7 @@
 # Deployed application and Mikrus configuration investigation
 
+Historical investigation before the rendering changes. See [release validation](webgl-release-validation-2026-09-11.md) for the implemented fixes and final local/production results.
+
 Read-only inspection on 2026-09-11, approximately 11:41–11:45 UTC. Public browser tests used **https://natan203-20203.mikrus.cloud/**, not localhost. SSH used the deployment script's pinned host-key verification. No service, configuration, image, release, or project data was changed.
 
 ## Conclusion
