@@ -1,0 +1,58 @@
+[
+  {
+    "ref": "neighbor/34-5",
+    "houseM": 19.839,
+    "surveyedParcelsM": 11.608,
+    "ownershipM": 11.609,
+    "footprintAreaM2": 117.73
+  },
+  {
+    "ref": "neighbor/34-4",
+    "houseM": 16.359,
+    "surveyedParcelsM": 10.317,
+    "ownershipM": 10.317,
+    "footprintAreaM2": 122.099
+  },
+  {
+    "ref": "neighbor/34-3",
+    "houseM": 50.035,
+    "surveyedParcelsM": 43.992,
+    "ownershipM": 43.992,
+    "footprintAreaM2": 117.167
+  },
+  {
+    "ref": "neighbor/59-main",
+    "houseM": 52.76,
+    "surveyedParcelsM": 46.126,
+    "ownershipM": 46.126,
+    "footprintAreaM2": 250.718
+  },
+  {
+    "ref": "neighbor/59-outbuilding",
+    "houseM": 54.052,
+    "surveyedParcelsM": 49.517,
+    "ownershipM": 49.517,
+    "footprintAreaM2": 35.672
+  },
+  {
+    "ref": "neighbor/59-shed-a",
+    "houseM": 37.416,
+    "surveyedParcelsM": 33.416,
+    "ownershipM": 33.416,
+    "footprintAreaM2": 8.353
+  },
+  {
+    "ref": "neighbor/59-shed-b",
+    "houseM": 40.294,
+    "surveyedParcelsM": 36.245,
+    "ownershipM": 36.245,
+    "footprintAreaM2": 12.522
+  },
+  {
+    "ref": "neighbor/south-east-map",
+    "houseM": 62.474,
+    "surveyedParcelsM": 52.341,
+    "ownershipM": 52.341,
+    "footprintAreaM2": 117.337
+  }
+]

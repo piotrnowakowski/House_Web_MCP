@@ -1,0 +1,509 @@
+{
+  "boundary": [
+    {
+      "x": -18.403,
+      "z": 10.53
+    },
+    {
+      "x": 17.384,
+      "z": -4.833
+    },
+    {
+      "x": 18.635,
+      "z": -5.211
+    }
+  ],
+  "zones": [
+    {
+      "ref": "zoning/54-3/agricultural",
+      "code": "06.R.21",
+      "landRole": "agricultural",
+      "boundary": [
+        {
+          "x": -18.403,
+          "z": 10.53
+        },
+        {
+          "x": -18.404,
+          "z": 15.882
+        },
+        {
+          "x": -9.246,
+          "z": 15.882
+        },
+        {
+          "x": -9.678,
+          "z": 7.33
+        },
+        {
+          "x": -9.7,
+          "z": 6.794
+        }
+      ],
+      "sourceRef": "source/mpzp-boundary-v2",
+      "geometryConfidence": "derived",
+      "parcel": "54/3"
+    },
+    {
+      "ref": "zoning/54-3/construction",
+      "code": "06.MNU.8",
+      "landRole": "construction",
+      "boundary": [
+        {
+          "x": -9.7,
+          "z": 6.794
+        },
+        {
+          "x": -10.621,
+          "z": -15.591
+        },
+        {
+          "x": -19.778,
+          "z": -15.1
+        },
+        {
+          "x": -18.403,
+          "z": 10.53
+        }
+      ],
+      "sourceRef": "source/mpzp-boundary-v2",
+      "geometryConfidence": "derived",
+      "parcel": "54/3"
+    },
+    {
+      "ref": "zoning/55-3/agricultural",
+      "code": "06.R.21",
+      "landRole": "agricultural",
+      "boundary": [
+        {
+          "x": -9.7,
+          "z": 6.794
+        },
+        {
+          "x": -9.678,
+          "z": 7.33
+        },
+        {
+          "x": -9.246,
+          "z": 15.882
+        },
+        {
+          "x": 0.8,
+          "z": 15.882
+        },
+        {
+          "x": 0.13,
+          "z": 3.156
+        },
+        {
+          "x": 0.1,
+          "z": 2.587
+        }
+      ],
+      "sourceRef": "source/mpzp-boundary-v2",
+      "geometryConfidence": "derived",
+      "parcel": "55/3"
+    },
+    {
+      "ref": "zoning/55-3/construction",
+      "code": "06.MNU.8",
+      "landRole": "construction",
+      "boundary": [
+        {
+          "x": 0.1,
+          "z": 2.587
+        },
+        {
+          "x": -0.397,
+          "z": -6.83
+        },
+        {
+          "x": -0.838,
+          "z": -16.116
+        },
+        {
+          "x": -10.621,
+          "z": -15.591
+        },
+        {
+          "x": -9.7,
+          "z": 6.794
+        }
+      ],
+      "sourceRef": "source/mpzp-boundary-v2",
+      "geometryConfidence": "derived",
+      "parcel": "55/3"
+    },
+    {
+      "ref": "zoning/58-3/construction",
+      "code": "06.MNU.8",
+      "landRole": "construction",
+      "boundary": [
+        {
+          "x": 18.635,
+          "z": -5.211
+        },
+        {
+          "x": 18.591,
+          "z": -6.318
+        },
+        {
+          "x": 18.21,
+          "z": -15.861
+        },
+        {
+          "x": 8.77,
+          "z": -15.63
+        },
+        {
+          "x": 8.7,
+          "z": -16.628
+        },
+        {
+          "x": -0.838,
+          "z": -16.116
+        },
+        {
+          "x": -0.397,
+          "z": -6.83
+        },
+        {
+          "x": 0.1,
+          "z": 2.587
+        },
+        {
+          "x": 17.384,
+          "z": -4.833
+        }
+      ],
+      "sourceRef": "source/mpzp-boundary-v2",
+      "geometryConfidence": "derived",
+      "parcel": "58/3"
+    },
+    {
+      "ref": "zoning/58-3/agricultural",
+      "code": "06.R.21",
+      "landRole": "agricultural",
+      "boundary": [
+        {
+          "x": 0.1,
+          "z": 2.587
+        },
+        {
+          "x": 0.13,
+          "z": 3.156
+        },
+        {
+          "x": 0.8,
+          "z": 15.882
+        },
+        {
+          "x": 19.477,
+          "z": 15.883
+        },
+        {
+          "x": 18.635,
+          "z": -5.211
+        },
+        {
+          "x": 17.384,
+          "z": -4.833
+        }
+      ],
+      "sourceRef": "source/mpzp-boundary-v2",
+      "geometryConfidence": "derived",
+      "parcel": "58/3"
+    }
+  ],
+  "rows": [
+    {
+      "handle": "5012",
+      "category": "conifer",
+      "easting": 7421512.825,
+      "northing": 5556073.167,
+      "current": {
+        "x": -13.630719206747763,
+        "z": 8.78545496595353
+      },
+      "mapped": {
+        "x": -14.626261665760946,
+        "z": 2.7750464291987584
+      },
+      "currentDistance": 0.2794826473478988,
+      "mappedDistance": 5.636235247910518,
+      "shift": 6.09229969440052
+    },
+    {
+      "handle": "5015",
+      "category": "conifer",
+      "easting": 7421512.391,
+      "northing": 5556070.68,
+      "current": {
+        "x": -11.212551193875713,
+        "z": 11.91644450284553
+      },
+      "mapped": {
+        "x": -12.78724945800227,
+        "z": 4.50465884338965
+      },
+      "currentDistance": 4.110478843489026,
+      "mappedDistance": 3.3214362822140546,
+      "shift": 7.577218571795263
+    },
+    {
+      "handle": "5018",
+      "category": "conifer",
+      "easting": 7421510.981,
+      "northing": 5556071.786,
+      "current": {
+        "x": -13.522884759046907,
+        "z": 11.85149957341963
+      },
+      "mapped": {
+        "x": -14.486225008990504,
+        "z": 5.074586978259177
+      },
+      "currentDistance": 3.1394270284255383,
+      "mappedDistance": 3.4679328584158857,
+      "shift": 6.845039719359251
+    },
+    {
+      "handle": "501B",
+      "category": "conifer",
+      "easting": 7421514.652,
+      "northing": 5556069.099,
+      "current": {
+        "x": -7.7179648387569255,
+        "z": 11.806408802442425
+      },
+      "mapped": {
+        "x": -10.223691645184829,
+        "z": 3.484926850225678
+      },
+      "currentDistance": 5.387900476692003,
+      "mappedDistance": 3.24720922924679,
+      "shift": 8.690553993245794
+    },
+    {
+      "handle": "501E",
+      "category": "conifer",
+      "easting": 7421517.643,
+      "northing": 5556064.906,
+      "current": {
+        "x": -0.7275931165141909,
+        "z": 14.441877166792365
+      },
+      "mapped": {
+        "x": -5.076869551593135,
+        "z": 3.291142591360065
+      },
+      "currentDistance": 10.567188773139662,
+      "mappedDistance": 1.3949755709139622,
+      "shift": 11.968921717534723
+    },
+    {
+      "handle": "5021",
+      "category": "conifer",
+      "easting": 7421519.511,
+      "northing": 5556063.76,
+      "current": {
+        "x": 1.9862835525335747,
+        "z": 14.228305006744097
+      },
+      "mapped": {
+        "x": -3.0927244952683925,
+        "z": 2.360600600829528
+      },
+      "currentDistance": 11.441498108317246,
+      "mappedDistance": 1.4673563356591064,
+      "shift": 12.908862483418176
+    },
+    {
+      "handle": "5024",
+      "category": "conifer",
+      "easting": 7421521.025,
+      "northing": 5556062.894,
+      "current": {
+        "x": 4.122242677201739,
+        "z": 13.950400862859965
+      },
+      "mapped": {
+        "x": -1.537071658784723,
+        "z": 1.5718698148785841
+      },
+      "currentDistance": 12.02871720910323,
+      "mappedDistance": 1.5784563041829984,
+      "shift": 13.610873214431942
+    },
+    {
+      "handle": "5027",
+      "category": "conifer",
+      "easting": 7421524.421,
+      "northing": 5556060.763,
+      "current": {
+        "x": 9.10318951223828,
+        "z": 13.517893097309997
+      },
+      "mapped": {
+        "x": 2.109831257906325,
+        "z": -0.09368598260453916
+      },
+      "currentDistance": 13.59615247220188,
+      "mappedDistance": 1.6703257213510978,
+      "shift": 15.303010969158976
+    },
+    {
+      "handle": "502A",
+      "category": "conifer",
+      "easting": 7421526.001,
+      "northing": 5556059.6,
+      "current": {
+        "x": 11.619614576116167,
+        "z": 13.594569797285459
+      },
+      "mapped": {
+        "x": 3.94986912448064,
+        "z": -0.7742957469324286
+      },
+      "currentDistance": 14.659283043326866,
+      "mappedDistance": 1.569889291715228,
+      "shift": 16.287703715401253
+    },
+    {
+      "handle": "502D",
+      "category": "conifer",
+      "easting": 7421527.97,
+      "northing": 5556058.318,
+      "current": {
+        "x": 14.576945903359691,
+        "z": 13.411935017151434
+      },
+      "mapped": {
+        "x": 6.103142929220196,
+        "z": -1.7144536694493244
+      },
+      "currentDistance": 15.658058188876131,
+      "mappedDistance": 1.58438878431019,
+      "shift": 17.3381940104112
+    },
+    {
+      "handle": "5030",
+      "category": "conifer",
+      "easting": 7421530.17,
+      "northing": 5556056.895,
+      "current": {
+        "x": 17.853225819720976,
+        "z": 13.131855205386554
+      },
+      "mapped": {
+        "x": 8.501181069997724,
+        "z": -2.7700776921881314
+      },
+      "currentDistance": 16.69310842473338,
+      "mappedDistance": 1.6084368354779812,
+      "shift": 18.448095047451222
+    },
+    {
+      "handle": "5033",
+      "category": "deciduous",
+      "easting": 7421527.441,
+      "northing": 5556056.848,
+      "current": {
+        "x": 15.734871646602402,
+        "z": 16.580458694163003
+      },
+      "mapped": {
+        "x": 7.040360253871311,
+        "z": -0.4645077963373664
+      },
+      "currentDistance": 19.026408085628926,
+      "mappedDistance": 0.06609555930402024,
+      "shift": 19.134403858511277
+    },
+    {
+      "handle": "503A",
+      "category": "deciduous",
+      "easting": 7421524.316,
+      "northing": 5556061.791,
+      "current": {
+        "x": 7.765772327213742,
+        "z": 11.862868300479047
+      },
+      "mapped": {
+        "x": 1.19335044016006,
+        "z": -0.5710452924112609
+      },
+      "currentDistance": 11.547760219693794,
+      "mappedDistance": 2.470504597852039,
+      "shift": 14.064100991420839
+    },
+    {
+      "handle": "50F5",
+      "category": "deciduous",
+      "easting": 7421515.533,
+      "northing": 5556071.951,
+      "current": {
+        "x": -10.293621195392362,
+        "z": 7.610972326552979
+      },
+      "mapped": {
+        "x": -12.121907201465316,
+        "z": 1.181268303102935
+      },
+      "currentDistance": 0.516652280922548,
+      "mappedDistance": 6.112856876554599,
+      "shift": 6.684588510085858
+    },
+    {
+      "handle": "50C3",
+      "category": "fruit",
+      "easting": 7421541.665,
+      "northing": 5556070.565,
+      "current": {
+        "x": 10.944146168500392,
+        "z": -24.351134935750963
+      },
+      "mapped": {
+        "x": 3.4002222700594436,
+        "z": -19.88685730598602
+      },
+      "currentDistance": 20.553085139250083,
+      "mappedDistance": 19.349355991127652,
+      "shift": 8.76587488737366
+    },
+    {
+      "handle": "50CA",
+      "category": "fruit",
+      "easting": 7421542.483,
+      "northing": 5556067.695,
+      "current": {
+        "x": 14.689406111658634,
+        "z": -23.03591501999127
+      },
+      "mapped": {
+        "x": 6.24738501887793,
+        "z": -18.99260438743719
+      },
+      "currentDistance": 18.256377148865738,
+      "mappedDistance": 17.40448146975229,
+      "shift": 9.360346200984191
+    },
+    {
+      "handle": "50D1",
+      "category": "fruit",
+      "easting": 7421539.135,
+      "northing": 5556065.796,
+      "current": {
+        "x": 14.345468953971316,
+        "z": -14.76629945857973
+      },
+      "mapped": {
+        "x": 5.993422861388536,
+        "z": -15.151926293024406
+      },
+      "currentDistance": 10.387642131470479,
+      "mappedDistance": 13.975442339372588,
+      "shift": 8.360943845527913
+    }
+  ]
+}

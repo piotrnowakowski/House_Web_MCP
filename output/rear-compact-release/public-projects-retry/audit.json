@@ -1,0 +1,93 @@
+{
+  "url": "http://natan203.mikrus.xyz:20203/",
+  "reports": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "existing": true,
+      "passed": true,
+      "projects": [
+        {
+          "ref": "project/zielonki-spatial-v2",
+          "revision": 49
+        },
+        {
+          "ref": "project/zielonki-v2",
+          "revision": 66
+        },
+        {
+          "ref": "project/zielonki-rear-carport",
+          "revision": 50
+        }
+      ]
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 640
+      },
+      "existing": false,
+      "passed": true,
+      "projects": [
+        {
+          "ref": "project/zielonki-spatial-v2",
+          "revision": 49
+        },
+        {
+          "ref": "project/zielonki-v2",
+          "revision": 66
+        },
+        {
+          "ref": "project/zielonki-rear-carport",
+          "revision": 50
+        }
+      ]
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "existing": false,
+      "passed": true,
+      "projects": [
+        {
+          "ref": "project/zielonki-spatial-v2",
+          "revision": 49
+        },
+        {
+          "ref": "project/zielonki-v2",
+          "revision": 66
+        },
+        {
+          "ref": "project/zielonki-rear-carport",
+          "revision": 50
+        }
+      ]
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "existing": false,
+      "passed": true,
+      "projects": [
+        {
+          "ref": "project/zielonki-spatial-v2",
+          "revision": 49
+        },
+        {
+          "ref": "project/zielonki-v2",
+          "revision": 66
+        },
+        {
+          "ref": "project/zielonki-rear-carport",
+          "revision": 50
+        }
+      ]
+    }
+  ]
+}

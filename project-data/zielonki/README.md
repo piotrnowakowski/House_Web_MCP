@@ -197,6 +197,12 @@ Final captured localhost workspaces: original r49, front-carport r68 (published 
 
 This release includes the rear U stairs/enclosure and equal-height roof joins for the two compact designs. Original main slopes remain 40.13423424862029°; compact main slopes are 44° and 37.87103769668754°, within 37–45°, with eaves at 4.85 m. Code is released only on codex/deploy-furnished-zielonki; main/Pages remains frozen. Runtime captures and generated browser evidence are excluded from the commit.
 
+## 2026-09-11 — HTTPS infrastructure
+
+Before enabling IPv6 access for `https://natan203-20203.mikrus.cloud/`, the actual Codex browser profile's IndexedDB directories for `http://localhost:5173`, `http://127.0.0.1:5173` and `http://natan203.mikrus.xyz:20203` were backed up to ignored `tmp/https-20260911-1243/raw`. Read-only extraction from a separate recovery copy produced `browser-workspaces.json`; application requests were intercepted. Every exported record equals the corresponding final release capture in `tmp/redeploy-20260911-100620/final/browser-workspaces.json`, whose independent baseline/ref-aware comparisons found no unpublished design changes or conflicts. Canonical project files also remain those of the deployed release: original r49, front r67 and rear r88. No project merge or geometry change was necessary.
+
+Only the running house service's additional IPv6 port binding changed; application code remains `8d334e5b8a9db11931a3902df2f6738f791f136f`. Existing HTTP workspaces remain intact at their original origin. HTTPS starts with the published projects; this change does not transfer browser-only history or working copies across origins. The original HTTP route remains available. See [HTTPS operations and rollback](../../docs/mikrus-deployment.md#https).
+
 ## Browser capture before the WebGL release — 2026-09-11
 
 Captured the actual Chrome Default profile and Codex embedded-browser partition before deployment, then repeated both captures immediately before publication. Recoverable raw stores, extracted workspaces and SHA256 provenance are in ignored `tmp/webgl-chrome-before`, `tmp/webgl-codex-before`, `tmp/webgl-chrome-final` and `tmp/webgl-codex-final`. Every extracted entry was unchanged between captures; the originals were never opened by the extraction browser or reset.

@@ -1,0 +1,33 @@
+{
+  "url": "http://127.0.0.1:5173/",
+  "reports": [
+    {
+      "width": 1440,
+      "passed": true,
+      "checks": [
+        "building and linked carport",
+        "undo/redo",
+        "cancel",
+        "opening move",
+        "connected wall shortening",
+        "furniture move",
+        "5 m exact measurement",
+        "reload"
+      ]
+    },
+    {
+      "width": 390,
+      "passed": true,
+      "checks": [
+        "building and linked carport",
+        "undo/redo",
+        "cancel",
+        "opening move",
+        "connected wall shortening",
+        "furniture move",
+        "5 m exact measurement",
+        "reload"
+      ]
+    }
+  ]
+}

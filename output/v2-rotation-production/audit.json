@@ -1,0 +1,14 @@
+{
+  "url": "http://natan203.mikrus.xyz:20203/",
+  "reports": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "passed": true,
+      "originalRevision": 46,
+      "variantRevision": 48
+    }
+  ]
+}

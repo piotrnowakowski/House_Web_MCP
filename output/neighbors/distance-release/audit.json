@@ -1,0 +1,19 @@
+{
+  "url": "http://127.0.0.1:4189/",
+  "reports": [
+    {
+      "existing": true,
+      "passed": true,
+      "projectRevision": 47,
+      "trees": 5,
+      "errors": []
+    },
+    {
+      "existing": false,
+      "passed": true,
+      "projectRevision": 46,
+      "trees": 6,
+      "errors": []
+    }
+  ]
+}

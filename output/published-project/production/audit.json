@@ -1,0 +1,32 @@
+{
+  "url": "http://natan203.mikrus.xyz:20203/",
+  "projectRevision": 40,
+  "plants": 6,
+  "reports": [
+    {
+      "scenario": "fresh-desktop",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "scenario": "fresh-mobile",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "scenario": "legacy",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "scenario": "recovered",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "scenario": "conflict",
+      "passed": true,
+      "errors": []
+    }
+  ]
+}

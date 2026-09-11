@@ -1,0 +1,38 @@
+{
+  "url": "http://natan203.mikrus.xyz:20203/",
+  "projectRevision": 42,
+  "plants": 6,
+  "reports": [
+    {
+      "scenario": "fresh-desktop",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "scenario": "fresh-mobile",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "scenario": "legacy",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "scenario": "recovered",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "scenario": "conflict",
+      "passed": true,
+      "errors": []
+    }
+  ],
+  "codeRevision": "ad1a2889bc2e80cecb93544b982de547888df201",
+  "retryNotes": [
+    "Initial run: fresh-desktop passed; fresh-mobile navigation timed out after 60 seconds.",
+    "Second run: fresh-mobile and legacy passed; recovered navigation timed out after 60 seconds.",
+    "Final run: recovered and conflict passed. Only unfinished scenarios were retried."
+  ]
+}

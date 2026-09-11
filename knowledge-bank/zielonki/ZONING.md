@@ -35,6 +35,12 @@ R53 therefore uses a symmetric 37° outbuilding gable, 0.60 m overhangs, 3.80 m 
 
 ## Geometry and derived areas
 
+### Roof rule cached for geometry work — 11 September 2026
+
+Rechecked the original official plan PDF, page 15, §13(6)(4): **37–45°**, symmetric gable or hipped main slopes for MN/MNU. The 2020 official amendment remains indexed, but both direct PDF endpoints returned gateway errors during this recheck; the previously downloaded/inspected amendment evidence above records no change to this clause. Use the cached rule in `AGENTS.md` for routine edits; reopen the legal sources only when the plan/site changes, new amendment evidence appears or a fresh legal verification is requested.
+
+Narrowing the house had left both slopes at 40.134234° despite unequal 6.08/7.55 m spans, separating their ridge elevations by about 0.620 m and leaving the branch termination 0.75 m away from the new host ridge. Front-carport r67 and rear-carport r88 restore the common model ridge at **7.7856938754 m**, with respective front/rear slopes **44° / 37.8710376967°**, eaves 4.85 m and existing 1.40 m knee walls. The branch now terminates at host centre X **-0.955 m**, restoring valley clipping and removing the hidden interior gable/host sheet. Model ridge elevation is not legal ground-to-ridge height; all previously recorded limitations regarding overhangs, flat structures and whole-building compliance remain.
+
 The supplied `Zielonki_dz54_55_58-akt-v2 (2).dwg` contains usable vector zoning dashes on `_MPZP`, despite also referring to unavailable external raster files. The relevant trace uses LINE handles `5882–589B`, with the main parcel-crossing run `5887–5896`. Labels `58EA` and `58EE` identify 06.R.21 and 06.MNU.8. The separately marked setback polyline `591A` was not used as the zoning boundary.
 
 The trace was checked against the [official plan GeoTIFF](https://rastry.gison.pl/tiff/zielonki_2000/Z01_06_2007_55_IX.tif) and the older Gmail map `Zielonki_dz54_55_58-podz_v1+MPZP.pdf`. The official raster agrees visually with the DWG zoning trace. Its approximately 1.694 m pixel size limits independent position verification.

@@ -1,0 +1,25 @@
+{
+  "url": "http://natan203.mikrus.xyz:20203/",
+  "reports": [
+    {
+      "input": "mouse",
+      "passed": true,
+      "checks": [
+        "partition drag",
+        "first-contact furniture drag",
+        "reload",
+        "no page errors"
+      ]
+    },
+    {
+      "input": "touch",
+      "passed": true,
+      "checks": [
+        "partition drag",
+        "first-contact furniture drag",
+        "reload",
+        "no page errors"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "url": "http://natan203.mikrus.xyz:20203/",
+  "reports": [
+    {
+      "width": 1440,
+      "passed": true,
+      "checks": [
+        "building and linked carport",
+        "undo/redo",
+        "cancel",
+        "opening move",
+        "connected wall shortening",
+        "furniture move",
+        "5 m exact measurement",
+        "reload"
+      ]
+    }
+  ]
+}

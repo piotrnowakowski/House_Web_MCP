@@ -10,3 +10,4 @@ playwright-report
 test-results
 tmp
 output/browser-demo-recording/
+.playwright-mcp/

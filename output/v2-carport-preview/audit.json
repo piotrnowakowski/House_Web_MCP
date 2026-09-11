@@ -1,0 +1,41 @@
+{
+  "url": "http://127.0.0.1:4190/",
+  "reports": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "passed": true,
+      "originalRevision": 46,
+      "variantRevision": 47
+    },
+    {
+      "viewport": {
+        "width": 360,
+        "height": 640
+      },
+      "passed": true,
+      "originalRevision": 46,
+      "variantRevision": 47
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "passed": true,
+      "originalRevision": 46,
+      "variantRevision": 47
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "passed": true,
+      "originalRevision": 46,
+      "variantRevision": 47
+    }
+  ]
+}

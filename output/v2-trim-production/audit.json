@@ -1,0 +1,9 @@
+{
+  "passed": true,
+  "revision": 49,
+  "ref": "project/zielonki-v2",
+  "pergolas": [
+    "roof/reference/courtyard-canopy"
+  ],
+  "errors": []
+}
