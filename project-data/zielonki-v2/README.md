@@ -1,5 +1,9 @@
 # zielonki v2
 
+## Revision 68 — mapped tree restoration
+
+On 11 September 2026 the user requested the missing emailed-map trees back in every design. All 17 mapped refs are now present, preserving the surviving plum's data. The existing field outbuilding, house, carport and other deletions are unchanged. `before-site-restoration-r67.json` preserves the preceding publication; immutable baselines remain intact. Main slopes remain 44° / 37.8710376967° at a shared 7.7856938754 m ridge, with the junction recognized. Outbuilding slopes remain symmetric 37° at a 6.2490506628 m ridge. See [capture, merge and verification](../zielonki/README.md#2026-09-11--restore-the-emailed-map-trees-and-share-the-field-outbuilding).
+
 ## Revision 67 — joined roof ridges, 11 September 2026
 
 The user requested equal ridge heights, restored roof intersection and removal of the roof fragment inside the house, explicitly for both compact variants. Source: actual user profile at `http://localhost:5173/`, active v2 **r66**, captured approximately 08:03 UTC; full IndexedDB recovery is in ignored `tmp/roof-join-1789113797284/workspace-before.json`. `before-roof-join-r66.json` preserves the preceding publication. The r66 browser matched canonical v2; reference-aware publication synchronization yields saved/live **r68**, without conflicts. Other user edits and deletions remain intact.

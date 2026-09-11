@@ -1,5 +1,7 @@
 # Precise editing and measurements
 
+House interior has a persistent **Floor** control beneath the header. Select **Parter** or **Piętro** directly in plan, 3D cutaway or room view, including on mobile. Switching floors clears the active placement/measurement tool and selection; each floor retains its own camera. The Building selector under More also opens the distant outbuilding's interior.
+
 Open **Edit & measure** in the plot's right inspector, or **Edit** in the mobile bottom bar. Select something in the scene or use **Choose an element** to reach windows and furniture obscured by the roof.
 
 In **House interior**, touch or press an unlocked partition, furniture item, window or door and drag immediately; an initial selection tap or inspector button is not required. Partitions slide perpendicular to their length with connected walls/rooms and hosted openings updating in the preview. Openings slide along their host wall. Furniture uses the existing grid/alignment settings and carries its group or current multi-selection. Release saves a valid change as one undo entry; taps and movements that snap back to the starting position create no edit. Invalid positions show a message and leave the model unchanged. Escape, pointer cancellation, lost capture, leaving the app or a second finger cancel the current object gesture. Empty-space gestures still operate the camera. Room labels pass pointer events through; select rooms by tapping their floor or using the room list.

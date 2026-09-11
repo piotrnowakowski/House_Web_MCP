@@ -75,7 +75,7 @@ async function main() {
         assert.equal(saved.site.northDegrees, published.site.northDegrees)
         assert.deepEqual(saved.site.neighbors, published.site.neighbors)
         assert.deepEqual(saved.buildings, published.buildings)
-        assert.equal(saved.landscape.plants.length, 6)
+        assert.deepEqual(saved.landscape.plants, published.landscape.plants)
         const box = await toggle.boundingBox()
         assert.ok(box.width >= 44 && box.height >= 44 && box.x >= 0 && box.x + box.width <= viewport.width)
         await page.waitForTimeout(4000)

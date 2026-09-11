@@ -45,11 +45,11 @@ test('tools remain usable while loading and reports use asynchronous readback', 
   const reportStarted = Date.now()
   await page.getByRole('button', { name: 'Architectural set', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Architectural structure report' })).toBeVisible({ timeout: 30_000 })
-  await expect(page.locator('.report-panel .thumbs img')).toHaveCount(10)
+  await expect(page.locator('.report-panel .thumbs img')).toHaveCount(11)
   await expect.poll(() => page.locator('.report-panel .thumbs img').evaluateAll(images => images.every(image => (image as HTMLImageElement).naturalWidth === 960))).toBe(true)
   const metrics = await page.evaluate(() => (window as any).__webglQa)
   expect(metrics.syncReads).toBe(0)
-  expect(metrics.asyncReads).toBe(10)
+  expect(metrics.asyncReads).toBe(11)
   expect(metrics.invalidTextures).toBe(0)
   await testInfo.attach('webgl-metrics', { body: JSON.stringify({ startupClickMs, reportMs: Date.now() - reportStarted, ...metrics }, null, 2), contentType: 'application/json' })
   await page.getByRole('button', { name: 'Close report', exact: true }).click()
@@ -60,7 +60,7 @@ test('tools remain usable while loading and reports use asynchronous readback', 
   await expect(page.getByRole('region', { name: 'Architectural structure report' })).toHaveCount(0)
   await page.getByRole('button', { name: 'Architectural set', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Architectural structure report' })).toBeVisible({ timeout: 30_000 })
-  await expect.poll(() => page.locator('.report-panel .thumbs img').evaluateAll(images => images.length === 10 && images.every(image => (image as HTMLImageElement).naturalWidth === 960))).toBe(true)
+  await expect.poll(() => page.locator('.report-panel .thumbs img').evaluateAll(images => images.length === 11 && images.every(image => (image as HTMLImageElement).naturalWidth === 960))).toBe(true)
   const drawingColors = await page.locator('.report-panel .thumbs img').evaluateAll(images => images.map(element => {
     const image = element as HTMLImageElement
     const canvas = document.createElement('canvas')

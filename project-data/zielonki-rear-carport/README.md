@@ -1,5 +1,9 @@
 # Z garażem za domem przy sąsiadach
 
+## Revision 89 — mapped trees and field outbuilding
+
+On 11 September 2026 the user requested the mapped trees and distant agricultural-side building in every design. All 17 survey trees are present, and the existing front-carport r67 outbuilding is copied with its terrace, access, fixtures and furniture at (-9, 54.8) m / 90°. Its agricultural-land concept status is retained. The rear house/carport layout and other deletions remain unchanged. `before-site-restoration-r88.json` preserves the preceding publication; `initial-r49.json` remains immutable. Main slopes remain 44° / 37.8710376967° at a shared 7.7856938754 m ridge, with the junction recognized. The copied outbuilding has symmetric 37° slopes at a 6.2490506628 m ridge. See [capture, merge and verification](../zielonki/README.md#2026-09-11--restore-the-emailed-map-trees-and-share-the-field-outbuilding).
+
 Current tracked revision: **r88**, with restored common roof ridges, narrower U-shaped stairs and a partition enclosure beside the kitchen. Last deployed code remains **e34fc160** (rear project r50); the changes below are local and have not been committed or deployed.
 
 ## Revision 88 — joined roof ridges, 11 September 2026

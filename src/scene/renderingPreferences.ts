@@ -4,7 +4,7 @@ export type RenderQuality = 'auto' | 'fast' | 'detailed'
 
 const savedQuality = (): RenderQuality => {
   try {
-    const value = sessionStorage.getItem('render-quality')
+    const value = localStorage.getItem('render-quality') ?? sessionStorage.getItem('render-quality')
     return value === 'fast' || value === 'detailed' ? value : 'auto'
   } catch { return 'auto' }
 }
@@ -19,11 +19,14 @@ export const useRenderingPreferences = create<{
   quality: savedQuality(),
   software: null,
   setQuality: quality => {
-    try { sessionStorage.setItem('render-quality', quality) } catch { /* Session-only preference. */ }
+    try {
+      localStorage.setItem('render-quality', quality)
+      sessionStorage.setItem('render-quality', quality)
+    } catch { /* Storage may be unavailable in a private browser. */ }
     set({ quality })
   },
   setSoftware: software => set({ software }),
 }))
 
 export const useRenderQuality = () => useRenderingPreferences(state =>
-  state.quality === 'auto' ? (state.software === false ? 'balanced' : 'fast') : state.quality)
+  state.quality === 'auto' ? (state.software === false ? 'detailed' : 'fast') : state.quality)

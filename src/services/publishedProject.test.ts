@@ -9,6 +9,7 @@ import { listWorkspaces, loadWorkspace, saveWorkspace, synchronizePublishedProje
 import { useStudioStore } from '../state/store'
 import type { ProjectV2 } from '../domain/types'
 import previousNeighbors from '../../project-data/zielonki/published-base-r45.json'
+import beforeRestoration from '../../project-data/zielonki/before-site-restoration-r49.json'
 
 const envelope = (project: ProjectV2) => ({ version: 1 as const, project, proposals: [], draftChangeSets: [] })
 beforeEach(() => { globalThis.indexedDB = new IDBFactory() })
@@ -24,21 +25,22 @@ it('migrates the cadastral neighbor correction and preserves a deleted tree acro
   const migrated = (await loadWorkspace(previous.ref))!.project
   expect(migrated.site.neighbors!.at(-1)!.footprint).toEqual(publishedProject.site.neighbors!.at(-1)!.footprint)
   expect(migrated.site.neighbors!.at(-1)!.ridgeHeightM).toBe(8)
-  expect(migrated.landscape.plants).toHaveLength(5)
+  expect(migrated.landscape.plants).toHaveLength(publishedProject.landscape.plants.length - 1)
   await saveWorkspace(envelope(migrated))
   expect((await loadWorkspace(previous.ref))!.project).toEqual(migrated)
   expect((await listWorkspaces()).some((w) => w.ref.includes(`/before-published-${publishedProject.revision}-`))).toBe(true)
 })
 
-it('publishes the recovered geometry, six surviving plants and the adjusted roof', () => {
+it('publishes the recovered geometry, restored survey inventory and the adjusted roof', () => {
   expect(parseProject(publishedProject)).toEqual(publishedProject)
   expect(validateProject(publishedProject).filter((issue) => issue.severity === 'error')).toEqual([])
-  expect(publishedProject.revision).toBe(49)
+  expect(publishedProject.revision).toBe(50)
   expect(publishedProject.name).toBe('Dom duży taras')
   expect(publishedProject.landscape.zones.some((zone) => ['zone/lawn', 'zone/rain-garden'].includes(zone.ref))).toBe(false)
-  expect(publishedProject.landscape.plants.map((plant) => plant.ref)).toEqual([
+  expect(publishedProject.landscape.plants).toHaveLength(17)
+  expect(publishedProject.landscape.plants.map((plant) => plant.ref)).toEqual(expect.arrayContaining([
     'plant/survey-5012', 'plant/survey-5015', 'plant/survey-5018', 'plant/survey-501b', 'plant/apple', 'plant/orchard-plum',
-  ])
+  ]))
   expect(publishedProject.buildings[0].roof.pitchDegrees).toBeCloseTo(40.13423424862029)
 })
 
@@ -60,7 +62,7 @@ it('merges deletions into old browser data with a backup and preserves independe
   await saveWorkspace(envelope(local))
   expect(await synchronizePublishedProject(publishedProject, legacyProjectBase)).toEqual([])
   const result = (await loadWorkspace(local.ref))!.project
-  expect(result.landscape.plants).toHaveLength(6)
+  expect(result.landscape.plants).toHaveLength(publishedProject.landscape.plants.length)
   expect(result.landscape.plants.find((plant) => plant.ref === 'plant/apple')!.matureHeightM).toBe(12)
   expect(result.buildings[0].name).toBe('My house name')
   expect(result.buildings[0].roof.pitchDegrees).toBe(publishedProject.buildings[0].roof.pitchDegrees)
@@ -79,11 +81,13 @@ it('retains newer local deletions across subsequent published changes and does n
   incoming.name += ' updated'
   incoming.revision++
   expect(await synchronizePublishedProject(incoming, legacyProjectBase)).toEqual([])
-  expect((await loadWorkspace(local.ref))!.project.landscape.plants).toHaveLength(5)
+  expect((await loadWorkspace(local.ref))!.project.landscape.plants).toHaveLength(publishedProject.landscape.plants.length - 1)
   expect((await loadWorkspace(local.ref))!.project.name).toBe(incoming.name)
 })
 
 it('preserves both whole projects on edit/delete and same-field conflicts, including edited published copies', async () => {
+  // Historical release deleted this tree; retain that actual edit/delete regression.
+  const publishedProject = parseProject(beforeRestoration)
   const local = structuredClone(legacyProjectBase)
   local.landscape.plants.find((plant) => plant.ref === 'plant/survey-5024')!.matureHeightM = 10
   local.buildings[0].roof.pitchDegrees = 39

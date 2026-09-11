@@ -14,7 +14,7 @@ export default memo(function PlotCanvas() {
     shadows={quality !== 'fast'}
     dpr={quality === 'detailed' ? [1, 2] : 1}
     camera={{ position: [29, 23, 32], fov: 38, near: 0.1, far: 1200 }}
-    gl={{ antialias: false, alpha: false, preserveDrawingBuffer: false, powerPreference: 'high-performance' }}
+    gl={{ antialias: true, alpha: false, preserveDrawingBuffer: false, powerPreference: 'high-performance' }}
     onCreated={({ gl }) => {
       gl.outputColorSpace = SRGBColorSpace
       gl.toneMapping = ACESFilmicToneMapping

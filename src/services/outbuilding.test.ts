@@ -19,7 +19,7 @@ it('adds a complete outbuilding by the field entrance while preserving the exist
   expect(beforeShortHall.buildings.slice(0, 2)).toEqual(baseline.buildings)
   expect(project.buildings[1]).toEqual(baseline.buildings[1])
   expect(project.site).toEqual(baseline.site)
-  expect(project.landscape.plants).toEqual(baseline.landscape.plants)
+  for (const plant of baseline.landscape.plants) expect(project.landscape.plants).toContainEqual(plant)
   expect(project.landscape.fixtures.slice(0, baseline.landscape.fixtures.length)).toEqual(baseline.landscape.fixtures)
   const building = project.buildings.find(b => b.ref === 'building/garden-outbuilding')!
   expect(buildingFootprintsWorld(building).flat().every(p => pointInPolygon(p, project.site.boundary))).toBe(true)

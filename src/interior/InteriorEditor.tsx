@@ -423,7 +423,7 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
             frameloop="demand"
             shadows={quality !== 'fast'}
             dpr={quality === 'detailed' ? [1, compact ? 1.5 : 2] : 1}
-            gl={{ antialias: false, preserveDrawingBuffer: false }}
+            gl={{ antialias: true, preserveDrawingBuffer: false }}
             onCreated={({ gl, get }) => {
               captureScene.current = () => {
                 const state = get()
@@ -547,6 +547,18 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
                 <Redo2 size={18} />
               </button>
             </header>
+            <nav className="interior-floor-switcher" aria-label="House levels">
+              <span>Floor</span>
+              {building.storeys.map((floor) => (
+                <button
+                  key={floor.ref}
+                  aria-pressed={floor.ref === storey.ref}
+                  onClick={() => { clearTool(); setStoreyRef(floor.ref) }}
+                >
+                  {floor.name}
+                </button>
+              ))}
+            </nav>
             <nav className="interior-action-bar" aria-label="Interior actions">
               {ghost ? (
                 <>

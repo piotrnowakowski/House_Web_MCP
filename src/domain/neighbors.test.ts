@@ -1,6 +1,6 @@
 import beforeBrowserCapture from '../../project-data/zielonki/before-browser-capture-r46.json'
 import { describe, expect, it } from 'vitest'
-import { publishedProject } from '../services/publishedProject'
+import publishedData from '../../project-data/zielonki/before-site-restoration-r49.json'
 import previousData from '../../project-data/zielonki/published-base-r44.json'
 import neighborBaseline from '../../project-data/zielonki/published-base-r45.json'
 import distanceEvidence from '../../knowledge-bank/zielonki/neighbor-distance-evidence.json'
@@ -13,6 +13,8 @@ import { parseProject } from './schema'
 import { mergeProjects } from './projectMerge'
 import { polygonArea, pointInPolygon } from './geometry'
 import type { NeighborBuilding } from './types'
+
+const publishedProject = parseProject(publishedData)
 
 const cube: NeighborBuilding = { ref: 'neighbor/test', name: 'Test', footprint: [{ x: -2, z: -2 }, { x: 2, z: -2 }, { x: 2, z: 2 }, { x: -2, z: 2 }], groundElevationM: 0, eavesHeightM: 3, ridgeHeightM: 5, ridgeDirectionDegrees: 0, roofType: 'gable', footprintSource: 'test', footprintConfidence: 'map-derived', heightConfidence: 'estimated', sourceDate: '2026-09-10' }
 

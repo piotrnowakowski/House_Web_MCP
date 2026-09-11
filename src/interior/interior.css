@@ -14,6 +14,9 @@
 .interior-stage.is-placing { cursor:crosshair; }
 .interior-header { position:absolute; top:max(12px,env(safe-area-inset-top)); left:max(16px,env(safe-area-inset-left)); right:max(16px,env(safe-area-inset-right)); height:52px; display:flex; align-items:center; gap:8px; pointer-events:none; }
 .interior-header > * { pointer-events:auto; }
+.interior-floor-switcher { position:absolute; top:calc(max(12px,env(safe-area-inset-top)) + 58px); left:max(16px,env(safe-area-inset-left)); max-width:calc(100% - 32px); display:flex; align-items:center; gap:4px; padding:4px; border:1px solid #d7ded3; border-radius:11px; background:#fcfbf7; overflow-x:auto; }
+.interior-floor-switcher > span { padding:0 8px; font-size:12px; color:#69796b; }
+.interior-floor-switcher button { flex-shrink:0; white-space:nowrap; }
 .interior-title { display:flex; flex-direction:column; gap:3px; padding:0 14px; margin-right:auto; }
 .interior-title strong { font-size:17px; font-weight:600; }
 .interior-title small { color:#69796b; font-size:11px; }
@@ -93,6 +96,7 @@
  .interior-title strong { font-size:12px; white-space:nowrap; }
  .interior-title small { max-width:95px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; }
  .interior-header button { padding:7px; }
+ .interior-floor-switcher { top:calc(env(safe-area-inset-top,0px) + 58px); left:max(6px,env(safe-area-inset-left)); max-width:calc(100% - 12px); }
  .interior-segment { padding:0; border-radius:9px; }
  .interior-segment button { min-height:44px; padding:5px 9px; }
  .interior-action-bar { bottom:env(safe-area-inset-bottom,0px); left:max(6px,env(safe-area-inset-left)); right:max(6px,env(safe-area-inset-right)); transform:none; height:60px; padding:3px; gap:0; border-radius:12px 12px 0 0; }

@@ -57,7 +57,7 @@ it('validates room connections, openings, furnishings, canopy and roof constrain
   expect(house.roof.segments.filter(s => s.canopy?.slats)).toHaveLength(1)
   const roomArea = house.spaces.filter(s => s.baseSlabRef === 'slab/reference-ground').map(s => spaceFootprint(house, s))
   expect(roomArea).toHaveLength(4)
-  expect(project.landscape.plants).toEqual(source.landscape.plants.filter(p => p.ref === 'plant/orchard-plum'))
+  expect(project.landscape.plants).toContainEqual(source.landscape.plants.find(p => p.ref === 'plant/orchard-plum'))
   expect(source.landscape.plants).toHaveLength(6)
   expect(project.site.neighbors).toEqual(publishedProject.site.neighbors)
 })
@@ -136,7 +136,7 @@ it('rotates the complete existing v2 by 180 degrees without changing rooms, roof
     const { position: oldPosition, rotationDegrees: oldRotation, name: oldName, interiorSource: oldSource, ...oldGeometry } = previous
     expect(geometry).toEqual(oldGeometry)
   }
-  expect(data.landscape.plants).toEqual(beforeRotation.landscape.plants)
+  expect(beforeTrim.landscape.plants).toEqual(beforeRotation.landscape.plants)
   expect(data.site.neighbors).toEqual(beforeRotation.site.neighbors)
   expect(data.site.northDegrees).toBe(beforeRotation.site.northDegrees)
 })
@@ -189,7 +189,7 @@ it('upgrades the actual existing v2 identity, preserving independent edits and t
   expect(updated.buildings[0].spaces.find(s => s.ref === 'space/reference-parents')!.name).toBe('Our bedroom')
   expect(updated.buildings[0].roof.segments.filter(s => s.canopy?.slats)).toEqual(data.buildings[0].roof.segments.filter(s => 'canopy' in s))
   expect(updated.buildings[1].furniture).toHaveLength(2)
-  expect(updated.landscape.plants).toHaveLength(1)
+  expect(updated.landscape.plants).toEqual(data.landscape.plants)
   expect((await listWorkspaces()).some(w => w.ref === 'project/zielonki-south-carport')).toBe(false)
   await useStudioStore.getState().openWorkspace(CARPORT_STUDY_REF)
   expect(useStudioStore.getState().project).toEqual(updated)

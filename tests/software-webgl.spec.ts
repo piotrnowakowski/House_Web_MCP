@@ -36,6 +36,7 @@ test('automatic quality uses the fast path and tools remain responsive', async (
   await page.getByRole('button', { name: 'Play day', exact: true }).click()
   await page.getByRole('button', { name: 'Architectural set', exact: true }).click({ timeout: 5000 })
   await expect(page.getByRole('region', { name: 'Architectural structure report' })).toBeVisible({ timeout: 30_000 })
-  await expect.poll(() => page.locator('.report-panel .thumbs img').evaluateAll(images => images.length === 10 && images.every(image => (image as HTMLImageElement).naturalWidth === 960))).toBe(true)
+  // The shared outbuilding contributes its own floor plan.
+  await expect.poll(() => page.locator('.report-panel .thumbs img').evaluateAll(images => images.length === 11 && images.every(image => (image as HTMLImageElement).naturalWidth === 960))).toBe(true)
   expect(errors).toEqual([])
 })

@@ -48,15 +48,15 @@ The existing unit tests cover project persistence, deletion preservation, migrat
 
 Both local and Mikrus builds use the same client-side rendering policy. WebGL runs on the browser's GPU (or its software renderer); the static VPS does not render the house. Test release performance with `npm run build` and `npm run preview -- --port 5189 --strictPort`, not Vite's development server, whose module loading and hot reload add overhead.
 
-The **View quality** selector (inside **More** on compact screens) is a session preference, independent of saved project data:
+The **View quality** selector (inside **More** on compact screens) is a browser preference, independent of saved project data. Explicit choices persist across reloads and browser sessions:
 
 | Mode | Rendering cost |
 | --- | --- |
-| Automatic, hardware detected | DPR 1, 1024px shadows, diffuse textures, procedural vegetation, 90,000 grass candidates in a worker |
+| Automatic, hardware detected | Same appearance as Detailed: DPR up to 2, 2048px shadows, full texture maps, scanned trees and 360,000 grass candidates in a worker |
 | Automatic, software detected / Fast | DPR 1, no shadow maps or grass blades, flat finishes and procedural model fallbacks |
 | Detailed | DPR up to 2 (1.5 on compact interiors), 2048px shadows, full texture maps and scanned vegetation, 360,000 grass candidates in a worker |
 
-Automatic starts conservatively each time a canvas is created, including when returning from the interior, until the new renderer is detected. If a browser conceals its GPU identity or a weak hardware GPU remains slow, select Fast manually. Detailed prioritizes appearance and is not a software-renderer performance guarantee. All modes keep transparent glass but omit physical refraction passes; this avoids the framebuffer/texture feedback loop reproduced during this audit. Antialiasing and preserved drawing buffers are disabled. PNG export explicitly renders immediately before capture.
+Automatic starts conservatively each time a canvas is created, including when returning from the interior, until the new renderer is detected. Hardware rendering then uses the detailed appearance; software rendering stays Fast. If a browser conceals its GPU identity or a weak hardware GPU remains slow, select Fast manually. Detailed prioritizes appearance and is not a software-renderer performance guarantee. All modes keep transparent glass but omit physical refraction passes; this avoids the framebuffer/texture feedback loop reproduced during this audit. Canvas antialiasing is enabled; preserved drawing buffers remain disabled. PNG export explicitly renders immediately before capture.
 
 Grass geometry is generated off the UI thread, cached for three placement configurations, and cancelled when superseded. Changing finishes or furniture does not rebuild it. Optional models have local loading fallbacks. Plot texture loading no longer eagerly initializes every texture through Drei. Both editors still render only when invalidated, including controls, edits and sun playback.
 

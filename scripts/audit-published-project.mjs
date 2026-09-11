@@ -97,11 +97,11 @@ async function main() {
           await expect(page.getByRole('alert')).toContainText('conflicting changes')
           const saved = await records(page)
           assert.equal(saved.find((w) => w.project.ref === published.ref).project.buildings[0].roof.pitchDegrees, 39)
-          assert.equal(saved.find((w) => w.project.ref.includes('/published-')).project.landscape.plants.length, 6)
+          assert.equal(saved.find((w) => w.project.ref.includes('/published-')).project.landscape.plants.length, published.landscape.plants.length)
         } else {
           await open.click()
           await expect(page.getByRole('button', { name: 'House interior', exact: true })).toBeVisible()
-          await expect.poll(async () => (await records(page)).find((w) => w.project.ref === published.ref)?.project.landscape.plants.length).toBe(6)
+          await expect.poll(async () => (await records(page)).find((w) => w.project.ref === published.ref)?.project.landscape.plants.length).toBe(published.landscape.plants.length)
           const saved = (await records(page)).find((w) => w.project.ref === published.ref)
           assert.deepEqual(saved.project.landscape.plants, published.landscape.plants)
           assert.equal(saved.project.site.northDegrees, published.site.northDegrees)
@@ -114,7 +114,7 @@ async function main() {
           await expect(open).toBeEnabled({ timeout: 30000 })
           await open.click()
           await expect(page.getByRole('button', { name: 'House interior', exact: true })).toBeVisible()
-          assert.equal((await records(page)).find((w) => w.project.ref === published.ref).project.landscape.plants.length, 6)
+          assert.equal((await records(page)).find((w) => w.project.ref === published.ref).project.landscape.plants.length, published.landscape.plants.length)
           // Wait for the suspended 3D scene to draw, rather than capturing its initial black buffer.
           await page.waitForFunction(() => new Promise((resolve) => requestAnimationFrame(() => {
             const canvas = document.querySelector('canvas')

@@ -85,6 +85,6 @@ describe('bedroom glazing above the garage', () => {
     expect(parseProject(project).buildings[0].roof.segments).toEqual(building.roof.segments)
     wall.openings = wall.openings.filter((opening) => opening.ref !== ref)
     expect(gableGlazingProfile(roof, 'max', building)!.panels).toHaveLength(1)
-    expect(project.landscape.plants).toHaveLength(6)
+    expect(project.landscape.plants).toEqual(publishedData.landscape.plants)
   })
 })
