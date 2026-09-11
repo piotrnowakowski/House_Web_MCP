@@ -71,7 +71,7 @@ $env:APP_URL = 'https://natan203-20203.mikrus.cloud'
 npx playwright test tests/rendering-performance.spec.ts tests/webgl-resilience.spec.ts tests/software-webgl.spec.ts --workers=1 --output=tmp/webgl-production-tests
 ```
 
-The software test deliberately enables SwiftShader only in its isolated trusted QA browser. This flag is not required or recommended for normal users or the VPS. Tests cover MCP search, length/area/sun controls, all ten report images, asynchronous readback, texture-unit bounds, Detailed cancellation, unavailable/lost context, nonblank interior PNG and idle rendering. The original QA `activeTexture INVALID_ENUM` was not reproduced on the inspected Intel Arc hardware; absence in these tests cannot establish compatibility with every driver.
+The software test deliberately enables SwiftShader only in its isolated trusted QA browser. This flag is not required or recommended for normal users or the VPS. Tests cover MCP search, length/area/sun controls, all report images (eleven for the large-terrace house with the field outbuilding), asynchronous readback, texture-unit bounds, Detailed cancellation, unavailable/lost context, nonblank interior PNG and idle rendering. The original QA `activeTexture INVALID_ENUM` was not reproduced on the inspected Intel Arc hardware; absence in these tests cannot establish compatibility with every driver.
 
 See [Mikrus configuration](mikrus-deployment.md) for origin compression, strict missing-asset responses and versioned caching. Build warnings about the large entry bundle remain a startup optimization opportunity; lowering the warning threshold or adding server GPU resources would not fix browser rendering stalls.
 
