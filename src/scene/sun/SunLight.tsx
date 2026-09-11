@@ -2,9 +2,11 @@ import { useEffect, useMemo, useRef } from 'react'
 import { DirectionalLight, Object3D, Vector3 } from 'three'
 import { useStudioStore } from '../../state/store'
 import { SHADOW_MARGIN_M, SUN_DISTANCE_M, shadowFocusBounds, sunColorFor, sunStateFor } from './sunState'
+import { useRenderQuality } from '../renderingPreferences'
 
 /** One directional light that always follows the real sun for the site and the viewer's date and time. */
 export function SunLight() {
+  const quality = useRenderQuality()
   const project = useStudioStore((state) => state.project)
   const neighborsVisible = useStudioStore((state) => state.neighborsVisible)
   const sunTime = useStudioStore((state) => state.sunTime)
@@ -25,10 +27,10 @@ export function SunLight() {
     current.shadow.camera.left = -radius; current.shadow.camera.right = radius; current.shadow.camera.top = radius; current.shadow.camera.bottom = -radius
     current.shadow.camera.near = 1; current.shadow.camera.far = SUN_DISTANCE_M + radius * 2
     current.shadow.camera.updateProjectionMatrix()
-  }, [centre, radius, target])
+  }, [centre, radius, target, quality])
   return <>
     <ambientLight intensity={0.32 + 0.5 * daylight} color={sun.altitudeDeg <= 0 ? '#5d6c86' : '#dfe8ff'} />
     <primitive object={target} />
-    <directionalLight ref={light} position={position} intensity={intensity} color={sunColorFor(sun.altitudeDeg)} castShadow shadow-bias={-0.0002} shadow-normalBias={0.04} shadow-mapSize={[2048, 2048]} userData={{ sunLight: true }} />
+    <directionalLight key={quality} ref={light} position={position} intensity={intensity} color={sunColorFor(sun.altitudeDeg)} castShadow={quality !== 'fast'} shadow-bias={-0.0002} shadow-normalBias={0.04} shadow-mapSize={quality === 'detailed' ? [2048, 2048] : [1024, 1024]} userData={{ sunLight: true }} />
   </>
 }

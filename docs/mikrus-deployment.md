@@ -5,8 +5,27 @@ It includes the merged `codex/ikea-interior-mobile` editor and all 64 catalogue 
 Interior IDs use cryptographic UUID v4 generation on both HTTP and HTTPS. The browser regression fixture also exercises the HTTP case where `crypto.randomUUID` is absent.
 The plot now includes [precise editing and measurement controls](precision-editing.md). Run `node scripts/audit-precision-editor.mjs --url <preview-or-public-url>` to verify the desktop/mobile editing and reload flows in isolated profiles.
 House interior also supports immediate mouse/touch dragging of partitions, openings and furniture. Before release, run the direct-manipulation and interior browser tests documented in that guide; the scene uses native pointer capture to suspend camera gestures during object edits.
-The deployed house is [Mikrus on port 20203](http://natan203.mikrus.xyz:20203/).
+The deployed house is [Mikrus over HTTPS](https://natan203-20203.mikrus.cloud/).
+The original [HTTP address on port 20203](http://natan203.mikrus.xyz:20203/) remains available for existing browser workspaces.
 GitHub Pages/main remains the separately restored competition submission; deploying this branch does not change it.
+
+## HTTPS
+
+Mikrus's [automatic subdomain proxy](https://wiki.mikr.us/darmowa_subdomena_dla_vps/) provides HTTPS and certificate renewal for `natan203-20203.mikrus.cloud`. It reaches the application's HTTP port over IPv6. Preserve both published bindings in the server-side Compose configuration:
+
+```yaml
+ports:
+  - "0.0.0.0:20203:8080"
+  - "[::]:20203:8080"
+```
+
+Do not install a certificate in the application container or redirect every backend HTTP request to HTTPS: the provider proxy uses HTTP to reach the origin. TLS terminates at the provider; the proxy-to-application connection is HTTP. The deployment script preserves these bindings when updating the existing Compose file.
+
+HTTP and HTTPS are separate browser storage origins. Existing local edits and history do not automatically transfer between them. Keep the original address available for recovery/export; new HTTPS workspaces receive the published projects. Capture and compare actual browser data before a future redirect or storage migration.
+
+HTTPS was enabled on 11 September 2026 without changing application code `8d334e5b8a9db11931a3902df2f6738f791f136f` or canonical project revisions (original r49, front r67, rear r88). The server rollback file is `/root/house-web-mcp/furnished-zielonki/deploy/mikrus/compose.yaml.before-https-20260911T104126Z`. Restoring it with the rollback command below removes the IPv6 binding and disables this HTTPS proxy route.
+
+Validation passed: browser certificate trust and secure context, identical HTTP/HTTPS application HTML, healthy unchanged code revision, and `audit-house-studies.mjs` at 1440×1000, 360×640, 390×844 and 844×390. The audit covers all three projects, reload, fresh storage and migration preserving independent names and tree deletions. Evidence is in ignored `tmp/https-20260911-1243/`.
 
 ## Build and verify
 
@@ -65,3 +84,15 @@ Check the house contents (initial recovery: r40, six plants, six garden fixtures
 as well as `/health`; a deployed code SHA alone is not evidence that the intended project was published.
 
 The September 11 release includes the enclosed U-shaped stairs in the rear-carport design and aligned main-roof ridges in both compact designs. Their slopes are 44° and approximately 37.871038°, with eaves at 4.85 m; the original large-terrace design remains r49. Roof regression tests verify the shared ridge and absence of an internal roof sheet.
+
+## WebGL release delivery — 2026-09-11
+
+The renderer configuration is shared between local and production builds; see [rendering modes and reproducible browser checks](rendering-performance.md). Use Vite dev on 5173 for editing and a production preview on 5189 for comparable measurements. Mikrus runs only the built static files; no GPU, X server or Chromium process is needed there.
+
+`deploy/mikrus/nginx.conf` and `deploy/mikrus/Dockerfile` are now tracked deployment inputs. The publisher validates Nginx in its isolated candidate container, precompresses JS/CSS/JSON/WASM/SVG, and retains the immediately preceding build's named asset chunks so an already-open tab can finish loading deferred editors. It preserves the existing resource limits and IPv4/IPv6 bindings.
+
+Hashed `/assets/` files use immutable caching. Model and texture URLs receive a 16-hex content version computed by Vite from the asset directories; only successful versioned responses receive immutable caching. Unversioned model/texture URLs revalidate. Missing assets return 404 with `no-store`, not the SPA HTML. Root HTML and `/health` are never cached. Origin gzip also benefits the direct HTTP address; the provider HTTPS proxy may use Brotli. Rebuilding after asset changes updates the version automatically.
+
+Before publishing, `node scripts/capture-browser-workspaces.mjs --source-profile <actual-profile-directory> --output tmp/<new-capture-directory>` copies known house IndexedDB stores into an ignored recovery directory, verifies source-file stability, and reads the copy without running app migrations. Capture each actual profile independently and compare extracted projects by reference against their own published baseline. A capture is not permission to overwrite a browser working copy.
+
+Disk maintenance during this audit removed 19 redundant upload archives only after verifying every archived file byte against its extracted release. All extracted releases, Docker images, and current/previous upload archives were retained. It reclaimed 827,355,882 bytes; root usage fell from 95% to 93% (about 3 GB free). The remote deletion ledger is `deploy/mikrus/archive-cleanup-20260911.json`. Remaining host-wide disk use is outside this app's release cleanup; do not globally prune other services.

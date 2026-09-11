@@ -15,6 +15,9 @@ test('editors load on demand, stop drawing when idle, and wake for navigation', 
   test.setTimeout(180_000)
   const errors: string[] = []
   page.on('pageerror', error => errors.push(error.message))
+  page.on('console', message => {
+    if (message.type() === 'error' || (message.type() === 'warning' && /WebGL|texture unit|GPU stall/i.test(message.text()))) errors.push(message.text())
+  })
   const sceneRequests: string[] = []
   page.on('request', request => {
     if (/\/(textures|models)\//.test(request.url())) sceneRequests.push(request.url())

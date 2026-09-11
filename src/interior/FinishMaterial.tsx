@@ -1,3 +1,5 @@
+import { useRenderQuality } from '../scene/renderingPreferences'
+import { staticAssetUrl } from '../services/staticAssets'
 import { useTexture } from '@react-three/drei'
 import { Component, Suspense, useEffect, useMemo, type ReactNode } from 'react'
 import { DoubleSide, RepeatWrapping, SRGBColorSpace } from 'three'
@@ -32,8 +34,9 @@ function MappedFinish({ finish, url, roughness }: { finish: InteriorFinish; url:
 }
 
 export function FinishMaterial({ finish }: { finish?: InteriorFinish }) {
+  const quality = useRenderQuality()
   const preset = interiorFinishes.find((item) => item.id === finish?.presetId)
-  if (!finish || !preset?.texture)
+  if (!finish || !preset?.texture || quality === 'fast')
     return (
       <meshStandardMaterial
         color={finish?.color ?? '#eeeae3'}
@@ -48,7 +51,7 @@ export function FinishMaterial({ finish }: { finish?: InteriorFinish }) {
   return (
     <FinishBoundary key={path} color={finish.color}>
       <Suspense fallback={<meshStandardMaterial color={finish.color} side={DoubleSide} />}>
-        <MappedFinish finish={finish} roughness={preset.roughness} url={`${import.meta.env.BASE_URL}${path}`} />
+        <MappedFinish finish={finish} roughness={preset.roughness} url={staticAssetUrl(path)} />
       </Suspense>
     </FinishBoundary>
   )

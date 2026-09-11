@@ -28,7 +28,7 @@ export function RoofTerrace({ building, segment, selected, ghost }: { building: 
         </mesh>)}
         {Array.from({ length: panels }, (_, i) => <mesh key={`glass-${i}`} position={[-length / 2 + (i + 0.5) * panelWidth, height / 2 + 0.025, 0]}>
           <boxGeometry args={[panelWidth - 0.045, height - 0.15, 0.016]} />
-          <meshPhysicalMaterial color="#343e42" transparent opacity={ghost ? 0.18 : 0.5} transmission={0.45} roughness={0.08} metalness={0.05} side={DoubleSide} depthWrite={false} />
+          <meshStandardMaterial color="#343e42" transparent opacity={ghost ? 0.18 : 0.5} roughness={0.08} metalness={0.05} side={DoubleSide} depthWrite={false} />
         </mesh>)}
       </group>
     })}

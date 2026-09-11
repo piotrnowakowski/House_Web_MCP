@@ -1,3 +1,6 @@
+import { RendererLifecycle, ViewportBoundary } from '../scene/ViewportBoundary'
+import { useRenderQuality } from '../scene/renderingPreferences'
+import { RenderingControls } from '../scene/RenderingControls'
 import { isEnvelopeWall } from '../domain/interiorLayout'
 import { randomId } from '../domain/randomId'
 import { Canvas } from '@react-three/fiber'
@@ -51,6 +54,8 @@ import './interior.css'
 type Panel = 'catalog' | 'edit' | 'more' | 'review' | null
 
 export function InteriorEditor({ onBack, approval }: { onBack: () => void; approval: ReactNode }) {
+  const quality = useRenderQuality()
+  const captureScene = useRef<(() => Promise<Blob | null>) | null>(null)
   const project = useStudioStore((s) => s.project)
   const toast = useStudioStore((s) => s.toast)
   const history = useStudioStore((s) => s.history)
@@ -414,12 +419,18 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
         aria-label="House interior editor"
       >
         <section className={`interior-stage ${ghost ? 'is-placing' : ''}`} aria-label="Interior floor view">
-          <Canvas
+          <ViewportBoundary><Canvas
             frameloop="demand"
-            shadows
-            dpr={[1, compact ? 1.5 : 2]}
-            gl={{ antialias: true, preserveDrawingBuffer: true }}
-            onCreated={({ gl }) => {
+            shadows={quality !== 'fast'}
+            dpr={quality === 'detailed' ? [1, compact ? 1.5 : 2] : 1}
+            gl={{ antialias: false, preserveDrawingBuffer: false }}
+            onCreated={({ gl, get }) => {
+              captureScene.current = () => {
+                const state = get()
+                if (state.gl.getContext().isContextLost()) return Promise.resolve(null)
+                state.gl.render(state.scene, state.camera)
+                return new Promise(resolve => state.gl.domElement.toBlob(resolve, 'image/png'))
+              }
               gl.toneMapping = ACESFilmicToneMapping
               gl.toneMappingExposure = 1
               gl.shadowMap.type = PCFSoftShadowMap
@@ -428,7 +439,7 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
               gl.domElement.tabIndex = 0
             }}
           >
-            <Suspense fallback={null}>
+            <RendererLifecycle /><Suspense fallback={null}>
               <InteriorScene
                 projectRef={project.ref}
                 key={`${building.ref}/${storey.ref}`}
@@ -476,7 +487,7 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
                 }
               />
             </Suspense>
-          </Canvas>
+          </Canvas></ViewportBoundary>
         </section>
         {hidden ? (
           <button className="interior-restore" onClick={() => setHidden(false)}>
@@ -929,13 +940,15 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
                     >
                       Export project JSON
                     </button>
+                    <RenderingControls />
                     <button onClick={() => importInput.current?.click()}>Import project JSON</button>
                     <button
-                      onClick={() => {
-                        const canvas = root.current?.querySelector('canvas')
-                        canvas?.toBlob((blob) => {
-                          if (blob) downloadInteriorFile('interior-scene.png', blob, 'image/png')
-                        })
+                      onClick={async () => {
+                        try {
+                          const blob = await captureScene.current?.()
+                          if (!blob) throw new Error('The 3D view is not ready. Retry the view before exporting.')
+                          downloadInteriorFile('interior-scene.png', blob, 'image/png')
+                        } catch (error) { tell(String(error), true) }
                       }}
                     >
                       Export scene PNG

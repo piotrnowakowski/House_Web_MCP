@@ -3,15 +3,18 @@ import { memo, Suspense } from 'react'
 import { ACESFilmicToneMapping, PCFSoftShadowMap, SRGBColorSpace } from 'three'
 import { StudioScene } from './StudioScene'
 import { useStudioStore } from '../state/store'
+import { useRenderQuality } from './renderingPreferences'
+import { RendererLifecycle, ViewportBoundary } from './ViewportBoundary'
 
 export default memo(function PlotCanvas() {
-  return <Canvas
+  const quality = useRenderQuality()
+  return <ViewportBoundary><Canvas
     events={state => ({ ...events(state), filter: hits => useStudioStore.getState().transparencyMode ? [] : hits })}
     frameloop="demand"
-    shadows
-    dpr={[1, 2]}
+    shadows={quality !== 'fast'}
+    dpr={quality === 'detailed' ? [1, 2] : 1}
     camera={{ position: [29, 23, 32], fov: 38, near: 0.1, far: 1200 }}
-    gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' }}
+    gl={{ antialias: false, alpha: false, preserveDrawingBuffer: false, powerPreference: 'high-performance' }}
     onCreated={({ gl }) => {
       gl.outputColorSpace = SRGBColorSpace
       gl.toneMapping = ACESFilmicToneMapping
@@ -21,5 +24,5 @@ export default memo(function PlotCanvas() {
       gl.domElement.setAttribute('aria-label', 'Interactive ProjectV2 spatial editor')
       gl.domElement.tabIndex = 0
     }}
-  ><Suspense fallback={null}><StudioScene /></Suspense></Canvas>
+  ><RendererLifecycle /><Suspense fallback={null}><StudioScene /></Suspense></Canvas></ViewportBoundary>
 })

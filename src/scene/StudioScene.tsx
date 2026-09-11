@@ -609,7 +609,7 @@ function BarnGlazing({ building, ghost }: { building: BuildingModel; ghost?: boo
       <mesh castShadow receiveShadow><boxGeometry args={[Math.max(0.08, opening.widthM - 0.08), Math.max(0.08, opening.heightM - 0.08), 0.045]} />
         {building.interiorSource && opening.kind === 'door' && !opening.glazed
           ? <meshStandardMaterial color="#303736" roughness={0.62} metalness={0.3} transparent={Boolean(ghost)} opacity={ghost ? 0.2 : 1} />
-          : <meshPhysicalMaterial color="#78959a" transparent opacity={ghost ? 0.2 : 0.42} transmission={0.55} roughness={0.08} metalness={0.08} depthWrite={false} />}
+          : <meshStandardMaterial color="#78959a" transparent opacity={ghost ? 0.2 : 0.42} roughness={0.08} metalness={0.08} depthWrite={false} />}
       </mesh>
       <mesh position={[0, opening.heightM / 2, 0]}><boxGeometry args={[opening.widthM + 0.08, 0.075, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
       <mesh position={[0, -opening.heightM / 2, 0]}><boxGeometry args={[opening.widthM + 0.08, 0.075, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
@@ -734,7 +734,7 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
       }) : []
       return <group key={index} userData={{ semanticRef: gableWall.ref, buildingRef: building.ref }} onPointerDown={(event) => { if (ghost) return; event.stopPropagation(); setSelectedRef(gableWall.ref) }}>
         <mesh geometry={gable} position={alongZ ? [0, 0, offset] : [offset, 0, 0]} castShadow receiveShadow>{glass
-          ? <meshPhysicalMaterial color="#7e999c" transparent opacity={ghost ? 0.2 : 0.43} transmission={0.58} roughness={0.08} side={DoubleSide} depthWrite={false} />
+          ? <meshStandardMaterial color="#7e999c" transparent opacity={ghost ? 0.2 : 0.43} roughness={0.08} side={DoubleSide} depthWrite={false} />
           : texture
             ? <TexturedMaterial asset={texture.id} rotation={texture.rotation} color={wallSelected ? '#b9e84d' : tintForTexturedFinish(finish.colorHex)} fallbackColor={wallSelected ? '#b9e84d' : finish.colorHex} emissive={wallSelected ? '#6c812f' : '#000000'} emissiveIntensity={wallSelected ? 0.35 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.33 : 1} depthWrite={!ghost} side={DoubleSide} roughness={surface.roughness} metalness={surface.metalness} />
             : <meshStandardMaterial color={wallSelected ? '#b9e84d' : finish.colorHex} emissive={wallSelected ? '#6c812f' : '#000000'} emissiveIntensity={wallSelected ? 0.35 : 0} roughness={surface.roughness} metalness={surface.metalness} side={DoubleSide} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />}</mesh>
@@ -1231,46 +1231,86 @@ const overrideSunForStudy = (scene: Scene, project: ProjectV2, view: Extract<Exp
 }
 
 function StructureCaptureController() {
-  const { gl, scene } = useThree()
-  useEffect(() => registerStructureViewCapture(async (project, views, includeAnnotations, signal) => {
-    await waitForTextures(3000, project)
-    const width = 960; const height = 640; const target = new WebGLRenderTarget(width, height, { minFilter: LinearFilter, magFilter: LinearFilter })
-    // readRenderTargetPixels returns the target bytes verbatim. Mark the target as sRGB so the
-    // renderer applies the same display transform as the live canvas before those bytes become PNGs.
-    target.texture.colorSpace = SRGBColorSpace
-    const previousTarget = gl.getRenderTarget(); const previousClipping = [...gl.clippingPlanes]; const previousLocal = gl.localClippingEnabled; const visibility = new Map<Object3D, boolean>(); const materialState = new Map<MeshStandardMaterial, { transparent: boolean; opacity: number }>(); const results: StructureReport['views'] = []
-    const source = project === useStudioStore.getState().project ? 'committed' : 'ghost'
-    scene.traverse((object) => { if (object.userData.editorOnly) { visibility.set(object, object.visible); object.visible = false } })
-    try {
-      for (const view of views) {
-        if (signal.aborted) throw new DOMException('Architectural report cancelled.', 'AbortError')
-        scene.traverse((object) => {
-          if (!object.userData.captureRoot) return
-          const ref = object.userData.buildingRef as string
-          if (!visibility.has(object)) visibility.set(object, object.visible)
-          object.visible = view.buildingRefs.includes(ref) && object.userData.captureSource === source
-          if (object.visible) object.traverse((child) => {
-            if (!(child instanceof Mesh)) return
-            const materials = Array.isArray(child.material) ? child.material : [child.material]
-            materials.forEach((material) => {
-              if (!(material instanceof MeshStandardMaterial) || materialState.has(material)) return
-              materialState.set(material, { transparent: material.transparent, opacity: material.opacity }); material.transparent = false; material.opacity = 1
-            })
-          })
-        })
-        const camera = makeCaptureCamera(view, project, width / height); gl.clippingPlanes = []
-        if (view.type === 'storey-plan') { const storey = project.buildings.flatMap((building) => building.storeys).find((item) => item.ref === view.storeyRef)!; gl.clippingPlanes = [new Plane(new Vector3(0, -1, 0), storey.elevationM + storey.clearHeightM + 0.08)] }
-        if (view.type === 'section') { const box = selectedBounds(project, view.buildingRefs); const center = box.getCenter(new Vector3()); const offset = view.offsetM ?? 0; gl.clippingPlanes = [new Plane(view.axis === 'longitudinal' ? new Vector3(0, 0, -1) : new Vector3(-1, 0, 0), view.axis === 'longitudinal' ? center.z + offset : center.x + offset)] }
-        const restoreSun = view.type === 'sun-study' ? overrideSunForStudy(scene, project, view) : null
-        gl.localClippingEnabled = true; gl.setRenderTarget(target); gl.clear(); gl.render(scene, camera); restoreSun?.()
-        const pixels = new Uint8Array(width * height * 4); gl.readRenderTargetPixels(target, 0, 0, width, height, pixels)
-        const names = view.buildingRefs.map((ref) => project.buildings.find((building) => building.ref === ref)!.name); const blob = await pixelsToBlob(pixels, width, height, view.title, project, names, includeAnnotations, view.type === 'site-plan' || view.type === 'storey-plan' || view.type === 'sun-study')
-        results.push({ type: view.type, title: view.title, buildingRefs: view.buildingRefs, ...(view.type === 'storey-plan' ? { storeyRef: view.storeyRef } : {}), presentation: 'visible-in-page', imageUrl: URL.createObjectURL(blob) })
+  const { gl, scene, invalidate } = useThree()
+  useEffect(() => {
+    let mounted = true
+    const unregister = registerStructureViewCapture(async (project, views, includeAnnotations, signal) => {
+      const originalProject = useStudioStore.getState().project
+      const checkCancelled = () => {
+        if (signal.aborted || !mounted || gl.getContext().isContextLost() || useStudioStore.getState().project !== originalProject) {
+          throw new DOMException('Architectural report cancelled.', 'AbortError')
+        }
       }
-      return results
-    } catch (error) { results.forEach((view) => URL.revokeObjectURL(view.imageUrl)); throw error }
-    finally { visibility.forEach((visible, object) => { object.visible = visible }); materialState.forEach((state, material) => { material.transparent = state.transparent; material.opacity = state.opacity }); gl.setRenderTarget(previousTarget); gl.clippingPlanes = previousClipping; gl.localClippingEnabled = previousLocal; target.dispose() }
-  }), [gl, scene])
+      await waitForTextures(3000, project)
+      checkCancelled()
+      const width = 960; const height = 640
+      const target = new WebGLRenderTarget(width, height, { minFilter: LinearFilter, magFilter: LinearFilter })
+      target.texture.colorSpace = SRGBColorSpace
+      const results: StructureReport['views'] = []
+      const source = project === originalProject ? 'committed' : 'ghost'
+      try {
+        for (const view of views) {
+          checkCancelled()
+          const previousTarget = gl.getRenderTarget()
+          const previousClipping = gl.clippingPlanes
+          const previousLocal = gl.localClippingEnabled
+          const visibility = new Map<Object3D, boolean>()
+          const materials = new Map<MeshStandardMaterial, { transparent: boolean; opacity: number }>()
+          const pixels = new Uint8Array(width * height * 4)
+          let restoreSun: (() => void) | null = null
+          let readback: ReturnType<typeof gl.readRenderTargetPixelsAsync>
+          try {
+            scene.traverse(object => {
+              if (object.userData.editorOnly) { visibility.set(object, object.visible); object.visible = false }
+              if (!object.userData.captureRoot) return
+              visibility.set(object, object.visible)
+              object.visible = view.buildingRefs.includes(object.userData.buildingRef) && object.userData.captureSource === source
+              if (object.visible) object.traverse(child => {
+                if (!(child instanceof Mesh)) return
+                for (const material of Array.isArray(child.material) ? child.material : [child.material]) {
+                  if (!(material instanceof MeshStandardMaterial) || materials.has(material)) continue
+                  materials.set(material, { transparent: material.transparent, opacity: material.opacity })
+                  material.transparent = false; material.opacity = 1
+                }
+              })
+            })
+            const camera = makeCaptureCamera(view, project, width / height)
+            gl.clippingPlanes = []
+            if (view.type === 'storey-plan') {
+              const storey = project.buildings.flatMap(building => building.storeys).find(item => item.ref === view.storeyRef)!
+              gl.clippingPlanes = [new Plane(new Vector3(0, -1, 0), storey.elevationM + storey.clearHeightM + 0.08)]
+            }
+            if (view.type === 'section') {
+              const center = selectedBounds(project, view.buildingRefs).getCenter(new Vector3())
+              gl.clippingPlanes = [new Plane(view.axis === 'longitudinal' ? new Vector3(0, 0, -1) : new Vector3(-1, 0, 0), (view.axis === 'longitudinal' ? center.z : center.x) + (view.offsetM ?? 0))]
+            }
+            restoreSun = view.type === 'sun-study' ? overrideSunForStudy(scene, project, view) : null
+            gl.localClippingEnabled = true
+            gl.setRenderTarget(target); gl.clear(); gl.render(scene, camera)
+            readback = gl.readRenderTargetPixelsAsync(target, 0, 0, width, height, pixels)
+          } finally {
+            // Restore before yielding: camera navigation must never render the temporary report scene.
+            restoreSun?.()
+            visibility.forEach((visible, object) => { object.visible = visible })
+            materials.forEach((state, material) => { material.transparent = state.transparent; material.opacity = state.opacity })
+            gl.setRenderTarget(previousTarget); gl.clippingPlanes = previousClipping; gl.localClippingEnabled = previousLocal
+            invalidate()
+          }
+          await readback
+          checkCancelled()
+          const names = view.buildingRefs.map(ref => project.buildings.find(building => building.ref === ref)!.name)
+          const blob = await pixelsToBlob(pixels, width, height, view.title, project, names, includeAnnotations, view.type === 'site-plan' || view.type === 'storey-plan' || view.type === 'sun-study')
+          checkCancelled()
+          results.push({ type: view.type, title: view.title, buildingRefs: view.buildingRefs, ...(view.type === 'storey-plan' ? { storeyRef: view.storeyRef } : {}), presentation: 'visible-in-page', imageUrl: URL.createObjectURL(blob) })
+        }
+        return results
+      } catch (error) {
+        results.forEach(view => URL.revokeObjectURL(view.imageUrl))
+        throw error
+      } finally { target.dispose() }
+    })
+    return () => { mounted = false; unregister() }
+  }, [gl, scene, invalidate])
   return null
 }
 

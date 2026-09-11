@@ -32,7 +32,7 @@ export function GlazedGable({ building, segment, side, value, finish, selected, 
         : <meshStandardMaterial color={color} roughness={0.94} side={DoubleSide} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} />}
     </mesh>
     {geometry.glass.map((glass, index) => <mesh key={index} geometry={glass}>
-      <meshPhysicalMaterial color="#78959a" transparent opacity={ghost ? 0.2 : 0.42} transmission={0.55} roughness={0.08} metalness={0.08} side={DoubleSide} depthWrite={false} />
+      <meshStandardMaterial color="#78959a" transparent opacity={ghost ? 0.2 : 0.42} roughness={0.08} metalness={0.08} side={DoubleSide} depthWrite={false} />
     </mesh>)}
     {edges.map(([a, b], index) => <mesh key={index} position={[(a.x + b.x) / 2, (a.z + b.z) / 2, 0]} rotation={[0, 0, Math.atan2(b.z - a.z, b.x - a.x)]} castShadow>
       <boxGeometry args={[Math.hypot(b.x - a.x, b.z - a.z), 0.075, 0.12]} />

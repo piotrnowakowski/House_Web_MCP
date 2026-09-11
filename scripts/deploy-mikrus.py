@@ -4,6 +4,8 @@ Inputs: --env-file (default .env), --dist (default dist), --revision (Git SHA),
 and --deploy to publish; without --deploy only inspect the existing service.
 The env file supplies VPS_HOST/PORT/USER/PASSWORD/SSH_HOST_KEY and
 HOUSE_DEPLOY_PATH/PROJECT/PUBLIC_PORT/URL. Credentials never enter the archive.
+Uses tracked deploy/mikrus Nginx/Docker templates, precompresses text assets, and
+retains the immediately preceding release's hashed chunks for open browser tabs.
 Requires Paramiko. Output: release archive, remote image, Compose backup and
 deployment record. A failed service health check restores the previous Compose.
 Usage: python scripts/deploy-mikrus.py --revision <sha> --deploy
@@ -12,6 +14,7 @@ import argparse
 import base64
 from datetime import datetime, timezone
 import hashlib
+import gzip
 import json
 import logging
 from pathlib import Path, PurePosixPath
@@ -71,7 +74,7 @@ def write_remote(sftp, path, text):
         target.write(text)
 
 
-def main():
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--env-file", type=Path, default=Path(".env"), help="Private deployment configuration")
     parser.add_argument("--dist", type=Path, default=Path("dist"), help="Validated Vite output, built with BASE_PATH=/")
@@ -80,6 +83,11 @@ def main():
     args = parser.parse_args()
     if args.deploy and not re.fullmatch(r"[0-9a-f]{7,40}", args.revision or ""):
         parser.error("--deploy requires a Git SHA in --revision")
+    return args
+
+
+def main() -> None:
+    args = parse_args()
     config = read_config(args.env_file)
     remote_dir = config["HOUSE_DEPLOY_PATH"] + "/deploy/mikrus"
     compose_path = remote_dir + "/compose.yaml"
@@ -102,16 +110,21 @@ def main():
         new_compose, images = re.subn(r"image: " + re.escape(project) + r":[^\s]+", "image: " + image, new_compose)
         if contexts != 1 or images != 1:
             raise ValueError("Existing Compose is not the expected single-app release configuration")
-        nginx = sftp.open(remote_dir + "/nginx.conf").read().decode()
-        nginx, revisions = re.subn(r'"revision":"[^"]+"', '"revision":"' + args.revision + '"', nginx)
-        if revisions != 1:
-            raise ValueError("Expected one release identifier in the Nginx health endpoint")
-        dockerfile = sftp.open(remote_dir + "/Dockerfile").read().decode()
+        templates = Path(__file__).resolve().parents[1] / "deploy" / "mikrus"
+        nginx = (templates / "nginx.conf").read_text(encoding="utf-8")
+        if nginx.count("__REVISION__") != 1:
+            raise ValueError("Expected one release identifier in the tracked Nginx template")
+        nginx = nginx.replace("__REVISION__", args.revision)
+        dockerfile = (templates / "Dockerfile").read_text(encoding="utf-8")
+        entries = list(args.dist.rglob("*"))
+        if any(path.is_symlink() or path.name.startswith(".env") for path in entries):
+            raise ValueError("Refusing a build containing symlinks or environment files")
+        for path in entries:
+            if path.is_file() and path.suffix in {".js", ".css", ".json", ".wasm", ".svg"}:
+                path.with_name(path.name + ".gz").write_bytes(gzip.compress(path.read_bytes(), compresslevel=6, mtime=0))
         archive = Path("tmp") / ("dist-" + args.revision + ".tar.gz")
         archive.parent.mkdir(exist_ok=True)
         files = sorted(path for path in args.dist.rglob("*") if path.is_file())
-        if any(path.is_symlink() or path.name.startswith(".env") for path in files):
-            raise ValueError("Refusing a build containing symlinks or environment files")
         with tarfile.open(archive, "w:gz") as bundle:
             for path in files:
                 bundle.add(path, arcname="dist/" + path.relative_to(args.dist).as_posix(), recursive=False)
@@ -124,12 +137,28 @@ def main():
         if actual != digest:
             raise RuntimeError("Uploaded archive checksum mismatch")
         run(client, "tar -xzf " + shlex.quote(remote_archive) + " -C " + shlex.quote(release))
+        # Retain only the preceding build's named chunks (not an ever-growing historical union).
+        previous_context = re.search(r"context: \./(releases/[^\s]+)", current)
+        if previous_context:
+            previous = remote_dir + "/" + previous_context.group(1)
+            previous_manifest = previous + "/asset-files.json"
+            try:
+                previous_assets = json.loads(sftp.open(previous_manifest).read().decode())
+            except FileNotFoundError:
+                previous_assets = [name for name in sftp.listdir(previous + "/dist/assets") if not name.endswith(".map")]
+            for name in previous_assets:
+                if not re.fullmatch(r"[A-Za-z0-9_.-]+", name):
+                    raise ValueError("Invalid previous asset filename")
+                destination = release + "/dist/assets/" + name
+                run(client, "test -e " + shlex.quote(destination) + " || cp " + shlex.quote(previous + "/dist/assets/" + name) + " " + shlex.quote(destination))
+        write_remote(sftp, release + "/asset-files.json", json.dumps([path.name for path in (args.dist / "assets").iterdir() if path.is_file() and not path.name.endswith(".map")]))
         write_remote(sftp, release + "/Dockerfile", dockerfile)
         write_remote(sftp, release + "/nginx.conf", nginx)
         LOG.info("Building the candidate image; the live container is still unchanged")
         run(client, "docker build -t " + shlex.quote(image) + " " + shlex.quote(release))
         run(client, "docker run -d --rm --network none --name " + shlex.quote(candidate) + " " + shlex.quote(image))
         try:
+            run(client, "docker exec " + shlex.quote(candidate) + " nginx -t")
             for attempt in range(30):
                 try:
                     health = json.loads(run(client, "docker exec " + shlex.quote(candidate) + " wget -qO- http://127.0.0.1:8080/health"))

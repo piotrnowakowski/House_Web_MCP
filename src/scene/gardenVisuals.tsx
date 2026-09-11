@@ -1,15 +1,18 @@
+import { Suspense } from 'react'
+import { staticAssetUrl } from '../services/staticAssets'
+import { useRenderQuality } from './renderingPreferences'
 import { useGLTF } from '@react-three/drei'
 import { Component, useEffect, useMemo, type ErrorInfo, type ReactNode } from 'react'
 import { Box3, DoubleSide, Mesh, MeshStandardMaterial } from 'three'
 import type { PlantModel } from '../domain/types'
 
-const gardenAsset = (filename: string) => `${import.meta.env.BASE_URL}models/garden/${filename}`
+const gardenAsset = (filename: string) => staticAssetUrl(`models/garden/${filename}`)
 const treeAsset = gardenAsset('orchard-tree-realistic.glb')
 const coniferAsset = gardenAsset('conifer-realistic.glb')
 const tomatoFoliageAsset = gardenAsset('crop-tomato-foliage.glb')
 const potatoFoliageAsset = gardenAsset('crop-potato-foliage.glb')
 
-class AssetBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
+class AssetErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
   state = { failed: false }
 
   static getDerivedStateFromError() {
@@ -23,6 +26,12 @@ class AssetBoundary extends Component<{ children: ReactNode; fallback: ReactNode
   render() {
     return this.state.failed ? this.props.fallback : this.props.children
   }
+}
+
+function AssetBoundary({ children, fallback }: { children: ReactNode; fallback: ReactNode }) {
+  const quality = useRenderQuality()
+  if (quality === 'fast') return fallback
+  return <AssetErrorBoundary fallback={fallback}><Suspense fallback={fallback}>{children}</Suspense></AssetErrorBoundary>
 }
 
 function AccentMaterial({ color, selected, ghost, doubleSided = false }: { color: string; selected: boolean; ghost: boolean; doubleSided?: boolean }) {

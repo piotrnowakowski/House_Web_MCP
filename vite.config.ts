@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { writeFileSync } from 'node:fs'
+import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import { resolve } from 'node:path'
 import { createWebMcpManifest } from './src/services/webmcpDefinitions'
 
@@ -12,7 +13,17 @@ const webMcpManifestPlugin = () => ({
   },
 })
 
+const assetHash = createHash('sha256')
+for (const directory of ['models', 'textures']) {
+  const root = resolve('public', directory)
+  for (const file of readdirSync(root, { recursive: true, withFileTypes: true }).filter(file => file.isFile()).sort((a, b) => `${a.parentPath}/${a.name}`.localeCompare(`${b.parentPath}/${b.name}`))) {
+    const path = resolve(file.parentPath, file.name)
+    assetHash.update(path.slice(root.length).replaceAll('\\', '/')).update(readFileSync(path))
+  }
+}
+
 export default defineConfig({
+  define: { __STATIC_ASSET_VERSION__: JSON.stringify(assetHash.digest('hex').slice(0, 16)) },
   plugins: [react(), webMcpManifestPlugin()],
   base: process.env.BASE_PATH ?? '/',
   server: { host: '127.0.0.1', watch: { ignored: ['**/tmp/**', '**/output/**', '**/.playwright-mcp/**'] } },

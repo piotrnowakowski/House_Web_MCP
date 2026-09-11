@@ -1,13 +1,13 @@
-import { useTexture } from '@react-three/drei'
-import { useThree } from '@react-three/fiber'
+import { staticAssetUrl as assetUrl } from '../services/staticAssets'
+import { useRenderQuality, useRenderingPreferences } from './renderingPreferences'
+import { useLoader, useThree } from '@react-three/fiber'
 import { Component, Suspense, useEffect, useMemo, type ReactNode } from 'react'
-import { MirroredRepeatWrapping, SRGBColorSpace, type Side, type Texture } from 'three'
+import { MirroredRepeatWrapping, SRGBColorSpace, TextureLoader, type Side, type Texture } from 'three'
 import { useStudioStore } from '../state/store'
 import type { ProjectV2 } from '../domain/types'
 import { textureAssets, textureFilesFor, textureIdsInUse, type TextureAssetKey } from './materialCatalog'
 
-const assetUrl = (path: string) => `${import.meta.env.BASE_URL}${path}`
-export const textureUrlsFor = (key: TextureAssetKey) => { const files = textureFilesFor(key); return [assetUrl(files.map), assetUrl(files.normalMap), assetUrl(files.roughnessMap)] }
+export const textureUrlsFor = (key: TextureAssetKey, detailed = useRenderingPreferences.getState().quality === 'detailed') => { const files = textureFilesFor(key); return (detailed ? [files.map, files.normalMap, files.roughnessMap] : [files.map]).map(assetUrl) }
 
 const configuredTextures = new WeakMap<Texture, string>()
 
@@ -25,15 +25,16 @@ const configure = (texture: Texture, tileM: number, maxAnisotropy: number, srgb:
 /** Loads one scan set once and configures it for metre UVs; rotated variants are cheap clones that share the GPU image. */
 export function useTextureSet(key: TextureAssetKey, rotation = 0) {
   const gl = useThree((state) => state.gl)
-  const [map, normalMap, roughnessMap] = useTexture(textureUrlsFor(key))
+  const quality = useRenderQuality()
+  const [map, normalMap, roughnessMap] = useLoader(TextureLoader, textureUrlsFor(key, quality === 'detailed'))
   const set = useMemo(() => {
     const tileM = textureAssets[key].tileM; const maxAnisotropy = gl.capabilities.getMaxAnisotropy()
-    const set = rotation ? { map: map.clone(), normalMap: normalMap.clone(), roughnessMap: roughnessMap.clone() } : { map, normalMap, roughnessMap }
-    configure(set.map, tileM, maxAnisotropy, true, rotation); configure(set.normalMap, tileM, maxAnisotropy, false, rotation); configure(set.roughnessMap, tileM, maxAnisotropy, false, rotation)
+    const set = rotation ? { map: map.clone(), normalMap: normalMap?.clone(), roughnessMap: roughnessMap?.clone() } : { map, normalMap, roughnessMap }
+    configure(set.map, tileM, maxAnisotropy, true, rotation); if (set.normalMap) configure(set.normalMap, tileM, maxAnisotropy, false, rotation); if (set.roughnessMap) configure(set.roughnessMap, tileM, maxAnisotropy, false, rotation)
     return set
   }, [gl, key, map, normalMap, roughnessMap, rotation])
   useEffect(() => () => {
-    if (rotation) { set.map.dispose(); set.normalMap.dispose(); set.roughnessMap.dispose() }
+    if (rotation) { set.map.dispose(); set.normalMap?.dispose(); set.roughnessMap?.dispose() }
   }, [set, rotation])
   return set
 }
@@ -59,14 +60,16 @@ class TextureErrorBoundary extends Component<{ fallback: ReactNode; children: Re
 
 /** A textured standard material that falls back to a flat colour while loading or when a texture fails to load. */
 export function TexturedMaterial(props: TexturedMaterialProps) {
+  const quality = useRenderQuality()
   const fallback = <meshStandardMaterial color={props.fallbackColor ?? props.color} roughness={props.roughness ?? 1} metalness={props.metalness ?? 0} transparent={props.transparent} opacity={props.opacity} depthWrite={props.depthWrite} side={props.side} emissive={props.emissive ?? '#000000'} emissiveIntensity={props.emissiveIntensity ?? 0} />
+  if (quality === 'fast') return fallback
   return <TextureErrorBoundary fallback={fallback}><Suspense fallback={fallback}><TexturedStandardMaterial {...props} /></Suspense></TextureErrorBoundary>
 }
 
 const readyTextureUrls = new Set<string>()
 
 function TexturePreloadInner({ urls }: { urls: string[] }) {
-  useTexture(urls)
+  useLoader(TextureLoader, urls)
   const setTexturesReady = useStudioStore((state) => state.setTexturesReady)
   useEffect(() => {
     urls.forEach(url => readyTextureUrls.add(url))
@@ -85,16 +88,20 @@ class ReadyOnError extends Component<{ children: ReactNode; urls: string[] }, { 
 }
 /** Load only the scans used by this project; unused library assets load when selected. */
 export function TexturePreloader() {
+  const quality = useRenderQuality()
   const project = useStudioStore((state) => state.project)
   const ghost = useStudioStore(state => state.variants.find(variant => variant.ref === state.confirmationVariantRef)?.project)
-  const inUse = useMemo(() => [...new Set([...textureIdsInUse(project), ...(ghost ? textureIdsInUse(ghost) : [])])].flatMap(textureUrlsFor), [project, ghost])
+  const inUse = useMemo(() => [...new Set([...textureIdsInUse(project), ...(ghost ? textureIdsInUse(ghost) : [])])].flatMap(key => textureUrlsFor(key, quality === 'detailed')), [project, ghost, quality])
+  if (quality === 'fast') return null
   return <ReadyOnError key={inUse.join('|')} urls={inUse}><Suspense fallback={null}><TexturePreloadInner urls={inUse} /></Suspense></ReadyOnError>
 }
 
 /** Resolves when textures are ready or after the timeout, so a capture never blocks on a slow network. */
 export const waitForTextures = (timeoutMs = 3000, project: ProjectV2 = useStudioStore.getState().project) => new Promise<void>((resolve) => {
   // A previous project/finish being ready does not make a newly selected scan ready.
-  const urls = textureIdsInUse(project).flatMap(textureUrlsFor)
+  const preferences = useRenderingPreferences.getState()
+  if (preferences.quality === 'fast' || (preferences.quality === 'auto' && preferences.software)) { resolve(); return }
+  const urls = textureIdsInUse(project).flatMap(key => textureUrlsFor(key))
   const ready = () => urls.every(url => readyTextureUrls.has(url))
   if (ready()) { resolve(); return }
   const started = performance.now()

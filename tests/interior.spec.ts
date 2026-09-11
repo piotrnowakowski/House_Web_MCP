@@ -412,14 +412,14 @@ test('WebMCP interior changes remain proposals until Apply or Reject in the inte
 })
 
 test('failed IKEA GLB stays selectable with accurate dimensions and retry', async ({ page }) => {
-  await page.route('**/models/interior/lack.glb', (route) => route.abort())
+  await page.route('**/models/interior/lack.glb*', (route) => route.abort())
   await start(page)
   await choose(page)
   await clickPoint(page, -3, 2)
   await expect(page.getByRole('button', { name: 'Model unavailable · Retry', exact: true })).toBeVisible()
   const item = (await read(page)).project.buildings[0].furniture[0]
   expect([item.widthM, item.depthM, item.heightM]).toEqual([0.9, 0.55, 0.45])
-  await page.unroute('**/models/interior/lack.glb')
+  await page.unroute('**/models/interior/lack.glb*')
   await page.getByRole('button', { name: 'Model unavailable · Retry', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Model unavailable · Retry', exact: true })).toBeHidden()
 })

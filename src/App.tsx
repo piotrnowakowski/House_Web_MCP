@@ -1,3 +1,5 @@
+import { staticAssetUrl } from './services/staticAssets'
+import { RenderingControls } from './scene/RenderingControls'
 import { HouseStudyControl } from './HouseStudyControl'
 import { TransparencyControls } from './TransparencyControls'
 import { PrecisionEditor } from './editor/PrecisionEditor'
@@ -72,17 +74,23 @@ function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenFixtures
   const compact = useCompactLayout()
   const setToast = useStudioStore((state) => state.setToast)
   const [busy, setBusy] = useState(false)
+  const reportController = useRef<AbortController | null>(null)
+  useEffect(() => () => reportController.current?.abort(), [])
   const generateReport = async () => {
+    if (reportController.current) return
+    const controller = new AbortController()
+    reportController.current = controller
     setBusy(true)
-    try { await showStructureViews({ mode: 'architectural-set' }, new AbortController().signal) }
+    try { await showStructureViews({ mode: 'architectural-set' }, controller.signal) }
     catch (error) { setToast(error instanceof Error ? error.message : 'Report generation failed.') }
-    finally { setBusy(false) }
+    finally { reportController.current = null; setBusy(false) }
   }
   return <header className="topbar">
     <div className="project-heading">{!compact && <HouseStudyControl onOpen={onOpenProjects} />}<ProjectTitle key={project.ref} projectRef={project.ref} name={project.name} /></div>
     <nav aria-label="Viewer tools">{modes.map(([value, label]) => <button key={value} className={viewerMode === value ? 'active' : ''} aria-pressed={viewerMode === value} onClick={() => setViewerMode(viewerMode === value ? 'edit' : value)} title={modeTitles[value]}>{label}</button>)}</nav>
     {!compact && <TransparencyControls />}
     <div className="top-actions">
+      <RenderingControls />
       <button onClick={onOpenInterior} disabled={!project.buildings.length} title="Edit rooms, furniture and house levels">House interior</button>
       <button className={explode ? 'active' : ''} aria-pressed={explode} title="Separate every room, storey and the roof" onClick={() => {
         const next = !explode; setViewerMode('edit'); setExplode(next)
@@ -94,6 +102,7 @@ function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenFixtures
       <button onClick={onOpenProposals}>Proposals</button>
       <button onClick={onOpenMcpTools}>MCP Tools</button>
       <button disabled={busy} onClick={generateReport}>{busy ? 'Rendering…' : 'Architectural set'}</button>
+      {busy && <button onClick={() => reportController.current?.abort()}>Cancel report</button>}
     </div>
   </header>
 }
@@ -279,7 +288,7 @@ function TexturePicker({ surface, label, value, defaultId, disabled, onChange }:
   const effective = value ?? defaultId ?? FLAT_TEXTURE
   return <div className="texture-picker" role="group" aria-label={label}>
     {texturesFor(surface).map((item) => <button key={item.id} type="button" disabled={disabled} className={effective === item.id ? 'active' : ''} aria-pressed={effective === item.id} onClick={() => onChange(item.id)} title={`${item.description} · ${item.tileM} m tile · CC0 by ${item.author}`}>
-      <i style={{ backgroundImage: `url(${import.meta.env.BASE_URL}${texturePreviewFor(item.id)})` }} /><span>{item.name}{item.id === defaultId ? ' · default' : ''}</span>
+      <i style={{ backgroundImage: `url(${staticAssetUrl(texturePreviewFor(item.id))})` }} /><span>{item.name}{item.id === defaultId ? ' · default' : ''}</span>
     </button>)}
     <button type="button" disabled={disabled} className={effective === FLAT_TEXTURE ? 'active' : ''} aria-pressed={effective === FLAT_TEXTURE} onClick={() => onChange(FLAT_TEXTURE)} title="Plain colour without a scan"><i className="flat" /><span>Flat colour{defaultId ? '' : ' · default'}</span></button>
   </div>

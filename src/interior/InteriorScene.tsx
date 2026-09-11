@@ -1,3 +1,4 @@
+import { useRenderQuality } from '../scene/renderingPreferences'
 import { floorGeometry } from './floorGeometry'
 import { Grid, Html, Line } from '@react-three/drei'
 import { useThree, type ThreeEvent } from '@react-three/fiber'
@@ -198,6 +199,7 @@ export function InteriorScene(props: Props) {
       element.style.cursor = ''
     }
   }, [camera, gl, measurementEdges, mode, plane, props.onPointsChange, scene])
+  const quality = useRenderQuality()
   const onFloor = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation(); if (event.button !== 0 || event.delta > 5) return
     if (mode === 'select' && !placing) {
@@ -213,7 +215,7 @@ export function InteriorScene(props: Props) {
     {manipulation.dragging && <Html fullscreen style={{ pointerEvents: 'none' }}><div className={`interior-drag-status ${manipulation.error ? 'invalid' : ''}`} role='status'>{manipulation.error ?? 'Release to save · Esc to cancel'}</div></Html>}
     <color attach='background' args={['#eeeee8']} />
     <ambientLight intensity={0.9} /><hemisphereLight args={['#e8f1ff', '#b6a387', 1.3]} />
-    <directionalLight position={[-12, 20, -8]} intensity={3.1} castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-30} shadow-camera-right={30} shadow-camera-top={30} shadow-camera-bottom={-30} shadow-normalBias={0.025} shadow-bias={-0.0002} />
+    <directionalLight key={quality} position={[-12, 20, -8]} intensity={3.1} castShadow={quality !== 'fast'} shadow-mapSize={quality === 'detailed' ? [2048, 2048] : [1024, 1024]} shadow-camera-left={-30} shadow-camera-right={30} shadow-camera-top={30} shadow-camera-bottom={-30} shadow-normalBias={0.025} shadow-bias={-0.0002} />
     <InteriorCamera view={props.view ?? (plan ? 'plan' : 'cutaway')} footprint={props.focusFootprint ?? slab.footprint} reset={props.reset} enabled={!manipulation.dragging && mode === 'select' && !placing} cameraKey={`${props.projectRef}/${building.ref}/${storey.ref}`} bottomInset={props.bottomInset} rightInset={props.rightInset} />
     <Grid position={[0, -storey.elevationM - 0.06, 0]} infiniteGrid cellSize={1} cellThickness={0.5} cellColor='#d1d4cd' sectionSize={5} sectionThickness={0.65} sectionColor='#c3c8bf' fadeDistance={95} />
     <Floor points={slab.footprint} holes={slab.holes} onPick={onFloor} onHover={props.onHover} tiled={building.kind === 'garage'} plan={plan} />

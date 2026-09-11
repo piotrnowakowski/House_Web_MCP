@@ -1,3 +1,5 @@
+import { useRenderQuality } from '../scene/renderingPreferences'
+import { staticAssetUrl } from '../services/staticAssets'
 import { Html, useGLTF } from '@react-three/drei'
 import { Component, Suspense, useMemo, useState, type ReactNode } from 'react'
 import type { Mesh } from 'three'
@@ -57,10 +59,11 @@ function FootprintFallback({ item, failed, onRetry }: { item: InteriorItem; fail
 
 /** Cached GLBs share geometry/textures; failures stay selectable with true physical bounds. */
 export function ProductModel({ item, mobile = false }: { item: InteriorItem; mobile?: boolean }) {
+  const quality = useRenderQuality()
   const [attempt, setAttempt] = useState(0)
   const product = ikeaProduct(item.productId)
-  if (!product) return <FurnitureModel item={item} />
-  const url = `${import.meta.env.BASE_URL}${mobile ? product.mobileModel : product.model}`
+  if (!product || quality === 'fast') return <FurnitureModel item={item} />
+  const url = staticAssetUrl(mobile ? product.mobileModel : product.model)
   return (
     <ModelBoundary
       key={`${url}/${attempt}`}

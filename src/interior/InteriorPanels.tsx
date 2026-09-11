@@ -1,3 +1,4 @@
+import { staticAssetUrl } from '../services/staticAssets'
 import { randomId } from '../domain/randomId'
 import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { Heart, Pencil, SlidersHorizontal, X } from 'lucide-react'
@@ -183,7 +184,7 @@ export function FurnitureCatalog({ onChoose }: { onChoose: (id: string, generic:
               onClick={() => onChoose(p.id, generic)}
             >
               {p.thumbnail ? (
-                <img src={`${import.meta.env.BASE_URL}${p.thumbnail}`} alt="" loading="lazy" />
+                <img src={staticAssetUrl(p.thumbnail)} alt="" loading="lazy" />
               ) : (
                 <span className="generic-thumbnail" style={{ background: p.color }}>
                   {p.name.slice(0, 1)}

@@ -14,6 +14,7 @@ export interface ShowStructureViewsInput {
 export type ExpandedStructureView = StructureViewRequest & { title: string; buildingRefs: string[] }
 export type CaptureStructureReport = (project: ProjectV2, views: ExpandedStructureView[], includeAnnotations: boolean, signal: AbortSignal) => Promise<StructureReport['views']>
 
+let captureInProgress = false
 let captureHandler: CaptureStructureReport | null = null
 export const registerStructureViewCapture = (handler: CaptureStructureReport) => {
   captureHandler = handler
@@ -66,18 +67,28 @@ export const showStructureViews = async (input: ShowStructureViewsInput, signal:
     : state.project
   const { buildings, views } = expandStructureViews(project, input)
   if (!captureHandler) throw new Error('The architectural viewport is not ready. Wait for the visible editor to finish loading and try again.')
+  if (captureInProgress) throw new Error('An architectural report is already rendering.')
+  const handler = captureHandler
+  captureInProgress = true
   const previous = { selectedRef: state.selectedRef, explodeStoreys: state.explodeStoreys, viewerMode: state.viewerMode, activePlanStoreyRef: state.activePlanStoreyRef, confirmationVariantRef: state.confirmationVariantRef }
-  let captured: StructureReport['views']
+  let captured: StructureReport['views'] = []
   try {
     state.setSelectedRef(null); state.setExplodeStoreys(false); state.setViewerMode('edit')
     if (input.variantRef) state.setConfirmationVariantRef(input.variantRef)
     if (typeof requestAnimationFrame === 'function') await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
-    captured = await captureHandler(project, views, input.includeAnnotations ?? true, signal)
     if (signal.aborted) throw new DOMException('Architectural report cancelled.', 'AbortError')
+    captured = await handler(project, views, input.includeAnnotations ?? true, signal)
+    if (signal.aborted) throw new DOMException('Architectural report cancelled.', 'AbortError')
+  } catch (error) {
+    captured.forEach(view => URL.revokeObjectURL(view.imageUrl))
+    throw error
   } finally {
+    captureInProgress = false
     const current = useStudioStore.getState()
-    current.setSelectedRef(previous.selectedRef); current.setExplodeStoreys(previous.explodeStoreys); current.setConfirmationVariantRef(previous.confirmationVariantRef)
-    if (previous.activePlanStoreyRef) current.setActivePlanStoreyRef(previous.activePlanStoreyRef); else current.setViewerMode(previous.viewerMode)
+    if (current.project === state.project) {
+      current.setSelectedRef(previous.selectedRef); current.setExplodeStoreys(previous.explodeStoreys); current.setConfirmationVariantRef(previous.confirmationVariantRef)
+      if (previous.activePlanStoreyRef) current.setActivePlanStoreyRef(previous.activePlanStoreyRef); else current.setViewerMode(previous.viewerMode)
+    }
   }
   const report: StructureReport = {
     ref: `report/structure-r${state.project.revision}-${Date.now()}`,

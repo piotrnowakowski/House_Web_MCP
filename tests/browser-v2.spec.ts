@@ -493,7 +493,7 @@ test('editor remains usable when optional garden models cannot be loaded', async
   const pageErrors: string[] = []
   page.on('pageerror', (error) => pageErrors.push(error.message))
   let blockedModelRequests = 0
-  await page.route('**/models/garden/*.glb', (route) => {
+  await page.route('**/models/garden/*.glb*', (route) => {
     blockedModelRequests += 1
     return route.abort('failed')
   })

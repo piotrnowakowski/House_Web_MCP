@@ -1,0 +1,29 @@
+import { create } from 'zustand'
+
+export type RenderQuality = 'auto' | 'fast' | 'detailed'
+
+const savedQuality = (): RenderQuality => {
+  try {
+    const value = sessionStorage.getItem('render-quality')
+    return value === 'fast' || value === 'detailed' ? value : 'auto'
+  } catch { return 'auto' }
+}
+
+/** Display preferences stay outside the persisted architectural project. */
+export const useRenderingPreferences = create<{
+  quality: RenderQuality
+  software: boolean | null
+  setQuality: (quality: RenderQuality) => void
+  setSoftware: (software: boolean) => void
+}>((set) => ({
+  quality: savedQuality(),
+  software: null,
+  setQuality: quality => {
+    try { sessionStorage.setItem('render-quality', quality) } catch { /* Session-only preference. */ }
+    set({ quality })
+  },
+  setSoftware: software => set({ software }),
+}))
+
+export const useRenderQuality = () => useRenderingPreferences(state =>
+  state.quality === 'auto' ? (state.software === false ? 'balanced' : 'fast') : state.quality)

@@ -33,7 +33,7 @@ test('GitHub Pages base path serves every requested garden model', async ({ page
 
 test('editor stays usable when optional garden models fail', async ({ page }) => {
   let blockedModelRequests = 0
-  await page.route('**/models/garden/*.glb', (route) => {
+  await page.route('**/models/garden/*.glb*', (route) => {
     blockedModelRequests += 1
     return route.abort('failed')
   })
