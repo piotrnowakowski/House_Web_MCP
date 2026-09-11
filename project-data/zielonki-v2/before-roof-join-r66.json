@@ -3,8 +3,8 @@
   "ref": "project/zielonki-v2",
   "name": "Garaz przód",
   "units": "metric",
-  "revision": 67,
-  "updatedAt": "2026-09-11T08:04:44.243Z",
+  "revision": 66,
+  "updatedAt": "2026-09-10T21:55:58.285Z",
   "site": {
     "boundary": [
       {
@@ -3615,7 +3615,7 @@
         "ref": "roof/reference",
         "type": "gable",
         "baseElevationM": 4.85,
-        "pitchDegrees": 44,
+        "pitchDegrees": 40.13423424862029,
         "overhangM": 0,
         "footprint": [
           {
@@ -3652,7 +3652,7 @@
             "ref": "roof/reference/rear-barn",
             "footprint": [
               {
-                "x": -0.9550000000000001,
+                "x": -1.705,
                 "z": -6.555
               },
               {
@@ -3664,14 +3664,14 @@
                 "z": 0.995
               },
               {
-                "x": -0.9550000000000001,
+                "x": -1.705,
                 "z": 0.995
               }
             ],
             "storeyRef": "storey/reference-upper",
             "baseElevationM": 4.85,
             "type": "gable",
-            "pitchDegrees": 37.87103769668754,
+            "pitchDegrees": 40.13423424862029,
             "overhangM": 0,
             "ridgeDirection": "x",
             "finish": {
@@ -3727,7 +3727,7 @@
             "storeyRef": "storey/reference-upper",
             "baseElevationM": 4.85,
             "type": "gable",
-            "pitchDegrees": 44,
+            "pitchDegrees": 40.13423424862029,
             "overhangM": 0,
             "ridgeDirection": "z",
             "finish": {

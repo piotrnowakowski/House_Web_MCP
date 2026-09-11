@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
-  "ref": "project/zielonki-v2",
-  "name": "Garaz przód",
+  "ref": "project/zielonki-rear-carport",
+  "name": "Z garażem za domem przy sąsiadach",
   "units": "metric",
-  "revision": 67,
-  "updatedAt": "2026-09-11T08:04:44.243Z",
+  "revision": 81,
+  "updatedAt": "2026-09-10T22:53:22.874Z",
   "site": {
     "boundary": [
       {
@@ -961,12 +961,12 @@
         "ref": "entrance/house-road",
         "name": "House-side road entrance",
         "start": {
-          "x": -19.628720364,
-          "z": -12.504095627
+          "x": -19.733992804,
+          "z": -14.466373916
         },
         "end": {
-          "x": -19.170688038,
-          "z": -3.966373077
+          "x": -19.391138198,
+          "z": -8.075564055
         },
         "connectsTo": "public-road",
         "geometryConfidence": "user-marked"
@@ -1810,100 +1810,11 @@
           "Five surveyed trees conflict with the carport and are proposed removals in v2 only: plant/survey-5012, plant/survey-5015, plant/survey-5018, plant/survey-501b, plant/apple. Their source records remain in before-carport-r46.json and the original house. This is not tree-removal authorization.",
           "Rotation revision 2026-09-10 r48 supersedes the r47 orientation/placement: the complete house, both pergolas and carport rotate 180 degrees to 273.06927082481445 degrees. House anchor moves to x -6.628904317, z -3.057048028 to preserve the conceptual 4 m outside-wall road clearance and keep all roof footprints within MNU. The carport is now north-northwest; the opposite open edge serves the rebuilt road apron. Local room/roof geometry, knee walls, plants and neighbors are unchanged. Earlier proposed tree deletions remain deletions; earlier south-side placement notes describe r47 only.",
           "Terrace revision 2026-09-10 r49: remove the screenshot-highlighted front garden pergola roof/zielonki-v2/garden-pergola and its paving. Shorten the remaining courtyard-side pergola: end beam centre z=8.425, outside face z=8.485 flush with the front outside house wall. Side terrace paving ends at the same z=8.485; shorten slats and relocate end posts with the frame. House/carport placement, rotation, main roofs, rooms and site evidence remain r48 values. Earlier notes describing two retained pergolas are historical.",
-          "Road-facing carport revision r50, 2026-09-10: retain house rotation 273.06927082481445 degrees and relocate the existing 6.40 x 6.40 m two-car canopy to the road-facing +z facade. Maximize road-normal house separation within mapped MNU while keeping 4 m to the southern neighbor boundary and 0.15 m map margin at the agricultural division. House moves by (+8.530350793, -3.596624316) m, giving approximately 12.71 m house and 6.25 m carport clearance from the road parcel edge. This is a model fit, not a legal building-line or swept-path approval. Road approach and pedestrian connection follow the new carport; the obsolete r46 front-pergola pad is removed. Existing tree deletions, main roofs, rooms and source survey data are retained."
+          "Rear-carport r50, 2026-09-11: transfer the current front-carport r66 house walls, rooms, furniture, stairs, slabs and gable roofs, including the 1.5 m shortening/narrowing, 0.5 m bathroom/storage enlargement and removed internal doorway. Preserve this independent rear-carport identity, 273.06927082481445 degree rotation, site, planting and retained entities. Fit the side pergola/terrace to the shortened facade, shift the rear carport with the 1.5 m narrower facade and reconnect the existing road entrance. House anchor (-8.093726348992222, -2.3629195784171224) m gives 4.00 m outer-face road clearance and 0.15 m mapped MNU/R envelope margin. Main gables retain 40.13423424862029 degrees, 4.85 m eaves and 1.40 m knee walls. This is geometric placement in the existing mapped evidence, not a new assessment of statutory building lines.",
+          "U-shaped stair revision 2026-09-11: 3.00 m floor-to-floor rise, 16 risers at 0.1875 m in two equal flights, 7 treads per flight at 0.25 m, 0.94 m tread width (0.90 m clear between 40 mm handrails), 0.90 m central landing depth and 0.10 m central gap. Stair envelope 2.65 x 1.98 m. The upper slab opening fits both flights; 0.90 m clear upper approach and a 0.22 m parent-bedroom doorway shift preserve access. Three stepped cabinets fit below the upper flight with their shared group and the original under-stair storage ref retained. Model tread/landing headroom is at least 3.0096 m against current roof geometry; construction thickness, fixings and guard detailing require construction design. Preserve independently captured user furniture/entrance changes and deletions."
         ]
       },
       "furniture": [
-        {
-          "ref": "interior/reference-sofa",
-          "catalogId": "corner-sofa",
-          "storeyRef": "storey/reference-ground",
-          "name": "Narożnik turkusowy",
-          "position": {
-            "x": 2.555,
-            "z": -4.215
-          },
-          "widthM": 3.45,
-          "depthM": 2.52,
-          "heightM": 0.88,
-          "rotationDegrees": 0,
-          "color": "#207b8a"
-        },
-        {
-          "ref": "interior/reference-media",
-          "catalogId": "tv-unit",
-          "storeyRef": "storey/reference-ground",
-          "name": "Szafka RTV i telewizor",
-          "position": {
-            "x": 3.405,
-            "z": -6.115
-          },
-          "widthM": 3.35,
-          "depthM": 0.5,
-          "heightM": 1.15,
-          "rotationDegrees": 0,
-          "color": "#364149"
-        },
-        {
-          "ref": "interior/reference-dining",
-          "catalogId": "dining-table",
-          "storeyRef": "storey/reference-ground",
-          "name": "Stół i sześć krzeseł",
-          "position": {
-            "x": 2.455,
-            "z": -1.415
-          },
-          "widthM": 2,
-          "depthM": 1.62,
-          "heightM": 0.85,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/reference-island",
-          "catalogId": "kitchen-island",
-          "storeyRef": "storey/reference-ground",
-          "name": "Wyspa 1.28 × 2.92 m",
-          "position": {
-            "x": -1.385,
-            "z": -4.105
-          },
-          "widthM": 1.28,
-          "depthM": 2.92,
-          "heightM": 0.92,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/reference-stool-one",
-          "catalogId": "bar-stool",
-          "storeyRef": "storey/reference-ground",
-          "name": "Hoker 1",
-          "position": {
-            "x": -0.315,
-            "z": -4.955
-          },
-          "widthM": 0.46,
-          "depthM": 0.46,
-          "heightM": 0.75,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/reference-stool-two",
-          "catalogId": "bar-stool",
-          "storeyRef": "storey/reference-ground",
-          "name": "Hoker 2",
-          "position": {
-            "x": -0.315,
-            "z": -3.715
-          },
-          "widthM": 0.46,
-          "depthM": 0.46,
-          "heightM": 0.75,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
         {
           "ref": "interior/reference-cabinet-one",
           "catalogId": "kitchen-counter",
@@ -1965,21 +1876,6 @@
           "color": "#bda17a"
         },
         {
-          "ref": "interior/reference-understairs",
-          "catalogId": "wardrobe",
-          "storeyRef": "storey/reference-ground",
-          "name": "Zabudowa pod schodami",
-          "position": {
-            "x": -2.315,
-            "z": -0.535
-          },
-          "widthM": 3.16,
-          "depthM": 0.62,
-          "heightM": 1.65,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
           "ref": "interior/reference-parents-bed",
           "catalogId": "bed",
           "storeyRef": "storey/reference-upper",
@@ -1993,21 +1889,6 @@
           "heightM": 1,
           "rotationDegrees": 90,
           "color": "#287a89"
-        },
-        {
-          "ref": "interior/carport-study/bed",
-          "catalogId": "bed",
-          "storeyRef": "storey/reference-ground",
-          "name": "Guest bed",
-          "position": {
-            "x": 0.15,
-            "z": 5.115
-          },
-          "widthM": 1.6,
-          "depthM": 2.05,
-          "heightM": 0.85,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
         },
         {
           "ref": "interior/carport-study/desk",
@@ -2036,21 +1917,6 @@
           "widthM": 0.45,
           "depthM": 0.7,
           "heightM": 0.8,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/carport-study/shower",
-          "catalogId": "shower",
-          "storeyRef": "storey/reference-ground",
-          "name": "Shower",
-          "position": {
-            "x": -1.75,
-            "z": 3.4
-          },
-          "widthM": 0.9,
-          "depthM": 0.9,
-          "heightM": 2.1,
           "rotationDegrees": 0,
           "color": "#bda17a"
         },
@@ -2098,6 +1964,159 @@
           "heightM": 2.2,
           "rotationDegrees": 0,
           "color": "#bda17a"
+        },
+        {
+          "ref": "interior/carport-study/shower",
+          "catalogId": "shower",
+          "storeyRef": "storey/reference-ground",
+          "name": "Shower",
+          "position": {
+            "x": -1.685,
+            "z": 3.2500000000000004
+          },
+          "widthM": 0.9,
+          "depthM": 0.9,
+          "heightM": 2.1,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-understairs",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "name": "Schowek pod schodami · niski",
+          "position": {
+            "x": -2.635,
+            "z": -0.14
+          },
+          "widthM": 0.55,
+          "depthM": 0.84,
+          "heightM": 1.5,
+          "rotationDegrees": 0,
+          "color": "#bda17a",
+          "groupRef": "interior-group/understairs"
+        },
+        {
+          "ref": "interior/reference-media",
+          "catalogId": "tv-unit",
+          "storeyRef": "storey/reference-ground",
+          "name": "Szafka RTV i telewizor",
+          "position": {
+            "x": 2.9,
+            "z": -6.199999999999996
+          },
+          "widthM": 3.35,
+          "depthM": 0.5,
+          "heightM": 1.15,
+          "rotationDegrees": 0,
+          "color": "#364149"
+        },
+        {
+          "ref": "interior/reference-dining",
+          "catalogId": "dining-table",
+          "storeyRef": "storey/reference-ground",
+          "name": "Stół i sześć krzeseł",
+          "position": {
+            "x": 3,
+            "z": -1.1
+          },
+          "widthM": 2,
+          "depthM": 1.62,
+          "heightM": 0.85,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-island",
+          "catalogId": "kitchen-island",
+          "storeyRef": "storey/reference-ground",
+          "name": "Wyspa 1.28 × 2.92 m",
+          "position": {
+            "x": -1.9000000000000001,
+            "z": -3.9000000000000004
+          },
+          "widthM": 1.28,
+          "depthM": 2.92,
+          "heightM": 0.92,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-stool-one",
+          "catalogId": "bar-stool",
+          "storeyRef": "storey/reference-ground",
+          "name": "Hoker 1",
+          "position": {
+            "x": -1,
+            "z": -4.800000000000001
+          },
+          "widthM": 0.46,
+          "depthM": 0.46,
+          "heightM": 0.75,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-stool-two",
+          "catalogId": "bar-stool",
+          "storeyRef": "storey/reference-ground",
+          "name": "Hoker 2",
+          "position": {
+            "x": -1,
+            "z": -4.300000000000001
+          },
+          "widthM": 0.46,
+          "depthM": 0.46,
+          "heightM": 0.75,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-sofa",
+          "catalogId": "corner-sofa",
+          "storeyRef": "storey/reference-ground",
+          "name": "Narożnik turkusowy",
+          "position": {
+            "x": 2.5000000000000004,
+            "z": -4
+          },
+          "widthM": 3.45,
+          "depthM": 2.52,
+          "heightM": 0.88,
+          "rotationDegrees": 0,
+          "color": "#207b8a"
+        },
+        {
+          "ref": "interior/understairs-middle",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "name": "Schowek pod schodami · środkowy",
+          "position": {
+            "x": -2.085,
+            "z": -0.14
+          },
+          "widthM": 0.55,
+          "depthM": 0.84,
+          "heightM": 1.88,
+          "rotationDegrees": 0,
+          "color": "#bda17a",
+          "groupRef": "interior-group/understairs"
+        },
+        {
+          "ref": "interior/understairs-high",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "name": "Schowek pod schodami · wysoki",
+          "position": {
+            "x": -1.5350000000000001,
+            "z": -0.14
+          },
+          "widthM": 0.55,
+          "depthM": 0.84,
+          "heightM": 2.25,
+          "rotationDegrees": 0,
+          "color": "#bda17a",
+          "groupRef": "interior-group/understairs"
         }
       ],
       "stairs": [
@@ -2106,12 +2125,16 @@
           "fromStoreyRef": "storey/reference-ground",
           "toStoreyRef": "storey/reference-upper",
           "start": {
-            "x": -3.895,
-            "z": -1.845
+            "x": -3.865,
+            "z": -1.65
           },
-          "runM": 3.16,
+          "runM": 1.75,
           "widthM": 0.94,
-          "steps": 16
+          "steps": 16,
+          "uTurn": {
+            "landingDepthM": 0.9,
+            "gapM": 0.1
+          }
         }
       ],
       "ref": "house/main",
@@ -2119,8 +2142,8 @@
       "kind": "house",
       "architecturalStyle": "barn",
       "position": {
-        "x": 1.901446476,
-        "z": -6.653672344
+        "x": -8.093726348992222,
+        "z": -2.3629195784171224
       },
       "rotationDegrees": 273.06927082481445,
       "storeys": [
@@ -2271,19 +2294,19 @@
             [
               {
                 "x": -3.885,
-                "z": -1.745
+                "z": -1.68
               },
               {
-                "x": -0.735,
-                "z": -1.745
+                "x": -1.205,
+                "z": -1.68
               },
               {
-                "x": -0.735,
-                "z": -0.905
+                "x": -1.205,
+                "z": 0.36
               },
               {
                 "x": -3.885,
-                "z": -0.905
+                "z": 0.36
               }
             ],
             [
@@ -2388,7 +2411,7 @@
               "ref": "opening/reference-parents",
               "kind": "door",
               "wallRef": "wall/reference-upper/3",
-              "offsetM": 0.7699999999999996,
+              "offsetM": 0.55,
               "widthM": 0.9,
               "heightM": 2.1,
               "sillM": 0
@@ -2942,7 +2965,7 @@
               "ref": "opening/reference-terrace-north",
               "kind": "window",
               "wallRef": "wall/reference-ground/1",
-              "offsetM": 2.995,
+              "offsetM": 3,
               "widthM": 4.5,
               "heightM": 2.8,
               "sillM": 0,
@@ -3075,7 +3098,7 @@
               "ref": "opening/reference-wc",
               "kind": "door",
               "wallRef": "wall/carport-layout/ground/7",
-              "offsetM": 1.62,
+              "offsetM": 1,
               "widthM": 0.9,
               "heightM": 2.1,
               "sillM": 0,
@@ -3106,7 +3129,7 @@
               "ref": "opening/reference-entrance",
               "kind": "door",
               "wallRef": "wall/carport-layout/ground/8",
-              "offsetM": 1.465,
+              "offsetM": 0.8,
               "widthM": 1.1,
               "heightM": 2.1,
               "sillM": 0,
@@ -3615,7 +3638,7 @@
         "ref": "roof/reference",
         "type": "gable",
         "baseElevationM": 4.85,
-        "pitchDegrees": 44,
+        "pitchDegrees": 40.13423424862029,
         "overhangM": 0,
         "footprint": [
           {
@@ -3652,7 +3675,7 @@
             "ref": "roof/reference/rear-barn",
             "footprint": [
               {
-                "x": -0.9550000000000001,
+                "x": -1.705,
                 "z": -6.555
               },
               {
@@ -3664,14 +3687,14 @@
                 "z": 0.995
               },
               {
-                "x": -0.9550000000000001,
+                "x": -1.705,
                 "z": 0.995
               }
             ],
             "storeyRef": "storey/reference-upper",
             "baseElevationM": 4.85,
             "type": "gable",
-            "pitchDegrees": 37.87103769668754,
+            "pitchDegrees": 40.13423424862029,
             "overhangM": 0,
             "ridgeDirection": "x",
             "finish": {
@@ -3727,7 +3750,7 @@
             "storeyRef": "storey/reference-upper",
             "baseElevationM": 4.85,
             "type": "gable",
-            "pitchDegrees": 44,
+            "pitchDegrees": 40.13423424862029,
             "overhangM": 0,
             "ridgeDirection": "z",
             "finish": {
@@ -3782,11 +3805,11 @@
               },
               {
                 "x": 5.585,
-                "z": 8.425
+                "z": 6.925000000000001
               },
               {
                 "x": 2.085,
-                "z": 8.425
+                "z": 6.925000000000001
               }
             ],
             "baseElevationM": 2.86,
@@ -3822,11 +3845,11 @@
                 },
                 {
                   "x": 5.455,
-                  "z": 8.295
+                  "z": 6.795
                 },
                 {
                   "x": 2.215,
-                  "z": 8.295
+                  "z": 6.795
                 }
               ],
               "slats": {
@@ -3887,8 +3910,8 @@
       "kind": "garage",
       "architecturalStyle": "barn",
       "position": {
-        "x": -12.73200303,
-        "z": 1.331304523
+        "x": -8.013411451837227,
+        "z": -0.8650712825957524
       },
       "rotationDegrees": 273.06927082481445,
       "storeys": [
@@ -4031,879 +4054,6 @@
         ],
         "junctions": []
       }
-    },
-    {
-      "designStatus": "concept",
-      "interiorSource": {
-        "id": "zielonki-garden-outbuilding-concept",
-        "notes": [
-          "User requested the terrace toward the house, an enclosed car space and accepted exceeding 70 m².",
-          "External enclosed footprint 14.74 × 6.74 m = 99.3476 m²; extension 4.5 m along the long axis.",
-          "Rotation 90 degrees: the terrace faces the house, the long axis remains perpendicular to the field road.",
-          "Garage approximately 3.20 × 14.26 m clear. Car 4.70 m before camper 7.40 m, with a 0.40 m longitudinal gap.",
-          "Tandem layout: the car must leave before the camper can drive out. Gate moved to the west gable.",
-          "Main outbuilding roof changed to a symmetric 37-degree gable with 0.60 m overhangs; eaves 3.80 m, ridge about 6.25 m.",
-          "MPZP IX/55/2007 §13(6)(4) and §13(9) do not establish permission for a flat roof here; 2020 amendment retains the roof provisions.",
-          "Concept remains on agricultural 06.R.21, where §28 prohibits new buildings. Roof correction does not approve this location.",
-          "Existing open terrace/pergola retained as concept, not certified for planning compliance. Main-house roofs remain unchanged.",
-          "User requested the complete building/terrace group clearly within the wider site: translated 10 m toward the house to anchor (-9, 54.8). The existing field entrance stays fixed and the access strip is extended to it."
-        ]
-      },
-      "furniture": [
-        {
-          "ref": "interior/outbuilding/camper",
-          "catalogId": "camper",
-          "storeyRef": "storey/outbuilding",
-          "name": "Kamper 7,4 × 2,35 × 3,1 m",
-          "position": {
-            "x": -1.55,
-            "z": 4.7
-          },
-          "widthM": 2.35,
-          "depthM": 7.4,
-          "heightM": 3.1,
-          "rotationDegrees": 180,
-          "color": "#deddd4"
-        },
-        {
-          "ref": "interior/outbuilding/workbench",
-          "catalogId": "desk",
-          "storeyRef": "storey/outbuilding",
-          "name": "Stół stolarski",
-          "position": {
-            "x": 2.15,
-            "z": 5.4
-          },
-          "widthM": 1.6,
-          "depthM": 0.8,
-          "heightM": 0.9,
-          "rotationDegrees": 0,
-          "color": "#B89265"
-        },
-        {
-          "ref": "interior/outbuilding/tool-storage",
-          "catalogId": "wardrobe",
-          "storeyRef": "storey/outbuilding",
-          "name": "Szafy narzędziowe",
-          "position": {
-            "x": 0.55,
-            "z": 5.1
-          },
-          "widthM": 0.6,
-          "depthM": 2.2,
-          "heightM": 2.1,
-          "rotationDegrees": 0,
-          "color": "#4b5250"
-        },
-        {
-          "ref": "interior/outbuilding/timber-rack",
-          "catalogId": "wardrobe",
-          "storeyRef": "storey/outbuilding",
-          "name": "Regał na drewno",
-          "position": {
-            "x": 2.82,
-            "z": 8.1
-          },
-          "widthM": 0.5,
-          "depthM": 1.1,
-          "heightM": 1.8,
-          "rotationDegrees": 0,
-          "color": "#B89265"
-        },
-        {
-          "ref": "interior/outbuilding/sauna-upper",
-          "catalogId": "coffee-table",
-          "storeyRef": "storey/outbuilding",
-          "name": "Górna ława sauny",
-          "position": {
-            "x": 1.7,
-            "z": -4.42
-          },
-          "widthM": 2.5,
-          "depthM": 0.8,
-          "heightM": 0.9,
-          "rotationDegrees": 0,
-          "color": "#B89265"
-        },
-        {
-          "ref": "interior/outbuilding/sauna-lower",
-          "catalogId": "coffee-table",
-          "storeyRef": "storey/outbuilding",
-          "name": "Dolna ława sauny",
-          "position": {
-            "x": 1.7,
-            "z": -3.82
-          },
-          "widthM": 2.5,
-          "depthM": 0.5,
-          "heightM": 0.45,
-          "rotationDegrees": 0,
-          "color": "#B89265"
-        },
-        {
-          "ref": "interior/outbuilding/sauna-heater",
-          "catalogId": "cooker",
-          "storeyRef": "storey/outbuilding",
-          "name": "Piec sauny — obrys koncepcyjny",
-          "position": {
-            "x": 0.65,
-            "z": -3
-          },
-          "widthM": 0.4,
-          "depthM": 0.4,
-          "heightM": 0.85,
-          "rotationDegrees": 0,
-          "color": "#434b4c"
-        },
-        {
-          "ref": "interior/outbuilding/shower",
-          "catalogId": "shower",
-          "storeyRef": "storey/outbuilding",
-          "name": "Prysznic",
-          "position": {
-            "x": 2.55,
-            "z": -0.65
-          },
-          "widthM": 1,
-          "depthM": 1,
-          "heightM": 2.2,
-          "rotationDegrees": 0,
-          "color": "#B89265"
-        },
-        {
-          "ref": "interior/outbuilding/wc",
-          "catalogId": "toilet",
-          "storeyRef": "storey/outbuilding",
-          "name": "WC",
-          "position": {
-            "x": 0.65,
-            "z": -0.65
-          },
-          "widthM": 0.5,
-          "depthM": 0.75,
-          "heightM": 0.85,
-          "rotationDegrees": 0,
-          "color": "#eeece6"
-        },
-        {
-          "ref": "interior/outbuilding/washbasin",
-          "catalogId": "vanity",
-          "storeyRef": "storey/outbuilding",
-          "name": "Umywalka",
-          "position": {
-            "x": 0.63,
-            "z": -1.85
-          },
-          "widthM": 0.55,
-          "depthM": 0.8,
-          "heightM": 0.85,
-          "rotationDegrees": 0,
-          "color": "#B89265"
-        },
-        {
-          "ref": "interior/outbuilding/car",
-          "catalogId": "car",
-          "storeyRef": "storey/outbuilding",
-          "name": "Samochód 1,90 × 4,70 m · przed kamperem",
-          "position": {
-            "x": -1.55,
-            "z": -1.75
-          },
-          "widthM": 1.9,
-          "depthM": 4.7,
-          "heightM": 1.5,
-          "rotationDegrees": 180,
-          "color": "#879997"
-        }
-      ],
-      "stairs": [],
-      "ref": "building/garden-outbuilding",
-      "name": "Budynek gospodarczy · 99 m² · garaż na kampera i auto",
-      "kind": "garage",
-      "architecturalStyle": "barn",
-      "position": {
-        "x": -9,
-        "z": 54.8
-      },
-      "rotationDegrees": 90,
-      "storeys": [
-        {
-          "ref": "storey/outbuilding",
-          "name": "Parter · 99 m²",
-          "level": 0,
-          "elevationM": 0.2,
-          "clearHeightM": 3.6,
-          "baseSlabRef": "slab/outbuilding",
-          "topBoundaryRef": "roof/outbuilding",
-          "wallRefs": [
-            "wall/outbuilding/06",
-            "wall/outbuilding/07",
-            "wall/outbuilding/02",
-            "wall/outbuilding/03",
-            "wall/outbuilding/04",
-            "wall/outbuilding/05",
-            "wall/outbuilding/17",
-            "wall/outbuilding/18",
-            "wall/outbuilding/19",
-            "wall/outbuilding/10",
-            "wall/outbuilding/11",
-            "wall/outbuilding/12",
-            "wall/outbuilding/16"
-          ],
-          "spaceRefs": [
-            "space/outbuilding/camper",
-            "space/outbuilding/workshop",
-            "space/outbuilding/sauna",
-            "space/outbuilding/wc"
-          ],
-          "platformRefs": [],
-          "ceilingFinishRefs": []
-        }
-      ],
-      "slabs": [
-        {
-          "ref": "slab/outbuilding",
-          "footprint": [
-            {
-              "x": -3.37,
-              "z": -5.12
-            },
-            {
-              "x": 3.37,
-              "z": -5.12
-            },
-            {
-              "x": 3.37,
-              "z": 9.62
-            },
-            {
-              "x": -3.37,
-              "z": 9.62
-            }
-          ],
-          "topElevationM": 0.2,
-          "thicknessM": 0.2,
-          "locked": false
-        }
-      ],
-      "walls": [
-        {
-          "ref": "wall/outbuilding/06",
-          "start": {
-            "x": -3.25,
-            "z": -5
-          },
-          "end": {
-            "x": 0.15,
-            "z": -5
-          },
-          "thicknessM": 0.24,
-          "baseElevationM": 0.2,
-          "heightM": 3.6,
-          "openings": [
-            {
-              "ref": "opening/outbuilding/camper-gate",
-              "kind": "door",
-              "wallRef": "wall/outbuilding/06",
-              "offsetM": 1.7,
-              "widthM": 3,
-              "heightM": 3.4,
-              "sillM": 0,
-              "glazed": false
-            }
-          ],
-          "finish": {
-            "material": "charred-timber",
-            "colorHex": "#333A38",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/outbuilding/07",
-          "start": {
-            "x": 0.15,
-            "z": -5
-          },
-          "end": {
-            "x": 0.15,
-            "z": -2.7
-          },
-          "thicknessM": 0.16,
-          "baseElevationM": 0.2,
-          "heightM": 3.6,
-          "openings": [],
-          "finish": {
-            "material": "charred-timber",
-            "colorHex": "#333A38",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/outbuilding/02",
-          "start": {
-            "x": 0.15,
-            "z": -2.7
-          },
-          "end": {
-            "x": 0.15,
-            "z": 0
-          },
-          "thicknessM": 0.16,
-          "baseElevationM": 0.2,
-          "heightM": 3.6,
-          "openings": [],
-          "finish": {
-            "material": "charred-timber",
-            "colorHex": "#333A38",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/outbuilding/03",
-          "start": {
-            "x": 0.15,
-            "z": 0
-          },
-          "end": {
-            "x": 0.15,
-            "z": 9.5
-          },
-          "thicknessM": 0.16,
-          "baseElevationM": 0.2,
-          "heightM": 3.6,
-          "openings": [],
-          "finish": {
-            "material": "charred-timber",
-            "colorHex": "#333A38",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/outbuilding/04",
-          "start": {
-            "x": 0.15,
-            "z": 9.5
-          },
-          "end": {
-            "x": -3.25,
-            "z": 9.5
-          },
-          "thicknessM": 0.24,
-          "baseElevationM": 0.2,
-          "heightM": 3.6,
-          "openings": [],
-          "finish": {
-            "material": "charred-timber",
-            "colorHex": "#333A38",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/outbuilding/05",
-          "start": {
-            "x": -3.25,
-            "z": 9.5
-          },
-          "end": {
-            "x": -3.25,
-            "z": -5
-          },
-          "thicknessM": 0.24,
-          "baseElevationM": 0.2,
-          "heightM": 3.6,
-          "openings": [],
-          "finish": {
-            "material": "charred-timber",
-            "colorHex": "#333A38",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/outbuilding/17",
-          "start": {
-            "x": 0.15,
-            "z": 0
-          },
-          "end": {
-            "x": 3.25,
-            "z": 0
-          },
-          "thicknessM": 0.16,
-          "baseElevationM": 0.2,
-          "heightM": 3.6,
-          "openings": [
-            {
-              "ref": "opening/outbuilding/wc-door",
-              "kind": "door",
-              "wallRef": "wall/outbuilding/17",
-              "offsetM": 1.55,
-              "widthM": 0.85,
-              "heightM": 2.1,
-              "sillM": 0,
-              "glazed": false
-            }
-          ],
-          "finish": {
-            "material": "charred-timber",
-            "colorHex": "#333A38",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/outbuilding/18",
-          "start": {
-            "x": 3.25,
-            "z": 0
-          },
-          "end": {
-            "x": 3.25,
-            "z": 9.5
-          },
-          "thicknessM": 0.24,
-          "baseElevationM": 0.2,
-          "heightM": 3.6,
-          "openings": [
-            {
-              "ref": "opening/outbuilding/workshop-window",
-              "kind": "window",
-              "wallRef": "wall/outbuilding/18",
-              "offsetM": 7.4,
-              "widthM": 2.4,
-              "heightM": 1.25,
-              "sillM": 1.05,
-              "glazed": true
-            },
-            {
-              "ref": "opening/outbuilding/workshop-entry",
-              "kind": "door",
-              "wallRef": "wall/outbuilding/18",
-              "offsetM": 3.5,
-              "widthM": 1.2,
-              "heightM": 2.3,
-              "sillM": 0,
-              "glazed": false
-            }
-          ],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#B89265",
-            "textureId": "hinoki"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/outbuilding/19",
-          "start": {
-            "x": 3.25,
-            "z": 9.5
-          },
-          "end": {
-            "x": 0.15,
-            "z": 9.5
-          },
-          "thicknessM": 0.24,
-          "baseElevationM": 0.2,
-          "heightM": 3.6,
-          "openings": [],
-          "finish": {
-            "material": "charred-timber",
-            "colorHex": "#333A38",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/outbuilding/10",
-          "start": {
-            "x": 0.15,
-            "z": -5
-          },
-          "end": {
-            "x": 3.25,
-            "z": -5
-          },
-          "thicknessM": 0.24,
-          "baseElevationM": 0.2,
-          "heightM": 3.6,
-          "openings": [],
-          "finish": {
-            "material": "charred-timber",
-            "colorHex": "#333A38",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/outbuilding/11",
-          "start": {
-            "x": 3.25,
-            "z": -5
-          },
-          "end": {
-            "x": 3.25,
-            "z": -2.7
-          },
-          "thicknessM": 0.24,
-          "baseElevationM": 0.2,
-          "heightM": 3.6,
-          "openings": [
-            {
-              "ref": "opening/outbuilding/sauna-glazing",
-              "kind": "window",
-              "wallRef": "wall/outbuilding/11",
-              "offsetM": 1.15,
-              "widthM": 1.5,
-              "heightM": 2.1,
-              "sillM": 0.25,
-              "glazed": true
-            }
-          ],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#B89265",
-            "textureId": "hinoki"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/outbuilding/12",
-          "start": {
-            "x": 3.25,
-            "z": -2.7
-          },
-          "end": {
-            "x": 0.15,
-            "z": -2.7
-          },
-          "thicknessM": 0.16,
-          "baseElevationM": 0.2,
-          "heightM": 3.6,
-          "openings": [
-            {
-              "ref": "opening/outbuilding/sauna-door",
-              "kind": "door",
-              "wallRef": "wall/outbuilding/12",
-              "offsetM": 1.55,
-              "widthM": 0.85,
-              "heightM": 2.1,
-              "sillM": 0,
-              "glazed": true
-            }
-          ],
-          "finish": {
-            "material": "charred-timber",
-            "colorHex": "#333A38",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/outbuilding/16",
-          "start": {
-            "x": 3.25,
-            "z": -2.7
-          },
-          "end": {
-            "x": 3.25,
-            "z": 0
-          },
-          "thicknessM": 0.24,
-          "baseElevationM": 0.2,
-          "heightM": 3.6,
-          "openings": [
-            {
-              "ref": "opening/outbuilding/shower-door",
-              "kind": "door",
-              "wallRef": "wall/outbuilding/16",
-              "offsetM": 1.35,
-              "widthM": 1,
-              "heightM": 2.3,
-              "sillM": 0,
-              "glazed": true
-            }
-          ],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#B89265",
-            "textureId": "hinoki"
-          },
-          "locked": false
-        }
-      ],
-      "spaces": [
-        {
-          "ref": "space/outbuilding/camper",
-          "name": "Garaż tandemowy · samochód przed kamperem",
-          "usage": "garage",
-          "boundary": [
-            {
-              "wallRef": "wall/outbuilding/06",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/outbuilding/07",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/outbuilding/02",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/outbuilding/03",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/outbuilding/04",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/outbuilding/05",
-              "direction": 1
-            }
-          ],
-          "baseSlabRef": "slab/outbuilding",
-          "topBoundaryRef": "roof/outbuilding",
-          "locked": false
-        },
-        {
-          "ref": "space/outbuilding/workshop",
-          "name": "Stolarnia",
-          "usage": "workshop",
-          "boundary": [
-            {
-              "wallRef": "wall/outbuilding/17",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/outbuilding/18",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/outbuilding/19",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/outbuilding/03",
-              "direction": -1
-            }
-          ],
-          "baseSlabRef": "slab/outbuilding",
-          "topBoundaryRef": "roof/outbuilding",
-          "locked": false
-        },
-        {
-          "ref": "space/outbuilding/sauna",
-          "name": "Sauna",
-          "usage": "sauna",
-          "boundary": [
-            {
-              "wallRef": "wall/outbuilding/10",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/outbuilding/11",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/outbuilding/12",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/outbuilding/07",
-              "direction": -1
-            }
-          ],
-          "baseSlabRef": "slab/outbuilding",
-          "topBoundaryRef": "roof/outbuilding",
-          "locked": false
-        },
-        {
-          "ref": "space/outbuilding/wc",
-          "name": "Zaplecze SPA · prysznic, WC i przebieralnia",
-          "usage": "bathroom",
-          "boundary": [
-            {
-              "wallRef": "wall/outbuilding/12",
-              "direction": -1
-            },
-            {
-              "wallRef": "wall/outbuilding/16",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/outbuilding/17",
-              "direction": -1
-            },
-            {
-              "wallRef": "wall/outbuilding/02",
-              "direction": -1
-            }
-          ],
-          "baseSlabRef": "slab/outbuilding",
-          "topBoundaryRef": "roof/outbuilding",
-          "locked": false
-        }
-      ],
-      "platforms": [],
-      "ceilingFinishes": [],
-      "roof": {
-        "ref": "roof/outbuilding",
-        "type": "gable",
-        "baseElevationM": 3.8,
-        "pitchDegrees": 37,
-        "overhangM": 0.6,
-        "footprint": [
-          {
-            "x": -3.25,
-            "z": -5
-          },
-          {
-            "x": 3.25,
-            "z": -5
-          },
-          {
-            "x": 3.25,
-            "z": 9.5
-          },
-          {
-            "x": -3.25,
-            "z": 9.5
-          }
-        ],
-        "finish": {
-          "material": "standing-seam-metal",
-          "colorHex": "#303536"
-        },
-        "segments": [
-          {
-            "ref": "roof/outbuilding/gable",
-            "footprint": [
-              {
-                "x": -3.25,
-                "z": -5
-              },
-              {
-                "x": 3.25,
-                "z": -5
-              },
-              {
-                "x": 3.25,
-                "z": 9.5
-              },
-              {
-                "x": -3.25,
-                "z": 9.5
-              }
-            ],
-            "storeyRef": "storey/outbuilding",
-            "baseElevationM": 3.8,
-            "type": "gable",
-            "pitchDegrees": 37,
-            "overhangM": 0.6,
-            "ridgeDirection": "z",
-            "finish": {
-              "material": "standing-seam-metal",
-              "colorHex": "#303536"
-            },
-            "adjacentSegmentRefs": [],
-            "gableWallFinishes": {
-              "min": {
-                "material": "charred-timber",
-                "colorHex": "#333A38",
-                "textureId": "none"
-              },
-              "max": {
-                "material": "charred-timber",
-                "colorHex": "#333A38",
-                "textureId": "none"
-              }
-            }
-          },
-          {
-            "ref": "roof/outbuilding/pergola",
-            "footprint": [
-              {
-                "x": 3.37,
-                "z": -1
-              },
-              {
-                "x": 9.2,
-                "z": -1
-              },
-              {
-                "x": 9.2,
-                "z": 5
-              },
-              {
-                "x": 3.37,
-                "z": 5
-              }
-            ],
-            "baseElevationM": 2.86,
-            "type": "flat",
-            "pitchDegrees": 0,
-            "overhangM": 0,
-            "ridgeDirection": "z",
-            "finish": {
-              "material": "membrane",
-              "colorHex": "#303536"
-            },
-            "adjacentSegmentRefs": [],
-            "canopy": {
-              "fasciaHeightM": 0.18,
-              "fasciaEdgeIndices": [
-                0,
-                1,
-                2,
-                3
-              ],
-              "frameColorHex": "#303536",
-              "soffitColorHex": "#B89265",
-              "postWidthM": 0.14,
-              "postBaseElevationM": 0.02,
-              "posts": [
-                {
-                  "x": 3.51,
-                  "z": -0.86
-                },
-                {
-                  "x": 3.51,
-                  "z": 2
-                },
-                {
-                  "x": 3.51,
-                  "z": 4.86
-                },
-                {
-                  "x": 9.06,
-                  "z": -0.86
-                },
-                {
-                  "x": 9.06,
-                  "z": 2
-                },
-                {
-                  "x": 9.06,
-                  "z": 4.86
-                }
-              ],
-              "slats": {
-                "direction": "x",
-                "spacingM": 0.45,
-                "widthM": 0.07
-              }
-            }
-          }
-        ],
-        "junctions": []
-      }
     }
   ],
   "landscape": {
@@ -4914,154 +4064,95 @@
         "kind": "terrace",
         "footprint": [
           {
-            "x": 0.925009254,
-            "z": -4.413176785
+            "x": -9.070163570992221,
+            "z": -0.12242401941712255
           },
           {
-            "x": 1.107591786,
-            "z": -1.008068326
+            "x": -8.887581038992222,
+            "z": 3.2826844395828774
           },
           {
-            "x": -6.271807484,
-            "z": -0.612383599
+            "x": -14.769132013170852,
+            "z": 3.598054269427883
           },
           {
-            "x": -6.454390017,
-            "z": -4.017492058
+            "x": -14.95171454617085,
+            "z": 0.1929458104278824
           }
         ],
         "locked": true
       },
       {
         "ref": "zone/driveway",
-        "name": "Road-facing carport approach",
+        "name": "Direct road access · two-car apron",
         "kind": "driveway",
         "footprint": [
           {
-            "x": -19.628720364,
-            "z": -12.504095627
+            "x": -19.733992804,
+            "z": -14.466373916
           },
           {
-            "x": -13.396650515,
-            "z": -12.838434138
+            "x": -8.506239581995459,
+            "z": -12.951020580608082
           },
           {
-            "x": -12.938855601,
-            "z": -4.300698852
+            "x": -8.163562687467481,
+            "z": -6.56020118510357
           },
           {
-            "x": -19.170688038,
-            "z": -3.966373077
+            "x": -19.391138198,
+            "z": -8.075564055
           }
         ],
         "locked": false
       },
       {
         "ref": "zone/path",
-        "name": "Carport approach to entrance and utility",
+        "name": "Carport to entrance",
         "kind": "path",
         "footprint": [
           {
-            "x": 1.681688996,
-            "z": -13.646937436
+            "x": -8.233168931837227,
+            "z": -7.858336374595752
           },
           {
-            "x": 1.8369644641549947,
-            "z": -10.75109739717863
+            "x": -8.158208360837227,
+            "z": -6.460344631595751
           },
           {
-            "x": -6.790641719845005,
-            "z": -10.288483590178629
+            "x": -15.287966249108502,
+            "z": -6.078045721745778
           },
           {
-            "x": -6.834011764,
-            "z": -11.097321669
-          },
-          {
-            "x": -13.284745092,
-            "z": -10.751432179
-          },
-          {
-            "x": -13.396650515,
-            "z": -12.838434138
+            "x": -15.362926819799897,
+            "z": -7.476037464762325
           }
         ],
         "locked": false
       },
       {
-        "ref": "zone/outbuilding/terrace",
-        "name": "Taras SPA — 82 m²",
+        "ref": "zone/zielonki-v2/pergola-paving",
+        "name": "Nawierzchnia pod pergolą",
         "kind": "terrace",
         "footprint": [
           {
-            "x": -3.88,
-            "z": 51.43
+            "x": -12.649998346281635,
+            "z": -10.760730540714842
           },
           {
-            "x": -14.12,
-            "z": 51.43
+            "x": -12.244140399325062,
+            "z": -3.1916038191641847
           },
           {
-            "x": -14.12,
-            "z": 43.43
+            "x": -15.274786784536968,
+            "z": -3.0291000105872454
           },
           {
-            "x": -3.88,
-            "z": 43.43
+            "x": -15.68064473149354,
+            "z": -10.598226732137903
           }
         ],
-        "locked": false,
-        "textureId": "concrete-tiles"
-      },
-      {
-        "ref": "zone/outbuilding/apron",
-        "name": "Wjazd i plac manewrowy kampera",
-        "kind": "driveway",
-        "footprint": [
-          {
-            "x": -18.403,
-            "z": 53.2
-          },
-          {
-            "x": -14.12,
-            "z": 53.2
-          },
-          {
-            "x": -14.12,
-            "z": 74
-          },
-          {
-            "x": -18.403,
-            "z": 74
-          }
-        ],
-        "locked": false,
-        "textureId": "concrete-tiles"
-      },
-      {
-        "ref": "zone/outbuilding/workshop-path",
-        "name": "Dojście do stolarni",
-        "kind": "path",
-        "footprint": [
-          {
-            "x": -15.32,
-            "z": 43.43
-          },
-          {
-            "x": -14.12,
-            "z": 43.43
-          },
-          {
-            "x": -14.12,
-            "z": 56
-          },
-          {
-            "x": -15.32,
-            "z": 56
-          }
-        ],
-        "locked": false,
-        "textureId": "concrete-tiles"
+        "locked": false
       }
     ],
     "plants": [
@@ -5160,61 +4251,6 @@
           "z": 5.5
         },
         "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/outbuilding/spa",
-        "catalogId": "jacuzzi",
-        "name": "Jacuzzi przy saunie",
-        "position": {
-          "x": -12,
-          "z": 46.4
-        },
-        "rotationDegrees": 180,
-        "locked": false
-      },
-      {
-        "ref": "fixture/outbuilding/kitchen",
-        "catalogId": "outdoor-kitchen",
-        "name": "Kuchnia zewnętrzna pod pergolą",
-        "position": {
-          "x": -8.4,
-          "z": 50.7
-        },
-        "rotationDegrees": 180,
-        "locked": false
-      },
-      {
-        "ref": "fixture/outbuilding/dining",
-        "catalogId": "outdoor-dining-set",
-        "name": "Stół pod pergolą",
-        "position": {
-          "x": -6.5,
-          "z": 47.9
-        },
-        "rotationDegrees": 180,
-        "locked": false
-      },
-      {
-        "ref": "fixture/outbuilding/lounger-1",
-        "catalogId": "sun-lounger",
-        "name": "Leżak przy jacuzzi",
-        "position": {
-          "x": -12,
-          "z": 49.5
-        },
-        "rotationDegrees": 270,
-        "locked": false
-      },
-      {
-        "ref": "fixture/outbuilding/lounger-2",
-        "catalogId": "sun-lounger",
-        "name": "Leżak przy jacuzzi",
-        "position": {
-          "x": -9,
-          "z": 44.8
-        },
-        "rotationDegrees": 270,
         "locked": false
       }
     ],

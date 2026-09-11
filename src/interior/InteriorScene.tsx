@@ -13,6 +13,7 @@ import { interiorFloorTexture } from '../scene/materialCatalog'
 import { TexturedMaterial } from '../scene/materials'
 import { ProductModel } from './ProductModel'
 import { FinishMaterial } from './FinishMaterial'
+import { Staircase } from './Staircase'
 import { InteriorCamera, type InteriorView } from './InteriorCamera'
 import { wallDistances, type SnapSettings } from '../domain/interiorPlacement'
 import { itemFitsFloor } from '../domain/interior'
@@ -219,10 +220,7 @@ export function InteriorScene(props: Props) {
     {(building.stairs ?? []).filter((stairs) => stairs.fromStoreyRef === storey.ref || stairs.toStoreyRef === storey.ref).map((stairs) => {
       const lower = building.storeys.find((s) => s.ref === stairs.fromStoreyRef)!; const upper = building.storeys.find((s) => s.ref === stairs.toStoreyRef)!
       const rise = upper.elevationM - lower.elevationM; const base = lower.elevationM - storey.elevationM
-      return <group key={stairs.ref} position={[stairs.start.x, plan ? 0.03 : base, stairs.start.z]}>{Array.from({ length: stairs.steps }, (_, i) => {
-        const h = plan ? 0.035 : rise * (stairs.steps - i) / stairs.steps
-        return <mesh key={i} position={[(i + 0.5) * stairs.runM / stairs.steps, h / 2, stairs.widthM / 2]} castShadow receiveShadow><boxGeometry args={[stairs.runM / stairs.steps - 0.012, h, stairs.widthM]} /><meshStandardMaterial color={i % 2 ? '#b99365' : '#c49c6b'} roughness={0.8} /></mesh>
-      })}{plan && <Line points={[[stairs.runM - 0.12, 0.16, stairs.widthM / 2], [0.14, 0.16, stairs.widthM / 2], [0.35, 0.16, stairs.widthM / 2 - 0.17], [0.14, 0.16, stairs.widthM / 2], [0.35, 0.16, stairs.widthM / 2 + 0.17]]} color='#675d4b' lineWidth={1} />}</group>
+      return <Staircase key={stairs.ref} stairs={stairs} rise={rise} base={base} plan={plan} />
     })}
     {building.walls.filter((wall) => storey.wallRefs.includes(wall.ref)).map((wall) => <CutawayWall key={wall.ref} wall={wall} profile={atticWallProfile(building, wall)} plan={plan} fullHeight={props.view === 'room'} selected={props.selectedRefs?.includes(wall.ref) ? wall.ref : selected} onPick={mode === 'partition' ? onPick : undefined} onSelect={mode === 'select' && !placing ? onSelect : undefined} />)}
     {building.spaces.filter((room) => storey.spaceRefs.includes(room.ref)).map((room) => {

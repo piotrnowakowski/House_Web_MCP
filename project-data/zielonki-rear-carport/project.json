@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-carport",
   "name": "Z garażem za domem przy sąsiadach",
   "units": "metric",
-  "revision": 50,
-  "updatedAt": "2026-09-10T22:26:42.436Z",
+  "revision": 88,
+  "updatedAt": "2026-09-11T08:04:44.248Z",
   "site": {
     "boundary": [
       {
@@ -1810,100 +1810,11 @@
           "Five surveyed trees conflict with the carport and are proposed removals in v2 only: plant/survey-5012, plant/survey-5015, plant/survey-5018, plant/survey-501b, plant/apple. Their source records remain in before-carport-r46.json and the original house. This is not tree-removal authorization.",
           "Rotation revision 2026-09-10 r48 supersedes the r47 orientation/placement: the complete house, both pergolas and carport rotate 180 degrees to 273.06927082481445 degrees. House anchor moves to x -6.628904317, z -3.057048028 to preserve the conceptual 4 m outside-wall road clearance and keep all roof footprints within MNU. The carport is now north-northwest; the opposite open edge serves the rebuilt road apron. Local room/roof geometry, knee walls, plants and neighbors are unchanged. Earlier proposed tree deletions remain deletions; earlier south-side placement notes describe r47 only.",
           "Terrace revision 2026-09-10 r49: remove the screenshot-highlighted front garden pergola roof/zielonki-v2/garden-pergola and its paving. Shorten the remaining courtyard-side pergola: end beam centre z=8.425, outside face z=8.485 flush with the front outside house wall. Side terrace paving ends at the same z=8.485; shorten slats and relocate end posts with the frame. House/carport placement, rotation, main roofs, rooms and site evidence remain r48 values. Earlier notes describing two retained pergolas are historical.",
-          "Rear-carport r50, 2026-09-11: transfer the current front-carport r66 house walls, rooms, furniture, stairs, slabs and gable roofs, including the 1.5 m shortening/narrowing, 0.5 m bathroom/storage enlargement and removed internal doorway. Preserve this independent rear-carport identity, 273.06927082481445 degree rotation, site, planting and retained entities. Fit the side pergola/terrace to the shortened facade, shift the rear carport with the 1.5 m narrower facade and reconnect the existing road entrance. House anchor (-8.093726348992222, -2.3629195784171224) m gives 4.00 m outer-face road clearance and 0.15 m mapped MNU/R envelope margin. Main gables retain 40.13423424862029 degrees, 4.85 m eaves and 1.40 m knee walls. This is geometric placement in the existing mapped evidence, not a new assessment of statutory building lines."
+          "Rear-carport r50, 2026-09-11: transfer the current front-carport r66 house walls, rooms, furniture, stairs, slabs and gable roofs, including the 1.5 m shortening/narrowing, 0.5 m bathroom/storage enlargement and removed internal doorway. Preserve this independent rear-carport identity, 273.06927082481445 degree rotation, site, planting and retained entities. Fit the side pergola/terrace to the shortened facade, shift the rear carport with the 1.5 m narrower facade and reconnect the existing road entrance. House anchor (-8.093726348992222, -2.3629195784171224) m gives 4.00 m outer-face road clearance and 0.15 m mapped MNU/R envelope margin. Main gables retain 40.13423424862029 degrees, 4.85 m eaves and 1.40 m knee walls. This is geometric placement in the existing mapped evidence, not a new assessment of statutory building lines.",
+          "U-shaped stair revision 2026-09-11: 3.00 m floor-to-floor rise, 16 risers at 0.1875 m in two equal flights, 7 treads per flight at 0.25 m, 0.94 m tread width (0.90 m clear between 40 mm handrails), 0.90 m central landing depth and 0.10 m central gap. Stair envelope 2.65 x 1.98 m. The upper slab opening fits both flights; 0.90 m clear upper approach and a 0.22 m parent-bedroom doorway shift preserve access. Three stepped cabinets fit below the upper flight with their shared group and the original under-stair storage ref retained. Model tread/landing headroom is at least 3.0096 m against current roof geometry; construction thickness, fixings and guard detailing require construction design. Preserve independently captured user furniture/entrance changes and deletions."
         ]
       },
       "furniture": [
-        {
-          "ref": "interior/reference-sofa",
-          "catalogId": "corner-sofa",
-          "storeyRef": "storey/reference-ground",
-          "name": "Narożnik turkusowy",
-          "position": {
-            "x": 2.555,
-            "z": -4.215
-          },
-          "widthM": 3.45,
-          "depthM": 2.52,
-          "heightM": 0.88,
-          "rotationDegrees": 0,
-          "color": "#207b8a"
-        },
-        {
-          "ref": "interior/reference-media",
-          "catalogId": "tv-unit",
-          "storeyRef": "storey/reference-ground",
-          "name": "Szafka RTV i telewizor",
-          "position": {
-            "x": 3.405,
-            "z": -6.115
-          },
-          "widthM": 3.35,
-          "depthM": 0.5,
-          "heightM": 1.15,
-          "rotationDegrees": 0,
-          "color": "#364149"
-        },
-        {
-          "ref": "interior/reference-dining",
-          "catalogId": "dining-table",
-          "storeyRef": "storey/reference-ground",
-          "name": "Stół i sześć krzeseł",
-          "position": {
-            "x": 2.455,
-            "z": -1.415
-          },
-          "widthM": 2,
-          "depthM": 1.62,
-          "heightM": 0.85,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/reference-island",
-          "catalogId": "kitchen-island",
-          "storeyRef": "storey/reference-ground",
-          "name": "Wyspa 1.28 × 2.92 m",
-          "position": {
-            "x": -1.385,
-            "z": -4.105
-          },
-          "widthM": 1.28,
-          "depthM": 2.92,
-          "heightM": 0.92,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/reference-stool-one",
-          "catalogId": "bar-stool",
-          "storeyRef": "storey/reference-ground",
-          "name": "Hoker 1",
-          "position": {
-            "x": -0.315,
-            "z": -4.955
-          },
-          "widthM": 0.46,
-          "depthM": 0.46,
-          "heightM": 0.75,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/reference-stool-two",
-          "catalogId": "bar-stool",
-          "storeyRef": "storey/reference-ground",
-          "name": "Hoker 2",
-          "position": {
-            "x": -0.315,
-            "z": -3.715
-          },
-          "widthM": 0.46,
-          "depthM": 0.46,
-          "heightM": 0.75,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
         {
           "ref": "interior/reference-cabinet-one",
           "catalogId": "kitchen-counter",
@@ -1965,21 +1876,6 @@
           "color": "#bda17a"
         },
         {
-          "ref": "interior/reference-understairs",
-          "catalogId": "wardrobe",
-          "storeyRef": "storey/reference-ground",
-          "name": "Zabudowa pod schodami",
-          "position": {
-            "x": -2.315,
-            "z": -0.535
-          },
-          "widthM": 3.16,
-          "depthM": 0.62,
-          "heightM": 1.65,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
           "ref": "interior/reference-parents-bed",
           "catalogId": "bed",
           "storeyRef": "storey/reference-upper",
@@ -1993,21 +1889,6 @@
           "heightM": 1,
           "rotationDegrees": 90,
           "color": "#287a89"
-        },
-        {
-          "ref": "interior/carport-study/bed",
-          "catalogId": "bed",
-          "storeyRef": "storey/reference-ground",
-          "name": "Guest bed",
-          "position": {
-            "x": 0.15,
-            "z": 5.115
-          },
-          "widthM": 1.6,
-          "depthM": 2.05,
-          "heightM": 0.85,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
         },
         {
           "ref": "interior/carport-study/desk",
@@ -2036,21 +1917,6 @@
           "widthM": 0.45,
           "depthM": 0.7,
           "heightM": 0.8,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/carport-study/shower",
-          "catalogId": "shower",
-          "storeyRef": "storey/reference-ground",
-          "name": "Shower",
-          "position": {
-            "x": -1.75,
-            "z": 3.4
-          },
-          "widthM": 0.9,
-          "depthM": 0.9,
-          "heightM": 2.1,
           "rotationDegrees": 0,
           "color": "#bda17a"
         },
@@ -2098,6 +1964,111 @@
           "heightM": 2.2,
           "rotationDegrees": 0,
           "color": "#bda17a"
+        },
+        {
+          "ref": "interior/carport-study/shower",
+          "catalogId": "shower",
+          "storeyRef": "storey/reference-ground",
+          "name": "Shower",
+          "position": {
+            "x": -1.685,
+            "z": 3.2500000000000004
+          },
+          "widthM": 0.9,
+          "depthM": 0.9,
+          "heightM": 2.1,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-media",
+          "catalogId": "tv-unit",
+          "storeyRef": "storey/reference-ground",
+          "name": "Szafka RTV i telewizor",
+          "position": {
+            "x": 2.9,
+            "z": -6.199999999999996
+          },
+          "widthM": 3.35,
+          "depthM": 0.5,
+          "heightM": 1.15,
+          "rotationDegrees": 0,
+          "color": "#364149"
+        },
+        {
+          "ref": "interior/reference-dining",
+          "catalogId": "dining-table",
+          "storeyRef": "storey/reference-ground",
+          "name": "Stół i sześć krzeseł",
+          "position": {
+            "x": 3,
+            "z": -1.1
+          },
+          "widthM": 2,
+          "depthM": 1.62,
+          "heightM": 0.85,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-island",
+          "catalogId": "kitchen-island",
+          "storeyRef": "storey/reference-ground",
+          "name": "Wyspa 1.28 × 2.92 m",
+          "position": {
+            "x": -1.9000000000000001,
+            "z": -3.9000000000000004
+          },
+          "widthM": 1.28,
+          "depthM": 2.92,
+          "heightM": 0.92,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-stool-one",
+          "catalogId": "bar-stool",
+          "storeyRef": "storey/reference-ground",
+          "name": "Hoker 1",
+          "position": {
+            "x": -1,
+            "z": -4.800000000000001
+          },
+          "widthM": 0.46,
+          "depthM": 0.46,
+          "heightM": 0.75,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-stool-two",
+          "catalogId": "bar-stool",
+          "storeyRef": "storey/reference-ground",
+          "name": "Hoker 2",
+          "position": {
+            "x": -1,
+            "z": -4.300000000000001
+          },
+          "widthM": 0.46,
+          "depthM": 0.46,
+          "heightM": 0.75,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-sofa",
+          "catalogId": "corner-sofa",
+          "storeyRef": "storey/reference-ground",
+          "name": "Narożnik turkusowy",
+          "position": {
+            "x": 2.5000000000000004,
+            "z": -4
+          },
+          "widthM": 3.45,
+          "depthM": 2.52,
+          "heightM": 0.88,
+          "rotationDegrees": 0,
+          "color": "#207b8a"
         }
       ],
       "stairs": [
@@ -2106,12 +2077,16 @@
           "fromStoreyRef": "storey/reference-ground",
           "toStoreyRef": "storey/reference-upper",
           "start": {
-            "x": -3.895,
-            "z": -1.845
+            "x": -3.865,
+            "z": -1.735
           },
-          "runM": 3.16,
-          "widthM": 0.94,
-          "steps": 16
+          "runM": 1.75,
+          "widthM": 0.89,
+          "steps": 16,
+          "uTurn": {
+            "landingDepthM": 0.9,
+            "gapM": 0.1
+          }
         }
       ],
       "ref": "house/main",
@@ -2147,7 +2122,10 @@
             "wall/carport-layout/ground/13",
             "wall/carport-layout/ground/14",
             "wall/carport-layout/ground/15",
-            "wall/carport-layout/ground/16"
+            "wall/carport-layout/ground/16",
+            "wall/stair-enclosure/kitchen",
+            "wall/stair-enclosure/hall",
+            "wall/stair-enclosure/storage-end"
           ],
           "spaceRefs": [
             "space/reference-living",
@@ -2274,16 +2252,16 @@
                 "z": -1.745
               },
               {
-                "x": -0.735,
+                "x": -1.205,
                 "z": -1.745
               },
               {
-                "x": -0.735,
-                "z": -0.905
+                "x": -1.205,
+                "z": 0.175
               },
               {
                 "x": -3.885,
-                "z": -0.905
+                "z": 0.175
               }
             ],
             [
@@ -2388,7 +2366,7 @@
               "ref": "opening/reference-parents",
               "kind": "door",
               "wallRef": "wall/reference-upper/3",
-              "offsetM": 0.7699999999999996,
+              "offsetM": 0.55,
               "widthM": 0.9,
               "heightM": 2.1,
               "sillM": 0
@@ -2942,7 +2920,7 @@
               "ref": "opening/reference-terrace-north",
               "kind": "window",
               "wallRef": "wall/reference-ground/1",
-              "offsetM": 2.995,
+              "offsetM": 3,
               "widthM": 4.5,
               "heightM": 2.8,
               "sillM": 0,
@@ -3075,7 +3053,7 @@
               "ref": "opening/reference-wc",
               "kind": "door",
               "wallRef": "wall/carport-layout/ground/7",
-              "offsetM": 1.62,
+              "offsetM": 1,
               "widthM": 0.9,
               "heightM": 2.1,
               "sillM": 0,
@@ -3106,7 +3084,7 @@
               "ref": "opening/reference-entrance",
               "kind": "door",
               "wallRef": "wall/carport-layout/ground/8",
-              "offsetM": 1.465,
+              "offsetM": 0.8,
               "widthM": 1.1,
               "heightM": 2.1,
               "sillM": 0,
@@ -3299,6 +3277,84 @@
           "finish": {
             "material": "natural-timber",
             "colorHex": "#BD9C73"
+          },
+          "locked": false
+        },
+        {
+          "groupRef": "wall-group/stair-enclosure",
+          "ref": "wall/stair-enclosure/kitchen",
+          "start": {
+            "x": -3.895,
+            "z": -1.805
+          },
+          "end": {
+            "x": -1.145,
+            "z": -1.805
+          },
+          "thicknessM": 0.1,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
+          },
+          "locked": false
+        },
+        {
+          "groupRef": "wall-group/stair-enclosure",
+          "ref": "wall/stair-enclosure/hall",
+          "start": {
+            "x": -1.145,
+            "z": 0.215
+          },
+          "end": {
+            "x": -3.895,
+            "z": 0.215
+          },
+          "thicknessM": 0.1,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
+          },
+          "locked": false
+        },
+        {
+          "groupRef": "wall-group/stair-enclosure",
+          "ref": "wall/stair-enclosure/storage-end",
+          "start": {
+            "x": -1.145,
+            "z": -0.795
+          },
+          "end": {
+            "x": -1.145,
+            "z": 0.215
+          },
+          "thicknessM": 0.1,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [
+            {
+              "swing": "out",
+              "ref": "opening/stair-storage",
+              "kind": "door",
+              "wallRef": "wall/stair-enclosure/storage-end",
+              "offsetM": 0.535,
+              "widthM": 0.8,
+              "heightM": 2,
+              "sillM": 0,
+              "glazed": false
+            }
+          ],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
           },
           "locked": false
         }
@@ -3615,7 +3671,7 @@
         "ref": "roof/reference",
         "type": "gable",
         "baseElevationM": 4.85,
-        "pitchDegrees": 40.13423424862029,
+        "pitchDegrees": 44,
         "overhangM": 0,
         "footprint": [
           {
@@ -3652,7 +3708,7 @@
             "ref": "roof/reference/rear-barn",
             "footprint": [
               {
-                "x": -1.705,
+                "x": -0.9550000000000001,
                 "z": -6.555
               },
               {
@@ -3664,14 +3720,14 @@
                 "z": 0.995
               },
               {
-                "x": -1.705,
+                "x": -0.9550000000000001,
                 "z": 0.995
               }
             ],
             "storeyRef": "storey/reference-upper",
             "baseElevationM": 4.85,
             "type": "gable",
-            "pitchDegrees": 40.13423424862029,
+            "pitchDegrees": 37.87103769668754,
             "overhangM": 0,
             "ridgeDirection": "x",
             "finish": {
@@ -3727,7 +3783,7 @@
             "storeyRef": "storey/reference-upper",
             "baseElevationM": 4.85,
             "type": "gable",
-            "pitchDegrees": 40.13423424862029,
+            "pitchDegrees": 44,
             "overhangM": 0,
             "ridgeDirection": "z",
             "finish": {
@@ -4060,30 +4116,6 @@
         "locked": true
       },
       {
-        "ref": "zone/lawn",
-        "name": "Open courtyard lawn",
-        "kind": "lawn",
-        "footprint": [
-          {
-            "x": -1.5,
-            "z": 5
-          },
-          {
-            "x": 10.5,
-            "z": 5
-          },
-          {
-            "x": 10.5,
-            "z": 11
-          },
-          {
-            "x": -1.5,
-            "z": 11
-          }
-        ],
-        "locked": false
-      },
-      {
         "ref": "zone/driveway",
         "name": "Direct road access · two-car apron",
         "kind": "driveway",
@@ -4127,30 +4159,6 @@
           {
             "x": -15.362926819799897,
             "z": -7.476037464762325
-          }
-        ],
-        "locked": false
-      },
-      {
-        "ref": "zone/rain-garden",
-        "name": "Rain garden",
-        "kind": "rain-garden",
-        "footprint": [
-          {
-            "x": -12.6,
-            "z": 10.3
-          },
-          {
-            "x": -7.4,
-            "z": 10.3
-          },
-          {
-            "x": -7.4,
-            "z": 13.7
-          },
-          {
-            "x": -12.6,
-            "z": 13.7
           }
         ],
         "locked": false

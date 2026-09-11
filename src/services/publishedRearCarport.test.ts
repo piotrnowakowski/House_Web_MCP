@@ -5,6 +5,7 @@ import source from '../../project-data/zielonki-v2/before-road-carport-r49.json'
 import data from '../../project-data/zielonki-rear-carport/project.json'
 import baseline from '../../project-data/zielonki-rear-carport/initial-r49.json'
 import front from '../../project-data/zielonki-v2/project.json'
+import compact from '../../project-data/zielonki-rear-carport/before-u-stairs-r50.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
 import { buildingFootprintsWorld, distanceToSegment } from '../domain/geometry'
@@ -23,7 +24,7 @@ beforeEach(() => {
 
 it('preserves the screenshot-era baseline and fits the compact house to the rear-carport site', () => {
   expect(baseline).toEqual({ ...source, ref: REAR_CARPORT_STUDY_REF, name: 'Z garażem za domem przy sąsiadach' })
-  const project = parseProject(data)
+  const project = parseProject(compact)
   expect(validateProject(project).filter((issue) => issue.severity === 'error')).toEqual([])
   expect(project.buildings).toHaveLength(2)
   for (const segment of project.buildings[0].roof.segments.filter((item) => item.type === 'gable')) {

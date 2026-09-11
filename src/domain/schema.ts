@@ -109,7 +109,7 @@ const BuildingSchema = z.object({
   designStatus: z.literal('concept').optional(),
   interiorSource: z.object({ id: z.string().min(1), notes: z.array(z.string()) }).optional(),
   furniture: z.array(InteriorItemSchema).optional(),
-  stairs: z.array(z.object({ ref: z.string().min(1), fromStoreyRef: z.string().min(1), toStoreyRef: z.string().min(1), start: Vec2Schema, runM: z.number().positive(), widthM: z.number().positive(), steps: z.number().int().min(2).max(40) })).optional(),
+  stairs: z.array(z.object({ ref: z.string().min(1), fromStoreyRef: z.string().min(1), toStoreyRef: z.string().min(1), start: Vec2Schema, runM: z.number().positive(), widthM: z.number().positive(), steps: z.number().int().min(2).max(40), uTurn: z.object({ landingDepthM: z.number().positive(), gapM: z.number().nonnegative() }).optional() })).optional(),
   ref: z.string().min(1), name: z.string().min(1), kind: z.enum(['house', 'garage']), architecturalStyle: z.enum(['classic', 'futuristic', 'barn']),
   garageMode: z.enum(['integrated', 'attached']).optional(), position: Vec2Schema, rotationDegrees: z.number().finite(), storeys: z.array(StoreySchema).min(1),
   slabs: z.array(SlabSchema).min(1), walls: z.array(WallSchema), spaces: z.array(SpaceSchema),

@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
-import data from '../../project-data/zielonki-v2/project.json'
+import data from '../../project-data/zielonki-v2/before-roof-join-r66.json'
 import previous from '../../project-data/zielonki-v2/before-wider-bath-storage-r65.json'
 import { validateProject } from '../domain/commands'
 import { polygonBounds, spaceFootprint } from '../domain/geometry'

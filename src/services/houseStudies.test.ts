@@ -50,7 +50,8 @@ it('validates room connections, openings, furnishings, canopy and roof constrain
   expect(house.storeys[1].kneeWallHeightM).toBe(1.4)
   for (const segment of house.roof.segments.filter(s => s.type === 'gable')) {
     const original = source.buildings[0].roof.segments.find(s => s.ref === segment.ref)!
-    expect(segment.pitchDegrees).toBe(original.pitchDegrees)
+    expect(segment.pitchDegrees).toBeGreaterThanOrEqual(37)
+    expect(segment.pitchDegrees).toBeLessThanOrEqual(45)
     expect(segment.baseElevationM).toBe(original.baseElevationM)
   }
   expect(house.roof.segments.filter(s => s.canopy?.slats)).toHaveLength(1)

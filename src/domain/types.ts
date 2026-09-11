@@ -95,7 +95,11 @@ export interface BuildingModel {
   platforms: PlatformModel[]; ceilingFinishes: CeilingFinishModel[]; roof: RoofModel
 }
 
-export interface StairModel { ref: string; fromStoreyRef: string; toStoreyRef: string; start: Vec2; runM: number; widthM: number; steps: number }
+export interface StairModel {
+  ref: string; fromStoreyRef: string; toStoreyRef: string; start: Vec2; runM: number; widthM: number; steps: number
+  /** Two equal flights: runM is one flight's horizontal going, steps counts all risers. */
+  uTurn?: { landingDepthM: number; gapM: number }
+}
 export type InteriorCatalogId = 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car' | 'camper'
 export interface InteriorItem { ref: string; catalogId: InteriorCatalogId; storeyRef: string; name: string; position: Vec2; widthM: number; depthM: number; heightM: number; rotationDegrees: number; color: string; productId?: string; variantId?: string; elevationM?: number; groupRef?: string; locked?: boolean }
 export type InteriorCommand = { type: 'interior.update'; buildingRef: string; storeyRef: string } & (
