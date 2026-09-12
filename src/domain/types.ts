@@ -54,7 +54,7 @@ export interface NeighborBuilding {
 }
 export interface SiteModel { boundary: Polygon2; northDegrees: number; terrain: TerrainModel; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[]; knowledgeBase: SiteKnowledgeBase; neighbors?: NeighborBuilding[] }
 
-export interface OpeningModel { ref: string; kind: 'door' | 'window'; glazed?: boolean; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number; hinge?: 'left' | 'right'; swing?: 'in' | 'out' }
+export interface OpeningModel { ref: string; kind: 'door' | 'window'; glazed?: boolean; mullionFractions?: number[]; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number; hinge?: 'left' | 'right'; swing?: 'in' | 'out' }
 export interface InteriorFinish { presetId: string; color: string; rotationDegrees: number; tileM: number }
 export type WallMaterial = 'charred-timber' | 'natural-timber' | 'light-render' | 'brick' | 'metal-panel'
 /** `textureId` picks a scan from the texture library; omit for the material default, `none` for a flat colour. */
@@ -73,7 +73,7 @@ export interface RoofSegmentModel {
   ref: string; footprint: Polygon2; storeyRef?: string; spaceRef?: string; baseElevationM: number; type: RoofType; pitchDegrees: number; overhangM: number
   ridgeDirection: 'x' | 'z'; finish: RoofFinish; adjacentSegmentRefs: string[]; gableWallFinishes?: Partial<Record<'min' | 'max', WallFinish>>
   /** Fractions across the gable, with a vertical inset below the roof slopes. */
-  gableGlazing?: Partial<Record<'min' | 'max', { from: number; to: number; roofInsetM: number; hostOpeningRefs?: string[]; shape?: 'roof-following' | 'triangle' }>>
+  gableGlazing?: Partial<Record<'min' | 'max', { from: number; to: number; roofInsetM: number; hostOpeningRefs?: string[]; shape?: 'roof-following' | 'triangle'; continuousWithHost?: boolean; transomElevationsM?: number[] }>>
   gableFrame?: { widthM: number; depthM: number; colorHex: string }
   /** Glass guard and optional fascia around connected flat decks. Open edge indices refer to their merged perimeter. */
   terrace?: { railingHeightM: number; openEdgeIndex: number; frameColorHex: string; connectedSegmentRefs?: string[]; openEdgeIndices?: number[]; fasciaHeightM?: number }

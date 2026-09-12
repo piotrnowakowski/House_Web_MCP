@@ -1,3 +1,4 @@
+import { gableGlazingProfile } from '../domain/gableGlazing'
 import { CLEAR_MEASUREMENT_EVENT } from './events'
 import { ObjectTransparency } from './ObjectTransparency'
 import { Html, Line as DreiLine, TransformControls } from '@react-three/drei'
@@ -594,6 +595,7 @@ const isLShapedBarn = (building: BuildingModel) => building.architecturalStyle =
   && (Boolean(building.interiorSource) || building.walls.some((wall) => wall.ref === 'wall/front-glass'))
 
 function BarnGlazing({ building, ghost }: { building: BuildingModel; ghost?: boolean }) {
+  const connectedRefs = useMemo(() => new Set(building.roof.segments.flatMap(segment => (['min', 'max'] as const).flatMap(side => gableGlazingProfile(segment, side, building)?.panels.filter(p => p.connected).map(p => p.hostRef) ?? []))), [building])
   const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
   const internalWalls = new Set(['wall/rear-partition', 'wall/wing-divider', 'wall/upper-north'])
   const panes = building.walls.flatMap((wall) => (building.interiorSource ? !isExteriorWall(building, wall) : internalWalls.has(wall.ref)) ? [] : wall.openings.map((opening) => ({ wall, opening })))
@@ -602,16 +604,31 @@ function BarnGlazing({ building, ghost }: { building: BuildingModel; ghost?: boo
     const ux = dx / length; const uz = dz / length; const rotation = -Math.atan2(dz, dx)
     const x = wall.start.x + ux * opening.offsetM; const z = wall.start.z + uz * opening.offsetM
     const y = wall.baseElevationM + opening.sillM + opening.heightM / 2
-    const mullions = opening.kind === 'door' && !opening.glazed ? [] : opening.kind === 'door' && opening.glazed ? [0]
+    const connected = connectedRefs.has(opening.ref)
+    const mullions = opening.mullionFractions ? opening.mullionFractions.map(f => (f - 0.5) * opening.widthM) : opening.kind === 'door' && !opening.glazed ? [] : opening.kind === 'door' && opening.glazed ? [0]
       : opening.widthM > 5 ? [-opening.widthM / 6, opening.widthM / 6] : opening.widthM > 2.6 ? [0] : []
+    // Close the storey seam only for an aligned lower opening in this facade.
+    const lowerPane = connected ? panes.find(({ wall: lw, opening: lo }) => {
+      if (lw.baseElevationM >= wall.baseElevationM || Math.abs(lo.widthM - opening.widthM) > 0.001) return false
+      const ll = Math.hypot(lw.end.x - lw.start.x, lw.end.z - lw.start.z)
+      const lx = lw.start.x + (lw.end.x - lw.start.x) * lo.offsetM / ll
+      const lz = lw.start.z + (lw.end.z - lw.start.z) * lo.offsetM / ll
+      const gap = wall.baseElevationM + opening.sillM - lw.baseElevationM - lo.sillM - lo.heightM
+      return gap > 0 && gap < 0.6 && Math.hypot(lx - x, lz - z) < 0.15
+    }) : undefined
+    const beamHeight = lowerPane ? wall.baseElevationM + opening.sillM - lowerPane.wall.baseElevationM - lowerPane.opening.sillM - lowerPane.opening.heightM : 0
+    const joinedOpenings = wall.openings.filter(o => connectedRefs.has(o.ref))
+    const beamStart = Math.min(...joinedOpenings.map(o => o.offsetM - o.widthM / 2))
+    const beamEnd = Math.max(...joinedOpenings.map(o => o.offsetM + o.widthM / 2))
     const frame = selectedRef === opening.ref ? '#b9e84d' : '#121817'
     return <group key={opening.ref} position={[x, y, z]} rotation={[0, rotation, 0]} userData={{ semanticRef: opening.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(opening.ref) }}>
-      <mesh castShadow receiveShadow><boxGeometry args={[Math.max(0.08, opening.widthM - 0.08), Math.max(0.08, opening.heightM - 0.08), 0.045]} />
+      <mesh position={[0, connected ? 0.02 : 0, 0]} castShadow receiveShadow><boxGeometry args={[Math.max(0.08, opening.widthM - 0.08), Math.max(0.08, opening.heightM - (connected ? 0.04 : 0.08)), 0.045]} />
         {building.interiorSource && opening.kind === 'door' && !opening.glazed
           ? <meshStandardMaterial color="#303736" roughness={0.62} metalness={0.3} transparent={Boolean(ghost)} opacity={ghost ? 0.2 : 1} />
           : <meshStandardMaterial color="#78959a" transparent opacity={ghost ? 0.2 : 0.42} roughness={0.08} metalness={0.08} depthWrite={false} />}
       </mesh>
-      <mesh position={[0, opening.heightM / 2, 0]}><boxGeometry args={[opening.widthM + 0.08, 0.075, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
+      {beamHeight > 0 && joinedOpenings[0].ref === opening.ref && <mesh position={[(beamStart + beamEnd) / 2 - opening.offsetM, -opening.heightM / 2 - beamHeight / 2, 0]} castShadow receiveShadow><boxGeometry args={[beamEnd - beamStart + 0.08, beamHeight, wall.thicknessM + 0.02]} /><meshStandardMaterial color='#121817' roughness={0.8} /></mesh>}
+      {!connected && <mesh position={[0, opening.heightM / 2, 0]}><boxGeometry args={[opening.widthM + 0.08, 0.075, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>}
       <mesh position={[0, -opening.heightM / 2, 0]}><boxGeometry args={[opening.widthM + 0.08, 0.075, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
       <mesh position={[opening.widthM / 2, 0, 0]}><boxGeometry args={[0.075, opening.heightM, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
       <mesh position={[-opening.widthM / 2, 0, 0]}><boxGeometry args={[0.075, opening.heightM, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>

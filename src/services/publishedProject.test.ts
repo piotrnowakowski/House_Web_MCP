@@ -34,7 +34,7 @@ it('migrates the cadastral neighbor correction and preserves a deleted tree acro
 it('publishes the recovered geometry, restored survey inventory and the adjusted roof', () => {
   expect(parseProject(publishedProject)).toEqual(publishedProject)
   expect(validateProject(publishedProject).filter((issue) => issue.severity === 'error')).toEqual([])
-  expect(publishedProject.revision).toBe(52)
+  expect(publishedProject.revision).toBe(53)
   expect(publishedProject.name).toBe('Dom duży taras')
   expect(publishedProject.landscape.zones.some((zone) => ['zone/lawn', 'zone/rain-garden'].includes(zone.ref))).toBe(false)
   expect(publishedProject.landscape.plants).toHaveLength(17)

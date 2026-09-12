@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
-  "ref": "project/zielonki-rear-carport",
-  "name": "Z garażem za domem przy sąsiadach",
+  "ref": "project/zielonki-spatial-v2",
+  "name": "Dom duży taras",
   "units": "metric",
-  "revision": 92,
-  "updatedAt": "2026-09-12T13:20:58.014Z",
+  "revision": 52,
+  "updatedAt": "2026-09-12T12:24:28.488Z",
   "site": {
     "boundary": [
       {
@@ -961,12 +961,12 @@
         "ref": "entrance/house-road",
         "name": "House-side road entrance",
         "start": {
-          "x": -19.630693943,
-          "z": -12.354215089
+          "x": -19.633350391706998,
+          "z": -12.403731301418498
         },
         "end": {
-          "x": -19.287839336,
-          "z": -5.963405228
+          "x": -19.152282522228862,
+          "z": -3.4366262143460546
         },
         "connectsTo": "public-road",
         "geometryConfidence": "user-marked"
@@ -1801,27 +1801,107 @@
           "Zielonki placement and portal revision 2026-09-09: parallel to the neighbour boundary, 4 m neighbour clearance and 5.25 m road clearance; road-side garage approach, no eaves and 40 cm graphite gable frames.",
           "Driveway terrace revision 2026-09-09: front gable glazing, two glazed bedroom exits to the garage roof terrace and a 1.10 m smoked-glass guard with black profiles on its three exposed edges.",
           "Living partition revision 2026-09-09: the bedroom and landing wall is recessed to the meeting of the two roof ridges, with the living void enlarged to the same plane.",
-          "Courtyard terrace revision 2026-09-09: the former Sheltered L-courtyard terrace fills the inner corner of the fitted house, flush with both ground-floor facades.",
-          "Zielonki v2 r46: removed the projecting garage bay, garage roof deck and elevated terrace/guards; the retained ground-floor space beneath the bedrooms is a garden room. Garage gate, car and storage removed; former balcony exits are windows. Two open slatted pergola bays replace the heavy canopy and garage roof. Main gables, pitches and upstairs rooms are preserved.",
-          "South-carport revision 2026-09-10 continues the existing zielonki v2 project, retaining both pergolas and the upper floor. Ground-floor rooms follow the supplied screenshot, not a measured architectural plan.",
-          "The house is rotated 180 degrees from the source study so the kitchen-side carport faces south-southeast and opens toward the road. The original house remains a separate project.",
-          "Placement target: 4.00 m outside-wall distance from the surveyed road parcel edge, not a confirmed statutory minimum or verified MPZP building line. The whole roof envelope stays approximately 0.15 m inside MNU; carport corner governs placement.",
-          "Two 3.20 m parking modules within a 6.40 x 6.40 m canopy. Vehicle envelopes are 1.90 x 4.70 m; access is direct from the road. Vehicle turning paths, road access consent, structure and canopy planning permission need design verification.",
-          "Five surveyed trees conflict with the carport and are proposed removals in v2 only: plant/survey-5012, plant/survey-5015, plant/survey-5018, plant/survey-501b, plant/apple. Their source records remain in before-carport-r46.json and the original house. This is not tree-removal authorization.",
-          "Rotation revision 2026-09-10 r48 supersedes the r47 orientation/placement: the complete house, both pergolas and carport rotate 180 degrees to 273.06927082481445 degrees. House anchor moves to x -6.628904317, z -3.057048028 to preserve the conceptual 4 m outside-wall road clearance and keep all roof footprints within MNU. The carport is now north-northwest; the opposite open edge serves the rebuilt road apron. Local room/roof geometry, knee walls, plants and neighbors are unchanged. Earlier proposed tree deletions remain deletions; earlier south-side placement notes describe r47 only.",
-          "Terrace revision 2026-09-10 r49: remove the screenshot-highlighted front garden pergola roof/zielonki-v2/garden-pergola and its paving. Shorten the remaining courtyard-side pergola: end beam centre z=8.425, outside face z=8.485 flush with the front outside house wall. Side terrace paving ends at the same z=8.485; shorten slats and relocate end posts with the frame. House/carport placement, rotation, main roofs, rooms and site evidence remain r48 values. Earlier notes describing two retained pergolas are historical.",
-          "Rear-carport r50, 2026-09-11: transfer the current front-carport r66 house walls, rooms, furniture, stairs, slabs and gable roofs, including the 1.5 m shortening/narrowing, 0.5 m bathroom/storage enlargement and removed internal doorway. Preserve this independent rear-carport identity, 273.06927082481445 degree rotation, site, planting and retained entities. Fit the side pergola/terrace to the shortened facade, shift the rear carport with the 1.5 m narrower facade and reconnect the existing road entrance. House anchor (-8.093726348992222, -2.3629195784171224) m gives 4.00 m outer-face road clearance and 0.15 m mapped MNU/R envelope margin. Main gables retain 40.13423424862029 degrees, 4.85 m eaves and 1.40 m knee walls. This is geometric placement in the existing mapped evidence, not a new assessment of statutory building lines.",
-          "U-shaped stair revision 2026-09-11: 3.00 m floor-to-floor rise, 16 risers at 0.1875 m in two equal flights, 7 treads per flight at 0.25 m, 0.94 m tread width (0.90 m clear between 40 mm handrails), 0.90 m central landing depth and 0.10 m central gap. Stair envelope 2.65 x 1.98 m. The upper slab opening fits both flights; 0.90 m clear upper approach and a 0.22 m parent-bedroom doorway shift preserve access. Three stepped cabinets fit below the upper flight with their shared group and the original under-stair storage ref retained. Model tread/landing headroom is at least 3.0096 m against current roof geometry; construction thickness, fixings and guard detailing require construction design. Preserve independently captured user furniture/entrance changes and deletions."
+          "Courtyard terrace revision 2026-09-09: the former Sheltered L-courtyard terrace fills the inner corner of the fitted house, flush with both ground-floor facades."
         ]
       },
       "furniture": [
+        {
+          "ref": "interior/reference-sofa",
+          "catalogId": "corner-sofa",
+          "storeyRef": "storey/reference-ground",
+          "name": "Narożnik turkusowy",
+          "position": {
+            "x": 2.555,
+            "z": -4.215
+          },
+          "widthM": 3.45,
+          "depthM": 2.52,
+          "heightM": 0.88,
+          "rotationDegrees": 0,
+          "color": "#207b8a"
+        },
+        {
+          "ref": "interior/reference-media",
+          "catalogId": "tv-unit",
+          "storeyRef": "storey/reference-ground",
+          "name": "Szafka RTV i telewizor",
+          "position": {
+            "x": 3.405,
+            "z": -6.115
+          },
+          "widthM": 3.35,
+          "depthM": 0.5,
+          "heightM": 1.15,
+          "rotationDegrees": 0,
+          "color": "#364149"
+        },
+        {
+          "ref": "interior/reference-dining",
+          "catalogId": "dining-table",
+          "storeyRef": "storey/reference-ground",
+          "name": "Stół i sześć krzeseł",
+          "position": {
+            "x": 2.455,
+            "z": -1.415
+          },
+          "widthM": 2,
+          "depthM": 1.62,
+          "heightM": 0.85,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-island",
+          "catalogId": "kitchen-island",
+          "storeyRef": "storey/reference-ground",
+          "name": "Wyspa 1.28 × 2.92 m",
+          "position": {
+            "x": -2.885,
+            "z": -4.105
+          },
+          "widthM": 1.28,
+          "depthM": 2.92,
+          "heightM": 0.92,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-stool-one",
+          "catalogId": "bar-stool",
+          "storeyRef": "storey/reference-ground",
+          "name": "Hoker 1",
+          "position": {
+            "x": -1.815,
+            "z": -4.955
+          },
+          "widthM": 0.46,
+          "depthM": 0.46,
+          "heightM": 0.75,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-stool-two",
+          "catalogId": "bar-stool",
+          "storeyRef": "storey/reference-ground",
+          "name": "Hoker 2",
+          "position": {
+            "x": -1.815,
+            "z": -3.715
+          },
+          "widthM": 0.46,
+          "depthM": 0.46,
+          "heightM": 0.75,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
         {
           "ref": "interior/reference-cabinet-one",
           "catalogId": "kitchen-counter",
           "storeyRef": "storey/reference-ground",
           "name": "Szafka kuchenna",
           "position": {
-            "x": -3.57,
+            "x": -5.07,
             "z": -5.975
           },
           "widthM": 0.95,
@@ -1836,7 +1916,7 @@
           "storeyRef": "storey/reference-ground",
           "name": "Zlew kuchenny",
           "position": {
-            "x": -3.57,
+            "x": -5.07,
             "z": -5.025
           },
           "widthM": 0.95,
@@ -1851,7 +1931,7 @@
           "storeyRef": "storey/reference-ground",
           "name": "Blat kuchenny",
           "position": {
-            "x": -3.57,
+            "x": -5.07,
             "z": -3.615
           },
           "widthM": 1.84,
@@ -1866,7 +1946,7 @@
           "storeyRef": "storey/reference-ground",
           "name": "Lodówka",
           "position": {
-            "x": -3.57,
+            "x": -5.07,
             "z": -2.275
           },
           "widthM": 0.84,
@@ -1876,12 +1956,177 @@
           "color": "#bda17a"
         },
         {
+          "ref": "interior/reference-understairs",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "name": "Zabudowa pod schodami",
+          "position": {
+            "x": -3.815,
+            "z": -0.385
+          },
+          "widthM": 3.16,
+          "depthM": 0.62,
+          "heightM": 1.65,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-office-sofa",
+          "catalogId": "sofa",
+          "storeyRef": "storey/reference-ground",
+          "name": "Sofa w gabinecie",
+          "position": {
+            "x": 0.945,
+            "z": 1.575
+          },
+          "widthM": 1.72,
+          "depthM": 0.92,
+          "heightM": 0.82,
+          "rotationDegrees": 0,
+          "color": "#796d7f"
+        },
+        {
+          "ref": "interior/reference-office-storage",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "name": "Szafa w gabinecie",
+          "position": {
+            "x": -0.615,
+            "z": 3.885
+          },
+          "widthM": 2.27,
+          "depthM": 0.54,
+          "heightM": 2.2,
+          "rotationDegrees": 90,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-desk",
+          "catalogId": "desk",
+          "storeyRef": "storey/reference-ground",
+          "name": "Biurko w gabinecie",
+          "position": {
+            "x": 0.765,
+            "z": 4.705
+          },
+          "widthM": 2.1,
+          "depthM": 0.65,
+          "heightM": 0.75,
+          "rotationDegrees": 0,
+          "color": "#353d42"
+        },
+        {
+          "ref": "interior/reference-office-chair",
+          "catalogId": "bar-stool",
+          "storeyRef": "storey/reference-ground",
+          "name": "Krzesło biurowe",
+          "position": {
+            "x": 0.765,
+            "z": 3.945
+          },
+          "widthM": 0.5,
+          "depthM": 0.5,
+          "heightM": 0.48,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-utility-storage",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "name": "Czerwona zabudowa gospodarcza",
+          "position": {
+            "x": -5.035,
+            "z": 3.945
+          },
+          "widthM": 1.95,
+          "depthM": 0.65,
+          "heightM": 1.85,
+          "rotationDegrees": 90,
+          "color": "#c9353d"
+        },
+        {
+          "ref": "interior/reference-wc-sink",
+          "catalogId": "vanity",
+          "storeyRef": "storey/reference-ground",
+          "name": "Umywalka parter",
+          "position": {
+            "x": -1.315,
+            "z": 3.285
+          },
+          "widthM": 0.56,
+          "depthM": 0.42,
+          "heightM": 0.84,
+          "rotationDegrees": -90,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-toilet",
+          "catalogId": "toilet",
+          "storeyRef": "storey/reference-ground",
+          "name": "WC parter",
+          "position": {
+            "x": -1.445,
+            "z": 3.785
+          },
+          "widthM": 0.44,
+          "depthM": 0.7,
+          "heightM": 0.8,
+          "rotationDegrees": -90,
+          "color": "#eeefeb"
+        },
+        {
+          "ref": "interior/reference-shower",
+          "catalogId": "shower",
+          "storeyRef": "storey/reference-ground",
+          "name": "Prysznic parter",
+          "position": {
+            "x": -1.625,
+            "z": 4.525
+          },
+          "widthM": 1.05,
+          "depthM": 1.05,
+          "heightM": 2.1,
+          "rotationDegrees": 180,
+          "color": "#bda17a"
+        },
+        {
+          "ref": "interior/reference-car",
+          "catalogId": "car",
+          "storeyRef": "storey/reference-ground",
+          "name": "Samochód w garażu",
+          "position": {
+            "x": -3.395,
+            "z": 8.095
+          },
+          "widthM": 1.85,
+          "depthM": 4.5,
+          "heightM": 1.45,
+          "rotationDegrees": 0,
+          "color": "#b5bec4"
+        },
+        {
+          "ref": "interior/reference-garage-storage",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "name": "Regały garażowe",
+          "position": {
+            "x": 1.585,
+            "z": 8.355
+          },
+          "widthM": 6.15,
+          "depthM": 0.55,
+          "heightM": 2.1,
+          "rotationDegrees": -90,
+          "color": "#bda17a"
+        },
+        {
           "ref": "interior/reference-parents-bed",
           "catalogId": "bed",
           "storeyRef": "storey/reference-upper",
           "name": "Łóżko rodziców",
           "position": {
-            "x": -2.745,
+            "x": -4.245,
             "z": -4.415
           },
           "widthM": 1.8,
@@ -1889,186 +2134,6 @@
           "heightM": 1,
           "rotationDegrees": 90,
           "color": "#287a89"
-        },
-        {
-          "ref": "interior/carport-study/desk",
-          "catalogId": "desk",
-          "storeyRef": "storey/reference-ground",
-          "name": "Guest desk",
-          "position": {
-            "x": 1.675,
-            "z": 3.8
-          },
-          "widthM": 1.4,
-          "depthM": 0.6,
-          "heightM": 0.75,
-          "rotationDegrees": 90,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/carport-study/wc",
-          "catalogId": "toilet",
-          "storeyRef": "storey/reference-ground",
-          "name": "Toilet",
-          "position": {
-            "x": -3.45,
-            "z": 3.25
-          },
-          "widthM": 0.45,
-          "depthM": 0.7,
-          "heightM": 0.8,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/carport-study/vanity",
-          "catalogId": "vanity",
-          "storeyRef": "storey/reference-ground",
-          "name": "Vanity",
-          "position": {
-            "x": -1.75,
-            "z": 2.35
-          },
-          "widthM": 0.85,
-          "depthM": 0.5,
-          "heightM": 0.85,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/carport-study/washer",
-          "catalogId": "washer",
-          "storeyRef": "storey/reference-ground",
-          "name": "Washer",
-          "position": {
-            "x": -3.45,
-            "z": 4.6
-          },
-          "widthM": 0.6,
-          "depthM": 0.65,
-          "heightM": 0.85,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/carport-study/storage",
-          "catalogId": "wardrobe",
-          "storeyRef": "storey/reference-ground",
-          "name": "Utility storage",
-          "position": {
-            "x": -2.75,
-            "z": 6.45
-          },
-          "widthM": 2,
-          "depthM": 0.6,
-          "heightM": 2.2,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/carport-study/shower",
-          "catalogId": "shower",
-          "storeyRef": "storey/reference-ground",
-          "name": "Shower",
-          "position": {
-            "x": -1.685,
-            "z": 3.2500000000000004
-          },
-          "widthM": 0.9,
-          "depthM": 0.9,
-          "heightM": 2.1,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/reference-media",
-          "catalogId": "tv-unit",
-          "storeyRef": "storey/reference-ground",
-          "name": "Szafka RTV i telewizor",
-          "position": {
-            "x": 2.9,
-            "z": -6.199999999999996
-          },
-          "widthM": 3.35,
-          "depthM": 0.5,
-          "heightM": 1.15,
-          "rotationDegrees": 0,
-          "color": "#364149"
-        },
-        {
-          "ref": "interior/reference-dining",
-          "catalogId": "dining-table",
-          "storeyRef": "storey/reference-ground",
-          "name": "Stół i sześć krzeseł",
-          "position": {
-            "x": 3,
-            "z": -1.1
-          },
-          "widthM": 2,
-          "depthM": 1.62,
-          "heightM": 0.85,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/reference-island",
-          "catalogId": "kitchen-island",
-          "storeyRef": "storey/reference-ground",
-          "name": "Wyspa 1.28 × 2.92 m",
-          "position": {
-            "x": -1.9000000000000001,
-            "z": -3.9000000000000004
-          },
-          "widthM": 1.28,
-          "depthM": 2.92,
-          "heightM": 0.92,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/reference-stool-one",
-          "catalogId": "bar-stool",
-          "storeyRef": "storey/reference-ground",
-          "name": "Hoker 1",
-          "position": {
-            "x": -1,
-            "z": -4.800000000000001
-          },
-          "widthM": 0.46,
-          "depthM": 0.46,
-          "heightM": 0.75,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/reference-stool-two",
-          "catalogId": "bar-stool",
-          "storeyRef": "storey/reference-ground",
-          "name": "Hoker 2",
-          "position": {
-            "x": -1,
-            "z": -4.300000000000001
-          },
-          "widthM": 0.46,
-          "depthM": 0.46,
-          "heightM": 0.75,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
-        },
-        {
-          "ref": "interior/reference-sofa",
-          "catalogId": "corner-sofa",
-          "storeyRef": "storey/reference-ground",
-          "name": "Narożnik turkusowy",
-          "position": {
-            "x": 2.5000000000000004,
-            "z": -4
-          },
-          "widthM": 3.45,
-          "depthM": 2.52,
-          "heightM": 0.88,
-          "rotationDegrees": 0,
-          "color": "#207b8a"
         }
       ],
       "stairs": [
@@ -2077,25 +2142,22 @@
           "fromStoreyRef": "storey/reference-ground",
           "toStoreyRef": "storey/reference-upper",
           "start": {
-            "x": -3.865,
-            "z": -1.735
+            "x": -5.395,
+            "z": -1.845
           },
-          "runM": 1.75,
-          "widthM": 0.89,
-          "steps": 16,
-          "uTurn": {
-            "landingDepthM": 0.9,
-            "gapM": 0.1
-          }
+          "runM": 3.16,
+          "widthM": 0.94,
+          "steps": 16
         }
       ],
       "ref": "house/main",
-      "name": "House · carport layout",
+      "name": "Zielonki · Dom z planów",
       "kind": "house",
       "architecturalStyle": "barn",
+      "garageMode": "integrated",
       "position": {
-        "x": -8.093726348992222,
-        "z": -2.3629195784171224
+        "x": -2.383177754112902,
+        "z": -6.4239300157791375
       },
       "rotationDegrees": 273.06927082481445,
       "storeys": [
@@ -2110,28 +2172,30 @@
           "wallRefs": [
             "wall/reference-ground/1",
             "wall/reference-ground/2",
-            "wall/carport-layout/ground/3",
-            "wall/carport-layout/ground/4",
-            "wall/carport-layout/ground/5",
-            "wall/carport-layout/ground/7",
-            "wall/carport-layout/ground/8",
-            "wall/carport-layout/ground/9",
-            "wall/carport-layout/ground/10",
-            "wall/carport-layout/ground/11",
-            "wall/carport-layout/ground/12",
-            "wall/carport-layout/ground/13",
-            "wall/carport-layout/ground/14",
-            "wall/carport-layout/ground/15",
-            "wall/carport-layout/ground/16",
-            "wall/stair-enclosure/kitchen",
-            "wall/stair-enclosure/hall",
-            "wall/stair-enclosure/storage-end"
+            "wall/reference-ground/3",
+            "wall/reference-ground/4",
+            "wall/reference-ground/5",
+            "wall/reference-ground/6",
+            "wall/reference-ground/7",
+            "wall/reference-ground/8",
+            "wall/reference-ground/9",
+            "wall/reference-ground/10",
+            "wall/reference-ground/11",
+            "wall/reference-ground/12",
+            "wall/reference-ground/13",
+            "wall/reference-ground/14",
+            "wall/reference-ground/15",
+            "wall/reference-ground/16",
+            "wall/reference-ground/17",
+            "wall/reference-ground/18",
+            "wall/reference-stair-partition"
           ],
           "spaceRefs": [
             "space/reference-living",
-            "space/reference-wc",
             "space/reference-pantry",
-            "space/reference-office"
+            "space/reference-wc",
+            "space/reference-office",
+            "space/reference-garage"
           ],
           "platformRefs": [],
           "ceilingFinishRefs": []
@@ -2189,7 +2253,7 @@
           "ref": "slab/reference-ground",
           "footprint": [
             {
-              "x": -4.095,
+              "x": -5.595,
               "z": -6.655
             },
             {
@@ -2201,16 +2265,16 @@
               "z": 1.095
             },
             {
-              "x": 2.185,
+              "x": 2.085,
               "z": 1.095
             },
             {
-              "x": 2.185,
-              "z": 6.985
+              "x": 2.085,
+              "z": 11.655
             },
             {
-              "x": -4.095,
-              "z": 6.985
+              "x": -5.595,
+              "z": 11.655
             }
           ],
           "topElevationM": 0.45,
@@ -2221,7 +2285,7 @@
           "ref": "slab/reference-upper",
           "footprint": [
             {
-              "x": -4.095,
+              "x": -5.595,
               "z": -6.655
             },
             {
@@ -2238,35 +2302,35 @@
             },
             {
               "x": 2.185,
-              "z": 6.985
+              "z": 8.485
             },
             {
-              "x": -4.095,
-              "z": 6.985
+              "x": -5.595,
+              "z": 8.485
             }
           ],
           "holes": [
             [
               {
-                "x": -3.885,
+                "x": -5.385,
                 "z": -1.745
               },
               {
-                "x": -1.205,
+                "x": -2.235,
                 "z": -1.745
               },
               {
-                "x": -1.205,
-                "z": 0.175
+                "x": -2.235,
+                "z": -0.905
               },
               {
-                "x": -3.885,
-                "z": 0.175
+                "x": -5.385,
+                "z": -0.905
               }
             ],
             [
               {
-                "x": -0.105,
+                "x": -1.605,
                 "z": -6.455
               },
               {
@@ -2282,11 +2346,11 @@
                 "z": 0.895
               },
               {
-                "x": -0.105,
+                "x": -1.605,
                 "z": 0.895
               },
               {
-                "x": -0.105,
+                "x": -1.605,
                 "z": -1.855
               }
             ]
@@ -2298,13 +2362,500 @@
       ],
       "walls": [
         {
-          "ref": "wall/reference-upper/1",
+          "ref": "wall/reference-ground/1",
           "start": {
-            "x": -3.995,
+            "x": -5.495,
             "z": -6.555
           },
           "end": {
-            "x": -0.205,
+            "x": 5.495,
+            "z": -6.555
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [
+            {
+              "ref": "opening/reference-terrace-north",
+              "kind": "window",
+              "wallRef": "wall/reference-ground/1",
+              "offsetM": 2.2361,
+              "widthM": 3.1078,
+              "heightM": 2.6399999999999997,
+              "sillM": 0.08
+            }
+          ],
+          "finish": {
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/2",
+          "start": {
+            "x": 5.495,
+            "z": -6.555
+          },
+          "end": {
+            "x": 5.495,
+            "z": 0.995
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [
+            {
+              "ref": "opening/reference-terrace-east",
+              "kind": "window",
+              "wallRef": "wall/reference-ground/2",
+              "offsetM": 3.775,
+              "widthM": 6.191000000000001,
+              "heightM": 2.6399999999999997,
+              "sillM": 0.08
+            }
+          ],
+          "finish": {
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/3",
+          "start": {
+            "x": 5.495,
+            "z": 0.995
+          },
+          "end": {
+            "x": 1.985,
+            "z": 0.995
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [],
+          "finish": {
+            "material": "natural-timber",
+            "colorHex": "#C8A476",
+            "textureId": "hinoki"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/4",
+          "start": {
+            "x": 1.985,
+            "z": 0.995
+          },
+          "end": {
+            "x": -0.995,
+            "z": 0.995
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/5",
+          "start": {
+            "x": -0.995,
+            "z": 0.995
+          },
+          "end": {
+            "x": -0.995,
+            "z": 2.785
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [
+            {
+              "ref": "opening/reference-office",
+              "kind": "door",
+              "wallRef": "wall/reference-ground/5",
+              "offsetM": 1.12,
+              "widthM": 0.9,
+              "heightM": 2.1,
+              "sillM": 0
+            }
+          ],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/6",
+          "start": {
+            "x": -0.995,
+            "z": 2.785
+          },
+          "end": {
+            "x": -3.455,
+            "z": 2.785
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [
+            {
+              "ref": "opening/reference-wc",
+              "kind": "door",
+              "wallRef": "wall/reference-ground/6",
+              "offsetM": 1.6200000000000006,
+              "widthM": 0.9,
+              "heightM": 2.1,
+              "sillM": 0
+            }
+          ],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/7",
+          "start": {
+            "x": -3.455,
+            "z": 2.785
+          },
+          "end": {
+            "x": -5.495,
+            "z": 2.785
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [
+            {
+              "ref": "opening/reference-pantry",
+              "kind": "door",
+              "wallRef": "wall/reference-ground/7",
+              "offsetM": 0.72,
+              "widthM": 0.9,
+              "heightM": 2.1,
+              "sillM": 0
+            }
+          ],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/8",
+          "start": {
+            "x": -5.495,
+            "z": 2.785
+          },
+          "end": {
+            "x": -5.495,
+            "z": -6.555
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [
+            {
+              "ref": "opening/reference-kitchen",
+              "kind": "window",
+              "wallRef": "wall/reference-ground/8",
+              "offsetM": 6.74,
+              "widthM": 3.4,
+              "heightM": 1.2,
+              "sillM": 1.05
+            },
+            {
+              "ref": "opening/reference-entrance",
+              "kind": "door",
+              "wallRef": "wall/reference-ground/8",
+              "offsetM": 1.3200000000000003,
+              "widthM": 1.1,
+              "heightM": 2.1,
+              "sillM": 0
+            }
+          ],
+          "finish": {
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/9",
+          "start": {
+            "x": -3.455,
+            "z": 2.785
+          },
+          "end": {
+            "x": -3.455,
+            "z": 5.155
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/10",
+          "start": {
+            "x": -3.455,
+            "z": 5.155
+          },
+          "end": {
+            "x": -5.495,
+            "z": 5.155
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [
+            {
+              "ref": "opening/reference-garage-access",
+              "kind": "door",
+              "wallRef": "wall/reference-ground/10",
+              "offsetM": 0.74,
+              "widthM": 0.9,
+              "heightM": 2.1,
+              "sillM": 0
+            }
+          ],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/11",
+          "start": {
+            "x": -5.495,
+            "z": 5.155
+          },
+          "end": {
+            "x": -5.495,
+            "z": 2.785
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [],
+          "finish": {
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/12",
+          "start": {
+            "x": -0.995,
+            "z": 2.785
+          },
+          "end": {
+            "x": -0.995,
+            "z": 5.155
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/13",
+          "start": {
+            "x": -0.995,
+            "z": 5.155
+          },
+          "end": {
+            "x": -3.455,
+            "z": 5.155
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/14",
+          "start": {
+            "x": 1.985,
+            "z": 0.995
+          },
+          "end": {
+            "x": 1.985,
+            "z": 5.155
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [
+            {
+              "ref": "opening/reference-office-window",
+              "kind": "window",
+              "wallRef": "wall/reference-ground/14",
+              "offsetM": 1.8999999999999995,
+              "widthM": 1.4,
+              "heightM": 1.5,
+              "sillM": 0.8
+            }
+          ],
+          "finish": {
+            "material": "natural-timber",
+            "colorHex": "#C8A476",
+            "textureId": "hinoki"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/15",
+          "start": {
+            "x": 1.985,
+            "z": 5.155
+          },
+          "end": {
+            "x": -0.995,
+            "z": 5.155
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/16",
+          "start": {
+            "x": 1.985,
+            "z": 5.155
+          },
+          "end": {
+            "x": 1.985,
+            "z": 11.555
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [],
+          "finish": {
+            "material": "natural-timber",
+            "colorHex": "#C8A476",
+            "textureId": "hinoki"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/17",
+          "start": {
+            "x": 1.985,
+            "z": 11.555
+          },
+          "end": {
+            "x": -5.495,
+            "z": 11.555
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [
+            {
+              "ref": "opening/reference-garage-gate",
+              "kind": "door",
+              "wallRef": "wall/reference-ground/17",
+              "offsetM": 3.7399999999999998,
+              "widthM": 6.36,
+              "heightM": 2.4,
+              "sillM": 0
+            }
+          ],
+          "finish": {
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-ground/18",
+          "start": {
+            "x": -5.495,
+            "z": 11.555
+          },
+          "end": {
+            "x": -5.495,
+            "z": 5.155
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [],
+          "finish": {
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-stair-partition",
+          "start": {
+            "x": -5.495,
+            "z": -0.795
+          },
+          "end": {
+            "x": -2.235,
+            "z": -0.795
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 0.45,
+          "heightM": 2.8,
+          "openings": [],
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-upper/1",
+          "start": {
+            "x": -5.495,
+            "z": -6.555
+          },
+          "end": {
+            "x": -1.705,
             "z": -6.555
           },
           "thicknessM": 0.2,
@@ -2315,14 +2866,10 @@
               "ref": "roof/reference/front-barn/glazing-upper",
               "kind": "window",
               "wallRef": "wall/reference-upper/1",
-              "offsetM": 1.7936,
-              "widthM": 2.4928,
-              "heightM": 1.3199999999999998,
-              "sillM": 0.08,
-              "mullionFractions": [
-                0.5
-              ],
-              "glazed": true
+              "offsetM": 2.2361,
+              "widthM": 3.1078,
+              "heightM": 1.24,
+              "sillM": 0.08
             }
           ],
           "finish": {
@@ -2334,11 +2881,11 @@
         {
           "ref": "wall/reference-upper/2",
           "start": {
-            "x": -0.205,
+            "x": -1.705,
             "z": -6.555
           },
           "end": {
-            "x": -0.205,
+            "x": -1.705,
             "z": -1.855
           },
           "thicknessM": 0.2,
@@ -2355,11 +2902,11 @@
         {
           "ref": "wall/reference-upper/3",
           "start": {
-            "x": -0.205,
+            "x": -1.705,
             "z": -1.855
           },
           "end": {
-            "x": -3.995,
+            "x": -5.495,
             "z": -1.855
           },
           "thicknessM": 0.2,
@@ -2370,7 +2917,7 @@
               "ref": "opening/reference-parents",
               "kind": "door",
               "wallRef": "wall/reference-upper/3",
-              "offsetM": 0.55,
+              "offsetM": 0.7699999999999996,
               "widthM": 0.9,
               "heightM": 2.1,
               "sillM": 0
@@ -2386,11 +2933,11 @@
         {
           "ref": "wall/reference-upper/4",
           "start": {
-            "x": -3.995,
+            "x": -5.495,
             "z": -1.855
           },
           "end": {
-            "x": -3.995,
+            "x": -5.495,
             "z": -6.555
           },
           "thicknessM": 0.2,
@@ -2406,7 +2953,7 @@
         {
           "ref": "wall/reference-upper/5",
           "start": {
-            "x": -0.205,
+            "x": -1.705,
             "z": -6.555
           },
           "end": {
@@ -2441,27 +2988,10 @@
               "ref": "roof/reference/rear-barn/glazing-upper",
               "kind": "window",
               "wallRef": "wall/reference-upper/6",
-              "offsetM": 2.12725,
-              "widthM": 2.8955,
-              "heightM": 1.3199999999999998,
-              "sillM": 0.08,
-              "mullionFractions": [
-                0.5
-              ],
-              "glazed": true
-            },
-            {
-              "ref": "roof/reference/rear-barn/glazing-upper/right",
-              "kind": "window",
-              "wallRef": "wall/reference-upper/6",
-              "offsetM": 5.42275,
-              "widthM": 2.8955,
-              "heightM": 1.3199999999999998,
-              "sillM": 0.08,
-              "mullionFractions": [
-                0.5
-              ],
-              "glazed": true
+              "offsetM": 3.775,
+              "widthM": 6.191000000000001,
+              "heightM": 1.24,
+              "sillM": 0.08
             }
           ],
           "finish": {
@@ -2497,7 +3027,7 @@
             "z": 0.995
           },
           "end": {
-            "x": 0.605,
+            "x": -0.145,
             "z": 0.995
           },
           "thicknessM": 0.2,
@@ -2514,11 +3044,11 @@
         {
           "ref": "wall/reference-upper/9",
           "start": {
-            "x": -0.205,
+            "x": -1.705,
             "z": 0.995
           },
           "end": {
-            "x": -0.205,
+            "x": -1.705,
             "z": -1.855
           },
           "thicknessM": 0.2,
@@ -2535,11 +3065,11 @@
         {
           "ref": "wall/reference-upper/10",
           "start": {
-            "x": 0.605,
+            "x": -0.145,
             "z": 0.995
           },
           "end": {
-            "x": 0.605,
+            "x": -0.145,
             "z": 4.115
           },
           "thicknessM": 0.2,
@@ -2566,11 +3096,11 @@
         {
           "ref": "wall/reference-upper/11",
           "start": {
-            "x": 0.605,
+            "x": -0.145,
             "z": 4.115
           },
           "end": {
-            "x": -0.965,
+            "x": -1.715,
             "z": 4.115
           },
           "thicknessM": 0.2,
@@ -2597,11 +3127,11 @@
         {
           "ref": "wall/reference-upper/12",
           "start": {
-            "x": -0.965,
+            "x": -1.715,
             "z": 4.115
           },
           "end": {
-            "x": -2.445,
+            "x": -3.195,
             "z": 4.115
           },
           "thicknessM": 0.2,
@@ -2628,11 +3158,11 @@
         {
           "ref": "wall/reference-upper/13",
           "start": {
-            "x": -2.445,
+            "x": -3.195,
             "z": 4.115
           },
           "end": {
-            "x": -2.465,
+            "x": -3.215,
             "z": 0.565
           },
           "thicknessM": 0.2,
@@ -2659,11 +3189,11 @@
         {
           "ref": "wall/reference-upper/14",
           "start": {
-            "x": -2.465,
+            "x": -3.215,
             "z": 0.565
           },
           "end": {
-            "x": -3.995,
+            "x": -5.495,
             "z": 0.565
           },
           "thicknessM": 0.2,
@@ -2680,11 +3210,11 @@
         {
           "ref": "wall/reference-upper/15",
           "start": {
-            "x": -3.995,
+            "x": -5.495,
             "z": 0.565
           },
           "end": {
-            "x": -3.995,
+            "x": -5.495,
             "z": -1.855
           },
           "thicknessM": 0.2,
@@ -2700,11 +3230,11 @@
         {
           "ref": "wall/reference-upper/16",
           "start": {
-            "x": -2.445,
+            "x": -3.195,
             "z": 4.115
           },
           "end": {
-            "x": -3.995,
+            "x": -5.495,
             "z": 4.115
           },
           "thicknessM": 0.2,
@@ -2721,11 +3251,11 @@
         {
           "ref": "wall/reference-upper/17",
           "start": {
-            "x": -3.995,
+            "x": -5.495,
             "z": 4.115
           },
           "end": {
-            "x": -3.995,
+            "x": -5.495,
             "z": 0.565
           },
           "thicknessM": 0.2,
@@ -2765,7 +3295,7 @@
             "z": 4.115
           },
           "end": {
-            "x": 0.605,
+            "x": -0.145,
             "z": 4.115
           },
           "thicknessM": 0.2,
@@ -2782,12 +3312,12 @@
         {
           "ref": "wall/reference-upper/20",
           "start": {
-            "x": -0.965,
+            "x": -1.715,
             "z": 4.115
           },
           "end": {
-            "x": -0.965,
-            "z": 6.885
+            "x": -1.715,
+            "z": 8.385
           },
           "thicknessM": 0.32,
           "baseElevationM": 3.45,
@@ -2803,12 +3333,12 @@
         {
           "ref": "wall/reference-upper/21",
           "start": {
-            "x": -0.965,
-            "z": 6.885
+            "x": -1.715,
+            "z": 8.385
           },
           "end": {
-            "x": -3.995,
-            "z": 6.885
+            "x": -5.495,
+            "z": 8.385
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -2816,12 +3346,12 @@
           "openings": [
             {
               "ref": "opening/reference-children-west-window",
-              "kind": "window",
+              "kind": "door",
               "wallRef": "wall/reference-upper/21",
-              "offsetM": 1.126143342,
+              "offsetM": 1.2000000000000002,
               "widthM": 2,
-              "heightM": 1.14,
-              "sillM": 1,
+              "heightM": 2.1,
+              "sillM": 0.040000000000000036,
               "glazed": true
             }
           ],
@@ -2834,11 +3364,11 @@
         {
           "ref": "wall/reference-upper/22",
           "start": {
-            "x": -3.995,
-            "z": 6.885
+            "x": -5.495,
+            "z": 8.385
           },
           "end": {
-            "x": -3.995,
+            "x": -5.495,
             "z": 4.115
           },
           "thicknessM": 0.2,
@@ -2859,7 +3389,7 @@
           },
           "end": {
             "x": 2.085,
-            "z": 6.885
+            "z": 8.385
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -2875,11 +3405,11 @@
           "ref": "wall/reference-upper/24",
           "start": {
             "x": 2.085,
-            "z": 6.885
+            "z": 8.385
           },
           "end": {
-            "x": -0.965,
-            "z": 6.885
+            "x": -1.715,
+            "z": 8.385
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -2887,12 +3417,12 @@
           "openings": [
             {
               "ref": "opening/reference-children-east-window",
-              "kind": "window",
+              "kind": "door",
               "wallRef": "wall/reference-upper/24",
-              "offsetM": 1.913856658,
+              "offsetM": 2.710000000000001,
               "widthM": 1.95,
-              "heightM": 1.14,
-              "sillM": 1,
+              "heightM": 2.1,
+              "sillM": 0.040000000000000036,
               "glazed": true
             }
           ],
@@ -2905,11 +3435,11 @@
         {
           "ref": "wall/reference-upper/2/living-void-return",
           "start": {
-            "x": -0.205,
+            "x": -1.705,
             "z": 0.995
           },
           "end": {
-            "x": 0.605,
+            "x": -0.145,
             "z": 0.995
           },
           "thicknessM": 0.2,
@@ -2922,484 +3452,167 @@
             "textureId": "none"
           },
           "locked": false
-        },
-        {
-          "ref": "wall/reference-ground/1",
-          "start": {
-            "x": -3.995,
-            "z": -6.555
-          },
-          "end": {
-            "x": 5.495,
-            "z": -6.555
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [
-            {
-              "ref": "opening/reference-terrace-north",
-              "kind": "window",
-              "wallRef": "wall/reference-ground/1",
-              "offsetM": 1.7936,
-              "widthM": 2.4928,
-              "heightM": 2.8,
-              "sillM": 0,
-              "glazed": true,
-              "mullionFractions": [
-                0.5
-              ]
-            }
-          ],
-          "finish": {
-            "material": "charred-timber",
-            "colorHex": "#242927"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/reference-ground/2",
-          "start": {
-            "x": 5.495,
-            "z": -6.555
-          },
-          "end": {
-            "x": 5.495,
-            "z": 0.995
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [
-            {
-              "ref": "opening/reference-terrace-east",
-              "kind": "window",
-              "wallRef": "wall/reference-ground/2",
-              "offsetM": 2.12725,
-              "widthM": 2.8955,
-              "heightM": 2.8,
-              "sillM": 0,
-              "glazed": true,
-              "mullionFractions": [
-                0.5
-              ]
-            },
-            {
-              "ref": "opening/reference-terrace-east/right",
-              "kind": "window",
-              "wallRef": "wall/reference-ground/2",
-              "offsetM": 5.42275,
-              "widthM": 2.8955,
-              "heightM": 2.8,
-              "sillM": 0,
-              "glazed": true,
-              "mullionFractions": [
-                0.5
-              ]
-            }
-          ],
-          "finish": {
-            "material": "charred-timber",
-            "colorHex": "#242927"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/carport-layout/ground/3",
-          "start": {
-            "x": 5.495,
-            "z": 0.995
-          },
-          "end": {
-            "x": 2.085,
-            "z": 0.995
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#BD9C73"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/carport-layout/ground/4",
-          "start": {
-            "x": 2.085,
-            "z": 0.995
-          },
-          "end": {
-            "x": 2.085,
-            "z": 1.915
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#BD9C73"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/carport-layout/ground/5",
-          "start": {
-            "x": 2.085,
-            "z": 1.915
-          },
-          "end": {
-            "x": -1.13,
-            "z": 1.915
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [
-            {
-              "ref": "opening/reference-office",
-              "kind": "door",
-              "wallRef": "wall/carport-layout/ground/5",
-              "offsetM": 0.6,
-              "widthM": 0.9,
-              "heightM": 2.1,
-              "sillM": 0,
-              "glazed": false
-            }
-          ],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#BD9C73"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/carport-layout/ground/7",
-          "start": {
-            "x": -1.13,
-            "z": 1.915
-          },
-          "end": {
-            "x": -3.995,
-            "z": 1.915
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [
-            {
-              "ref": "opening/reference-wc",
-              "kind": "door",
-              "wallRef": "wall/carport-layout/ground/7",
-              "offsetM": 1,
-              "widthM": 0.9,
-              "heightM": 2.1,
-              "sillM": 0,
-              "glazed": false
-            }
-          ],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#BD9C73"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/carport-layout/ground/8",
-          "start": {
-            "x": -3.995,
-            "z": 1.915
-          },
-          "end": {
-            "x": -3.995,
-            "z": -6.555
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [
-            {
-              "ref": "opening/reference-entrance",
-              "kind": "door",
-              "wallRef": "wall/carport-layout/ground/8",
-              "offsetM": 0.8,
-              "widthM": 1.1,
-              "heightM": 2.1,
-              "sillM": 0,
-              "glazed": false
-            }
-          ],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#BD9C73"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/carport-layout/ground/9",
-          "start": {
-            "x": -1.13,
-            "z": 1.915
-          },
-          "end": {
-            "x": -1.13,
-            "z": 4.075
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#BD9C73"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/carport-layout/ground/10",
-          "start": {
-            "x": -1.13,
-            "z": 4.075
-          },
-          "end": {
-            "x": -3.995,
-            "z": 4.075
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#BD9C73"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/carport-layout/ground/11",
-          "start": {
-            "x": -3.995,
-            "z": 4.075
-          },
-          "end": {
-            "x": -3.995,
-            "z": 1.915
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#BD9C73"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/carport-layout/ground/12",
-          "start": {
-            "x": -1.13,
-            "z": 4.075
-          },
-          "end": {
-            "x": -1.13,
-            "z": 6.885
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#BD9C73"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/carport-layout/ground/13",
-          "start": {
-            "x": -1.13,
-            "z": 6.885
-          },
-          "end": {
-            "x": -3.995,
-            "z": 6.885
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#BD9C73"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/carport-layout/ground/14",
-          "start": {
-            "x": -3.995,
-            "z": 6.885
-          },
-          "end": {
-            "x": -3.995,
-            "z": 4.075
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [
-            {
-              "swing": "out",
-              "ref": "opening/reference-utility-exterior",
-              "kind": "door",
-              "wallRef": "wall/carport-layout/ground/14",
-              "offsetM": 1.085,
-              "widthM": 0.95,
-              "heightM": 2.1,
-              "sillM": 0,
-              "glazed": false
-            }
-          ],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#BD9C73"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/carport-layout/ground/15",
-          "start": {
-            "x": 2.085,
-            "z": 1.915
-          },
-          "end": {
-            "x": 2.085,
-            "z": 6.885
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [
-            {
-              "ref": "opening/reference-office-window",
-              "kind": "window",
-              "wallRef": "wall/carport-layout/ground/15",
-              "offsetM": 2.946294185,
-              "widthM": 1.8,
-              "heightM": 1.5,
-              "sillM": 0.8,
-              "glazed": true
-            }
-          ],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#BD9C73"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/carport-layout/ground/16",
-          "start": {
-            "x": 2.085,
-            "z": 6.885
-          },
-          "end": {
-            "x": -1.13,
-            "z": 6.885
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [],
-          "finish": {
-            "material": "natural-timber",
-            "colorHex": "#BD9C73"
-          },
-          "locked": false
-        },
-        {
-          "groupRef": "wall-group/stair-enclosure",
-          "ref": "wall/stair-enclosure/kitchen",
-          "start": {
-            "x": -3.895,
-            "z": -1.805
-          },
-          "end": {
-            "x": -1.145,
-            "z": -1.805
-          },
-          "thicknessM": 0.1,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [],
-          "finish": {
-            "material": "light-render",
-            "colorHex": "#E5E9E8",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "groupRef": "wall-group/stair-enclosure",
-          "ref": "wall/stair-enclosure/hall",
-          "start": {
-            "x": -1.145,
-            "z": 0.215
-          },
-          "end": {
-            "x": -3.895,
-            "z": 0.215
-          },
-          "thicknessM": 0.1,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [],
-          "finish": {
-            "material": "light-render",
-            "colorHex": "#E5E9E8",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "groupRef": "wall-group/stair-enclosure",
-          "ref": "wall/stair-enclosure/storage-end",
-          "start": {
-            "x": -1.145,
-            "z": -0.795
-          },
-          "end": {
-            "x": -1.145,
-            "z": 0.215
-          },
-          "thicknessM": 0.1,
-          "baseElevationM": 0.45,
-          "heightM": 2.8,
-          "openings": [
-            {
-              "swing": "out",
-              "ref": "opening/stair-storage",
-              "kind": "door",
-              "wallRef": "wall/stair-enclosure/storage-end",
-              "offsetM": 0.535,
-              "widthM": 0.8,
-              "heightM": 2,
-              "sillM": 0,
-              "glazed": false
-            }
-          ],
-          "finish": {
-            "material": "light-render",
-            "colorHex": "#E5E9E8",
-            "textureId": "none"
-          },
-          "locked": false
         }
       ],
       "spaces": [
+        {
+          "ref": "space/reference-living",
+          "name": "Salon, kuchnia i hol",
+          "usage": "living",
+          "boundary": [
+            {
+              "wallRef": "wall/reference-ground/1",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/2",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/3",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/4",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/5",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/6",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/7",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/8",
+              "direction": 1
+            }
+          ],
+          "baseSlabRef": "slab/reference-ground",
+          "topBoundaryRef": "slab/reference-upper",
+          "locked": false
+        },
+        {
+          "ref": "space/reference-pantry",
+          "name": "Pom. gospodarcze",
+          "usage": "utility",
+          "boundary": [
+            {
+              "wallRef": "wall/reference-ground/7",
+              "direction": -1
+            },
+            {
+              "wallRef": "wall/reference-ground/9",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/10",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/11",
+              "direction": 1
+            }
+          ],
+          "baseSlabRef": "slab/reference-ground",
+          "topBoundaryRef": "slab/reference-upper",
+          "locked": false
+        },
+        {
+          "ref": "space/reference-wc",
+          "name": "Łazienka parter",
+          "usage": "bathroom",
+          "boundary": [
+            {
+              "wallRef": "wall/reference-ground/6",
+              "direction": -1
+            },
+            {
+              "wallRef": "wall/reference-ground/12",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/13",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/9",
+              "direction": -1
+            }
+          ],
+          "baseSlabRef": "slab/reference-ground",
+          "topBoundaryRef": "slab/reference-upper",
+          "locked": false
+        },
+        {
+          "ref": "space/reference-office",
+          "name": "Gabinet",
+          "usage": "office",
+          "boundary": [
+            {
+              "wallRef": "wall/reference-ground/4",
+              "direction": -1
+            },
+            {
+              "wallRef": "wall/reference-ground/14",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/15",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/12",
+              "direction": -1
+            },
+            {
+              "wallRef": "wall/reference-ground/5",
+              "direction": -1
+            }
+          ],
+          "baseSlabRef": "slab/reference-ground",
+          "topBoundaryRef": "slab/reference-upper",
+          "locked": false
+        },
+        {
+          "ref": "space/reference-garage",
+          "name": "Garaż",
+          "usage": "garage",
+          "boundary": [
+            {
+              "wallRef": "wall/reference-ground/10",
+              "direction": -1
+            },
+            {
+              "wallRef": "wall/reference-ground/13",
+              "direction": -1
+            },
+            {
+              "wallRef": "wall/reference-ground/15",
+              "direction": -1
+            },
+            {
+              "wallRef": "wall/reference-ground/16",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/17",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-ground/18",
+              "direction": 1
+            }
+          ],
+          "baseSlabRef": "slab/reference-ground",
+          "topBoundaryRef": "slab/reference-upper",
+          "locked": false
+        },
         {
           "ref": "space/reference-parents",
           "name": "Sypialnia rodziców",
@@ -3583,126 +3796,6 @@
           "baseSlabRef": "slab/reference-upper",
           "topBoundaryRef": "roof/reference",
           "locked": false
-        },
-        {
-          "ref": "space/reference-living",
-          "name": "Living, kitchen & entrance hall",
-          "usage": "living",
-          "boundary": [
-            {
-              "wallRef": "wall/reference-ground/1",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/reference-ground/2",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/3",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/4",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/5",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/7",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/8",
-              "direction": 1
-            }
-          ],
-          "baseSlabRef": "slab/reference-ground",
-          "topBoundaryRef": "slab/reference-upper",
-          "locked": false
-        },
-        {
-          "ref": "space/reference-wc",
-          "name": "Bathroom",
-          "usage": "bathroom",
-          "boundary": [
-            {
-              "wallRef": "wall/carport-layout/ground/7",
-              "direction": -1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/9",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/10",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/11",
-              "direction": 1
-            }
-          ],
-          "baseSlabRef": "slab/reference-ground",
-          "topBoundaryRef": "slab/reference-upper",
-          "locked": false
-        },
-        {
-          "ref": "space/reference-pantry",
-          "name": "Utility & bicycles storage",
-          "usage": "utility",
-          "boundary": [
-            {
-              "wallRef": "wall/carport-layout/ground/10",
-              "direction": -1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/12",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/13",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/14",
-              "direction": 1
-            }
-          ],
-          "baseSlabRef": "slab/reference-ground",
-          "topBoundaryRef": "slab/reference-upper",
-          "locked": false
-        },
-        {
-          "ref": "space/reference-office",
-          "name": "Guest bedroom & study",
-          "usage": "bedroom",
-          "boundary": [
-            {
-              "wallRef": "wall/carport-layout/ground/5",
-              "direction": -1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/15",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/16",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/12",
-              "direction": -1
-            },
-            {
-              "wallRef": "wall/carport-layout/ground/9",
-              "direction": -1
-            }
-          ],
-          "baseSlabRef": "slab/reference-ground",
-          "topBoundaryRef": "slab/reference-upper",
-          "locked": false
         }
       ],
       "platforms": [],
@@ -3711,11 +3804,11 @@
         "ref": "roof/reference",
         "type": "gable",
         "baseElevationM": 4.85,
-        "pitchDegrees": 44,
+        "pitchDegrees": 40.13423424862029,
         "overhangM": 0,
         "footprint": [
           {
-            "x": -3.995,
+            "x": -5.495,
             "z": -6.555
           },
           {
@@ -3732,11 +3825,11 @@
           },
           {
             "x": 2.085,
-            "z": 6.885
+            "z": 8.385
           },
           {
-            "x": -3.995,
-            "z": 6.885
+            "x": -5.495,
+            "z": 8.385
           }
         ],
         "finish": {
@@ -3748,7 +3841,7 @@
             "ref": "roof/reference/rear-barn",
             "footprint": [
               {
-                "x": -0.9550000000000001,
+                "x": -1.705,
                 "z": -6.555
               },
               {
@@ -3760,14 +3853,14 @@
                 "z": 0.995
               },
               {
-                "x": -0.9550000000000001,
+                "x": -1.705,
                 "z": 0.995
               }
             ],
             "storeyRef": "storey/reference-upper",
             "baseElevationM": 4.85,
             "type": "gable",
-            "pitchDegrees": 37.87103769668754,
+            "pitchDegrees": 40.13423424862029,
             "overhangM": 0,
             "ridgeDirection": "x",
             "finish": {
@@ -3796,12 +3889,7 @@
               "max": {
                 "from": 0.09,
                 "to": 0.91,
-                "roofInsetM": 0.28,
-                "hostOpeningRefs": [
-                  "roof/reference/rear-barn/glazing-upper",
-                  "roof/reference/rear-barn/glazing-upper/right"
-                ],
-                "continuousWithHost": true
+                "roofInsetM": 0.28
               }
             }
           },
@@ -3809,7 +3897,7 @@
             "ref": "roof/reference/front-barn",
             "footprint": [
               {
-                "x": -3.995,
+                "x": -5.495,
                 "z": -6.555
               },
               {
@@ -3818,17 +3906,17 @@
               },
               {
                 "x": 2.085,
-                "z": 6.885
+                "z": 8.385
               },
               {
-                "x": -3.995,
-                "z": 6.885
+                "x": -5.495,
+                "z": 8.385
               }
             ],
             "storeyRef": "storey/reference-upper",
             "baseElevationM": 4.85,
             "type": "gable",
-            "pitchDegrees": 44,
+            "pitchDegrees": 40.13423424862029,
             "overhangM": 0,
             "ridgeDirection": "z",
             "finish": {
@@ -3857,15 +3945,7 @@
               "min": {
                 "from": 0.09,
                 "to": 0.5,
-                "roofInsetM": 0.28,
-                "hostOpeningRefs": [
-                  "roof/reference/front-barn/glazing-upper"
-                ],
-                "continuousWithHost": true,
-                "transomElevationsM": [
-                  5.65,
-                  6.8
-                ]
+                "roofInsetM": 0.28
               },
               "max": {
                 "from": 0.09,
@@ -3877,6 +3957,54 @@
                 ],
                 "shape": "triangle"
               }
+            }
+          },
+          {
+            "ref": "roof/reference/garage-cap",
+            "footprint": [
+              {
+                "x": -5.495,
+                "z": 8.385
+              },
+              {
+                "x": 2.085,
+                "z": 8.385
+              },
+              {
+                "x": 2.085,
+                "z": 11.555
+              },
+              {
+                "x": -5.495,
+                "z": 11.555
+              }
+            ],
+            "storeyRef": "storey/reference-ground",
+            "baseElevationM": 3.25,
+            "type": "flat",
+            "pitchDegrees": 0,
+            "overhangM": 0,
+            "ridgeDirection": "z",
+            "finish": {
+              "material": "membrane",
+              "colorHex": "#777269"
+            },
+            "adjacentSegmentRefs": [
+              "roof/reference/courtyard-canopy"
+            ],
+            "terrace": {
+              "railingHeightM": 1.1,
+              "openEdgeIndex": 0,
+              "frameColorHex": "#303536",
+              "connectedSegmentRefs": [
+                "roof/reference/courtyard-canopy"
+              ],
+              "openEdgeIndices": [
+                0,
+                1,
+                2
+              ],
+              "fasciaHeightM": 0.65
             }
           },
           {
@@ -3892,14 +4020,15 @@
               },
               {
                 "x": 5.585,
-                "z": 6.925000000000001
+                "z": 11.555
               },
               {
                 "x": 2.085,
-                "z": 6.925000000000001
+                "z": 11.555
               }
             ],
-            "baseElevationM": 2.86,
+            "storeyRef": "storey/reference-ground",
+            "baseElevationM": 3.25,
             "type": "flat",
             "pitchDegrees": 0,
             "overhangM": 0,
@@ -3908,42 +4037,26 @@
               "material": "membrane",
               "colorHex": "#777269"
             },
-            "adjacentSegmentRefs": [],
+            "adjacentSegmentRefs": [
+              "roof/reference/garage-cap"
+            ],
             "canopy": {
-              "fasciaHeightM": 0.18,
-              "fasciaEdgeIndices": [
-                0,
-                1,
-                2,
-                3
-              ],
-              "frameColorHex": "#333A38",
-              "soffitColorHex": "#B78F60",
-              "postWidthM": 0.12,
-              "postBaseElevationM": 0.15,
+              "fasciaHeightM": 0.65,
+              "fasciaEdgeIndices": [],
+              "frameColorHex": "#303536",
+              "soffitColorHex": "#D0AB7C",
+              "postWidthM": 0.2,
+              "postBaseElevationM": 0.45,
               "posts": [
                 {
-                  "x": 5.455,
-                  "z": 1.135
+                  "x": 5.425,
+                  "z": 6.1
                 },
                 {
-                  "x": 5.455,
-                  "z": 4.55
-                },
-                {
-                  "x": 5.455,
-                  "z": 6.795
-                },
-                {
-                  "x": 2.215,
-                  "z": 6.795
+                  "x": 5.425,
+                  "z": 11.395
                 }
-              ],
-              "slats": {
-                "direction": "x",
-                "spacingM": 0.45,
-                "widthM": 0.07
-              }
+              ]
             }
           }
         ],
@@ -3955,191 +4068,16 @@
               "roof/reference/rear-barn",
               "roof/reference/front-barn"
             ]
+          },
+          {
+            "ref": "roof/reference/junction-courtyard-garage",
+            "type": "intersection",
+            "segmentRefs": [
+              "roof/reference/garage-cap",
+              "roof/reference/courtyard-canopy"
+            ]
           }
         ]
-      }
-    },
-    {
-      "furniture": [
-        {
-          "ref": "interior/carport/car-1",
-          "catalogId": "car",
-          "storeyRef": "storey/carport",
-          "name": "Car 1 · 1.90 × 4.70 m",
-          "position": {
-            "x": -10.495,
-            "z": -3.355
-          },
-          "widthM": 1.9,
-          "depthM": 4.7,
-          "heightM": 1.5,
-          "rotationDegrees": 0,
-          "color": "#89969e"
-        },
-        {
-          "ref": "interior/carport/car-2",
-          "catalogId": "car",
-          "storeyRef": "storey/carport",
-          "name": "Car 2 · 1.90 × 4.70 m",
-          "position": {
-            "x": -7.295,
-            "z": -3.355
-          },
-          "widthM": 1.9,
-          "depthM": 4.7,
-          "heightM": 1.5,
-          "rotationDegrees": 0,
-          "color": "#d1cfc6"
-        }
-      ],
-      "ref": "building/south-carport",
-      "name": "Carport · 2 cars",
-      "kind": "garage",
-      "architecturalStyle": "barn",
-      "position": {
-        "x": -8.013411451837227,
-        "z": -0.8650712825957524
-      },
-      "rotationDegrees": 273.06927082481445,
-      "storeys": [
-        {
-          "ref": "storey/carport",
-          "name": "Parking",
-          "level": 0,
-          "elevationM": 0.45,
-          "clearHeightM": 2.5,
-          "baseSlabRef": "slab/carport",
-          "topBoundaryRef": "roof/carport",
-          "wallRefs": [],
-          "spaceRefs": [],
-          "platformRefs": [],
-          "ceilingFinishRefs": []
-        }
-      ],
-      "slabs": [
-        {
-          "ref": "slab/carport",
-          "footprint": [
-            {
-              "x": -12.095,
-              "z": -6.555
-            },
-            {
-              "x": -5.695,
-              "z": -6.555
-            },
-            {
-              "x": -5.695,
-              "z": -0.155
-            },
-            {
-              "x": -12.095,
-              "z": -0.155
-            }
-          ],
-          "topElevationM": 0.45,
-          "thicknessM": 0.18,
-          "locked": false
-        }
-      ],
-      "walls": [],
-      "spaces": [],
-      "platforms": [],
-      "ceilingFinishes": [],
-      "roof": {
-        "ref": "roof/carport",
-        "type": "flat",
-        "baseElevationM": 2.95,
-        "pitchDegrees": 0,
-        "overhangM": 0,
-        "footprint": [
-          {
-            "x": -12.095,
-            "z": -6.555
-          },
-          {
-            "x": -5.695,
-            "z": -6.555
-          },
-          {
-            "x": -5.695,
-            "z": -0.155
-          },
-          {
-            "x": -12.095,
-            "z": -0.155
-          }
-        ],
-        "finish": {
-          "material": "membrane",
-          "colorHex": "#303536"
-        },
-        "segments": [
-          {
-            "ref": "roof/carport/south",
-            "footprint": [
-              {
-                "x": -12.095,
-                "z": -6.555
-              },
-              {
-                "x": -5.695,
-                "z": -6.555
-              },
-              {
-                "x": -5.695,
-                "z": -0.155
-              },
-              {
-                "x": -12.095,
-                "z": -0.155
-              }
-            ],
-            "storeyRef": "storey/carport",
-            "baseElevationM": 2.95,
-            "type": "flat",
-            "pitchDegrees": 0,
-            "overhangM": 0,
-            "ridgeDirection": "z",
-            "finish": {
-              "material": "membrane",
-              "colorHex": "#303536"
-            },
-            "adjacentSegmentRefs": [],
-            "canopy": {
-              "fasciaHeightM": 0.3,
-              "fasciaEdgeIndices": [
-                0,
-                1,
-                2,
-                3
-              ],
-              "frameColorHex": "#303536",
-              "soffitColorHex": "#D0AB7C",
-              "postWidthM": 0.16,
-              "postBaseElevationM": 0.45,
-              "posts": [
-                {
-                  "x": -11.935,
-                  "z": -6.395
-                },
-                {
-                  "x": -11.935,
-                  "z": -0.315
-                },
-                {
-                  "x": -5.855,
-                  "z": -6.395
-                },
-                {
-                  "x": -5.855,
-                  "z": -0.315
-                }
-              ]
-            }
-          }
-        ],
-        "junctions": []
       }
     },
     {
@@ -5020,96 +4958,72 @@
     "zones": [
       {
         "ref": "zone/terrace",
-        "name": "Side terrace flush with house wall",
+        "name": "Taras przy budynku",
         "kind": "terrace",
         "footprint": [
           {
-            "x": -9.070163570992221,
-            "z": -0.12242401941712255
+            "x": -3.3649693030170593,
+            "z": -4.283291009664286
           },
           {
-            "x": -8.887581038992222,
-            "z": 3.2826844395828774
+            "x": -3.1770324436743715,
+            "z": -0.7783259974422814
           },
           {
-            "x": -14.769132013170852,
-            "z": 3.598054269427883
+            "x": -13.721884446256816,
+            "z": -0.2129091214711183
           },
           {
-            "x": -14.95171454617085,
-            "z": 0.1929458104278824
+            "x": -13.909821305599504,
+            "z": -3.7178741336931234
           }
         ],
         "locked": true
       },
       {
         "ref": "zone/driveway",
-        "name": "Straight road access beside the house",
+        "name": "Road-side garage apron",
         "kind": "driveway",
         "footprint": [
           {
-            "x": -19.620708302587374,
-            "z": -12.354750799322566
+            "x": -19.633350391706998,
+            "z": -12.403731301418498
           },
           {
-            "x": -8.506239581995459,
-            "z": -12.951020580608082
+            "x": -14.390639823234071,
+            "z": -12.684992598010393
           },
           {
-            "x": -8.163562687467481,
-            "z": -6.56020118510357
+            "x": -13.909821305599504,
+            "z": -3.7178741336931234
           },
           {
-            "x": -19.277853695587375,
-            "z": -5.963940938322566
+            "x": -19.152282522228862,
+            "z": -3.4366262143460546
           }
         ],
         "locked": false
       },
       {
         "ref": "zone/path",
-        "name": "Carport to entrance",
+        "name": "Garage apron to front door",
         "kind": "path",
         "footprint": [
           {
-            "x": -8.233168931837227,
-            "z": -7.858336374595752
+            "x": -14.390639823234071,
+            "z": -12.684992598010393
           },
           {
-            "x": -8.158208360837227,
-            "z": -6.460344631595751
+            "x": -14.321033579033077,
+            "z": -11.386857408298539
           },
           {
-            "x": -15.287966249108502,
-            "z": -6.078045721745778
+            "x": -3.296870121787794,
+            "z": -11.9779750513593
           },
           {
-            "x": -15.362926819799897,
-            "z": -7.476037464762325
-          }
-        ],
-        "locked": false
-      },
-      {
-        "ref": "zone/zielonki-v2/pergola-paving",
-        "name": "Nawierzchnia pod pergolą",
-        "kind": "terrace",
-        "footprint": [
-          {
-            "x": -12.649998346281635,
-            "z": -10.760730540714842
-          },
-          {
-            "x": -12.244140399325062,
-            "z": -3.1916038191641847
-          },
-          {
-            "x": -15.274786784536968,
-            "z": -3.0291000105872454
-          },
-          {
-            "x": -15.68064473149354,
-            "z": -10.598226732137903
+            "x": -3.366476365988789,
+            "z": -13.276110241071153
           }
         ],
         "locked": false
@@ -5192,6 +5106,171 @@
     ],
     "plants": [
       {
+        "ref": "plant/survey-5012",
+        "name": "Mapped conifer tree 5012",
+        "species": "Unidentified conifer",
+        "kind": "tree",
+        "position": {
+          "x": -14.626261665760946,
+          "z": 2.7750464291987584
+        },
+        "matureHeightM": 15,
+        "canopyM": 5.2,
+        "sunNeed": "sun",
+        "waterNeed": 1,
+        "hardinessMinC": -25,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "locked": true,
+        "crownShape": "conical",
+        "placementRole": "site",
+        "surveyHandle": "5012"
+      },
+      {
+        "ref": "plant/survey-5015",
+        "name": "Mapped conifer tree 5015",
+        "species": "Unidentified conifer",
+        "kind": "tree",
+        "position": {
+          "x": -12.78724945800227,
+          "z": 4.50465884338965
+        },
+        "matureHeightM": 15,
+        "canopyM": 5.2,
+        "sunNeed": "sun",
+        "waterNeed": 1,
+        "hardinessMinC": -25,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "locked": true,
+        "crownShape": "conical",
+        "placementRole": "site",
+        "surveyHandle": "5015"
+      },
+      {
+        "ref": "plant/survey-5018",
+        "name": "Mapped conifer tree 5018",
+        "species": "Unidentified conifer",
+        "kind": "tree",
+        "position": {
+          "x": -14.486225008990504,
+          "z": 5.074586978259177
+        },
+        "matureHeightM": 15,
+        "canopyM": 5.2,
+        "sunNeed": "sun",
+        "waterNeed": 1,
+        "hardinessMinC": -25,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "locked": true,
+        "crownShape": "conical",
+        "placementRole": "site",
+        "surveyHandle": "5018"
+      },
+      {
+        "ref": "plant/survey-501b",
+        "name": "Mapped conifer tree 501B",
+        "species": "Unidentified conifer",
+        "kind": "tree",
+        "position": {
+          "x": -10.223691645184829,
+          "z": 3.484926850225678
+        },
+        "matureHeightM": 15,
+        "canopyM": 5.2,
+        "sunNeed": "sun",
+        "waterNeed": 1,
+        "hardinessMinC": -25,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "locked": true,
+        "crownShape": "conical",
+        "placementRole": "site",
+        "surveyHandle": "501B"
+      },
+      {
+        "ref": "plant/apple",
+        "name": "Mapped deciduous tree 50F5",
+        "species": "Unidentified deciduous",
+        "kind": "tree",
+        "position": {
+          "x": -12.121907201465316,
+          "z": 1.181268303102935
+        },
+        "matureHeightM": 15,
+        "canopyM": 7,
+        "sunNeed": "sun",
+        "waterNeed": 1,
+        "hardinessMinC": -25,
+        "leafMonths": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "bloomMonths": [],
+        "locked": true,
+        "crownShape": "rounded",
+        "placementRole": "site",
+        "surveyHandle": "50F5"
+      },
+      {
         "ref": "plant/orchard-plum",
         "name": "Mapped fruit tree 50D1",
         "species": "Unidentified fruit",
@@ -5219,142 +5298,6 @@
         "crownShape": "rounded",
         "placementRole": "site",
         "surveyHandle": "50D1"
-      },
-      {
-        "ref": "plant/survey-5012",
-        "name": "Mapped conifer tree 5012",
-        "species": "Unidentified conifer",
-        "kind": "tree",
-        "position": {
-          "x": -14.626261665760946,
-          "z": 2.7750464291987584
-        },
-        "matureHeightM": 15,
-        "canopyM": 5.2,
-        "surveyHandle": "5012",
-        "crownShape": "conical",
-        "placementRole": "site",
-        "sunNeed": "sun",
-        "waterNeed": 1,
-        "hardinessMinC": -25,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "locked": true
-      },
-      {
-        "ref": "plant/survey-5015",
-        "name": "Mapped conifer tree 5015",
-        "species": "Unidentified conifer",
-        "kind": "tree",
-        "position": {
-          "x": -12.78724945800227,
-          "z": 4.50465884338965
-        },
-        "matureHeightM": 15,
-        "canopyM": 5.2,
-        "surveyHandle": "5015",
-        "crownShape": "conical",
-        "placementRole": "site",
-        "sunNeed": "sun",
-        "waterNeed": 1,
-        "hardinessMinC": -25,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "locked": true
-      },
-      {
-        "ref": "plant/survey-5018",
-        "name": "Mapped conifer tree 5018",
-        "species": "Unidentified conifer",
-        "kind": "tree",
-        "position": {
-          "x": -14.486225008990504,
-          "z": 5.074586978259177
-        },
-        "matureHeightM": 15,
-        "canopyM": 5.2,
-        "surveyHandle": "5018",
-        "crownShape": "conical",
-        "placementRole": "site",
-        "sunNeed": "sun",
-        "waterNeed": 1,
-        "hardinessMinC": -25,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "locked": true
-      },
-      {
-        "ref": "plant/survey-501b",
-        "name": "Mapped conifer tree 501B",
-        "species": "Unidentified conifer",
-        "kind": "tree",
-        "position": {
-          "x": -10.223691645184829,
-          "z": 3.484926850225678
-        },
-        "matureHeightM": 15,
-        "canopyM": 5.2,
-        "surveyHandle": "501B",
-        "crownShape": "conical",
-        "placementRole": "site",
-        "sunNeed": "sun",
-        "waterNeed": 1,
-        "hardinessMinC": -25,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "locked": true
       },
       {
         "ref": "plant/survey-501e",
@@ -5635,35 +5578,6 @@
         "matureHeightM": 15,
         "canopyM": 7,
         "surveyHandle": "503A",
-        "crownShape": "rounded",
-        "placementRole": "site",
-        "sunNeed": "sun",
-        "waterNeed": 1,
-        "hardinessMinC": -25,
-        "leafMonths": [
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10
-        ],
-        "bloomMonths": [],
-        "locked": true
-      },
-      {
-        "ref": "plant/apple",
-        "name": "Mapped deciduous tree 50F5",
-        "species": "Unidentified deciduous",
-        "kind": "tree",
-        "position": {
-          "x": -12.121907201465316,
-          "z": 1.181268303102935
-        },
-        "matureHeightM": 15,
-        "canopyM": 7,
-        "surveyHandle": "50F5",
         "crownShape": "rounded",
         "placementRole": "site",
         "sunNeed": "sun",

@@ -48,6 +48,7 @@ const SiteEntranceSchema = z.object({
   connectsTo: z.literal('public-road'), geometryConfidence: z.enum(['user-marked', 'surveyed']),
 }).refine((entrance) => Math.hypot(entrance.end.x - entrance.start.x, entrance.end.z - entrance.start.z) > 0.5, { message: 'Site entrance must have length.' })
 const OpeningSchema = z.object({
+  mullionFractions: z.array(z.number().gt(0).lt(1)).optional(),
   hinge: z.enum(['left', 'right']).optional(), swing: z.enum(['in', 'out']).optional(),
   ref: z.string().min(1), kind: z.enum(['door', 'window']), wallRef: z.string().min(1), offsetM: z.number().min(0),
   widthM: z.number().positive(), heightM: z.number().positive(), sillM: z.number().min(0), glazed: z.boolean().optional(),
@@ -78,6 +79,8 @@ const WallFinishSchema = z.object({ material: z.enum(['charred-timber', 'natural
 const GableGlazingSchema = z.object({
   from: z.number().gt(0).lt(1), to: z.number().gt(0).lt(1), roofInsetM: z.number().positive(),
   shape: z.enum(['roof-following', 'triangle']).optional(),
+  continuousWithHost: z.boolean().optional(),
+  transomElevationsM: z.array(z.number().finite()).optional(),
   hostOpeningRefs: z.array(z.string().min(1)).min(1).refine((refs) => new Set(refs).size === refs.length).optional(),
 }).refine((g) => g.from < g.to)
 const RoofSegmentSchema = z.object({

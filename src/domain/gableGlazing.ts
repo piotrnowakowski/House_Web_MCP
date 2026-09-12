@@ -20,7 +20,6 @@ export function gableGlazingProfile(segment: RoofSegmentModel, side: 'min' | 'ma
     const walls = building.walls.filter((wall) => storey.wallRefs.includes(wall.ref) && Math.abs(wall.start[along] - face) < 0.01 && Math.abs(wall.end[along] - face) < 0.01 && Math.min(wall.start[across], wall.end[across]) < max && Math.max(wall.start[across], wall.end[across]) > min)
     claddingBase = Math.max(base, ...walls.map((wall) => wall.baseElevationM + wall.heightM))
   }
-  const bottom = claddingBase + 0.03
   const topAt = (x: number) => ridge - Math.abs(x - center) * (ridge - base) / (span / 2) - glazing.roofInsetM
   const ranges = glazing.hostOpeningRefs ? glazing.hostOpeningRefs.flatMap((ref) => {
     const wall = building?.walls.find((wall) => wall.openings.some((opening) => opening.ref === ref))
@@ -31,9 +30,10 @@ export function gableGlazingProfile(segment: RoofSegmentModel, side: 'min' | 'ma
     const face = along === 'z' ? (side === 'min' ? bounds.minZ : bounds.maxZ) : (side === 'min' ? bounds.minX : bounds.maxX)
     if (Math.abs(wall.start[along] - face) > 0.01 || Math.abs(wall.end[along] - face) > 0.01) return []
     const midpoint = wall.start[across] + (wall.end[across] - wall.start[across]) * opening.offsetM / wallLength(wall)
-    return [{ left: midpoint - opening.widthM / 2, right: midpoint + opening.widthM / 2, dividedDoor: opening.kind === 'door' && Boolean(opening.glazed) }]
-  }) : [{ left: min + span * glazing.from, right: min + span * glazing.to, dividedDoor: false }]
-  const panels = ranges.flatMap(({ left: hostLeft, right: hostRight, dividedDoor }) => {
+    return [{ left: midpoint - opening.widthM / 2, right: midpoint + opening.widthM / 2, dividedDoor: opening.kind === 'door' && Boolean(opening.glazed), divisions: opening.mullionFractions, hostRef: opening.ref, connected: Boolean(glazing.continuousWithHost && glazing.shape !== 'triangle' && Math.abs(wall.baseElevationM + opening.sillM + opening.heightM - claddingBase) < 0.001) }]
+  }) : [{ left: min + span * glazing.from, right: min + span * glazing.to, dividedDoor: false, divisions: undefined, hostRef: undefined, connected: false }]
+  const panels = ranges.flatMap(({ left: hostLeft, right: hostRight, dividedDoor, divisions: explicitDivisions, hostRef, connected }) => {
+    const bottom = claddingBase + (connected ? 0.001 : 0.03)
     // Narrower variants can put a host jamb beyond the usable upper gable.
     // Fit triangle bases to the inset roof instead of dropping the entire window.
     const clearHalfSpan = (ridge - glazing.roofInsetM - bottom) / ((ridge - base) / (span / 2))
@@ -54,8 +54,17 @@ export function gableGlazingProfile(segment: RoofSegmentModel, side: 'min' | 'ma
         ...(left < center && right > center ? [{ x: center, z: topAt(center) }] : []), { x: left, z: topAt(left) }]
     const width = right - left
     // Continue the lower balcony door's central division, even for a narrow two-leaf door.
-    const divisions = dividedDoor ? [0.5] : width > 5 ? [1 / 3, 2 / 3] : width > 2.6 ? [0.5] : []
-    return [{ opening, mullions: divisions.map((fraction) => ({ x: left + width * fraction, bottom, top: panelTopAt(left + width * fraction) })) }]
+    const divisions = explicitDivisions ?? (dividedDoor ? [0.5] : width > 5 ? [1 / 3, 2 / 3] : width > 2.6 ? [0.5] : [])
+    const transoms = (glazing.transomElevationsM ?? []).flatMap((elevation) => {
+      if (elevation <= bottom) return []
+      const intersections = opening.flatMap((a, i) => {
+        const b = opening[(i + 1) % opening.length]
+        if (elevation < Math.min(a.z, b.z) || elevation >= Math.max(a.z, b.z)) return []
+        return [a.x + (b.x - a.x) * (elevation - a.z) / (b.z - a.z)]
+      }).sort((a, b) => a - b)
+      return intersections.length === 2 ? [[{ x: intersections[0], z: elevation }, { x: intersections[1], z: elevation }]] : []
+    })
+    return [{ opening, hostRef, connected, transoms, mullions: divisions.map((fraction) => ({ x: left + width * fraction, bottom, top: panelTopAt(left + width * fraction) })) }]
   })
   const inset = claddingBase > base ? (claddingBase - base) / Math.max(0.0001, Math.tan(segment.pitchDegrees * Math.PI / 180)) : 0
   return { outline: [{ x: min + inset, z: claddingBase }, { x: max - inset, z: claddingBase }, { x: center, z: ridge }], panels }

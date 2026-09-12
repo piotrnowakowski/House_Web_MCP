@@ -1,7 +1,8 @@
 import beforeBrowserCapture from '../../project-data/zielonki/before-browser-capture-r46.json'
 import { expect, it } from 'vitest'
 import previousData from '../../project-data/zielonki/published-base-r43.json'
-import { publishedProject } from '../services/publishedProject'
+import facadeBaseline from '../../project-data/zielonki/before-facade-windows-r52.json'
+const publishedProject = parseProject(facadeBaseline)
 import { atticClearanceAt, atticWallProfile, wallProfileHeightAt } from './attic'
 import { validateProject } from './commands'
 import { gableGlazingProfile } from './gableGlazing'

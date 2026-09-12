@@ -3,8 +3,8 @@
   "ref": "project/zielonki-spatial-v2",
   "name": "Dom duży taras",
   "units": "metric",
-  "revision": 52,
-  "updatedAt": "2026-09-12T12:24:28.488Z",
+  "revision": 53,
+  "updatedAt": "2026-09-12T13:20:58.008Z",
   "site": {
     "boundary": [
       {
@@ -2382,7 +2382,11 @@
               "offsetM": 2.2361,
               "widthM": 3.1078,
               "heightM": 2.6399999999999997,
-              "sillM": 0.08
+              "sillM": 0.08,
+              "mullionFractions": [
+                0.5
+              ],
+              "glazed": true
             }
           ],
           "finish": {
@@ -2409,10 +2413,27 @@
               "ref": "opening/reference-terrace-east",
               "kind": "window",
               "wallRef": "wall/reference-ground/2",
-              "offsetM": 3.775,
-              "widthM": 6.191000000000001,
+              "offsetM": 2.12725,
+              "widthM": 2.8955,
               "heightM": 2.6399999999999997,
-              "sillM": 0.08
+              "sillM": 0.08,
+              "mullionFractions": [
+                0.5
+              ],
+              "glazed": true
+            },
+            {
+              "ref": "opening/reference-terrace-east/right",
+              "kind": "window",
+              "wallRef": "wall/reference-ground/2",
+              "offsetM": 5.42275,
+              "widthM": 2.8955,
+              "heightM": 2.6399999999999997,
+              "sillM": 0.08,
+              "mullionFractions": [
+                0.5
+              ],
+              "glazed": true
             }
           ],
           "finish": {
@@ -2868,8 +2889,12 @@
               "wallRef": "wall/reference-upper/1",
               "offsetM": 2.2361,
               "widthM": 3.1078,
-              "heightM": 1.24,
-              "sillM": 0.08
+              "heightM": 1.3199999999999998,
+              "sillM": 0.08,
+              "mullionFractions": [
+                0.5
+              ],
+              "glazed": true
             }
           ],
           "finish": {
@@ -2988,10 +3013,27 @@
               "ref": "roof/reference/rear-barn/glazing-upper",
               "kind": "window",
               "wallRef": "wall/reference-upper/6",
-              "offsetM": 3.775,
-              "widthM": 6.191000000000001,
-              "heightM": 1.24,
-              "sillM": 0.08
+              "offsetM": 2.12725,
+              "widthM": 2.8955,
+              "heightM": 1.3199999999999998,
+              "sillM": 0.08,
+              "mullionFractions": [
+                0.5
+              ],
+              "glazed": true
+            },
+            {
+              "ref": "roof/reference/rear-barn/glazing-upper/right",
+              "kind": "window",
+              "wallRef": "wall/reference-upper/6",
+              "offsetM": 5.42275,
+              "widthM": 2.8955,
+              "heightM": 1.3199999999999998,
+              "sillM": 0.08,
+              "mullionFractions": [
+                0.5
+              ],
+              "glazed": true
             }
           ],
           "finish": {
@@ -3889,7 +3931,12 @@
               "max": {
                 "from": 0.09,
                 "to": 0.91,
-                "roofInsetM": 0.28
+                "roofInsetM": 0.28,
+                "hostOpeningRefs": [
+                  "roof/reference/rear-barn/glazing-upper",
+                  "roof/reference/rear-barn/glazing-upper/right"
+                ],
+                "continuousWithHost": true
               }
             }
           },
@@ -3945,7 +3992,15 @@
               "min": {
                 "from": 0.09,
                 "to": 0.5,
-                "roofInsetM": 0.28
+                "roofInsetM": 0.28,
+                "hostOpeningRefs": [
+                  "roof/reference/front-barn/glazing-upper"
+                ],
+                "continuousWithHost": true,
+                "transomElevationsM": [
+                  5.65,
+                  6.8
+                ]
               },
               "max": {
                 "from": 0.09,

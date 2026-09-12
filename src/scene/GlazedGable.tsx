@@ -22,8 +22,9 @@ export function GlazedGable({ building, segment, side, value, finish, selected, 
   const alongZ = segment.ridgeDirection === 'z'
   const texture = resolveWallTexture(finish)
   const color = selected ? '#b9e84d' : finish.colorHex
-  const edges = profile.panels.flatMap(({ opening, mullions }) => [
-    ...opening.map((a, i) => [a, opening[(i + 1) % opening.length]]),
+  const edges = profile.panels.flatMap(({ opening, mullions, connected, transoms }) => [
+    ...opening.flatMap((a, i) => connected && i === 0 ? [] : [[a, opening[(i + 1) % opening.length]]]),
+    ...transoms,
     ...mullions.map((m) => [{ x: m.x, z: m.bottom }, { x: m.x, z: m.top }]),
   ])
   return <group position={alongZ ? [0, 0, value] : [value, 0, 0]} rotation={[0, alongZ ? 0 : -Math.PI / 2, 0]}>
