@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-carport",
   "name": "Z garażem za domem przy sąsiadach",
   "units": "metric",
-  "revision": 89,
-  "updatedAt": "2026-09-11T21:43:08.507Z",
+  "revision": 90,
+  "updatedAt": "2026-09-12T11:21:06.701Z",
   "site": {
     "boundary": [
       {
@@ -3821,7 +3821,8 @@
                 "hostOpeningRefs": [
                   "opening/reference-children-west-window",
                   "opening/reference-children-east-window"
-                ]
+                ],
+                "shape": "triangle"
               }
             }
           },

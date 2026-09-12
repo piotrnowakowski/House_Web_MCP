@@ -3,8 +3,8 @@
   "ref": "project/zielonki-spatial-v2",
   "name": "Dom duży taras",
   "units": "metric",
-  "revision": 50,
-  "updatedAt": "2026-09-11T21:43:08.404Z",
+  "revision": 51,
+  "updatedAt": "2026-09-12T11:21:06.694Z",
   "site": {
     "boundary": [
       {
@@ -3954,7 +3954,8 @@
                 "hostOpeningRefs": [
                   "opening/reference-children-west-window",
                   "opening/reference-children-east-window"
-                ]
+                ],
+                "shape": "triangle"
               }
             }
           },

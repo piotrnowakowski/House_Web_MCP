@@ -77,6 +77,7 @@ const RoofFinishSchema = z.object({ material: z.enum(['standing-seam-metal', 'ti
 const WallFinishSchema = z.object({ material: z.enum(['charred-timber', 'natural-timber', 'light-render', 'brick', 'metal-panel']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), textureId: z.string().optional() })
 const GableGlazingSchema = z.object({
   from: z.number().gt(0).lt(1), to: z.number().gt(0).lt(1), roofInsetM: z.number().positive(),
+  shape: z.enum(['roof-following', 'triangle']).optional(),
   hostOpeningRefs: z.array(z.string().min(1)).min(1).refine((refs) => new Set(refs).size === refs.length).optional(),
 }).refine((g) => g.from < g.to)
 const RoofSegmentSchema = z.object({

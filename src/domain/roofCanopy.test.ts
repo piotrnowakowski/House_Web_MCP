@@ -1,6 +1,7 @@
 import beforeBrowserCapture from '../../project-data/zielonki/before-browser-capture-r46.json'
 import { expect, it } from 'vitest'
 import previousData from '../../project-data/zielonki/published-base-r41.json'
+import beforeTriangleWindows from '../../project-data/zielonki/before-triangle-windows-r50.json'
 import { publishedProject } from '../services/publishedProject'
 import { validateProject } from './commands'
 import { diffProjects } from './diff'
@@ -12,7 +13,7 @@ const ref = 'roof/reference/courtyard-canopy'
 const previous = parseProject(previousData)
 
 it('joins the ground terrace canopy to the garage cap and projecting wing while preserving the house', () => {
-  const building = publishedProject.buildings[0]
+  const building = parseProject(beforeTriangleWindows).buildings[0]
   const canopy = building.roof.segments.find((s) => s.ref === ref)!
   const garage = building.roof.segments.find((s) => s.ref.endsWith('/garage-cap'))!
   const wing = building.roof.segments.find((s) => s.ref.endsWith('/rear-barn'))!

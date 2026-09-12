@@ -6,7 +6,7 @@ import { createReferenceHouse } from './referenceHouse'
 import { modernBarnProject } from './sampleProject'
 import { parseProject } from './schema'
 import { fitZielonkiInterior, upgradeZielonkiGlazing } from './zielonkiInterior'
-import publishedData from '../../project-data/zielonki/project.json'
+import publishedData from '../../project-data/zielonki/before-triangle-windows-r50.json'
 
 describe('ICON gables and full-height living room', () => {
   it('cuts the whole former mezzanine floor while retaining bedrooms, stairs and the flat garage roof', () => {

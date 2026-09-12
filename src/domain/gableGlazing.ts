@@ -33,15 +33,29 @@ export function gableGlazingProfile(segment: RoofSegmentModel, side: 'min' | 'ma
     const midpoint = wall.start[across] + (wall.end[across] - wall.start[across]) * opening.offsetM / wallLength(wall)
     return [{ left: midpoint - opening.widthM / 2, right: midpoint + opening.widthM / 2, dividedDoor: opening.kind === 'door' && Boolean(opening.glazed) }]
   }) : [{ left: min + span * glazing.from, right: min + span * glazing.to, dividedDoor: false }]
-  const panels = ranges.flatMap(({ left, right, dividedDoor }) => {
+  const panels = ranges.flatMap(({ left: hostLeft, right: hostRight, dividedDoor }) => {
+    // Narrower variants can put a host jamb beyond the usable upper gable.
+    // Fit triangle bases to the inset roof instead of dropping the entire window.
+    const clearHalfSpan = (ridge - glazing.roofInsetM - bottom) / ((ridge - base) / (span / 2))
+    const left = glazing.shape === 'triangle' ? Math.max(hostLeft, center - clearHalfSpan + 0.001) : hostLeft
+    const right = glazing.shape === 'triangle' ? Math.min(hostRight, center + clearHalfSpan - 0.001) : hostRight
+    if (right <= left) return []
     if (left <= min || right >= max || topAt(left) <= bottom || topAt(right) <= bottom) return []
-    const opening: Vec2[] = [{ x: left, z: bottom }, { x: right, z: bottom }, { x: right, z: topAt(right) }]
-    if (left < center && right > center) opening.push({ x: center, z: topAt(center) })
-    opening.push({ x: left, z: topAt(left) })
+    // Mirrored triangles peak toward the ridge, inside the original roof-following pane.
+    const peakX = Math.max(left, Math.min(right, center))
+    const panelTopAt = glazing.shape === 'triangle' ? (x: number) => {
+      const fraction = x <= peakX && peakX > left ? (x - left) / (peakX - left)
+        : peakX < right ? (right - x) / (right - peakX) : 1
+      return bottom + (topAt(peakX) - bottom) * fraction
+    } : topAt
+    const opening: Vec2[] = glazing.shape === 'triangle'
+      ? [{ x: left, z: bottom }, { x: right, z: bottom }, { x: peakX, z: topAt(peakX) }]
+      : [{ x: left, z: bottom }, { x: right, z: bottom }, { x: right, z: topAt(right) },
+        ...(left < center && right > center ? [{ x: center, z: topAt(center) }] : []), { x: left, z: topAt(left) }]
     const width = right - left
     // Continue the lower balcony door's central division, even for a narrow two-leaf door.
     const divisions = dividedDoor ? [0.5] : width > 5 ? [1 / 3, 2 / 3] : width > 2.6 ? [0.5] : []
-    return [{ opening, mullions: divisions.map((fraction) => ({ x: left + width * fraction, bottom, top: topAt(left + width * fraction) })) }]
+    return [{ opening, mullions: divisions.map((fraction) => ({ x: left + width * fraction, bottom, top: panelTopAt(left + width * fraction) })) }]
   })
   const inset = claddingBase > base ? (claddingBase - base) / Math.max(0.0001, Math.tan(segment.pitchDegrees * Math.PI / 180)) : 0
   return { outline: [{ x: min + inset, z: claddingBase }, { x: max - inset, z: claddingBase }, { x: center, z: ridge }], panels }
