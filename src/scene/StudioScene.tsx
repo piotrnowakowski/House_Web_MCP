@@ -1353,6 +1353,10 @@ function SceneBackground() {
 }
 
 export const StudioScene = memo(function StudioScene() {
+  const treesVisible = useStudioStore((state) => state.treesVisible)
+  const invalidate = useThree((state) => state.invalidate)
+  // Removing the final tree mesh must also repaint the demand-driven canvas and its shadows.
+  useEffect(() => { invalidate() }, [treesVisible, invalidate])
   const project = useStudioStore((state) => state.project); const confirmation = useStudioStore((state) => state.confirmationVariantRef)
   const ghost = useStudioStore((state) => state.variants.find((variant) => variant.ref === confirmation)?.project); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
   const changedGhostFixtures = ghost?.landscape.fixtures.filter((fixture) => {
