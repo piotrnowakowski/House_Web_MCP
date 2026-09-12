@@ -3,8 +3,8 @@
   "ref": "project/zielonki-spatial-v2",
   "name": "Dom duży taras",
   "units": "metric",
-  "revision": 52,
-  "updatedAt": "2026-09-12T12:24:28.488Z",
+  "revision": 51,
+  "updatedAt": "2026-09-12T11:21:06.694Z",
   "site": {
     "boundary": [
       {
@@ -5774,17 +5774,6 @@
           "z": 44.8
         },
         "rotationDegrees": 270,
-        "locked": false
-      },
-      {
-        "ref": "fixture/recycling-bins-road",
-        "catalogId": "recycling-bins",
-        "name": "Kosze do segregacji przy drodze",
-        "position": {
-          "x": -17.65,
-          "z": 7.8
-        },
-        "rotationDegrees": 86.93072917518555,
         "locked": false
       }
     ],

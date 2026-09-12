@@ -5,7 +5,7 @@ import { useFrame, useThree, type RootState } from '@react-three/fiber'
 import CameraControls from 'camera-controls'
 import { memo, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
-  Box3, BoxGeometry, BufferAttribute, BufferGeometry, Color, DirectionalLight, DoubleSide, EdgesGeometry, Group, LinearFilter, MathUtils, Matrix4, Mesh, MeshStandardMaterial, MOUSE, Object3D,
+  Box3, BoxGeometry, BufferAttribute, BufferGeometry, CanvasTexture, Color, DirectionalLight, DoubleSide, EdgesGeometry, Group, LinearFilter, MathUtils, Matrix4, Mesh, MeshStandardMaterial, MOUSE, Object3D,
   OrthographicCamera, PerspectiveCamera, Plane, PlaneGeometry, Quaternion, Raycaster, Scene, Shape, ShapeGeometry, Sphere, Spherical, SRGBColorSpace, Vector2, Vector3, Vector4, WebGLRenderTarget,
 } from 'three'
 import { acceleratedRaycast, computeBoundsTree, disposeBoundsTree } from 'three-mesh-bvh'
@@ -1013,7 +1013,9 @@ function Landscape({ project }: { project: ProjectV2 }) {
 
 function Plant({ plant, project, selected, onSelect, ghost = false }: { plant: PlantModel; project: ProjectV2; selected: boolean; onSelect: () => void; ghost?: boolean }) {
   const month = useStudioStore((state) => state.month); const repositioningRef = useStudioStore((state) => state.repositioningRef); const commitCommand = useStudioStore((state) => state.commitCommand); const endReposition = useStudioStore((state) => state.endReposition); const setToast = useStudioStore((state) => state.setToast)
+  const treesVisible = useStudioStore(state => state.treesVisible)
   const y = plant.surveyHandle ? TERRAIN_SURFACE_Y : elevationAt(project, plant.position.x, plant.position.z); const canopy = Math.max(0.25, plant.canopyM / 2); const visibleLeaf = plant.leafMonths.includes(month); const group = useRef<Group>(null)
+  if (plant.kind === 'tree' && !treesVisible) return null
   return <><group ref={group} position={[plant.position.x, y, plant.position.z]} userData={{ semanticRef: plant.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) onSelect() }}>
     {plant.surveyHandle ? <SurveyTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : hasFruitTreeVisual(plant) ? <FruitTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.crownShape === 'conical' ? <>
       <mesh position={[0, plant.matureHeightM * 0.4, 0]} castShadow={!ghost}><cylinderGeometry args={[0.12, 0.24, plant.matureHeightM * 0.8, 10]} /><meshStandardMaterial color="#584434" transparent={ghost} opacity={ghost ? 0.42 : 1} /></mesh>
@@ -1133,8 +1135,36 @@ function CantileverParasolFixture({ selected, ghost }: { selected: boolean; ghos
   </group>
 }
 
+function BinLabel({ label, ghost }: { label: string; ghost: boolean }) {
+  const texture = useMemo(() => {
+    const canvas = document.createElement('canvas'); canvas.width = 512; canvas.height = 128
+    const ctx = canvas.getContext('2d')!
+    ctx.fillStyle = '#ffffff'; ctx.font = 'bold 42px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+    ctx.fillText(label, 256, 64, 490)
+    const result = new CanvasTexture(canvas); result.colorSpace = SRGBColorSpace
+    return result
+  }, [label])
+  useEffect(() => () => texture.dispose(), [texture])
+  return <mesh position={[0, 0.72, 0.335]}><planeGeometry args={[0.5, 0.125]} /><meshBasicMaterial map={texture} transparent depthWrite={false} opacity={ghost ? 0.42 : 1} /></mesh>
+}
+
+function RecyclingBinsFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
+  const bins = [['#2674b8', 'PAPIER'], ['#e8c12e', 'METALE / PLASTIK'], ['#39845a', 'SZKŁO'], ['#805339', 'BIO'], ['#343a40', 'ZMIESZANE']]
+  return <group>
+    <mesh position={[0, 0.04, 0]} receiveShadow><boxGeometry args={[3.6, 0.08, 1.1]} />{fixtureMaterial('#aaa79c', selected, ghost)}</mesh>
+    {bins.map(([color, label], index) => <group key={label} position={[(index - 2) * 0.68, 0, 0]}>
+      <mesh position={[0, 0.63, 0]} castShadow={!ghost} receiveShadow><boxGeometry args={[0.57, 0.96, 0.66]} />{fixtureMaterial(color, selected, ghost)}</mesh>
+      <mesh position={[0, 1.14, 0]} castShadow={!ghost}><boxGeometry args={[0.62, 0.08, 0.73]} />{fixtureMaterial(color, selected, ghost)}</mesh>
+      <mesh position={[0, 1.2, 0.18]} castShadow={!ghost}><boxGeometry args={[0.22, 0.04, 0.05]} />{fixtureMaterial('#252b2b', selected, ghost)}</mesh>
+      {[-0.24, 0.24].map(x => <mesh key={x} position={[x, 0.2, -0.25]} rotation={[0, 0, Math.PI / 2]} castShadow={!ghost}><cylinderGeometry args={[0.1, 0.1, 0.07, 12]} />{fixtureMaterial('#202626', selected, ghost)}</mesh>)}
+      <BinLabel label={label} ghost={ghost} />
+    </group>)}
+  </group>
+}
+
 function GardenFixtureModel({ catalogId, selected, ghost }: { catalogId: GardenFixtureModel['catalogId']; selected: boolean; ghost: boolean }) {
   switch (catalogId) {
+    case 'recycling-bins': return <RecyclingBinsFixture selected={selected} ghost={ghost} />
     case 'jacuzzi': case 'outdoor-kitchen': return <SpaFixture kind={catalogId} selected={selected} ghost={ghost} />
     case 'outdoor-dining-set': return <OutdoorDiningSetFixture selected={selected} ghost={ghost} />
     case 'garden-lounge-set': return <GardenLoungeSetFixture selected={selected} ghost={ghost} />

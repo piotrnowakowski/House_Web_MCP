@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-carport",
   "name": "Z garażem za domem przy sąsiadach",
   "units": "metric",
-  "revision": 90,
-  "updatedAt": "2026-09-12T11:21:06.701Z",
+  "revision": 91,
+  "updatedAt": "2026-09-12T12:24:28.494Z",
   "site": {
     "boundary": [
       {
@@ -961,12 +961,12 @@
         "ref": "entrance/house-road",
         "name": "House-side road entrance",
         "start": {
-          "x": -19.733992804,
-          "z": -14.466373916
+          "x": -19.630693943,
+          "z": -12.354215089
         },
         "end": {
-          "x": -19.391138198,
-          "z": -8.075564055
+          "x": -19.287839336,
+          "z": -5.963405228
         },
         "connectsTo": "public-road",
         "geometryConfidence": "user-marked"
@@ -4991,12 +4991,12 @@
       },
       {
         "ref": "zone/driveway",
-        "name": "Direct road access · two-car apron",
+        "name": "Straight road access beside the house",
         "kind": "driveway",
         "footprint": [
           {
-            "x": -19.733992804,
-            "z": -14.466373916
+            "x": -19.620708302587374,
+            "z": -12.354750799322566
           },
           {
             "x": -8.506239581995459,
@@ -5007,8 +5007,8 @@
             "z": -6.56020118510357
           },
           {
-            "x": -19.391138198,
-            "z": -8.075564055
+            "x": -19.277853695587375,
+            "z": -5.963940938322566
           }
         ],
         "locked": false
@@ -5807,6 +5807,17 @@
           "z": 44.8
         },
         "rotationDegrees": 270,
+        "locked": false
+      },
+      {
+        "ref": "fixture/recycling-bins-road",
+        "catalogId": "recycling-bins",
+        "name": "Kosze do segregacji przy drodze",
+        "position": {
+          "x": -17.65,
+          "z": 7.8
+        },
+        "rotationDegrees": 86.93072917518555,
         "locked": false
       }
     ],

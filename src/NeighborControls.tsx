@@ -2,6 +2,7 @@ import { Building2, Eye, Settings2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useStudioStore } from './state/store'
 import './neighbors.css'
+import { FloorToggle, TreeToggle } from './PlotViewControls'
 
 export function NeighborToggle({ iconOnly = false }: { iconOnly?: boolean }) {
   const neighbors = useStudioStore((state) => state.project.site.neighbors)
@@ -52,13 +53,12 @@ export function NeighborSettings({ onView }: { onView?: () => void }) {
   </section>
 }
 
-export function NeighborControls() {
+export function NeighborControls({ onSelectFloor }: { onSelectFloor: (ref: string) => void }) {
   const neighbors = useStudioStore((state) => state.project.site.neighbors)
   const [open, setOpen] = useState(false)
-  if (!neighbors?.length) return null
   return <div className='neighbor-controls' onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false) }}>
-    <NeighborToggle />
-    <button aria-label='Neighbor view settings' aria-expanded={open} onClick={() => setOpen(!open)}><Settings2 size={19} /></button>
+    <NeighborToggle /><TreeToggle /><FloorToggle onSelect={onSelectFloor} />
+    <button disabled={!neighbors?.length} aria-label='Neighbor view settings' aria-expanded={open} onClick={() => setOpen(!open)}><Settings2 size={19} /></button>
     {open && <div className='neighbor-popover'><button aria-label='Close neighbor settings' onClick={() => setOpen(false)}>Close</button><NeighborSettings onView={() => setOpen(false)} /></div>}
   </div>
 }

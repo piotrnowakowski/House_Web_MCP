@@ -13,6 +13,7 @@ export interface GardenFixtureDefinition {
 export const GARDEN_FIXTURE_CATALOG_VERSION = 1
 
 export const gardenFixtureCatalog: GardenFixtureDefinition[] = [
+  { id: 'recycling-bins', name: 'Kosze do segregacji', category: 'furniture', description: 'Five bins: paper, plastic and metal, glass, bio and mixed waste.', widthM: 3.6, depthM: 1.1, heightM: 1.2 },
   { id: 'jacuzzi', name: 'Jacuzzi ogrodowe', category: 'furniture', description: 'Four-seat spa with timber cladding, water and an entry step.', widthM: 2.6, depthM: 3.1, heightM: 1.05 },
   { id: 'outdoor-kitchen', name: 'Kuchnia zewnętrzna', category: 'furniture', description: 'Timber and graphite worktop with grill, sink and storage.', widthM: 3.6, depthM: 0.8, heightM: 1.35 },
   { id: 'outdoor-dining-set', name: 'Teak dining set', category: 'furniture', description: 'Six-seat slatted table for long outdoor lunches.', widthM: 3.4, depthM: 2.5, heightM: 0.82 },

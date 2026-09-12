@@ -53,7 +53,7 @@ import './interior.css'
 
 type Panel = 'catalog' | 'edit' | 'more' | 'review' | null
 
-export function InteriorEditor({ onBack, approval }: { onBack: () => void; approval: ReactNode }) {
+export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack: () => void; approval: ReactNode; initialStoreyRef?: string }) {
   const quality = useRenderQuality()
   const captureScene = useRef<(() => Promise<Blob | null>) | null>(null)
   const project = useStudioStore((s) => s.project)
@@ -69,7 +69,7 @@ export function InteriorEditor({ onBack, approval }: { onBack: () => void; appro
   const importInput = useRef<HTMLInputElement>(null)
   const [buildingRef, setBuildingRef] = useState(project.buildings.find((b) => b.kind === 'house')?.ref)
   const building = project.buildings.find((b) => b.ref === buildingRef) ?? project.buildings[0]
-  const [storeyRef, setStoreyRef] = useState(building?.storeys[0]?.ref)
+  const [storeyRef, setStoreyRef] = useState(initialStoreyRef ?? building?.storeys[0]?.ref)
   const storey = building?.storeys.find((s) => s.ref === storeyRef) ?? building?.storeys[0]
   const [view, setView] = useState<InteriorView>('cutaway')
   const [reset, setReset] = useState(0)

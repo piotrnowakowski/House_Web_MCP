@@ -10,7 +10,7 @@ export type BuildingKind = 'house' | 'garage'
 export type ArchitecturalStyle = 'classic' | 'futuristic' | 'barn'
 export type GardenZoneKind = 'lawn' | 'terrace' | 'path' | 'driveway' | 'bed' | 'rain-garden' | 'vegetable'
 export type PlantKind = 'tree' | 'hedge' | 'shrub' | 'perennial' | 'grass' | 'crop' | 'wetland'
-export type GardenFixtureCatalogId = 'raised-bed-2x1' | 'tomato-row' | 'potato-row' | 'cucumber-trellis' | 'outdoor-dining-set' | 'garden-lounge-set' | 'slatted-bench' | 'sun-lounger' | 'cantilever-parasol' | 'jacuzzi' | 'outdoor-kitchen'
+export type GardenFixtureCatalogId = 'raised-bed-2x1' | 'tomato-row' | 'potato-row' | 'cucumber-trellis' | 'outdoor-dining-set' | 'garden-lounge-set' | 'slatted-bench' | 'sun-lounger' | 'cantilever-parasol' | 'jacuzzi' | 'outdoor-kitchen' | 'recycling-bins'
 
 export type ClimateDayPart = 'night' | 'morning' | 'day' | 'evening'
 export type TemperatureByDayPartC = Record<ClimateDayPart, number>
