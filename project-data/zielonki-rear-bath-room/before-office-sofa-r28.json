@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-bath-room",
   "name": "GŁÓWNY Garaż za domem — łazienka w pokoju",
   "units": "metric",
-  "revision": 38,
-  "updatedAt": "2026-09-14T22:49:53.596Z",
+  "revision": 28,
+  "updatedAt": "2026-09-14T22:36:29.423Z",
   "site": {
     "boundary": [
       {
@@ -1941,6 +1941,24 @@
           "elevationM": 0
         },
         {
+          "ref": "interior/office-c5/sofa",
+          "catalogId": "sofa",
+          "storeyRef": "storey/reference-ground",
+          "name": "IKEA KIVIK",
+          "position": {
+            "x": -0.555,
+            "z": 3.72
+          },
+          "widthM": 2.28,
+          "depthM": 0.95,
+          "heightM": 0.83,
+          "rotationDegrees": 90,
+          "color": "#c5bcac",
+          "productId": "kivik-sofa",
+          "variantId": "89482830",
+          "elevationM": 0
+        },
+        {
           "ref": "interior/office-c5/wardrobe",
           "catalogId": "wardrobe",
           "storeyRef": "storey/reference-ground",
@@ -2435,24 +2453,6 @@
           "heightM": 2.2,
           "rotationDegrees": 0,
           "color": "#bda17a"
-        },
-        {
-          "ref": "interior/1cad2482-e19c-4b56-8cdf-f8d07664ae95",
-          "catalogId": "sofa",
-          "storeyRef": "storey/reference-ground",
-          "name": "SÖDERHAMN 3-seat sofa",
-          "position": {
-            "x": -0.03499999999999992,
-            "z": 2.183161205623234
-          },
-          "widthM": 1.98,
-          "depthM": 0.99,
-          "heightM": 0.83,
-          "rotationDegrees": 0,
-          "color": "#4b4d4c",
-          "productId": "soderhamn",
-          "variantId": "99607165",
-          "elevationM": 0
         }
       ],
       "stairs": [

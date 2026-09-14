@@ -20,6 +20,7 @@ import logging
 from pathlib import Path, PurePosixPath
 import re
 import shlex
+import shutil
 import tarfile
 import time
 from mikrus_sync import provision_env, sync_compose, backup_database
@@ -112,6 +113,7 @@ def main() -> None:
         if not args.deploy:
             return
         import subprocess
+        root = Path(__file__).resolve().parents[1]
         if subprocess.check_output(['git', 'branch', '--show-current'], text=True).strip() != 'codex/deploy-furnished-zielonki':
             raise ValueError('Only the house deployment branch may be published')
         head = subprocess.check_output(['git', 'rev-parse', 'HEAD'], text=True).strip()
@@ -119,6 +121,18 @@ def main() -> None:
             raise ValueError('Deploy only a committed, validated house revision after capturing and merging current project data')
         if 'house-sync-api' in current and not args.sync_api:
             raise ValueError('This release includes sync; use --sync-api to preserve its runtime')
+        api_digest = None
+        if args.sync_api:
+            npm = shutil.which('npm')
+            if not npm:
+                raise RuntimeError('npm is required to build the sync API')
+            LOG.info('Building the sync API from the validated Git revision')
+            subprocess.run([npm, 'run', 'build:sync'], cwd=root, check=True)
+            api_bundle = root / 'dist-server/main.mjs'
+            if not api_bundle.is_file():
+                raise RuntimeError('Sync API build did not produce dist-server/main.mjs')
+            api_digest = hashlib.sha256(api_bundle.read_bytes()).hexdigest()
+            LOG.info('Fresh sync API bundle SHA-256: %s', api_digest)
         if not (args.dist / "index.html").is_file():
             raise ValueError("Build the application before deploying")
         expected_count = len(json.loads((args.dist / "models/interior/manifest.json").read_text(encoding="utf-8"))["products"])
@@ -195,11 +209,14 @@ def main() -> None:
         write_remote(sftp, release + "/Dockerfile", dockerfile)
         write_remote(sftp, release + "/nginx.conf", nginx)
         if args.sync_api:
-            root = Path(__file__).resolve().parents[1]
             for local, name in [(root / 'server/package.json', 'package.json'), (root / 'server/package-lock.json', 'package-lock.json'), (templates / 'Api.Dockerfile', 'Api.Dockerfile')]:
                 sftp.put(str(local), release + '/' + name)
             run(client, 'mkdir -p ' + shlex.quote(release + '/dist-server'))
-            sftp.put(str(root / 'dist-server/main.mjs'), release + '/dist-server/main.mjs')
+            remote_api_bundle = release + '/dist-server/main.mjs'
+            sftp.put(str(root / 'dist-server/main.mjs'), remote_api_bundle)
+            remote_api_digest = run(client, 'sha256sum ' + shlex.quote(remote_api_bundle)).split()[0]
+            if remote_api_digest != api_digest:
+                raise RuntimeError('Uploaded sync API bundle checksum mismatch')
             run(client, 'docker build -f ' + shlex.quote(release + '/Api.Dockerfile') + ' -t ' + shlex.quote(project + '-sync:' + args.revision) + ' ' + shlex.quote(release))
         LOG.info("Building the candidate image; the live container is still unchanged")
         run(client, "docker build -t " + shlex.quote(image) + " " + shlex.quote(release))
