@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-carport",
   "name": "Z garażem za domem przy sąsiadach",
   "units": "metric",
-  "revision": 114,
-  "updatedAt": "2026-09-14T14:28:05.920770Z",
+  "revision": 110,
+  "updatedAt": "2026-09-14T13:42:04.787271Z",
   "site": {
     "boundary": [
       {
@@ -1852,9 +1852,9 @@
           "name": "Blat kuchenny",
           "position": {
             "x": -4.57,
-            "z": -3.9650000000000003
+            "z": -3.615
           },
-          "widthM": 1.1400000000000001,
+          "widthM": 1.84,
           "depthM": 0.65,
           "heightM": 0.9,
           "rotationDegrees": 90,
@@ -1867,7 +1867,7 @@
           "name": "Lodówka",
           "position": {
             "x": -4.57,
-            "z": -2.9749999999999996
+            "z": -2.275
           },
           "widthM": 0.84,
           "depthM": 0.65,
@@ -2014,13 +2014,13 @@
           "ref": "interior/reference-island",
           "catalogId": "kitchen-island",
           "storeyRef": "storey/reference-ground",
-          "name": "Wyspa 1.28 × 2.22 m",
+          "name": "Wyspa 1.28 × 2.92 m",
           "position": {
             "x": -1.9000000000000001,
-            "z": -4.25
+            "z": -3.9000000000000004
           },
           "widthM": 1.28,
-          "depthM": 2.22,
+          "depthM": 2.92,
           "heightM": 0.92,
           "rotationDegrees": 0,
           "color": "#bda17a"
@@ -2076,13 +2076,13 @@
           "storeyRef": "storey/reference-upper",
           "name": "WC",
           "position": {
-            "x": -0.68,
-            "z": -1.15
+            "x": 0.445,
+            "z": 0.67
           },
           "widthM": 0.45,
           "depthM": 0.7,
           "heightM": 0.8,
-          "rotationDegrees": 0,
+          "rotationDegrees": 90,
           "color": "#ece9df"
         },
         {
@@ -2091,13 +2091,13 @@
           "storeyRef": "storey/reference-upper",
           "name": "Umywalka",
           "position": {
-            "x": 0.745,
-            "z": -1
+            "x": 1.505,
+            "z": 1.265
           },
           "widthM": 0.7,
           "depthM": 0.3,
           "heightM": 0.85,
-          "rotationDegrees": 90,
+          "rotationDegrees": 0,
           "color": "#ece9df"
         },
         {
@@ -2106,14 +2106,29 @@
           "storeyRef": "storey/reference-upper",
           "name": "Wanna",
           "position": {
-            "x": -0.055,
-            "z": -2.08
+            "x": -0.28,
+            "z": -0.805
           },
           "widthM": 0.75,
           "depthM": 1.7,
           "heightM": 0.6,
-          "rotationDegrees": 90,
+          "rotationDegrees": 0,
           "color": "#eeeee8"
+        },
+        {
+          "ref": "interior/upper-wardrobe/west",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-upper",
+          "name": "Szafy w garderobie",
+          "position": {
+            "x": -0.645,
+            "z": -3.755
+          },
+          "widthM": 1.8,
+          "depthM": 0.5,
+          "heightM": 2.2,
+          "rotationDegrees": 90,
+          "color": "#c8b18f"
         },
         {
           "ref": "interior/upper-wardrobe/east",
@@ -2121,11 +2136,11 @@
           "storeyRef": "storey/reference-upper",
           "name": "Szafy w garderobie",
           "position": {
-            "x": 0.62,
-            "z": -5.105
+            "x": 0.645,
+            "z": -3.755
           },
-          "widthM": 2,
-          "depthM": 0.55,
+          "widthM": 1.8,
+          "depthM": 0.5,
           "heightM": 2.2,
           "rotationDegrees": 90,
           "color": "#c8b18f"
@@ -2198,7 +2213,7 @@
           "toStoreyRef": "storey/reference-upper",
           "start": {
             "x": -4.865,
-            "z": -2.435
+            "z": -1.735
           },
           "runM": 1.75,
           "widthM": 0.89,
@@ -2290,12 +2305,10 @@
             "wall/reference-upper/wardrobe-top",
             "wall/reference-upper/wardrobe-west",
             "wall/reference-upper/wardrobe-bath",
+            "wall/reference-upper/wardrobe-hall",
             "wall/reference-upper/bedroom-hall-east",
             "wall/reference-upper/bedroom-landing-west",
-            "wall/reference-upper/bedroom-landing-east",
-            "wall/reference-upper/wardrobe-north",
-            "wall/reference-upper/bath-void",
-            "wall/reference-upper/children-east-top"
+            "wall/reference-upper/bedroom-landing-east"
           ],
           "spaceRefs": [
             "space/reference-parents",
@@ -2374,19 +2387,19 @@
             [
               {
                 "x": -4.885,
-                "z": -2.445
+                "z": -1.745
               },
               {
                 "x": -2.205,
-                "z": -2.445
+                "z": -1.745
               },
               {
                 "x": -2.205,
-                "z": -0.525
+                "z": 0.175
               },
               {
                 "x": -4.885,
-                "z": -0.525
+                "z": 0.175
               }
             ],
             [
@@ -2453,7 +2466,7 @@
             "z": -6.555
           },
           "end": {
-            "x": -0.835,
+            "x": 0.995,
             "z": -6.555
           },
           "thicknessM": 0.2,
@@ -2484,11 +2497,11 @@
           "ref": "wall/reference-upper/2",
           "start": {
             "x": 0.995,
-            "z": -3.855
+            "z": -6.555
           },
           "end": {
             "x": 0.995,
-            "z": -2.555
+            "z": -4.855
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -2504,12 +2517,12 @@
         {
           "ref": "wall/reference-upper/3",
           "start": {
-            "x": -1.105,
-            "z": -2.555
+            "x": -0.995,
+            "z": -1.855
           },
           "end": {
             "x": -4.995,
-            "z": -2.555
+            "z": -1.855
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -2519,7 +2532,7 @@
               "ref": "opening/reference-parents",
               "kind": "door",
               "wallRef": "wall/reference-upper/3",
-              "offsetM": 0.6,
+              "offsetM": 0.7,
               "widthM": 0.9,
               "heightM": 2.1,
               "sillM": 0,
@@ -2538,7 +2551,7 @@
           "ref": "wall/reference-upper/4",
           "start": {
             "x": -4.995,
-            "z": -2.555
+            "z": -1.855
           },
           "end": {
             "x": -4.995,
@@ -2670,7 +2683,7 @@
           },
           "end": {
             "x": 0.995,
-            "z": 0.045
+            "z": -1.855
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -2686,17 +2699,29 @@
         {
           "ref": "wall/reference-upper/13",
           "start": {
-            "x": -1.105,
-            "z": 0.045
+            "x": -0.855,
+            "z": 1.535
           },
           "end": {
-            "x": -1.105,
-            "z": -2.555
+            "x": -0.855,
+            "z": -1.855
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
           "heightM": 2.8,
-          "openings": [],
+          "openings": [
+            {
+              "ref": "opening/reference-bathroom",
+              "kind": "door",
+              "wallRef": "wall/reference-upper/13",
+              "offsetM": 1.0,
+              "widthM": 0.8,
+              "heightM": 2.1,
+              "sillM": 0,
+              "hinge": "left",
+              "swing": "in"
+            }
+          ],
           "finish": {
             "material": "light-render",
             "colorHex": "#E5E9E8",
@@ -2708,11 +2733,11 @@
           "ref": "wall/reference-upper/15",
           "start": {
             "x": -4.995,
-            "z": 1.245
+            "z": 1.535
           },
           "end": {
             "x": -4.995,
-            "z": -2.555
+            "z": -1.855
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -2728,11 +2753,11 @@
           "ref": "wall/reference-upper/16",
           "start": {
             "x": -2.055,
-            "z": 1.245
+            "z": 1.535
           },
           "end": {
             "x": -4.995,
-            "z": 1.245
+            "z": 1.535
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -2753,7 +2778,7 @@
           },
           "end": {
             "x": 2.085,
-            "z": 1.245
+            "z": 1.535
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -2768,29 +2793,17 @@
         {
           "ref": "wall/reference-upper/19",
           "start": {
-            "x": 0.995,
-            "z": 0.045
+            "x": 2.085,
+            "z": 1.535
           },
           "end": {
-            "x": -1.105,
-            "z": 0.045
+            "x": -0.855,
+            "z": 1.535
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
           "heightM": 2.8,
-          "openings": [
-            {
-              "ref": "opening/reference-bathroom",
-              "kind": "door",
-              "wallRef": "wall/reference-upper/19",
-              "offsetM": 1.1,
-              "widthM": 0.8,
-              "heightM": 2.1,
-              "sillM": 0,
-              "hinge": "right",
-              "swing": "in"
-            }
-          ],
+          "openings": [],
           "finish": {
             "material": "light-render",
             "colorHex": "#E5E9E8",
@@ -2802,7 +2815,7 @@
           "ref": "wall/reference-upper/20",
           "start": {
             "x": -1.455,
-            "z": 2.245
+            "z": 2.535
           },
           "end": {
             "x": -1.455,
@@ -2858,7 +2871,7 @@
           },
           "end": {
             "x": -4.995,
-            "z": 1.245
+            "z": 1.535
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -2874,7 +2887,7 @@
           "ref": "wall/reference-upper/23",
           "start": {
             "x": 2.085,
-            "z": 1.245
+            "z": 1.535
           },
           "end": {
             "x": 2.085,
@@ -3323,11 +3336,11 @@
           "ref": "wall/stair-enclosure/kitchen",
           "start": {
             "x": -4.895,
-            "z": -2.505
+            "z": -1.805
           },
           "end": {
             "x": -2.145,
-            "z": -2.505
+            "z": -1.805
           },
           "thicknessM": 0.1,
           "baseElevationM": 0.45,
@@ -3345,11 +3358,11 @@
           "ref": "wall/stair-enclosure/hall",
           "start": {
             "x": -2.145,
-            "z": -0.485
+            "z": 0.215
           },
           "end": {
             "x": -4.895,
-            "z": -0.485
+            "z": 0.215
           },
           "thicknessM": 0.1,
           "baseElevationM": 0.45,
@@ -3367,11 +3380,11 @@
           "ref": "wall/stair-enclosure/storage-end",
           "start": {
             "x": -2.145,
-            "z": -1.495
+            "z": -0.795
           },
           "end": {
             "x": -2.145,
-            "z": -0.485
+            "z": 0.215
           },
           "thicknessM": 0.1,
           "baseElevationM": 0.45,
@@ -3400,11 +3413,11 @@
           "ref": "wall/reference-upper/bedroom-hall",
           "start": {
             "x": -2.055,
-            "z": 1.245
+            "z": 1.535
           },
           "end": {
             "x": -2.055,
-            "z": 2.245
+            "z": 2.535
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -3433,11 +3446,11 @@
           "ref": "wall/reference-upper/wardrobe-east",
           "start": {
             "x": 0.995,
-            "z": -6.555
+            "z": -4.855
           },
           "end": {
             "x": 0.995,
-            "z": -3.855
+            "z": -1.855
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -3454,44 +3467,11 @@
           "ref": "wall/reference-upper/wardrobe-top",
           "start": {
             "x": 0.995,
-            "z": -3.855
+            "z": -4.855
           },
           "end": {
-            "x": -0.835,
-            "z": -3.855
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 3.45,
-          "heightM": 2.8,
-          "openings": [
-            {
-              "ref": "opening/reference-wardrobe",
-              "kind": "door",
-              "wallRef": "wall/reference-upper/wardrobe-top",
-              "offsetM": 1.28,
-              "widthM": 0.8,
-              "heightM": 2.1,
-              "sillM": 0,
-              "hinge": "left",
-              "swing": "in"
-            }
-          ],
-          "finish": {
-            "material": "light-render",
-            "colorHex": "#E5E9E8",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/reference-upper/wardrobe-west",
-          "start": {
-            "x": -0.835,
-            "z": -6.555
-          },
-          "end": {
-            "x": -0.835,
-            "z": -3.855
+            "x": -0.995,
+            "z": -4.855
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -3505,14 +3485,68 @@
           "locked": false
         },
         {
+          "ref": "wall/reference-upper/wardrobe-west",
+          "start": {
+            "x": -0.995,
+            "z": -4.855
+          },
+          "end": {
+            "x": -0.995,
+            "z": -1.855
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 3.45,
+          "heightM": 2.8,
+          "openings": [
+            {
+              "ref": "opening/reference-wardrobe",
+              "kind": "door",
+              "wallRef": "wall/reference-upper/wardrobe-west",
+              "offsetM": 2.5,
+              "widthM": 0.8,
+              "heightM": 2.1,
+              "sillM": 0,
+              "hinge": "left",
+              "swing": "out"
+            }
+          ],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
+          },
+          "locked": false
+        },
+        {
           "ref": "wall/reference-upper/wardrobe-bath",
           "start": {
             "x": 0.995,
-            "z": -2.555
+            "z": -1.855
           },
           "end": {
-            "x": -1.105,
-            "z": -2.555
+            "x": -0.855,
+            "z": -1.855
+          },
+          "thicknessM": 0.2,
+          "baseElevationM": 3.45,
+          "heightM": 2.8,
+          "openings": [],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/reference-upper/wardrobe-hall",
+          "start": {
+            "x": -0.855,
+            "z": -1.855
+          },
+          "end": {
+            "x": -0.995,
+            "z": -1.855
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -3529,11 +3563,11 @@
           "ref": "wall/reference-upper/bedroom-hall-east",
           "start": {
             "x": -0.855,
-            "z": 1.245
+            "z": 1.535
           },
           "end": {
             "x": -0.855,
-            "z": 2.245
+            "z": 2.535
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -3562,11 +3596,11 @@
           "ref": "wall/reference-upper/bedroom-landing-west",
           "start": {
             "x": -2.055,
-            "z": 2.245
+            "z": 2.535
           },
           "end": {
             "x": -1.455,
-            "z": 2.245
+            "z": 2.535
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -3583,74 +3617,11 @@
           "ref": "wall/reference-upper/bedroom-landing-east",
           "start": {
             "x": -1.455,
-            "z": 2.245
+            "z": 2.535
           },
           "end": {
             "x": -0.855,
-            "z": 2.245
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 3.45,
-          "heightM": 2.8,
-          "openings": [],
-          "finish": {
-            "material": "light-render",
-            "colorHex": "#E5E9E8",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/reference-upper/wardrobe-north",
-          "start": {
-            "x": -0.835,
-            "z": -6.555
-          },
-          "end": {
-            "x": 0.995,
-            "z": -6.555
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 3.45,
-          "heightM": 1.4,
-          "openings": [],
-          "finish": {
-            "material": "light-render",
-            "colorHex": "#E5E9E8",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/reference-upper/bath-void",
-          "start": {
-            "x": 0.995,
-            "z": -2.555
-          },
-          "end": {
-            "x": 0.995,
-            "z": 0.045
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 3.45,
-          "heightM": 2.8,
-          "openings": [],
-          "finish": {
-            "material": "light-render",
-            "colorHex": "#E5E9E8",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/reference-upper/children-east-top",
-          "start": {
-            "x": 2.085,
-            "z": 1.245
-          },
-          "end": {
-            "x": -0.855,
-            "z": 1.245
+            "z": 2.535
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -3679,19 +3650,15 @@
               "direction": 1
             },
             {
-              "wallRef": "wall/reference-upper/wardrobe-west",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/reference-upper/wardrobe-top",
-              "direction": -1
-            },
-            {
               "wallRef": "wall/reference-upper/2",
               "direction": 1
             },
             {
-              "wallRef": "wall/reference-upper/wardrobe-bath",
+              "wallRef": "wall/reference-upper/wardrobe-top",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-upper/wardrobe-west",
               "direction": 1
             },
             {
@@ -3737,27 +3704,11 @@
               "direction": -1
             },
             {
-              "wallRef": "wall/reference-upper/children-east-top",
-              "direction": -1
-            },
-            {
-              "wallRef": "wall/reference-upper/18",
-              "direction": -1
-            },
-            {
-              "wallRef": "wall/reference-upper/8",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/reference-upper/9",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/reference-upper/19",
-              "direction": 1
-            },
-            {
               "wallRef": "wall/reference-upper/13",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-upper/wardrobe-hall",
               "direction": 1
             }
           ],
@@ -3783,7 +3734,15 @@
               "direction": -1
             },
             {
-              "wallRef": "wall/reference-upper/bath-void",
+              "wallRef": "wall/reference-upper/9",
+              "direction": -1
+            },
+            {
+              "wallRef": "wall/reference-upper/8",
+              "direction": -1
+            },
+            {
+              "wallRef": "wall/reference-upper/18",
               "direction": 1
             }
           ],
@@ -3831,7 +3790,7 @@
           "usage": "bedroom",
           "boundary": [
             {
-              "wallRef": "wall/reference-upper/children-east-top",
+              "wallRef": "wall/reference-upper/19",
               "direction": -1
             },
             {
@@ -3985,15 +3944,19 @@
           "usage": "storage",
           "boundary": [
             {
-              "wallRef": "wall/reference-upper/wardrobe-north",
-              "direction": 1
+              "wallRef": "wall/reference-upper/wardrobe-top",
+              "direction": -1
             },
             {
               "wallRef": "wall/reference-upper/wardrobe-east",
               "direction": 1
             },
             {
-              "wallRef": "wall/reference-upper/wardrobe-top",
+              "wallRef": "wall/reference-upper/wardrobe-bath",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/reference-upper/wardrobe-hall",
               "direction": 1
             },
             {

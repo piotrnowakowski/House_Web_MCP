@@ -8,6 +8,7 @@ import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
 import { useDirectManipulation } from './useDirectManipulation'
 import { pointInPolygon, polygonCentroid, spaceFootprint, wallLength } from '../domain/geometry'
 import { roomDimensions } from '../domain/roomDimensions'
+import { gablePlanGuides } from '../domain/gablePlanGuides'
 import { interiorCorners } from '../domain/interior'
 import type { BuildingModel, InteriorFinish, InteriorItem, Polygon2, ProjectV2, ProjectCommand, StoreyModel, Vec2, WallModel } from '../domain/types'
 import { interiorFloorTexture } from '../scene/materialCatalog'
@@ -245,6 +246,16 @@ export function InteriorScene(props: Props) {
           const length = Math.hypot(edge.q.x - edge.p.x, edge.q.z - edge.p.z); const nx = -(edge.q.z - edge.p.z) / length * 0.24; const nz = (edge.q.x - edge.p.x) / length * 0.24
           return <group key={i}><Line points={[[edge.p.x + nx, 0.19, edge.p.z + nz], [edge.q.x + nx, 0.19, edge.q.z + nz]]} color='#7c837b' lineWidth={0.75} />{[edge.p, edge.q].map((p, j) => <Line key={j} points={[[p.x + nx * 0.6, 0.19, p.z + nz * 0.6], [p.x + nx * 1.4, 0.19, p.z + nz * 1.4]]} color='#7c837b' lineWidth={0.75} />)}<Html center position={[(edge.p.x + edge.q.x) / 2 + nx, 0.2, (edge.p.z + edge.q.z) / 2 + nz]} style={{ pointerEvents: 'none' }} zIndexRange={[7, 0]}><span className={`interior-dimension ${i ? 'is-vertical' : ''}`}>{length.toFixed(2)} m</span></Html></group>
         })}
+      </group>
+    })}
+    {plan && props.dimensions && gablePlanGuides(building, storey).map(guide => {
+      const dx = (guide.end.x - guide.start.x) / guide.width, dz = (guide.end.z - guide.start.z) / guide.width
+      const nx = -dz, nz = dx
+      const point = (p: Vec2, offset: number): [number, number, number] => [p.x + nx * offset, .3, p.z + nz * offset]
+      return <group key={`gable-guide-${guide.ref}`}>
+        <Line points={[point(guide.start, -.5), point(guide.end, -.5)]} color='#1676b9' lineWidth={2.5} />
+        {[guide.start, guide.end].map((p, i) => <Line key={i} points={[point(p, -.65), point(p, .8)]} color='#1676b9' lineWidth={1.5} dashed dashSize={.09} gapSize={.05} />)}
+        <Html center position={[(guide.start.x + guide.end.x) / 2 - nx * .85, .3, (guide.start.z + guide.end.z) / 2 - nz * .85]} style={{ pointerEvents: 'none' }} zIndexRange={[8, 0]}><span className='interior-dimension' style={{ color: '#12699f' }}>Okno · {guide.width.toFixed(2)} m</span></Html>
       </group>
     })}
     {items.map((item) => <group key={item.ref} position={[item.position.x, 0.025 + (item.elevationM ?? 0), item.position.z]} rotation={[0, item.rotationDegrees * Math.PI / 180, 0]} userData={{ measurementFootprint: interiorCorners(item), dragTarget: { kind: 'item', ref: item.ref } }}
