@@ -53,7 +53,8 @@ async function main() {
       page.on('pageerror', (error) => errors.push(error.message))
       const modelRequests = []
       page.on('response', (response) => {
-        if (response.url().includes('/models/interior/') && response.url().endsWith('.glb'))
+        const pathname = new URL(response.url()).pathname
+        if (pathname.includes('/models/interior/') && pathname.endsWith('.glb'))
           modelRequests.push({ url: response.url(), status: response.status() })
       })
       await page.goto(values.url)
@@ -79,7 +80,7 @@ async function main() {
         elevationM: 0,
       })
       const loadedModel = page.waitForResponse(
-        (response) => response.url().endsWith(mobile ? 'lack-mobile.glb' : 'lack.glb') && response.status() === 200,
+        (response) => new URL(response.url()).pathname.endsWith(mobile ? 'lack-mobile.glb' : 'lack.glb') && response.status() === 200,
       )
       await page
         .getByLabel('Import interior project file')
