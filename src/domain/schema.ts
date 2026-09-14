@@ -48,6 +48,7 @@ const SiteEntranceSchema = z.object({
   connectsTo: z.literal('public-road'), geometryConfidence: z.enum(['user-marked', 'surveyed']),
 }).refine((entrance) => Math.hypot(entrance.end.x - entrance.start.x, entrance.end.z - entrance.start.z) > 0.5, { message: 'Site entrance must have length.' })
 const OpeningSchema = z.object({
+  finish: InteriorFinishSchema.optional(),
   mullionFractions: z.array(z.number().gt(0).lt(1)).optional(),
   hinge: z.enum(['left', 'right']).optional(), swing: z.enum(['in', 'out']).optional(),
   ref: z.string().min(1), kind: z.enum(['door', 'window']), wallRef: z.string().min(1), offsetM: z.number().min(0),

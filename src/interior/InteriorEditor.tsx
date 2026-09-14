@@ -36,6 +36,8 @@ import { isZielonkiProject } from '../domain/terrain'
 import type { InteriorItem, ProjectCommand, Vec2 } from '../domain/types'
 import { useStudioStore } from '../state/store'
 import { saveWorkspace } from '../services/persistence'
+import { flushAutosave } from '../services/autosave'
+import { runWorkspaceActivity } from '../services/workspaceLock'
 import { AdaptiveSheet, useCompactLayout } from './AdaptiveSheet'
 import {
   FurnitureCatalog,
@@ -392,6 +394,8 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
   }
   const duplicateProject = async () => {
     try {
+      await runWorkspaceActivity(async () => {
+      await flushAutosave()
       const state = useStudioStore.getState()
       await saveWorkspace({
         version: 1,
@@ -407,6 +411,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
       await saveWorkspace({ version: 1, project: copy, proposals: [], draftChangeSets: [] })
       state.replaceProject(copy)
       tell('Working on a separate project alternative.')
+      })
     } catch (error) {
       tell(String(error), true)
     }
@@ -1054,6 +1059,8 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
             e.target.value = ''
             if (!file) return
             try {
+              await runWorkspaceActivity(async () => {
+              await flushAutosave()
               const imported = parseProject(JSON.parse(await file.text()))
               const error = validateProject(imported).find((i) => i.severity === 'error')
               if (error) throw new Error(error.message)
@@ -1068,6 +1075,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
               })
               state.replaceProject(imported)
               tell('Imported as a separate project.')
+              })
             } catch (error) {
               tell(String(error), true)
             }

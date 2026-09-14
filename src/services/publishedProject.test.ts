@@ -74,7 +74,7 @@ it('merges deletions into old browser data with a backup and preserves independe
 
 it('retains newer local deletions across subsequent published changes and does not recreate objects', async () => {
   await synchronizePublishedProject(publishedProject, legacyProjectBase)
-  const local = structuredClone(publishedProject)
+  const local = (await loadWorkspace(publishedProject.ref))!.project
   local.landscape.plants.pop()
   await saveWorkspace(envelope(local))
   const incoming = structuredClone(publishedProject)
@@ -120,6 +120,7 @@ it('blocks a merge when individually valid opening edits exceed the host wall to
   wall.openings[0].sillM = 0
   wall.openings[0].heightM = wall.heightM - 0.6
   await synchronizePublishedProject(base, legacyProjectBase)
+  await loadWorkspace(base.ref)
   const local = structuredClone(base), incoming = structuredClone(base)
   local.buildings[0].walls.find((w) => w.ref === wall.ref)!.openings[0].sillM = 0.4
   incoming.buildings[0].walls.find((w) => w.ref === wall.ref)!.openings[0].heightM = wall.heightM - 0.2

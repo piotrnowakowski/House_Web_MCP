@@ -30,11 +30,11 @@ export function placementWarnings(
   building: BuildingModel,
   storey: StoreyModel,
 ): PlacementWarning[] {
-  if (ikeaProduct(item.productId)?.category === 'Rugs') return []
+  if (item.catalogId === 'wool-rug' || ikeaProduct(item.productId)?.category === 'Rugs') return []
   const footprint = interiorCorners(item)
   const warnings: PlacementWarning[] = []
   for (const other of building.furniture ?? []) {
-    if (other.ref === item.ref || other.storeyRef !== storey.ref || ikeaProduct(other.productId)?.category === 'Rugs') continue
+    if (other.ref === item.ref || other.storeyRef !== storey.ref || other.catalogId === 'wool-rug' || ikeaProduct(other.productId)?.category === 'Rugs') continue
     const bottom = Math.max(item.elevationM ?? 0, other.elevationM ?? 0)
     const top = Math.min((item.elevationM ?? 0) + item.heightM, (other.elevationM ?? 0) + other.heightM)
     if (bottom >= top - 0.015) continue

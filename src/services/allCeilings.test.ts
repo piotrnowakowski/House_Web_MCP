@@ -56,3 +56,4 @@ for (const [data, base] of [[original, originalBefore], [front, frontBefore], [r
     expect((await loadWorkspace(project.ref))!.project.buildings).toEqual(project.buildings)
   })
 }
+

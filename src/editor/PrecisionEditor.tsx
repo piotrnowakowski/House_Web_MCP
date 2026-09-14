@@ -38,7 +38,7 @@ export function PrecisionEditor() {
     try {
       if (pending) throw new Error('Apply or reject the pending proposal before editing.')
       useStudioStore.getState().commitCommands(Array.isArray(commands) ? commands : [commands], 'Edit applied. Undo is available.')
-      setError(''); setSuccess('Applied. Changes are autosaved.'); return true
+      setError(''); setSuccess('Applied. Check the local save status before leaving.'); return true
     } catch (e) { setError(e instanceof Error ? e.message : 'Edit failed.'); setSuccess(''); return false }
   }
   const building = project.buildings.find(b => b.ref === selected)

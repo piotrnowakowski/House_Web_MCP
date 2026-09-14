@@ -3,6 +3,7 @@ import type { InteriorFinish } from './types'
 
 /** Interior presets use the existing CC0 scans at their physical scale. */
 export const interiorFinishes = [
+  { id: 'natural-oak', name: 'Natural oak boards', color: '#FFFFFF', texture: 'natural-oak', tileM: 1.2, roughness: 0.72 },
   { id: 'warm-white', name: 'Warm white', color: '#f2eee5', texture: null, tileM: 1, roughness: 0.86 },
   { id: 'chalk', name: 'Chalk', color: '#faf9f5', texture: null, tileM: 1, roughness: 0.9 },
   { id: 'sage', name: 'Soft sage', color: '#a2b09d', texture: null, tileM: 1, roughness: 0.85 },

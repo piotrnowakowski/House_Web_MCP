@@ -2,6 +2,7 @@ import { parseProject } from '../domain/schema'
 import { calculateMetrics, validateProject } from '../domain/commands'
 import { isZielonkiProject } from '../domain/terrain'
 import { mergeProjects, sameProject } from '../domain/projectMerge'
+import { stableJson } from '../domain/workspaceSync'
 import type { PersistedWorkspace, Polygon2, ProjectV2, ProposalRecord } from '../domain/types'
 import { zielonkiKnowledgeBase, zielonkiPlot } from '../../knowledge-bank/zielonki/data'
 
@@ -22,7 +23,8 @@ const openDatabase = () => new Promise<IDBDatabase>((resolve, reject) => {
     const database = request.result
     if (!database.objectStoreNames.contains(STORE_NAME)) database.createObjectStore(STORE_NAME)
   }
-  request.onsuccess = () => resolve(request.result)
+  request.onblocked = () => reject(new Error('Storage upgrade blocked by another tab. Close older tabs and retry.'))
+  request.onsuccess = () => { request.result.onversionchange = () => request.result.close(); resolve(request.result) }
   request.onerror = () => reject(request.error)
 })
 
@@ -41,7 +43,6 @@ const withStore = async <T>(mode: IDBTransactionMode, run: (store: IDBObjectStor
 }
 const getRecord = async (key: string) => (await withStore<unknown>('readonly', (store) => store.get(key)))[0]
 const putRecords = (entries: Array<[string, unknown]>) => withStore<IDBValidKey>('readwrite', (store) => entries.map(([key, value]) => store.put(value, key)))
-const deleteRecords = (keys: string[]) => withStore<undefined>('readwrite', (store) => keys.map((key) => store.delete(key)))
 const allEntries = async () => {
   const [keys, values] = await withStore<unknown>('readonly', (store) => [store.getAllKeys() as unknown as IDBRequest<unknown>, store.getAll() as unknown as IDBRequest<unknown>])
   return (keys as IDBValidKey[]).map((key, index) => [String(key), (values as unknown[])[index]] as const)
@@ -90,16 +91,75 @@ const knowledgeChanged = (value: unknown, workspace: PersistedWorkspace) => {
 
 /** Moves the pre-multi-project autosave under its project ref; safe to call on every read. */
 const migrateLegacyRecord = async () => {
-  const legacy = await getRecord(LEGACY_WORKSPACE_KEY)
-  if (legacy === undefined) return
-  const workspace = toWorkspace(legacy)
-  const active = await getRecord(ACTIVE_POINTER_KEY)
-  await putRecords([[workspaceKey(workspace.project.ref), workspace], ...(active === undefined ? [[ACTIVE_POINTER_KEY, workspace.project.ref] as [string, unknown]] : [])])
-  await deleteRecords([LEGACY_WORKSPACE_KEY])
+  await withStore<unknown>('readwrite', store => {
+    const legacy = store.get(LEGACY_WORKSPACE_KEY)
+    legacy.onsuccess = () => {
+      if (legacy.result === undefined) return
+      try {
+        const workspace = toWorkspace(legacy.result)
+        const ref = workspace.project.ref
+        const current = store.get(workspaceKey(ref)), tombstone = store.get(`deleted/${ref}`), active = store.get(ACTIVE_POINTER_KEY)
+        let remaining = 3
+        const ready = () => {
+          if (--remaining) return
+          if (current.result !== undefined || tombstone.result) store.put(legacy.result, `recovery/legacy/${ref}`)
+          else {
+            store.put(workspace, workspaceKey(ref))
+            if (active.result === undefined) store.put(ref, ACTIVE_POINTER_KEY)
+          }
+          store.delete(LEGACY_WORKSPACE_KEY)
+        }
+        current.onsuccess = ready; tombstone.onsuccess = ready; active.onsuccess = ready
+      } catch { store.transaction.abort() }
+    }
+    return legacy
+  })
 }
 
 /** Saves the workspace under its project ref and marks that project as the one to continue. */
-export const saveWorkspace = async (workspace: PersistedWorkspace) => { await putRecords([[workspaceKey(workspace.project.ref), workspace], [ACTIVE_POINTER_KEY, workspace.project.ref]]) }
+const observedVersions = new Map<string, number>()
+const observedContents = new Map<string, string | undefined>()
+const storedContent = (value: unknown) => value === undefined ? undefined : stableJson(value)
+const deletedRefs = new Set<string>()
+const versionKey = (ref: string) => `local-version/${ref}`
+export class LocalWriteConflict extends Error { constructor() { super('This workspace changed in another tab. Export your recovery copy, then reload before editing.') } }
+
+interface SaveOptions { activate?: boolean; sync?: unknown; restoreDeleted?: boolean }
+const saveWorkspaceImpl = async (workspace: PersistedWorkspace, options: SaveOptions = {}) => {
+  const ref = workspace.project.ref
+  if (deletedRefs.has(ref) && !options.restoreDeleted) throw new Error('This workspace was removed. Export it before restoring it explicitly.')
+  const database = await openDatabase()
+  try {
+    await new Promise<void>((resolve, reject) => {
+      const tx = database.transaction(STORE_NAME, 'readwrite')
+      const store = tx.objectStore(STORE_NAME)
+      const read = store.get(versionKey(ref))
+      const contents = store.get(workspaceKey(ref))
+      const tombstone = store.get(`deleted/${ref}`)
+      let remaining = 3
+      let nextVersion = 0
+      tx.oncomplete = () => { if (options.restoreDeleted) deletedRefs.delete(ref); observedVersions.set(ref, nextVersion); observedContents.set(ref, storedContent(workspace)); resolve() }
+      tx.onerror = () => reject(tx.error)
+      tx.onabort = () => reject(tx.error ?? new LocalWriteConflict())
+      const ready = () => {
+        if (--remaining) return
+        try {
+        const current = Number(read.result ?? 0)
+        const unchanged = storedContent(contents.result) === storedContent(workspace)
+        if ((tombstone.result && !options.restoreDeleted) || (!unchanged && (current !== (observedVersions.get(ref) ?? 0) || storedContent(contents.result) !== observedContents.get(ref)))) { tx.abort(); return }
+        // Opening an unchanged workspace in another tab must not invalidate its current editor.
+        nextVersion = current + (unchanged ? 0 : 1)
+        store.put(workspace, workspaceKey(ref))
+        store.put(nextVersion, versionKey(ref))
+        if (options.activate !== false) store.put(ref, ACTIVE_POINTER_KEY)
+        if (options.sync !== undefined) store.put(options.sync, `shared-base/${ref}`)
+        if (options.restoreDeleted) store.delete(`deleted/${ref}`)
+        } catch (error) { tx.abort(); reject(error) }
+      }
+      read.onsuccess = ready; contents.onsuccess = ready; tombstone.onsuccess = ready
+    })
+  } finally { database.close() }
+}
 
 export const normalizeWorkspaceName = (value: string) => {
   const name = value.trim()
@@ -109,7 +169,7 @@ export const normalizeWorkspaceName = (value: string) => {
 }
 
 /** Rename only the saved project's metadata, preserving its contents, audit history and active pointer. */
-export const renameWorkspace = async (ref: string, value: string) => {
+const renameWorkspaceImpl = async (ref: string, value: string) => {
   const name = normalizeWorkspaceName(value)
   const database = await openDatabase()
   try {
@@ -128,51 +188,71 @@ export const renameWorkspace = async (ref: string, value: string) => {
         }
         const workspace = request.result as PersistedWorkspace
         store.put({ ...workspace, project: { ...workspace.project, name } }, workspaceKey(ref))
+        const version = store.get(versionKey(ref))
+        version.onsuccess = () => store.put(Number(version.result ?? 0) + 1, versionKey(ref))
       }
     })
   } finally { database.close() }
 }
 
 /** Loads one saved workspace by project ref, or the last active one when no ref is given; null when nothing matches. */
-export const loadWorkspace = async (ref?: string): Promise<PersistedWorkspace | null> => {
+const loadWorkspaceImpl = async (ref?: string): Promise<PersistedWorkspace | null> => {
   await migrateLegacyRecord()
   const target = ref ?? (await getRecord(ACTIVE_POINTER_KEY) as string | undefined)
   if (!target) return null
-  const value = await getRecord(workspaceKey(target))
+  const [value, version] = await withStore<unknown>('readonly', (store) => [store.get(workspaceKey(target)), store.get(versionKey(target))])
+  observedVersions.set(target, Number(version ?? 0))
+  observedContents.set(target, storedContent(value))
   if (value === undefined) return null
   const workspace = toWorkspace(value)
-  if (knowledgeChanged(value, workspace)) await putRecords([[workspaceKey(target), workspace]])
+  if (knowledgeChanged(value, workspace)) await saveWorkspaceImpl(workspace, { activate: false })
   return workspace
 }
 
 /** Every saved project, newest first, with just enough to draw a card. */
-export const listWorkspaces = async (): Promise<WorkspaceSummary[]> => {
+const listWorkspacesImpl = async (): Promise<WorkspaceSummary[]> => {
   await migrateLegacyRecord()
   const summaries: WorkspaceSummary[] = []
-  const refreshed: Array<[string, unknown]> = []
-  for (const [key, value] of await allEntries()) {
+  const entries = await allEntries()
+  const entriesMap = new Map(entries)
+  for (const [key, value] of entries) {
     if (!key.startsWith(WORKSPACE_PREFIX)) continue
     try {
       const workspace = toWorkspace(value)
-      if (knowledgeChanged(value, workspace)) refreshed.push([key, workspace])
+      if (knowledgeChanged(value, workspace)) {
+        // CAS the exact listing snapshot; never overwrite a concurrently edited workspace.
+        const ref = workspace.project.ref
+        const priorVersion = observedVersions.get(ref), priorContent = observedContents.get(ref)
+        observedVersions.set(ref, Number(entriesMap.get(versionKey(ref)) ?? 0)); observedContents.set(ref, storedContent(value))
+        try { await saveWorkspaceImpl(workspace, { activate: false }) }
+        finally {
+          // Listing must not give an already-open editor permission to overwrite a migration.
+          if (priorVersion !== undefined) { observedVersions.set(ref, priorVersion); observedContents.set(ref, priorContent) }
+        }
+      }
       summaries.push({ ref: workspace.project.ref, name: workspace.project.name, revision: workspace.project.revision, updatedAt: workspace.project.updatedAt, proposalCount: workspace.proposals.length, boundary: workspace.project.site.boundary })
     } catch { /* an unreadable record is skipped rather than blocking the start screen */ }
   }
-  if (refreshed.length) await putRecords(refreshed)
   return summaries.sort((first, second) => second.updatedAt.localeCompare(first.updatedAt))
 }
 
 /** Removes a saved project; when it was the active one, nothing is active until the next save. */
-export const deleteWorkspace = async (ref: string) => {
-  const active = await getRecord(ACTIVE_POINTER_KEY)
-  await deleteRecords([workspaceKey(ref), ...(active === ref ? [ACTIVE_POINTER_KEY] : [])])
+const deleteWorkspaceImpl = async (ref: string) => {
+  await withStore<unknown>('readwrite', (store) => {
+    const version = store.get(versionKey(ref))
+    version.onsuccess = () => store.put(Number(version.result ?? 0) + 1, versionKey(ref))
+    const active = store.get(ACTIVE_POINTER_KEY)
+    active.onsuccess = () => { if (active.result === ref) store.delete(ACTIVE_POINTER_KEY) }
+    return [store.delete(workspaceKey(ref)) as IDBRequest<unknown>, store.put(true, `deleted/${ref}`) as IDBRequest<unknown>]
+  })
+  deletedRefs.add(ref)
 }
 
 export const saveProject = (project: ProjectV2) => saveWorkspace({ version: 1, project, proposals: [], draftChangeSets: [] })
 export const loadProject = async (ref?: string): Promise<ProjectV2 | null> => (await loadWorkspace(ref))?.project ?? null
 
 /** Atomically merge a published snapshot into its browser working copy, preserving backups and conflicts. */
-export const synchronizePublishedProject = async (published: ProjectV2, legacyBase: ProjectV2): Promise<string[]> => {
+const synchronizePublishedProjectImpl = async (published: ProjectV2, legacyBase: ProjectV2): Promise<string[]> => {
   const publishedErrors = validateProject(published).filter((issue) => issue.severity === 'error')
   if (publishedErrors.length) throw new Error(`Invalid published project: ${publishedErrors[0].message}`)
   if (published.ref !== legacyBase.ref) throw new Error('Published project and legacy baseline refs must match.')
@@ -186,7 +266,7 @@ export const synchronizePublishedProject = async (published: ProjectV2, legacyBa
       const baseKey = `published-base/${published.ref}`
       const snapshotId = `${published.revision}-${published.updatedAt.replace(/\D/g, '')}`
       const copyRef = `${published.ref}/published-${snapshotId}`
-      const requests = [currentKey, baseKey, workspaceKey(copyRef)].map((key) => store.get(key))
+      const requests = [currentKey, baseKey, workspaceKey(copyRef), versionKey(published.ref), `deleted/${published.ref}`].map((key) => store.get(key))
       let remaining = requests.length
       let conflicts: string[] = []
       tx.oncomplete = () => resolve(conflicts)
@@ -195,12 +275,14 @@ export const synchronizePublishedProject = async (published: ProjectV2, legacyBa
       for (const request of requests) request.onsuccess = () => {
         if (--remaining) return
         try {
+          if (requests[4].result) return
           const current = requests[0].result === undefined ? null : toWorkspace(requests[0].result)
           const base = requests[1].result ? parseProject(requests[1].result) : legacyBase
           if (requests[1].result && sameProject(base, published)) return
           const incoming: PersistedWorkspace = { version: 1, project: structuredClone(published), proposals: [], draftChangeSets: [] }
           if (!current) {
             store.put(incoming, currentKey)
+            store.put(Number(requests[3].result ?? 0) + 1, versionKey(published.ref))
             store.put(published, baseKey)
             return
           }
@@ -217,6 +299,7 @@ export const synchronizePublishedProject = async (published: ProjectV2, legacyBa
             return
           }
           if (result.changed) {
+            store.put(Number(requests[3].result ?? 0) + 1, versionKey(published.ref))
             const backup = structuredClone(current)
             backup.project.ref += `/before-published-${snapshotId}`
             backup.project.name += ' · before published update'
@@ -232,3 +315,28 @@ export const synchronizePublishedProject = async (published: ProjectV2, legacyBa
     })
   } finally { database.close() }
 }
+
+// Every public storage operation shares one queue. Snapshots are captured at call time.
+let storageTail: Promise<unknown> = Promise.resolve()
+let storageOwner: IDBFactory | undefined
+const enqueue = <T>(action: () => Promise<T>): Promise<T> => {
+  if (storageOwner !== globalThis.indexedDB) { storageOwner = globalThis.indexedDB; observedVersions.clear(); observedContents.clear(); deletedRefs.clear() }
+  const result = storageTail.then(action)
+  storageTail = result.catch(() => undefined)
+  return result
+}
+export const flushStorage = async () => { await storageTail }
+export const saveWorkspace = (workspace: PersistedWorkspace, options?: SaveOptions) => {
+  const snapshot = structuredClone(workspace)
+  const capturedOptions = options ? structuredClone(options) : undefined
+  return enqueue(() => saveWorkspaceImpl(snapshot, capturedOptions))
+}
+export const loadWorkspace = (ref?: string) => enqueue(() => loadWorkspaceImpl(ref))
+export const listWorkspaces = () => enqueue(listWorkspacesImpl)
+export const renameWorkspace = (ref: string, name: string) => enqueue(() => renameWorkspaceImpl(ref, name))
+export const deleteWorkspace = (ref: string) => enqueue(() => deleteWorkspaceImpl(ref))
+export const synchronizePublishedProject = (published: ProjectV2, base: ProjectV2) => enqueue(() => synchronizePublishedProjectImpl(published, base))
+export const readSyncRecord = <T>(ref: string): Promise<T | undefined> => enqueue(async () => await getRecord(`shared-base/${ref}`) as T | undefined)
+export const writeSyncRecord = (ref: string, value: unknown) => enqueue(async () => { await putRecords([[`shared-base/${ref}`, value]]) })
+export const saveRecovery = (workspace: PersistedWorkspace) => enqueue(async () => { await putRecords([[`recovery/${workspace.project.ref}/${Date.now()}-${Math.random()}`, workspace]]) })
+export const listRecoveries = (ref: string) => enqueue(async () => (await allEntries()).filter(([key, value]) => key.startsWith('recovery/') && (value as PersistedWorkspace)?.project?.ref === ref).map(([key, value]) => ({ key, workspace: value as PersistedWorkspace })).reverse())

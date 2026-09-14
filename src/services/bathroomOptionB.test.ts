@@ -15,9 +15,9 @@ it('fits option B fixtures and changes finishes only on bathroom faces',()=>{
  expect(validateProject(p).filter(i=>i.severity==='error')).toEqual([])
  expect(h.roof).toEqual(b.buildings[0].roof);expect(h.slabs).toEqual(b.buildings[0].slabs);expect(h.storeys).toEqual(b.buildings[0].storeys)
  expect(p.landscape).toEqual(b.landscape)
- for(const wall of h.walls){const old=b.buildings[0].walls.find(w=>w.ref===wall.ref)!;expect({...wall,faceFinishes:undefined}).toEqual({...old,faceFinishes:undefined})}
+ for(const wall of h.walls){const old=b.buildings[0].walls.find(w=>w.ref===wall.ref)!;const geometry=(w:typeof wall)=>({...w,faceFinishes:undefined,openings:w.openings.map(({finish,...opening})=>opening)});expect(geometry(wall)).toEqual(geometry(old))}
  expect(h.spaces.find(s=>s.ref==='space/reference-wc')!.floorFinish!.color).toBe('#CDBCA3')
- expect(h.spaces.filter(s=>s.ref!=='space/reference-wc')).toEqual(b.buildings[0].spaces.filter(s=>s.ref!=='space/reference-wc'))
+ expect(h.spaces.filter(s=>s.ref!=='space/reference-wc'&&s.ref!=='space/reference-parents')).toEqual(b.buildings[0].spaces.filter(s=>s.ref!=='space/reference-wc'&&s.ref!=='space/reference-parents'))
 })
 it('saves and migrates tiles and fixtures without restoring independently deleted items',async()=>{
  globalThis.indexedDB=new IDBFactory();await synchronizePublishedProject(b,b)

@@ -1,4 +1,6 @@
 import { create } from 'zustand'
+import { assertWorkspaceEditable, runWorkspaceActivity } from '../services/workspaceLock'
+import { assertLocalSaveComplete, flushAutosave } from '../services/autosave'
 import { applyCommand, applyCommands, calculateMetrics, validateProject } from '../domain/commands'
 import { ensureStarterGarden } from '../domain/gardenFixtures'
 import { ensureStarterOrchard } from '../domain/orchard'
@@ -127,7 +129,14 @@ const commandFocusRef = (commands: ProjectCommand[]) => {
 const staleRecords = (records: ProposalRecord[], revision: number) => records.map((proposal) => proposal.status === 'pending' && proposal.baseRevision !== revision ? { ...proposal, status: 'stale' as const } : proposal)
 const staleDrafts = (drafts: DraftChangeSetModel[], revision: number) => drafts.map((draft) => draft.baseRevision === revision ? draft : { ...draft, status: 'stale' as const })
 
-export const useStudioStore = create<StudioState>((set, get) => ({
+export const useStudioStore = create<StudioState>((rawSet, get) => {
+  const set: typeof rawSet = (update) => {
+    const next = typeof update === 'function' ? update(get()) : update
+    if ('project' in next || 'proposals' in next || 'draftChangeSets' in next || 'launcherOpen' in next) assertWorkspaceEditable()
+    if (next.project && next.project.ref !== get().project.ref) assertLocalSaveComplete()
+    rawSet(next)
+  }
+  return ({
   transparencyMode: false, transparentRefs: [],
   setTransparencyMode: (transparencyMode) => set(transparencyMode
     ? { transparencyMode, viewerMode: 'edit', activePlanStoreyRef: null, repositioningRef: null, selectedRef: null, toast: 'Click objects to make them transparent. Reset restores all objects. Esc finishes.' }
@@ -207,6 +216,8 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     set({ project: workspace.project, proposals, variants, draftChangeSets: staleDrafts(workspace.draftChangeSets, workspace.project.revision), history: [], future: [], structureReport: null, sunOverlay: { enabled: false, targetRef: null, result: null }, toast: `Loaded ${workspace.project.name} with ${proposals.length} proposal record${proposals.length === 1 ? '' : 's'}.` })
   },
   openLauncher: async () => {
+    assertWorkspaceEditable()
+    await flushAutosave()
     set({ launcherOpen: true, loadingWorkspaces: true })
     try {
       if (!get().hydrated) {
@@ -238,6 +249,8 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     set((state) => ({ launcherOpen: false, hydrated: true, selectedRef: null, cameraRefocusRequest: state.cameraRefocusRequest + 1, toast: 'Loaded the Zielonki house study.' }))
   },
   openReferenceHouse: async () => {
+    assertWorkspaceEditable()
+    await flushAutosave()
     try {
       const saved = await loadWorkspace(REFERENCE_HOUSE_REF)
       if (saved) get().restoreWorkspace(saved)
@@ -246,6 +259,8 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     } catch (error) { set({ toast: `Could not open reference house: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
   },
   openZielonkiStudy: async () => {
+    assertWorkspaceEditable()
+    await flushAutosave()
     try {
       const saved = await loadWorkspace(modernBarnProject.ref)
       if (saved) await get().openWorkspace(saved.project.ref)
@@ -281,6 +296,8 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       cameraRefocusRequest: get().cameraRefocusRequest + 1, toast: 'Zielonki fitted to the measured interior. The previous house is saved in Projects.' })
   },
   openWorkspace: async (ref) => {
+    assertWorkspaceEditable()
+    await flushAutosave()
     try {
       if (ref === V2_STUDY_REF) set({ projectSyncConflicts: await synchronizePublishedV2() })
       if (ref === REAR_CARPORT_STUDY_REF) set({ projectSyncConflicts: await synchronizePublishedRearCarport() })
@@ -406,4 +423,15 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     set({ project: next, history: [...state.history, structuredClone(state.project)].slice(-40), future: state.future.slice(0, -1), variants: [], proposals: state.proposals.map((proposal) => proposal.status === 'pending' ? { ...proposal, status: 'stale' as const } : proposal), draftChangeSets: state.draftChangeSets.map((draft) => ({ ...draft, status: 'stale' as const })), confirmationVariantRef: null, repositioningRef: null, toast: 'Last change restored.' })
     return next
   },
-}))
+})})
+
+// A sync cannot begin halfway through a load/rename/migration already in progress.
+const workspaceActions = useStudioStore.getState()
+useStudioStore.setState({
+  openLauncher: () => runWorkspaceActivity(() => workspaceActions.openLauncher()),
+  openWorkspace: ref => runWorkspaceActivity(() => workspaceActions.openWorkspace(ref)),
+  openReferenceHouse: () => runWorkspaceActivity(() => workspaceActions.openReferenceHouse()),
+  openZielonkiStudy: () => runWorkspaceActivity(() => workspaceActions.openZielonkiStudy()),
+  fitReferenceToZielonki: () => runWorkspaceActivity(() => workspaceActions.fitReferenceToZielonki()),
+  renameWorkspace: (ref, name) => runWorkspaceActivity(() => workspaceActions.renameWorkspace(ref, name)),
+})

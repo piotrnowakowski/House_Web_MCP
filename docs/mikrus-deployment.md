@@ -1,5 +1,7 @@
 # Current house deployment
 
+For the new runtime API, persistent server `.env`, database backups and manual synchronization, see [workspace-sync.md](workspace-sync.md). API-enabled releases use `--sync-api`; a static-only redeployment is rejected once sync is present.
+
 The working house branch is `codex/deploy-furnished-zielonki`, previewed locally at `http://127.0.0.1:5173/`.
 It includes the merged `codex/ikea-interior-mobile` editor and all 64 catalogue configurations.
 Interior IDs use cryptographic UUID v4 generation on both HTTP and HTTPS. The browser regression fixture also exercises the HTTP case where `crypto.randomUUID` is absent.

@@ -54,7 +54,7 @@ export interface NeighborBuilding {
 }
 export interface SiteModel { boundary: Polygon2; northDegrees: number; terrain: TerrainModel; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[]; knowledgeBase: SiteKnowledgeBase; neighbors?: NeighborBuilding[] }
 
-export interface OpeningModel { ref: string; kind: 'door' | 'window'; glazed?: boolean; mullionFractions?: number[]; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number; hinge?: 'left' | 'right'; swing?: 'in' | 'out' }
+export interface OpeningModel { finish?: InteriorFinish; ref: string; kind: 'door' | 'window'; glazed?: boolean; mullionFractions?: number[]; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number; hinge?: 'left' | 'right'; swing?: 'in' | 'out' }
 export interface InteriorFinish { presetId: string; color: string; rotationDegrees: number; tileM: number }
 export type WallMaterial = 'charred-timber' | 'natural-timber' | 'light-render' | 'brick' | 'metal-panel'
 /** `textureId` picks a scan from the texture library; omit for the material default, `none` for a flat colour. */
@@ -102,7 +102,7 @@ export interface StairModel {
   /** Two equal flights: runM is one flight's horizontal going, steps counts all risers. */
   uTurn?: { landingDepthM: number; gapM: number }
 }
-export type InteriorCatalogId = 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car' | 'camper'
+export type InteriorCatalogId = 'oak-platform-bed' | 'oak-nightstand' | 'wool-rug' | 'brass-sconce' | 'oak-side-table' | 'boucle-chair' | 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car' | 'camper'
 export interface InteriorItem { ref: string; catalogId: InteriorCatalogId; storeyRef: string; name: string; position: Vec2; widthM: number; depthM: number; heightM: number; rotationDegrees: number; color: string; productId?: string; variantId?: string; elevationM?: number; groupRef?: string; locked?: boolean }
 export type InteriorCommand = { type: 'interior.update'; buildingRef: string; storeyRef: string } & (
   { action: 'put'; item: InteriorItem } | { action: 'remove'; itemRef: string } |

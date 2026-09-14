@@ -30,7 +30,7 @@ async function main() {
   } })
   if (values.help) { console.log('Usage: node scripts/audit-precision-editor.mjs [--url URL] [--output DIR]'); return }
   const initial = JSON.parse(await readFile('project-data/zielonki-v2/project.json', 'utf8')), b = initial.buildings[0]
-  const wall = b.walls.find(w => w.start.z === 5.575 && w.end.z === 5.575)
+  const wall = b.walls.find(w => w.ref === 'wall/carport-layout/ground/10')
   const length = Math.hypot(wall.end.x - wall.start.x, wall.end.z - wall.start.z)
   const openingWall = b.walls.find(w => w.openings.some(o => o.kind === 'window' && o.offsetM + o.widthM / 2 < Math.hypot(w.end.x - w.start.x, w.end.z - w.start.z) - .1))
   const opening = openingWall.openings.find(o => o.kind === 'window')
@@ -44,11 +44,9 @@ async function main() {
       const page = await context.newPage(), errors = []; page.on('pageerror', e => errors.push(e.message))
       try {
         await page.goto(values.url, { waitUntil: 'domcontentloaded', timeout: 90000 })
-        await page.getByRole('button', { name: /Zielonki house study/ }).click()
+        await page.getByRole('button', { name: /^(Continue|Open) · Garaz przód$/ }).click()
         await expect(page.locator('.compass-label').first()).toBeVisible({ timeout: 90000 })
-        await page.getByRole('button', { name: 'House variants', exact: true }).click()
-        await page.getByRole('button', { name: /zielonki v2 · Carport/ }).click()
-        await expect(page.getByRole('button', { name: 'House variants', exact: true })).toHaveAttribute('aria-pressed', 'true', { timeout: 30000 })
+        await expect(page.locator('.start-screen-scrim')).not.toBeVisible()
         if (mobile) await page.getByRole('navigation', { name: 'Plot actions' }).getByRole('button', { name: 'Edit', exact: true }).click()
         const editor = page.getByRole('region', { name: 'Precision editor' }), choose = editor.getByLabel('Choose element to edit')
         const waitForValue = get => expect.poll(async () => get(await stored(page, initial.ref)), { timeout: 20000 })
@@ -88,7 +86,7 @@ async function main() {
         await page.screenshot({ path: `${values.output}/${width}-measure.png` })
         saved = await stored(page, initial.ref)
         await page.reload({ waitUntil: 'domcontentloaded' })
-        await page.locator('.project-card').filter({ has: page.getByText('zielonki v2', { exact: true }) }).getByRole('button', { name: /Continue|Open/ }).click()
+        await page.getByRole('button', { name: /^(Continue|Open) · Garaz przód$/ }).click()
         await expect(page.locator('.compass-label').first()).toBeVisible({ timeout: 90000 })
         assert.deepEqual(await stored(page, initial.ref), saved)
         assert.deepEqual(errors, [])

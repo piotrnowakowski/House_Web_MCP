@@ -1,6 +1,7 @@
 node_modules
 __pycache__/
 dist
+dist-server
 .vite
 coverage
 *.local
@@ -11,3 +12,6 @@ test-results
 tmp
 output/browser-demo-recording/
 .playwright-mcp/
+
+# Local deployment credentials
+.env

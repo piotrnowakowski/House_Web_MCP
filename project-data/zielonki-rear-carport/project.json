@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-carport",
   "name": "Z garażem za domem przy sąsiadach",
   "units": "metric",
-  "revision": 147,
-  "updatedAt": "2026-09-14T18:06:45.517Z",
+  "revision": 151,
+  "updatedAt": "2026-09-14T19:06:34.716Z",
   "site": {
     "boundary": [
       {
@@ -1877,18 +1877,18 @@
         },
         {
           "ref": "interior/reference-parents-bed",
-          "catalogId": "bed",
+          "catalogId": "oak-platform-bed",
           "storeyRef": "storey/reference-upper",
-          "name": "Łóżko rodziców",
+          "name": "Łóżko dębowe · platforma 200 × 220",
           "position": {
-            "x": -2.745,
-            "z": -4.415
+            "x": -3.755,
+            "z": -4.505
           },
-          "widthM": 1.8,
-          "depthM": 2.1,
+          "widthM": 2,
+          "depthM": 2.2,
           "heightM": 1,
           "rotationDegrees": 90,
-          "color": "#287a89"
+          "color": "#B88663"
         },
         {
           "catalogId": "desk",
@@ -2222,6 +2222,118 @@
           "heightM": 1.2,
           "rotationDegrees": 180,
           "color": "#B89468"
+        },
+        {
+          "ref": "interior/master-oak/rug",
+          "catalogId": "wool-rug",
+          "storeyRef": "storey/reference-upper",
+          "name": "Dywan kremowy pod łóżkiem · 280 × 280",
+          "position": {
+            "x": -3.425,
+            "z": -4.505
+          },
+          "widthM": 2.8,
+          "depthM": 2.8,
+          "heightM": 0.025,
+          "rotationDegrees": 0,
+          "color": "#E5D9C5",
+          "elevationM": 0
+        },
+        {
+          "ref": "interior/master-oak/nightstand-north",
+          "catalogId": "oak-nightstand",
+          "storeyRef": "storey/reference-upper",
+          "name": "Szafka nocna dębowa · north",
+          "position": {
+            "x": -4.65,
+            "z": -5.775
+          },
+          "widthM": 0.5,
+          "depthM": 0.4,
+          "heightM": 0.24,
+          "rotationDegrees": 90,
+          "color": "#C39C70",
+          "elevationM": 0.34
+        },
+        {
+          "ref": "interior/master-oak/lamp-north",
+          "catalogId": "brass-sconce",
+          "storeyRef": "storey/reference-upper",
+          "name": "Kinkiet mosiężny · north",
+          "position": {
+            "x": -4.725,
+            "z": -5.775
+          },
+          "widthM": 0.22,
+          "depthM": 0.28,
+          "heightM": 0.32,
+          "rotationDegrees": 90,
+          "color": "#B89450",
+          "elevationM": 1.03
+        },
+        {
+          "ref": "interior/master-oak/nightstand-south",
+          "catalogId": "oak-nightstand",
+          "storeyRef": "storey/reference-upper",
+          "name": "Szafka nocna dębowa · south",
+          "position": {
+            "x": -4.65,
+            "z": -3.235
+          },
+          "widthM": 0.5,
+          "depthM": 0.4,
+          "heightM": 0.24,
+          "rotationDegrees": 90,
+          "color": "#C39C70",
+          "elevationM": 0.34
+        },
+        {
+          "ref": "interior/master-oak/lamp-south",
+          "catalogId": "brass-sconce",
+          "storeyRef": "storey/reference-upper",
+          "name": "Kinkiet mosiężny · south",
+          "position": {
+            "x": -4.725,
+            "z": -3.235
+          },
+          "widthM": 0.22,
+          "depthM": 0.28,
+          "heightM": 0.32,
+          "rotationDegrees": 90,
+          "color": "#B89450",
+          "elevationM": 1.03
+        },
+        {
+          "ref": "interior/master-oak/chair",
+          "catalogId": "boucle-chair",
+          "storeyRef": "storey/reference-upper",
+          "name": "Fotel kremowy przy oknie",
+          "position": {
+            "x": -1.435,
+            "z": -5.95
+          },
+          "widthM": 0.72,
+          "depthM": 0.75,
+          "heightM": 0.76,
+          "rotationDegrees": 30,
+          "color": "#E5D9C5",
+          "elevationM": 0
+        },
+        {
+          "ref": "interior/master-oak/side-table",
+          "catalogId": "oak-side-table",
+          "storeyRef": "storey/reference-upper",
+          "name": "Stolik okrągły dębowy",
+          "position": {
+            "x": -2.22,
+            "z": -5.95
+          },
+          "widthM": 0.38,
+          "depthM": 0.38,
+          "heightM": 0.45,
+          "rotationDegrees": 0,
+          "color": "#C39C70",
+          "elevationM": 0
         }
       ],
       "stairs": [
@@ -2533,7 +2645,13 @@
               "offsetM": 0.87,
               "widthM": 0.9,
               "heightM": 2.1,
-              "sillM": 0
+              "sillM": 0,
+              "finish": {
+                "presetId": "natural-oak",
+                "color": "#FFFFFF",
+                "rotationDegrees": 0,
+                "tileM": 1.2
+              }
             }
           ],
           "finish": {
@@ -2561,7 +2679,15 @@
             "material": "charred-timber",
             "colorHex": "#242927"
           },
-          "locked": false
+          "locked": false,
+          "faceFinishes": {
+            "left": {
+              "presetId": "natural-oak",
+              "color": "#FFFFFF",
+              "rotationDegrees": 0,
+              "tileM": 1.2
+            }
+          }
         },
         {
           "ref": "wall/reference-upper/5",
@@ -3515,7 +3641,13 @@
               "offsetM": 3.35,
               "widthM": 0.8,
               "heightM": 2.1,
-              "sillM": 0
+              "sillM": 0,
+              "finish": {
+                "presetId": "natural-oak",
+                "color": "#FFFFFF",
+                "rotationDegrees": 0,
+                "tileM": 1.2
+              }
             }
           ],
           "finish": {
@@ -3664,6 +3796,18 @@
       ],
       "spaces": [
         {
+          "floorFinish": {
+            "presetId": "natural-oak",
+            "color": "#FFFFFF",
+            "rotationDegrees": 90,
+            "tileM": 1.2
+          },
+          "ceilingFinish": {
+            "presetId": "natural-oak",
+            "color": "#FFFFFF",
+            "rotationDegrees": 0,
+            "tileM": 1.2
+          },
           "ref": "space/reference-parents",
           "name": "Sypialnia rodziców",
           "usage": "bedroom",

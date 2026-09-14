@@ -28,7 +28,9 @@ import { CLEAR_MEASUREMENT_EVENT } from './scene/events'
 import { sunHoursColor } from './scene/sun/SunHoursOverlay'
 import { solarPosition, sunriseSunset } from './domain/solar'
 import { formatSunMoment } from './domain/sunlight'
-import { deleteWorkspace, saveWorkspace } from './services/persistence'
+import { deleteWorkspace } from './services/persistence'
+import { flushAutosave } from './services/autosave'
+import { runWorkspaceActivity } from './services/workspaceLock'
 import { groupWorkspaces, workspaceVersionKind } from './services/workspaceGroups'
 import { showStructureViews } from './services/structureViews'
 import { registerWebMcpTools, resolveVariantConfirmation } from './services/webmcp'
@@ -457,7 +459,7 @@ function StartScreen() {
     setErrors({})
     try { startTerrain(parsed.data) } catch (error) { setToast(error instanceof Error ? error.message : 'Terrain could not be created.') }
   }
-  const remove = async (ref: string) => { try { await deleteWorkspace(ref); setRemoveRef(null); await openLauncher() } catch (error) { setToast(error instanceof Error ? error.message : 'Project could not be removed.') } }
+  const remove = async (ref: string) => { try { await runWorkspaceActivity(async () => { await flushAutosave(); await deleteWorkspace(ref); if (useStudioStore.getState().project.ref === ref) useStudioStore.getState().setHydrated(false); setRemoveRef(null); await openLauncher() }) } catch (error) { setToast(error instanceof Error ? error.message : 'Project could not be removed.') } }
   const saveName = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!renameRef || savingName) return
@@ -725,25 +727,6 @@ export function App() {
   const [dataPanel, setDataPanel] = useState<'climate' | 'planting' | 'fixtures' | 'mcp-tools' | 'proposals' | 'inspector' | 'more' | 'measure' | null>(null)
   useEffect(() => { void openLauncher() }, [openLauncher])
   useEffect(() => { if (compact && confirmationRef) { setControlsHidden(false); setDataPanel('inspector'); setSheetExpanded(true) } }, [compact, confirmationRef])
-  useEffect(() => {
-    if (!hydrated) return
-    let timer: number | null = null
-    const persist = () => {
-      const state = useStudioStore.getState()
-      return saveWorkspace({ version: 1, project: state.project, proposals: state.proposals, draftChangeSets: state.draftChangeSets }).catch(() => setToast('ProjectV2 autosave failed.'))
-    }
-    const schedule = () => {
-      if (timer !== null) window.clearTimeout(timer)
-      timer = window.setTimeout(() => { timer = null; void persist() }, 350)
-    }
-    const unsubscribe = useStudioStore.subscribe((state, previous) => {
-      if (state.project !== previous.project || state.proposals !== previous.proposals || state.draftChangeSets !== previous.draftChangeSets) schedule()
-    })
-    const flush = () => { if (timer !== null) { window.clearTimeout(timer); timer = null; void persist() } }
-    window.addEventListener('pagehide', flush)
-    schedule()
-    return () => { unsubscribe(); window.removeEventListener('pagehide', flush); flush() }
-  }, [hydrated, setToast])
   useEffect(() => hydrated ? registerWebMcpTools() : undefined, [hydrated])
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(null), 4200); return () => window.clearTimeout(timer) }, [setToast, toast])
   useEffect(() => {

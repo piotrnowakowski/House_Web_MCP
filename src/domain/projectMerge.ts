@@ -1,6 +1,6 @@
 import type { ProjectV2 } from './types'
 
-type Json = null | boolean | number | string | Json[] | { [key: string]: Json }
+export type Json = null | boolean | number | string | Json[] | { [key: string]: Json }
 const equal = (a: Json | undefined, b: Json | undefined): boolean => {
   if (a === b) return true
   if (!a || !b || typeof a !== 'object' || typeof b !== 'object' || Array.isArray(a) !== Array.isArray(b)) return false
@@ -9,7 +9,7 @@ const equal = (a: Json | undefined, b: Json | undefined): boolean => {
 }
 
 /** Three-way merge by entity ref. Missing entities are deletions; conflicts retain the local value. */
-export function mergeProjects(base: ProjectV2, local: ProjectV2, incoming: ProjectV2) {
+export function mergeJson(base: Json, local: Json, incoming: Json) {
   const conflicts: string[] = []
   const merge = (before: Json | undefined, ours: Json | undefined, theirs: Json | undefined, path: string): Json | undefined => {
     if (equal(ours, theirs) || equal(before, theirs)) return ours
@@ -39,9 +39,14 @@ export function mergeProjects(base: ProjectV2, local: ProjectV2, incoming: Proje
     conflicts.push(path)
     return ours
   }
+  return { value: structuredClone(merge(base, local, incoming, '')!), conflicts }
+}
+
+export function mergeProjects(base: ProjectV2, local: ProjectV2, incoming: ProjectV2) {
   // Revision counters and timestamps describe snapshots; they cannot resolve design conflicts.
   const content = (project: ProjectV2) => ({ ...project, revision: 0, updatedAt: '' }) as unknown as Json
-  const project = structuredClone(merge(content(base), content(local), content(incoming), '') as unknown as ProjectV2)
+  const { value, conflicts } = mergeJson(content(base), content(local), content(incoming))
+  const project = value as unknown as ProjectV2
   const changed = !equal(content(project), content(local))
   project.revision = changed ? Math.max(local.revision, incoming.revision) + 1 : local.revision
   project.updatedAt = changed ? new Date().toISOString() : local.updatedAt

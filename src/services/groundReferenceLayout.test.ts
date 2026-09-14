@@ -13,7 +13,9 @@ it('matches the supplied ground plan while preserving upper floor, envelope, sta
     const b=polygonBounds(spaceFootprint(h,h.spaces.find(s=>s.ref===ref)!))
     expect(b.maxX-b.minX-.2).toBeCloseTo(width,5);expect(b.maxZ-b.minZ-.2).toBeCloseTo(depth,5)
   }
-  expect(h.walls.filter(w=>h.storeys[1].wallRefs.includes(w.ref))).toEqual(before.buildings[0].walls.filter(w=>h.storeys[1].wallRefs.includes(w.ref)))
+  // Later bedroom furnishing changes interior finishes, while the upper geometry stays fixed.
+  const upperGeometry = (building: typeof h) => building.walls.filter(w=>h.storeys[1].wallRefs.includes(w.ref)).map(({faceFinishes,...wall})=>({...wall,openings:wall.openings.map(({finish,...opening})=>opening)}))
+  expect(upperGeometry(h)).toEqual(upperGeometry(before.buildings[0]))
   expect(h.roof).toEqual(before.buildings[0].roof);expect(h.slabs).toEqual(before.buildings[0].slabs)
   expect(h.storeys).toEqual(before.buildings[0].storeys);expect(p.landscape).toEqual(before.landscape)
   expect(p.buildings.slice(1)).toEqual(before.buildings.slice(1))
@@ -27,3 +29,4 @@ it('migrates a saved project and preserves independent deletion after reload',as
   expect(after.project.buildings[0].walls.find(w=>w.ref==='wall/carport-layout/ground/10')!.start.z).toBe(3.875)
   await saveWorkspace(after);expect((await loadWorkspace(p.ref))!.project).toEqual(after.project)
 })
+

@@ -19,6 +19,7 @@ import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Poly
 import { inferWallOpeningLayout } from '../domain/wallOpeningLayouts'
 import { isExteriorWall, livingVoidPartitions } from '../domain/zielonkiInterior'
 import { ProductModel } from '../interior/ProductModel'
+import { FinishMaterial } from '../interior/FinishMaterial'
 import { fitVisiblePlot } from './fitVisiblePlot'
 import { resolveGableWallFinish, resolveWallFinish } from '../domain/wallFinishes'
 import { recessSideLayout } from '../domain/gableRecess'
@@ -626,7 +627,7 @@ function BarnGlazing({ building, ghost }: { building: BuildingModel; ghost?: boo
     return <group key={opening.ref} position={[x, y, z]} rotation={[0, rotation, 0]} userData={{ semanticRef: opening.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(opening.ref) }}>
       <mesh position={[0, connected ? 0.02 : 0, 0]} castShadow receiveShadow><boxGeometry args={[Math.max(0.08, opening.widthM - 0.08), Math.max(0.08, opening.heightM - (connected ? 0.04 : 0.08)), 0.045]} />
         {building.interiorSource && opening.kind === 'door' && !opening.glazed
-          ? <meshStandardMaterial color="#303736" roughness={0.62} metalness={0.3} transparent={Boolean(ghost)} opacity={ghost ? 0.2 : 1} />
+          ? opening.finish ? <FinishMaterial finish={opening.finish} /> : <meshStandardMaterial color="#303736" roughness={0.62} metalness={0.3} transparent={Boolean(ghost)} opacity={ghost ? 0.2 : 1} />
           : <meshStandardMaterial color="#78959a" transparent opacity={ghost ? 0.2 : 0.42} roughness={0.08} metalness={0.08} depthWrite={false} />}
       </mesh>
       {beamHeight > 0 && joinedOpenings[0].ref === opening.ref && <mesh position={[(beamStart + beamEnd) / 2 - opening.offsetM, -opening.heightM / 2 - beamHeight / 2, 0]} castShadow receiveShadow><boxGeometry args={[beamEnd - beamStart + 0.08, beamHeight, wall.thicknessM + 0.02]} /><meshStandardMaterial color='#121817' roughness={0.8} /></mesh>}

@@ -3,8 +3,12 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "engines": { "node": ">=22.12.0" },
+  "engines": {
+    "node": ">=22.12.0"
+  },
   "scripts": {
+    "dev:sync": "tsx server/main.ts",
+    "build:sync": "tsc -p tsconfig.server.json && node scripts/build-sync-api.mjs",
     "dev": "vite",
     "dev:interior": "vite --host 127.0.0.1 --port 5187 --strictPort",
     "build": "tsc -b && vite build",
@@ -18,14 +22,19 @@
     "lint": "tsc -b --pretty false"
   },
   "dependencies": {
+    "@fastify/cors": "^11.3.0",
+    "@fastify/rate-limit": "^11.2.0",
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.3.0",
     "@react-three/rapier": "^2.2.0",
     "@thatopen/components": "^3.4.8",
     "@thatopen/fragments": "^3.4.7",
     "camera-controls": "^3.1.2",
+    "dotenv": "^17.4.2",
+    "fastify": "^5.12.4",
     "lucide-react": "^1.43.0",
     "manifold-3d": "^3.5.1",
+    "pg": "^8.23.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "three": "^0.182.0",
@@ -35,13 +44,17 @@
     "zustand": "^5.0.8"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.8",
     "@playwright/test": "^1.55.1",
     "@types/node": "^24.3.0",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
     "@types/three": "^0.182.0",
     "@vitejs/plugin-react": "^5.0.2",
+    "esbuild": "^0.28.2",
     "fake-indexeddb": "^6.2.2",
+    "tsx": "^4.23.13",
     "typescript": "~5.9.2",
     "vite": "^7.1.4",
     "vitest": "^3.2.4"

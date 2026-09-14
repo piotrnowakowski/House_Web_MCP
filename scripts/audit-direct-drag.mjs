@@ -33,10 +33,8 @@ async function main() {
       const page=await context.newPage(), errors=[]
       page.on('pageerror',error=>errors.push(error.message))
       await page.goto(values.url,{waitUntil:'domcontentloaded',timeout:90000})
-      await page.getByRole('button',{name:/Zielonki house study/}).click()
-      await page.getByRole('button',{name:'House variants',exact:true}).click()
-      await page.getByRole('button',{name:/zielonki v2 · Carport/}).click()
-      await expect(page.getByRole('button',{name:'House variants',exact:true})).toHaveAttribute('aria-pressed','true')
+      await page.getByRole('button',{name:/^(Continue|Open) · Garaz przód$/}).click()
+      await expect(page.locator('.start-screen-scrim')).not.toBeVisible()
       await page.getByRole('button',{name:'House interior',exact:true}).click()
       await page.getByRole('button',{name:'2D Plan',exact:true}).click()
       // Orthographic plan labels expose the projection without importing development-only hooks.
@@ -63,8 +61,10 @@ async function main() {
       for(const ref of wallRefs)await page.getByRole('button',{name:`Select wall ${ref}`,exact:true}).click()
       await page.getByRole('button',{name:'Group walls',exact:true}).click()
       if(await page.getByRole('button',{name:'Close panel',exact:true}).isVisible())await page.getByRole('button',{name:'Close panel',exact:true}).click()
-      await drag(screen(-4.95,3.415),screen(-4.95,3.815))
-      await expect.poll(async()=> (await stored(page,model.ref))?.buildings[0].walls.find(w=>w.ref==='wall/carport-layout/ground/7').start.z,{timeout:15000}).toBeCloseTo(3.815,2)
+      const movedWall=building.walls.find(w=>w.ref===wallRefs[0])
+      const wallX=(movedWall.start.x+movedWall.end.x)/2,wallZ=(movedWall.start.z+movedWall.end.z)/2
+      await drag(screen(wallX,wallZ),screen(wallX,wallZ+.4))
+      await expect.poll(async()=> (await stored(page,model.ref))?.buildings[0].walls.find(w=>w.ref===movedWall.ref).start.z,{timeout:15000}).toBeCloseTo(movedWall.start.z+.4,2)
       if(await page.getByRole('button',{name:'Close panel',exact:true}).isVisible())await page.getByRole('button',{name:'Close panel',exact:true}).click()
       const grouped=await stored(page,model.ref)
       for(const ref of wallRefs){
@@ -79,7 +79,7 @@ async function main() {
       await page.screenshot({path:`${values.output}/${touch?'touch':'mouse'}.png`})
       const saved=await stored(page,model.ref)
       await page.reload({waitUntil:'domcontentloaded'})
-      await page.locator('.project-card').filter({has:page.getByText('zielonki v2',{exact:true})}).getByRole('button',{name:/Continue|Open/}).click()
+      await page.getByRole('button',{name:/^(Continue|Open) · Garaz przód$/}).click()
       await expect(page.locator('.start-screen-scrim')).not.toBeVisible({timeout:30000})
       assert.deepEqual(await stored(page,model.ref),saved);assert.deepEqual(errors,[])
       reports.push({input:touch?'touch':'mouse',passed:true,checks:['wall grouping and rigid group drag','first-contact furniture drag','reload','no page errors']})
