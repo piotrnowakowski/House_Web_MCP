@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-bath-room",
   "name": "GŁÓWNY Garaż za domem — łazienka w pokoju",
   "units": "metric",
-  "revision": 20,
-  "updatedAt": "2026-09-14T20:40:29.964Z",
+  "revision": 11,
+  "updatedAt": "2026-09-14T20:05:11.506Z",
   "site": {
     "boundary": [
       {
@@ -1951,6 +1951,21 @@
           "color": "#bda17a"
         },
         {
+          "ref": "interior/carport-study/storage",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "name": "Utility storage",
+          "position": {
+            "x": -2.75,
+            "z": 5.45
+          },
+          "widthM": 2,
+          "depthM": 0.6,
+          "heightM": 2.2,
+          "rotationDegrees": 0,
+          "color": "#bda17a"
+        },
+        {
           "ref": "interior/carport-study/shower",
           "catalogId": "shower",
           "storeyRef": "storey/reference-ground",
@@ -2301,21 +2316,6 @@
           "rotationDegrees": 0,
           "color": "#C39C70",
           "elevationM": 0
-        },
-        {
-          "ref": "interior/carport-study/storage",
-          "catalogId": "wardrobe",
-          "storeyRef": "storey/reference-ground",
-          "name": "Utility storage",
-          "position": {
-            "x": -2.8000000000000007,
-            "z": 4.28
-          },
-          "widthM": 2,
-          "depthM": 0.6,
-          "heightM": 2.2,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
         }
       ],
       "stairs": [
@@ -2617,12 +2617,6 @@
           "heightM": 2.8,
           "openings": [
             {
-              "finish": {
-                "presetId": "natural-oak",
-                "color": "#FFFFFF",
-                "rotationDegrees": 0,
-                "tileM": 1.2
-              },
               "hinge": "left",
               "swing": "in",
               "ref": "opening/reference-parents",
@@ -2631,7 +2625,13 @@
               "offsetM": 0.87,
               "widthM": 0.9,
               "heightM": 2.1,
-              "sillM": 0
+              "sillM": 0,
+              "finish": {
+                "presetId": "natural-oak",
+                "color": "#FFFFFF",
+                "rotationDegrees": 0,
+                "tileM": 1.2
+              }
             }
           ],
           "finish": {
@@ -2642,14 +2642,6 @@
           "locked": false
         },
         {
-          "faceFinishes": {
-            "left": {
-              "presetId": "natural-oak",
-              "color": "#FFFFFF",
-              "rotationDegrees": 0,
-              "tileM": 1.2
-            }
-          },
           "ref": "wall/reference-upper/4",
           "start": {
             "x": -4.995,
@@ -2667,7 +2659,15 @@
             "material": "charred-timber",
             "colorHex": "#242927"
           },
-          "locked": false
+          "locked": false,
+          "faceFinishes": {
+            "left": {
+              "presetId": "natural-oak",
+              "color": "#FFFFFF",
+              "rotationDegrees": 0,
+              "tileM": 1.2
+            }
+          }
         },
         {
           "ref": "wall/reference-upper/5",
@@ -3580,12 +3580,6 @@
           "heightM": 2.8,
           "openings": [
             {
-              "finish": {
-                "presetId": "natural-oak",
-                "color": "#FFFFFF",
-                "rotationDegrees": 0,
-                "tileM": 1.2
-              },
               "hinge": "left",
               "swing": "out",
               "ref": "opening/reference-wardrobe",
@@ -3594,7 +3588,13 @@
               "offsetM": 3.35,
               "widthM": 0.8,
               "heightM": 2.1,
-              "sillM": 0
+              "sillM": 0,
+              "finish": {
+                "presetId": "natural-oak",
+                "color": "#FFFFFF",
+                "rotationDegrees": 0,
+                "tileM": 1.2
+              }
             }
           ],
           "finish": {
@@ -3734,18 +3734,6 @@
       ],
       "spaces": [
         {
-          "floorFinish": {
-            "presetId": "natural-oak",
-            "color": "#FFFFFF",
-            "rotationDegrees": 90,
-            "tileM": 1.2
-          },
-          "ceilingFinish": {
-            "presetId": "natural-oak",
-            "color": "#FFFFFF",
-            "rotationDegrees": 0,
-            "tileM": 1.2
-          },
           "ref": "space/reference-parents",
           "name": "Sypialnia rodziców",
           "usage": "bedroom",
@@ -3769,7 +3757,19 @@
           ],
           "baseSlabRef": "slab/reference-upper",
           "topBoundaryRef": "roof/reference",
-          "locked": false
+          "locked": false,
+          "floorFinish": {
+            "presetId": "natural-oak",
+            "color": "#FFFFFF",
+            "rotationDegrees": 90,
+            "tileM": 1.2
+          },
+          "ceilingFinish": {
+            "presetId": "natural-oak",
+            "color": "#FFFFFF",
+            "rotationDegrees": 0,
+            "tileM": 1.2
+          }
         },
         {
           "ref": "space/reference-landing",
@@ -5460,6 +5460,30 @@
         "locked": false
       },
       {
+        "ref": "zone/zielonki-v2/pergola-paving",
+        "name": "Nawierzchnia pod pergolą",
+        "kind": "terrace",
+        "footprint": [
+          {
+            "x": -12.649998346281635,
+            "z": -10.760730540714842
+          },
+          {
+            "x": -12.244140399325062,
+            "z": -3.1916038191641847
+          },
+          {
+            "x": -15.274786784536968,
+            "z": -3.0291000105872454
+          },
+          {
+            "x": -15.68064473149354,
+            "z": -10.598226732137903
+          }
+        ],
+        "locked": false
+      },
+      {
         "ref": "zone/outbuilding/terrace",
         "name": "Taras SPA — 82 m²",
         "kind": "terrace",
@@ -6213,9 +6237,9 @@
         "name": "Kosze do segregacji przy drodze",
         "position": {
           "x": -17.65,
-          "z": -13.2663930243882
+          "z": 7.8
         },
-        "rotationDegrees": 176.93072917518555,
+        "rotationDegrees": 86.93072917518555,
         "locked": false
       }
     ],

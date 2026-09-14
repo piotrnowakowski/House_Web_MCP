@@ -1,5 +1,5 @@
 import {expect,it} from 'vitest'
-import data from '../../project-data/zielonki-rear-bath-room/project.json'
+import data from '../../project-data/zielonki-rear-bath-room/before-sync-release-r11.json'
 import previous from '../../project-data/zielonki-rear-bath-room/before-master-oak-r9.json'
 import source from '../../project-data/zielonki-rear-carport/project.json'
 import {parseProject} from '../domain/schema'

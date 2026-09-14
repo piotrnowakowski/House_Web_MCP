@@ -12,8 +12,8 @@ def provision_env(sftp, remote_dir, config):
     for key in KEYS:
         if not config.get(key) or '\n' in config[key] or '\r' in config[key] or "'" in config[key]:
             raise ValueError('Missing or unsupported runtime setting: ' + key)
-    if config['PGSSLMODE'] != 'verify-full':
-        raise ValueError('Database certificate verification is required')
+    if config['PGSSLMODE'] not in ('verify-full', 'require'):
+        raise ValueError('Encrypted database connection is required')
     path = remote_dir + '/.env'
     try:
         with sftp.open(path) as source:

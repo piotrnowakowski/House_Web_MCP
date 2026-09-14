@@ -3,9 +3,9 @@ import pg from 'pg'
 
 export function createPool(env: NodeJS.ProcessEnv = process.env) {
   for (const name of ['PGHOST', 'PGDATABASE', 'PGUSER', 'PGPASSWORD']) if (!env[name]) throw new Error(`Missing ${name}`)
-  if (env.PGSSLMODE !== 'verify-full') throw new Error('PGSSLMODE must be verify-full')
+  if (!['verify-full', 'require'].includes(env.PGSSLMODE ?? '')) throw new Error('PGSSLMODE must be verify-full or explicitly require')
   return new pg.Pool({ host: env.PGHOST, port: Number(env.PGPORT ?? 5432), database: env.PGDATABASE, user: env.PGUSER, password: env.PGPASSWORD,
-    ssl: { rejectUnauthorized: true, ...(env.PGSSLROOTCERT ? { ca: readFileSync(env.PGSSLROOTCERT, 'utf8') } : {}) },
+    ssl: { rejectUnauthorized: env.PGSSLMODE !== 'require', ...(env.PGSSLROOTCERT ? { ca: readFileSync(env.PGSSLROOTCERT, 'utf8') } : {}) },
     max: 4, connectionTimeoutMillis: 10000, idleTimeoutMillis: 30000, statement_timeout: 15000,
   })
 }

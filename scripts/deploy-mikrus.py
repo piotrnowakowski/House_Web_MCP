@@ -227,7 +227,7 @@ def main() -> None:
         if args.sync_api:
             candidate_compose = compose.replace(shlex.quote(compose_path), shlex.quote(compose_path + '.next'))
             # No live changes before certificate-verified DB readiness and an off-host backup.
-            ready = run(client, candidate_compose + ' run --rm --no-deps house-sync-api node --input-type=module -e ' + shlex.quote("import pg from 'pg'; import fs from 'node:fs'; const p=new pg.Pool({ssl:{rejectUnauthorized:true,...(process.env.PGSSLROOTCERT?{ca:fs.readFileSync(process.env.PGSSLROOTCERT,'utf8')}: {})}}); try {const r=await p.query(\"SELECT to_regclass('public.house_sync_projects') IS NOT NULL AS existing\"); console.log(JSON.stringify(r.rows[0]))} catch {process.exitCode=1;console.error('Database TLS/authentication check failed')} finally {await p.end()}"))
+            ready = run(client, candidate_compose + ' run --rm --no-deps house-sync-api node --input-type=module -e ' + shlex.quote("import pg from 'pg'; import fs from 'node:fs'; const p=new pg.Pool({ssl:{rejectUnauthorized:process.env.PGSSLMODE!=='require',...(process.env.PGSSLROOTCERT?{ca:fs.readFileSync(process.env.PGSSLROOTCERT,'utf8')}: {})}}); try {const r=await p.query(\"SELECT to_regclass('public.house_sync_projects') IS NOT NULL AS existing\"); console.log(JSON.stringify(r.rows[0]))} catch {process.exitCode=1;console.error('Database TLS/authentication check failed')} finally {await p.end()}"))
             if json.loads(ready.strip().splitlines()[-1])['existing']:
                 backup_path = backup_database(client, run, candidate_compose, remote_dir)
                 Path('tmp').mkdir(exist_ok=True)
