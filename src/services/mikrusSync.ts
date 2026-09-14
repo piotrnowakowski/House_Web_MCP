@@ -5,6 +5,7 @@ import { loadWorkspace, readSyncRecord, saveRecovery, saveWorkspace, writeSyncRe
 import { applyLockedWorkspace, lockWorkspace, runWorkspaceActivity } from './workspaceLock'
 import { mergeWorkspaces, sameWorkspace, staleWorkspace, validateWorkspace, type SharedVersion, type SyncRecord, type SyncWrite } from '../domain/workspaceSync'
 import type { PersistedWorkspace } from '../domain/types'
+import { readSyncJson, unavailableSyncMessage } from './syncResponse'
 
 const KEY = 'house-sync-connection-key'
 export const isSyncSecure = () => location.protocol === 'https:' || ['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)
@@ -41,8 +42,8 @@ async function request<T>(path: string, body?: unknown): Promise<T> {
   if (!key && !localConfigured && !publicConnection) await detectPublicConnection()
   if (!key && !localConfigured && !publicConnection) throw new Error('Connect this browser with your private connection key first.')
   const response = await fetch(localConfigured ? `/api/local-sync/${path}` : `${apiRoot()}/api/sync/${path}`, { method: body ? 'PUT' : 'GET', headers: { ...(localConfigured ? { 'X-House-Local-Sync': '1' } : { Authorization: `Bearer ${key}` }), ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(20000), credentials: 'omit', cache: 'no-store', redirect: 'error' }).catch(() => { throw new Error('Mikrus is unreachable or the request timed out. Local work is preserved; retry Sync when connected.') })
-  if (!response.ok) throw new SyncHttpError(response.status, response.status === 401 ? 'Connection key rejected. Update the key for this browser.' : response.status === 409 ? 'Shared version changed. Sync again to review.' : response.status === 404 ? 'No shared workspace found.' : 'Mikrus synchronization failed. Your local work is preserved.')
-  return response.json() as Promise<T>
+  if (!response.ok) throw new SyncHttpError(response.status, response.status === 401 ? 'Connection key rejected. Update the key for this browser.' : response.status === 409 ? 'Shared version changed. Sync again to review.' : response.status === 404 ? 'No shared workspace found.' : response.status === 503 ? unavailableSyncMessage : 'Mikrus synchronization failed. Your local work is preserved.')
+  return readSyncJson<T>(response)
 }
 export const listSharedProjects = () => request<Array<{ ref: string; name: string; serverVersion: number }>>('projects')
 const fetchShared = async (ref: string) => {

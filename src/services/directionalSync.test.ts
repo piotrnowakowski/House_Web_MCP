@@ -15,7 +15,7 @@ beforeEach(()=>{
  vi.stubGlobal('location',{protocol:'https:',hostname:'house.example',href:'https://house.example/'})
  vi.stubGlobal('localStorage',{getItem:()=> 'test-key-123456789012345678901234567890'})
  vi.stubGlobal('window',{confirm:()=>true})
- vi.stubGlobal('fetch',vi.fn(async (_url:any,options:any)=>{calls.push(options.method);return {ok:true,json:async()=>({serverVersion:2,workspace:options.method==='PUT'?JSON.parse(options.body).workspace:remote})}}))
+ vi.stubGlobal('fetch',vi.fn(async (_url:any,options:any)=>{calls.push(options.method);return {ok:true,headers:new Headers({'content-type':'application/json'}),json:async()=>({serverVersion:2,workspace:options.method==='PUT'?JSON.parse(options.body).workspace:remote})}}))
  useSyncStatus.setState({busy:false,conflict:null})
 })
 it('Get downloads without issuing a remote write and backs up the local version',async()=>{await transferWorkspace('get');expect(calls).toEqual(['GET']);expect(mocks.state.project.name).toBe('Remote');expect(mocks.recovery).toHaveBeenCalledWith(local)})

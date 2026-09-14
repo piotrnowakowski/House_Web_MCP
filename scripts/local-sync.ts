@@ -28,6 +28,9 @@ export function localSyncPlugin(): Plugin {
           const chunks: Buffer[] = []; let size = 0
           for await (const part of req) { const chunk = Buffer.from(part); size += chunk.length; if (size > 20 * 1024 * 1024) { res.statusCode = 413; res.end('{}'); return } chunks.push(chunk) }
           const upstream = await fetch(new URL(`/api/sync/${path}`, target), { method: req.method, headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' }, body: req.method === 'PUT' ? Buffer.concat(chunks) : undefined, redirect: 'error', signal: AbortSignal.timeout(20000) })
+          if (!upstream.headers.get('content-type')?.toLowerCase().includes('application/json')) {
+            res.statusCode = 503; res.end('{"error":"Sync service is not deployed; local work is preserved"}'); return
+          }
           res.statusCode = upstream.status; res.end(await upstream.text())
         } catch { res.statusCode = 502; res.end('{"error":"Mikrus is unavailable; local work is preserved"}') }
       })
