@@ -44,10 +44,10 @@ import { RoofCanopy } from './RoofCanopy'
 import { Pergola } from './Pergola'
 import { NeighborBuildings } from './NeighborBuildings'
 import { neighborViewpoint } from '../domain/neighbors'
+import { TERRAIN_SURFACE_Y, groundContactY, groundedBoxCenterY, groundSurfaceY } from './groundContact'
 
 const REAL = { slab: '#d6d0bf', wall: '#e8e1d2', roof: '#6f4735', soil: '#918867' }
 const BARN = { slab: '#777269', wall: '#282d2c', roof: '#343a3b' }
-const TERRAIN_SURFACE_Y = 0
 const MAX_ORBIT_DISTANCE = 420
 const SCENE_FAR = 1200
 const KEYBOARD_PAN_STEP_M = 2.5
@@ -144,7 +144,7 @@ function InteractiveMeasurements() {
       raycaster.setFromCamera(pointer, camera)
       const point = raycaster.ray.intersectPlane(groundPlane, new Vector3())
       if (!point) return null
-      point.y = elevationAt(project, point.x, point.z) + 0.14
+      point.y = groundContactY(0.14)
       return point
     }
     const stopEditorClick = (event: PointerEvent) => { event.preventDefault(); event.stopImmediatePropagation() }
@@ -1008,8 +1008,8 @@ function RoadEntranceMarker({ entrance }: { entrance: SiteEntranceModel }) {
   const centerX = (start.x + end.x) / 2; const centerZ = (start.z + end.z) / 2
   const length = Math.hypot(end.x - start.x, end.z - start.z); const angle = -Math.atan2(end.z - start.z, end.x - start.x)
   const markerColor = '#e9b92f'
-  return <group position={[centerX, TERRAIN_SURFACE_Y + 0.055, centerZ]} rotation={[0, angle, 0]} userData={{ semanticRef: entrance.ref }}>
-    <mesh renderOrder={5} receiveShadow><boxGeometry args={[length, 0.07, 0.72]} /><meshStandardMaterial color={markerColor} emissive={markerColor} emissiveIntensity={0.14} roughness={0.72} /></mesh>
+  return <group position={[centerX, groundContactY(), centerZ]} rotation={[0, angle, 0]} userData={{ semanticRef: entrance.ref }}>
+    <mesh position-y={groundedBoxCenterY(0.07)} renderOrder={5} receiveShadow><boxGeometry args={[length, 0.07, 0.72]} /><meshStandardMaterial color={markerColor} emissive={markerColor} emissiveIntensity={0.14} roughness={0.72} /></mesh>
     {[-length / 2, length / 2].map((offset, index) => <mesh key={index} position={[offset, 0.43, 0]} castShadow><cylinderGeometry args={[0.09, 0.11, 0.86, 10]} /><meshStandardMaterial color="#f7d568" roughness={0.62} /></mesh>)}
     <Html center position={[0, 1.25, 0]} distanceFactor={15} zIndexRange={[6, 0]} style={{ pointerEvents: 'none' }}>
       <span className="site-entrance-label">{entrance.name}</span>
@@ -1041,13 +1041,14 @@ function TerrainAndSite({ project }: { project: ProjectV2 }) {
 
 const zoneColor: Record<LandscapeZone['kind'], string> = { lawn: '#738e55', terrace: '#c5b99b', path: '#c1b695', driveway: '#a69f8f', bed: '#684f44', 'rain-garden': '#4f8075', vegetable: '#66834d' }
 
-function ZoneSurface({ zone, project }: { zone: LandscapeZone; project: ProjectV2 }) {
+function ZoneSurface({ zone }: { zone: LandscapeZone }) {
   const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef); const month = useStudioStore((state) => state.month)
   const repositioningRef = useStudioStore((state) => state.repositioningRef); const commitCommand = useStudioStore((state) => state.commitCommand); const endReposition = useStudioStore((state) => state.endReposition); const setToast = useStudioStore((state) => state.setToast)
   const geometry = useMemo(() => localPolygonGeometry(zone.footprint), [zone.footprint])
   useEffect(() => () => geometry.dispose(), [geometry])
-  // Keep finished surfaces above the zoning overlay at 5.5 cm on the flattened terrain.
-  const center = polygonCentroid(zone.footprint); const y = Math.max(TERRAIN_SURFACE_Y + 0.08, elevationAt(project, center.x, center.z) + 0.02)
+  // Finished surfaces are a render skin on the flat visible terrain, not a
+  // second elevation model. Ground-bound solids use exact contact at y = 0.
+  const y = groundSurfaceY()
   const selected = selectedRef === zone.ref; const texture = resolveZoneTexture(zone); const grass = texture?.id === 'leafy-grass'; const group = useRef<Group>(null)
   return <><group ref={group} position={[0, y, 0]} userData={{ semanticRef: zone.ref }}>
     <mesh geometry={geometry} receiveShadow onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(zone.ref) }}>{texture
@@ -1063,14 +1064,14 @@ function ZoneSurface({ zone, project }: { zone: LandscapeZone; project: ProjectV
 
 function Landscape({ project }: { project: ProjectV2 }) {
   const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
-  return <>{project.landscape.zones.map((zone) => <ZoneSurface key={zone.ref} zone={zone} project={project} />)}
+  return <>{project.landscape.zones.map((zone) => <ZoneSurface key={zone.ref} zone={zone} />)}
     {project.landscape.plants.map((plant) => <Plant key={plant.ref} plant={plant} project={project} selected={selectedRef === plant.ref} onSelect={() => setSelectedRef(plant.ref)} />)}</>
 }
 
 function Plant({ plant, project, selected, onSelect, ghost = false }: { plant: PlantModel; project: ProjectV2; selected: boolean; onSelect: () => void; ghost?: boolean }) {
   const month = useStudioStore((state) => state.month); const repositioningRef = useStudioStore((state) => state.repositioningRef); const commitCommand = useStudioStore((state) => state.commitCommand); const endReposition = useStudioStore((state) => state.endReposition); const setToast = useStudioStore((state) => state.setToast)
   const treesVisible = useStudioStore(state => state.treesVisible)
-  const y = plant.surveyHandle ? TERRAIN_SURFACE_Y : elevationAt(project, plant.position.x, plant.position.z); const canopy = Math.max(0.25, plant.canopyM / 2); const visibleLeaf = plant.leafMonths.includes(month); const group = useRef<Group>(null)
+  const y = groundContactY(); const canopy = Math.max(0.25, plant.canopyM / 2); const visibleLeaf = plant.leafMonths.includes(month); const group = useRef<Group>(null)
   if (plant.kind === 'tree' && !treesVisible) return null
   return <><group ref={group} position={[plant.position.x, y, plant.position.z]} userData={{ semanticRef: plant.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) onSelect() }}>
     {plant.surveyHandle ? <SurveyTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : hasFruitTreeVisual(plant) ? <FruitTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.crownShape === 'conical' ? <>
@@ -1239,7 +1240,7 @@ function GardenFixture({ fixture, project, ghost = false }: { fixture: GardenFix
   const repositioningRef = useStudioStore((state) => state.repositioningRef); const commitCommand = useStudioStore((state) => state.commitCommand); const endReposition = useStudioStore((state) => state.endReposition); const setToast = useStudioStore((state) => state.setToast)
   const definition = gardenFixtureById(fixture.catalogId)
   const hostedInBed = definition.category === 'crop' && project.landscape.fixtures.some((candidate) => candidate.catalogId === 'raised-bed-2x1' && Math.hypot(candidate.position.x - fixture.position.x, candidate.position.z - fixture.position.z) < 0.15)
-  const y = Math.max(TERRAIN_SURFACE_Y + 0.08, elevationAt(project, fixture.position.x, fixture.position.z) + 0.02) + (hostedInBed ? 0.41 : 0)
+  const y = groundContactY(hostedInBed ? 0.41 : 0)
   const selected = selectedRef === fixture.ref; const group = useRef<Group>(null)
   return <><group ref={group} position={[fixture.position.x, y, fixture.position.z]} rotation={[0, -MathUtils.degToRad(fixture.rotationDegrees), 0]} userData={{ semanticRef: fixture.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(fixture.ref) }}>
     <GardenFixtureModel catalogId={fixture.catalogId} selected={selected} ghost={ghost} />

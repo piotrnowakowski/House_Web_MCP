@@ -45,7 +45,7 @@ export function FinishMaterial({ finish }: { finish?: InteriorFinish }) {
       />
     )
   const scan = textureLibrary.find((item) => item.id === preset.texture)
-  const path = scan
+  const path = preset.texture === 'sand-tile' ? 'textures/interior/sand-tile.svg' : scan
     ? `textures/${scan.folder}/diff_${scan.diffuse}.jpg`
     : `models/interior/textiles/${preset.texture}.png`
   return (

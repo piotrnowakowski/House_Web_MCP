@@ -25,10 +25,11 @@ for (const directory of ['models', 'textures']) {
 export default defineConfig({
   define: { __STATIC_ASSET_VERSION__: JSON.stringify(assetHash.digest('hex').slice(0, 16)) },
   plugins: [react(), webMcpManifestPlugin()],
+  resolve: { dedupe: ['react', 'react-dom'] },
   base: process.env.BASE_PATH ?? '/',
   server: { host: '127.0.0.1', watch: { ignored: ['**/tmp/**', '**/output/**', '**/.playwright-mcp/**'] } },
   preview: { host: '127.0.0.1' },
   build: { sourcemap: true },
   // Pre-bundle the heavy runtime libraries so a cold dev start does not re-optimise and reload the page mid-session.
-  optimizeDeps: { include: ['three', '@react-three/fiber', '@react-three/drei', 'camera-controls', 'three-mesh-bvh', 'zustand', 'zod', 'manifold-3d/lib/wasm'] },
+  optimizeDeps: { include: ['react', 'react-dom/client', 'react/jsx-runtime', 'react/jsx-dev-runtime', 'three', '@react-three/fiber', '@react-three/drei', 'camera-controls', 'three-mesh-bvh', 'zustand', 'zod', 'manifold-3d/lib/wasm'] },
 })

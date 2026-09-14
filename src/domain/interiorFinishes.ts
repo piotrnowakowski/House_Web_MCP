@@ -15,6 +15,7 @@ export const interiorFinishes = [
   { id: 'tile', name: 'Ceramic tile', color: '#efede5', texture: 'square-tiles', tileM: 2.4, roughness: 0.45 },
   { id: 'linen', name: 'Linen', color: '#d8ccba', texture: 'linen', tileM: 0.4, roughness: 0.98 },
   { id: 'jute', name: 'Woven jute', color: '#bfa379', texture: 'jute', tileM: 0.5, roughness: 1 },
+  { id: 'sand-tile', name: 'Sand stone tile', color: '#DCCDB7', texture: 'sand-tile', tileM: 0.6, roughness: 0.8 },
 ] as const
 
 export const InteriorFinishSchema = z.object({

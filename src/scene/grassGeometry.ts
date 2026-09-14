@@ -1,6 +1,7 @@
-import { elevationAt, pointInPolygon } from '../domain/geometry'
+import { pointInPolygon } from '../domain/geometry'
 import type { BuildingModel, Polygon2, ProjectV2, Vec2 } from '../domain/types'
 import { landUseAreas } from '../domain/zoning'
+import { groundContactY } from './groundContact'
 
 const NEAR_FIELD_LIMIT_Z = 38
 const CANDIDATE_BLADES = 360_000
@@ -53,7 +54,7 @@ export const grassBladePoints = (project: ProjectV2, candidates = CANDIDATE_BLAD
       if (project.site.entrances.some((entrance) => segmentDistance(point, entrance.start, entrance.end) < 1.05)) continue
       blades.push({
         x: point.x,
-        y: elevationAt(project, point.x, point.z) + 0.026,
+        y: groundContactY(0.026),
         z: point.z,
         angle: noise(index, 3, 3) * Math.PI * 2,
         height: 0.7 + noise(index, 4, 4) * 0.65,
