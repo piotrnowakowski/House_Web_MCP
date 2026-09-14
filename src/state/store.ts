@@ -15,6 +15,7 @@ import { listWorkspaces, loadWorkspace, normalizeWorkspaceName, renameWorkspace,
 import { legacyProjectBase, publishedProject } from '../services/publishedProject'
 import { V2_STUDY_REF, synchronizePublishedV2 } from '../services/publishedV2'
 import { REAR_CARPORT_STUDY_REF, synchronizePublishedRearCarport } from '../services/publishedRearCarport'
+import { BATH_ROOM_STUDY_REF, synchronizePublishedBathRoom } from '../services/publishedBathRoom'
 import type { DraftChangeSetModel, HeightMeasureKind, PersistedWorkspace, ProjectCommand, ProjectV2, ProposalRecord, StructureReport, TransformMode, VariantModel, ViewerMode } from '../domain/types'
 
 interface StudioState {
@@ -215,6 +216,8 @@ export const useStudioStore = create<StudioState>((set, get) => ({
       }
       const rearCarportConflicts = await synchronizePublishedRearCarport()
       if (rearCarportConflicts.length) set((state) => ({ projectSyncConflicts: [...state.projectSyncConflicts, ...rearCarportConflicts] }))
+      const bathRoomConflicts = await synchronizePublishedBathRoom()
+      if (bathRoomConflicts.length) set((state) => ({ projectSyncConflicts: [...state.projectSyncConflicts, ...bathRoomConflicts] }))
       set({ savedWorkspaces: await listWorkspaces() })
     }
     catch (error) { set({ savedWorkspaces: [], toast: `Saved projects could not be read: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
@@ -281,6 +284,7 @@ export const useStudioStore = create<StudioState>((set, get) => ({
     try {
       if (ref === V2_STUDY_REF) set({ projectSyncConflicts: await synchronizePublishedV2() })
       if (ref === REAR_CARPORT_STUDY_REF) set({ projectSyncConflicts: await synchronizePublishedRearCarport() })
+      if (ref === BATH_ROOM_STUDY_REF) set({ projectSyncConflicts: await synchronizePublishedBathRoom() })
       const saved = await loadWorkspace(ref)
       if (!saved) { set({ toast: `Saved project not found: ${ref}.` }); return }
       const project = isZielonkiProject(saved.project) ? ensureStarterOrchard(ensureStarterGarden(applyModernBarnPreset(saved.project))) : saved.project

@@ -6,6 +6,7 @@ import { modernBarnProject, sampleProject } from '../domain/sampleProject'
 import { ZIELONKI_PROJECT_REF, createTerrainProject } from '../domain/terrain'
 import { listWorkspaces, loadWorkspace, saveWorkspace } from '../services/persistence'
 import { REAR_CARPORT_STUDY_REF } from '../services/publishedRearCarport'
+import { BATH_ROOM_STUDY_REF } from '../services/publishedBathRoom'
 import { useStudioStore } from './store'
 
 beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [], history: [], month: 7, sunTime: { month: 7, day: 15, hour: 14 }, sunAnimation: 'none', sunOverlay: { enabled: false, targetRef: null, result: null } }))
@@ -142,7 +143,7 @@ describe('start screen and project switching', () => {
     useStudioStore.setState({ launcherOpen: false, hydrated: true, project: structuredClone(modernBarnProject) })
     await useStudioStore.getState().openLauncher()
     expect(useStudioStore.getState().launcherOpen).toBe(true)
-    expect(useStudioStore.getState().savedWorkspaces.map((item) => item.ref).sort()).toEqual([terrain.ref, REAR_CARPORT_STUDY_REF].sort())
+    expect(useStudioStore.getState().savedWorkspaces.map((item) => item.ref).sort()).toEqual([terrain.ref, REAR_CARPORT_STUDY_REF, BATH_ROOM_STUDY_REF].sort())
     await useStudioStore.getState().openWorkspace(terrain.ref)
     expect(useStudioStore.getState().project.name).toBe('Saved plot')
     expect(useStudioStore.getState().launcherOpen).toBe(false)

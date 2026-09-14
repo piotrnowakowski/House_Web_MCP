@@ -25,3 +25,7 @@
 - GitHub Pages/main is the separate competition submission. Do not overwrite it when deploying the working house.
 - During the hackathon, treat `main` as frozen and protected: do not commit, merge, rebase, reset or push changes to it, and do not trigger its GitHub Pages deployment. Commit and push house changes only to `codex/deploy-furnished-zielonki` and deploy that branch to Mikrus. Lift this freeze only on the user's explicit instruction; routine requests to commit, push, merge or redeploy do not lift it.
 - Never commit browser profiles, credentials, `.env`, or unrelated browser data. Raw recovery backups belong in ignored `tmp/`; only extracted house project data belongs in Git.
+
+# Images in chat
+
+- Always render photos, screenshots, floor plans and other image previews directly in the chat. Do not deliver them as links alone or only open them in a side panel. A download link may accompany the inline image, but must not replace it.

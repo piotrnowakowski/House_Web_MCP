@@ -1,5 +1,5 @@
 /**
- * Brief: Verify three published projects, independent migrations, reload and mobile switching.
+ * Brief: Verify four published projects, independent migrations, reload and mobile switching.
  * Inputs: --url (default local 5173), --output (default output/carport-study), --help; tracked project JSON; no environment variables.
  * Outputs: screenshots and audit.json. Isolated Chrome contexts only, never the user's profile.
  * Usage: node scripts/audit-house-studies.mjs --url http://127.0.0.1:5173/
@@ -21,8 +21,8 @@ async function savedProject(page, ref) {
 async function main() {
   const { values } = parseArgs({ options: { url: { type: 'string', default: 'http://127.0.0.1:5173/' }, output: { type: 'string', default: 'output/carport-study' }, help: { type: 'boolean' } } })
   if (values.help) { console.log('Usage: node scripts/audit-house-studies.mjs [--url URL] [--output DIR]'); return }
-  const projects = await Promise.all(['zielonki', 'zielonki-v2', 'zielonki-rear-carport'].map(async slug => JSON.parse(await readFile('project-data/' + slug + '/project.json', 'utf8'))))
-  const baselines = await Promise.all(['zielonki/before-browser-capture-r46.json', 'zielonki-v2/before-road-carport-r49.json', 'zielonki-rear-carport/initial-r49.json'].map(async path => JSON.parse(await readFile('project-data/' + path, 'utf8'))))
+  const projects = await Promise.all(['zielonki', 'zielonki-v2', 'zielonki-rear-carport', 'zielonki-rear-bath-room'].map(async slug => JSON.parse(await readFile('project-data/' + slug + '/project.json', 'utf8'))))
+  const baselines = await Promise.all(['zielonki/before-browser-capture-r46.json', 'zielonki-v2/before-road-carport-r49.json', 'zielonki-rear-carport/initial-r49.json', 'zielonki-rear-bath-room/initial-r1.json'].map(async path => JSON.parse(await readFile('project-data/' + path, 'utf8'))))
   await mkdir(values.output, { recursive: true })
   const browser = await chromium.launch({ channel: 'chrome', headless: true })
   const reports = []
