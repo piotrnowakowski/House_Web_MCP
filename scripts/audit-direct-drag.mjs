@@ -57,7 +57,11 @@ async function main() {
       }
       await page.getByRole('button',{name:'Edit',exact:true}).click()
       await page.getByRole('button',{name:'Select walls',exact:true}).click()
-      const wallRefs=[7,6,5].map(i=>`wall/carport-layout/ground/${i}`)
+      // Partition refs change when adjoining wall runs are joined or split. Use
+      // the current plan's actual selectable walls instead of historical numbers.
+      const wallLabels=await page.getByRole('button',{name:/^Select wall /}).evaluateAll(buttons=>buttons.map(button=>button.getAttribute('aria-label')).filter(Boolean))
+      const wallRefs=wallLabels.map(label=>label.replace(/^Select wall /,'')).filter(ref=>building.walls.some(w=>w.ref===ref)).slice(0,3)
+      assert.equal(wallRefs.length,3,'Direct-drag audit needs three existing ground-floor walls')
       for(const ref of wallRefs)await page.getByRole('button',{name:`Select wall ${ref}`,exact:true}).click()
       await page.getByRole('button',{name:'Group walls',exact:true}).click()
       if(await page.getByRole('button',{name:'Close panel',exact:true}).isVisible())await page.getByRole('button',{name:'Close panel',exact:true}).click()

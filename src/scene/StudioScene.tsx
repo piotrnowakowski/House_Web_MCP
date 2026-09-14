@@ -1350,6 +1350,10 @@ function StructureCaptureController() {
           try {
             scene.traverse(object => {
               if (object.userData.editorOnly) { visibility.set(object, object.visible); object.visible = false }
+              if (object.userData.captureContext) {
+                visibility.set(object, object.visible)
+                object.visible = view.type === 'site-plan' || view.type === 'sun-study'
+              }
               if (!object.userData.captureRoot) return
               visibility.set(object, object.visible)
               object.visible = view.buildingRefs.includes(object.userData.buildingRef) && object.userData.captureSource === source
@@ -1428,12 +1432,12 @@ export const StudioScene = memo(function StudioScene() {
   return <>
     <SceneBackground />
     <ObjectTransparency />
-    <ThatOpenBridge /><InteractiveMeasurements /><StructureCaptureController /><SunLight /><SunPath /><CompassRose /><SunHoursOverlay /><TexturePreloader /><NeighborBuildings />
-    <group onPointerMissed={() => setSelectedRef(null)}><TerrainAndSite project={project} /><RealisticGrass project={project} /><Landscape project={project} /><GardenFixtures project={project} />
+    <ThatOpenBridge /><InteractiveMeasurements /><StructureCaptureController /><SunLight /><SunPath /><CompassRose /><SunHoursOverlay /><TexturePreloader /><group userData={{ captureContext: true }}><NeighborBuildings /></group>
+    <group onPointerMissed={() => setSelectedRef(null)}><TerrainAndSite project={project} /><group userData={{ captureContext: true }}><RealisticGrass project={project} /><Landscape project={project} /><GardenFixtures project={project} /></group>
       {project.buildings.map((building) => <Building key={`${project.ref}/${building.ref}`} project={project} building={building} />)}
       {ghost?.buildings.map((building) => <Building key={`ghost-${building.ref}`} project={ghost} building={building} ghost />)}
-      {ghost && <GardenFixtures project={ghost} fixtures={changedGhostFixtures} ghost />}
-      {ghost && changedGhostPlants.map((plant) => <Plant key={`ghost-${plant.ref}`} plant={plant} project={ghost} selected={false} onSelect={() => undefined} ghost />)}
+      {ghost && <group userData={{ captureContext: true }}><GardenFixtures project={ghost} fixtures={changedGhostFixtures} ghost />
+        {changedGhostPlants.map((plant) => <Plant key={`ghost-${plant.ref}`} plant={plant} project={ghost} selected={false} onSelect={() => undefined} ghost />)}</group>}
     </group>
   </>
 })

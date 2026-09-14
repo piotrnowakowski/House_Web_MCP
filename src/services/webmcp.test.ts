@@ -446,6 +446,22 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(() => expandStructureViews(tooMany, { mode: 'architectural-set' })).toThrow(/contains 13 views/)
   })
 
+  it('keeps the full project in the site plan but focuses architectural drawings per building', () => {
+    const project = structuredClone(sampleProject)
+    const outbuilding = structuredClone(project.buildings[0])
+    outbuilding.ref = 'building/outbuilding'
+    outbuilding.name = 'Outbuilding'
+    outbuilding.kind = 'garage'
+    outbuilding.position = { x: 0, z: 55 }
+    outbuilding.storeys = outbuilding.storeys.map((storey) => ({ ...storey, ref: 'building/outbuilding/storey-ground', name: 'Workshop' }))
+    project.buildings.push(outbuilding)
+
+    const { views } = expandStructureViews(project, { mode: 'architectural-set' })
+    expect(views.find((view) => view.type === 'site-plan')?.buildingRefs).toEqual(['house/main', 'building/outbuilding'])
+    expect(views.filter((view) => view.type === 'north-elevation' || view.type === 'axonometric' || view.type === 'section').every((view) => JSON.stringify(view.buildingRefs) === JSON.stringify(['house/main']))).toBe(true)
+    expect(views.filter((view) => view.type === 'storey-plan').map((view) => view.buildingRefs)).toEqual([['house/main'], ['building/outbuilding']])
+  })
+
   it('returns validation failures as readable field messages and honors an aborted signal', async () => {
     const parsed = payload(await tool('run_analysis').execute({ kind: 'sunlight', month: 6 }))
     expect(parsed.status).toBe('error')

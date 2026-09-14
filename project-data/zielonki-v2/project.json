@@ -3,8 +3,8 @@
   "ref": "project/zielonki-v2",
   "name": "Garaz przód",
   "units": "metric",
-  "revision": 72,
-  "updatedAt": "2026-09-14T16:19:00.434837+00:00",
+  "revision": 75,
+  "updatedAt": "2026-09-14T20:50:32.873Z",
   "site": {
     "boundary": [
       {
@@ -2085,10 +2085,25 @@
           "color": "#bda17a"
         },
         {
+          "ref": "interior/510a8506-632d-40e7-9d39-06e2d87848c2",
+          "catalogId": "thermal-buffer",
+          "storeyRef": "storey/reference-ground",
+          "name": "Bufor ciepła 1500 l · obrys montażowy Ø1,20 × 2,20 m",
+          "position": {
+            "x": -1.85,
+            "z": 4.95
+          },
+          "widthM": 1.2,
+          "depthM": 1.2,
+          "heightM": 2.2,
+          "rotationDegrees": 0,
+          "color": "#D9DEE0"
+        },
+        {
           "ref": "interior/carport-study/storage",
           "catalogId": "wardrobe",
           "storeyRef": "storey/reference-ground",
-          "name": "Utility storage",
+          "name": "Szafa techniczna · rozdzielnia, rekuperacja, pompa ciepła, podłogówka, zawory i liczniki",
           "position": {
             "x": -2.75,
             "z": 6.45

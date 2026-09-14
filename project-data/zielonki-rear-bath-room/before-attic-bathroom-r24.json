@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-bath-room",
   "name": "GŁÓWNY Garaż za domem — łazienka w pokoju",
   "units": "metric",
-  "revision": 27,
-  "updatedAt": "2026-09-14T21:53:16.615Z",
+  "revision": 24,
+  "updatedAt": "2026-09-14T20:59:40.801Z",
   "site": {
     "boundary": [
       {
@@ -2059,9 +2059,9 @@
           "ref": "interior/shared-upper-bath/wc",
           "catalogId": "toilet",
           "storeyRef": "storey/reference-upper",
-          "name": "WC pod skosem · strefa 198 cm",
+          "name": "WC",
           "position": {
-            "x": -4.285,
+            "x": -4.495,
             "z": 2.045
           },
           "widthM": 0.45,
@@ -2074,82 +2074,31 @@
           "ref": "interior/shared-upper-bath/vanity",
           "catalogId": "vanity",
           "storeyRef": "storey/reference-upper",
-          "name": "Umywalka z szafką · orzech",
+          "name": "Umywalka",
           "position": {
-            "x": -3.205,
+            "x": -3.295,
             "z": 2.245
           },
           "widthM": 0.7,
           "depthM": 0.3,
           "heightM": 0.85,
           "rotationDegrees": 180,
-          "color": "#6E4932"
+          "color": "#ece9df"
         },
         {
           "ref": "interior/shared-upper-bath/bathtub",
-          "catalogId": "compact-freestanding-bathtub",
+          "catalogId": "bathtub",
           "storeyRef": "storey/reference-upper",
-          "name": "Wanna wolnostojąca kompaktowa 150 × 72 cm",
+          "name": "Wanna",
           "position": {
-            "x": -3.995,
+            "x": -4.045,
             "z": 0.07
           },
-          "widthM": 0.72,
-          "depthM": 1.5,
+          "widthM": 0.75,
+          "depthM": 1.7,
           "heightM": 0.6,
           "rotationDegrees": 90,
-          "color": "#F3EFE7"
-        },
-        {
-          "ref": "interior/shared-upper-bath/step-cabinet-low",
-          "catalogId": "bathroom-step-cabinet",
-          "storeyRef": "storey/reference-upper",
-          "name": "Szafka schodkowa · niska",
-          "position": {
-            "x": -4.66,
-            "z": 2.29
-          },
-          "widthM": 0.28,
-          "depthM": 0.18,
-          "heightM": 0.36,
-          "rotationDegrees": 0,
-          "color": "#6E4932",
-          "elevationM": 1,
-          "groupRef": "group/shared-upper-bath/stepped-storage"
-        },
-        {
-          "ref": "interior/shared-upper-bath/step-cabinet-mid",
-          "catalogId": "bathroom-step-cabinet",
-          "storeyRef": "storey/reference-upper",
-          "name": "Szafka schodkowa · średnia",
-          "position": {
-            "x": -4.36,
-            "z": 2.29
-          },
-          "widthM": 0.28,
-          "depthM": 0.18,
-          "heightM": 0.46,
-          "rotationDegrees": 0,
-          "color": "#6E4932",
-          "elevationM": 1.05,
-          "groupRef": "group/shared-upper-bath/stepped-storage"
-        },
-        {
-          "ref": "interior/shared-upper-bath/step-cabinet-high",
-          "catalogId": "bathroom-step-cabinet",
-          "storeyRef": "storey/reference-upper",
-          "name": "Szafka schodkowa · wysoka",
-          "position": {
-            "x": -4.06,
-            "z": 2.29
-          },
-          "widthM": 0.28,
-          "depthM": 0.18,
-          "heightM": 0.56,
-          "rotationDegrees": 0,
-          "color": "#6E4932",
-          "elevationM": 1.1,
-          "groupRef": "group/shared-upper-bath/stepped-storage"
+          "color": "#eeeee8"
         },
         {
           "ref": "interior/upper-wardrobe/east",
@@ -2895,14 +2844,6 @@
             "colorHex": "#E5E9E8",
             "textureId": "none"
           },
-          "faceFinishes": {
-            "left": {
-              "presetId": "sand-tile",
-              "color": "#DCCDB7",
-              "rotationDegrees": 0,
-              "tileM": 0.6
-            }
-          },
           "locked": false
         },
         {
@@ -2944,14 +2885,6 @@
             "colorHex": "#E5E9E8",
             "textureId": "none"
           },
-          "faceFinishes": {
-            "left": {
-              "presetId": "sand-tile",
-              "color": "#DCCDB7",
-              "rotationDegrees": 0,
-              "tileM": 0.6
-            }
-          },
           "locked": false
         },
         {
@@ -2972,14 +2905,6 @@
             "material": "light-render",
             "colorHex": "#E5E9E8",
             "textureId": "none"
-          },
-          "faceFinishes": {
-            "left": {
-              "presetId": "sand-tile",
-              "color": "#DCCDB7",
-              "rotationDegrees": 0,
-              "tileM": 0.6
-            }
           },
           "locked": false
         },
@@ -3502,7 +3427,7 @@
               "ref": "opening/reference-office-window",
               "kind": "window",
               "wallRef": "wall/carport-layout/ground/15",
-              "offsetM": 1.15,
+              "offsetM": 3.168936062959698,
               "widthM": 1.8,
               "heightM": 1.5,
               "sillM": 0.8,
@@ -3819,14 +3744,6 @@
             "material": "charred-timber",
             "colorHex": "#242927"
           },
-          "faceFinishes": {
-            "left": {
-              "presetId": "sand-tile",
-              "color": "#DCCDB7",
-              "rotationDegrees": 0,
-              "tileM": 0.6
-            }
-          },
           "locked": false
         }
       ],
@@ -3916,18 +3833,6 @@
           "locked": false
         },
         {
-          "floorFinish": {
-            "presetId": "sand-tile",
-            "color": "#DCCDB7",
-            "rotationDegrees": 0,
-            "tileM": 0.6
-          },
-          "ceilingFinish": {
-            "presetId": "warm-white",
-            "color": "#f2eee5",
-            "rotationDegrees": 0,
-            "tileM": 1
-          },
           "ref": "space/reference-bathroom",
           "name": "Wspólna łazienka",
           "usage": "bathroom",

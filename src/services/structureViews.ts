@@ -37,6 +37,7 @@ export const expandStructureViews = (project: ProjectV2, input: ShowStructureVie
     : project.buildings
   if (!buildings.length) throw new Error('No buildings are available for this report.')
   const buildingRefs = buildings.map((building) => building.ref)
+  const primaryBuilding = buildings.find((building) => building.ref === 'house/main') ?? buildings.find((building) => building.kind === 'house') ?? buildings[0]
   const mode = input.mode ?? 'architectural-set'
   let requested: StructureViewRequest[]
   if (mode === 'architectural-set') {
@@ -57,7 +58,22 @@ export const expandStructureViews = (project: ProjectV2, input: ShowStructureVie
     if (view.type === 'storey-plan' && !storeyRefs.has(view.storeyRef)) throw new Error(`Unknown or unselected storeyRef: ${view.storeyRef}`)
     if (view.type === 'section' && view.offsetM !== undefined && (!Number.isFinite(view.offsetM) || Math.abs(view.offsetM) > 100)) throw new Error('Section offsetM must be a finite local-model offset between -100 and 100 metres.')
   })
-  return { buildings, views: requested.map((view) => ({ ...view, title: titleFor(view, project), buildingRefs })) }
+  return {
+    buildings,
+    views: requested.map((view) => {
+      const owner = view.type === 'storey-plan'
+        ? buildings.find((building) => building.storeys.some((storey) => storey.ref === view.storeyRef))
+        : undefined
+      const viewBuildingRefs = view.type === 'site-plan'
+        ? buildingRefs
+        : view.type === 'storey-plan'
+          ? [owner!.ref]
+          : mode === 'architectural-set'
+            ? [primaryBuilding.ref]
+            : buildingRefs
+      return { ...view, title: titleFor(view, project), buildingRefs: viewBuildingRefs }
+    }),
+  }
 }
 
 export const showStructureViews = async (input: ShowStructureViewsInput, signal: AbortSignal) => {
@@ -91,15 +107,15 @@ export const showStructureViews = async (input: ShowStructureViewsInput, signal:
     }
   }
   const report: StructureReport = {
-    ref: `report/structure-r${state.project.revision}-${Date.now()}`,
-    createdAt: new Date().toISOString(), projectRevision: state.project.revision,
+    ref: `report/structure-r${project.revision}-${Date.now()}`,
+    createdAt: new Date().toISOString(), projectRef: project.ref, projectName: project.name, projectRevision: project.revision,
     views: captured,
     buildings: buildings.map(buildingPlacement),
   }
   useStudioStore.getState().setStructureReport(report)
   return {
     status: 'ok' as const,
-    projectRevision: state.project.revision,
+    projectRevision: project.revision,
     reportRef: report.ref,
     summary: `Opened a visible architectural report with ${report.views.length} view${report.views.length === 1 ? '' : 's'} for ${report.buildings.length} building${report.buildings.length === 1 ? '' : 's'}.`,
     views: report.views.map(({ type, title, buildingRefs, storeyRef, presentation }) => ({ type, title, buildingRefs, ...(storeyRef ? { storeyRef } : {}), presentation })),

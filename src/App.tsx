@@ -649,7 +649,7 @@ function ReportPanel() {
   if (!report) return null
   const view = report.views[selected] ?? report.views[0]
   return <section className="report-panel" aria-label="Architectural structure report">
-    <header><div><p className="eyebrow">VISIBLE-IN-PAGE REPORT</p><h2>Architectural set</h2><small>{report.views.length} drawings · project r{report.projectRevision}</small></div><button className="close" onClick={() => setReport(null)} aria-label="Close report">×</button></header>
+    <header><div><p className="eyebrow">VISIBLE-IN-PAGE REPORT</p><h2>Architectural set</h2><small>{report.projectName} · {report.views.length} drawings · project r{report.projectRevision}</small></div><button className="close" onClick={() => setReport(null)} aria-label="Close report">×</button></header>
     <div className="report-body">
       <div className="thumbs">{report.views.map((item, index) => <button key={`${item.type}-${index}`} className={selected === index ? 'active' : ''} onClick={() => setSelected(index)}><img src={item.imageUrl} alt={item.title} /><span>{item.title}</span></button>)}</div>
       <div className="drawing"><img src={view.imageUrl} alt={view.title} /><div><strong>{view.title}</strong><span>960 × 640 · ephemeral view</span></div></div>

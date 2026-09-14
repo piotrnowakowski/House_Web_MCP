@@ -68,6 +68,9 @@ describe('Interior project edits', () => {
   it('has correctly sized kitchen, bathroom, bedroom and garage objects', () => {
     expect(new Set(interiorCatalog.map((entry) => entry.id)).size).toBe(interiorCatalog.length)
     expect(interiorCatalog.find((entry) => entry.id === 'car')?.size).toEqual([1.85, 4.5, 1.45])
-    expect(new Set(interiorCatalog.map((entry) => entry.category)).size).toBe(5)
+    expect(interiorCatalog.find((entry) => entry.id === 'thermal-buffer')?.size).toEqual([1.2, 1.2, 2.2])
+    expect(interiorCatalog.find((entry) => entry.id === 'compact-freestanding-bathtub')?.size).toEqual([0.72, 1.5, 0.6])
+    expect(interiorCatalog.find((entry) => entry.id === 'bathroom-step-cabinet')?.size).toEqual([0.28, 0.18, 0.36])
+    expect(new Set(interiorCatalog.map((entry) => entry.category)).size).toBe(6)
   })
 })

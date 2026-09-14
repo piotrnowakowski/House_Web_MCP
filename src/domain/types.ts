@@ -102,7 +102,7 @@ export interface StairModel {
   /** Two equal flights: runM is one flight's horizontal going, steps counts all risers. */
   uTurn?: { landingDepthM: number; gapM: number }
 }
-export type InteriorCatalogId = 'oak-platform-bed' | 'oak-nightstand' | 'wool-rug' | 'brass-sconce' | 'oak-side-table' | 'boucle-chair' | 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car' | 'camper'
+export type InteriorCatalogId = 'oak-platform-bed' | 'oak-nightstand' | 'wool-rug' | 'brass-sconce' | 'oak-side-table' | 'boucle-chair' | 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'thermal-buffer' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'compact-freestanding-bathtub' | 'bathroom-step-cabinet' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car' | 'camper'
 export interface InteriorItem { ref: string; catalogId: InteriorCatalogId; storeyRef: string; name: string; position: Vec2; widthM: number; depthM: number; heightM: number; rotationDegrees: number; color: string; productId?: string; variantId?: string; elevationM?: number; groupRef?: string; locked?: boolean }
 export type InteriorCommand = { type: 'interior.update'; buildingRef: string; storeyRef: string } & (
   { action: 'put'; item: InteriorItem } | { action: 'remove'; itemRef: string } |
@@ -183,6 +183,6 @@ export interface SeasonalMonthAnalysis { month: number; temperatureByDayPartC: T
 export type StructureViewRequest = { type: 'site-plan' } | { type: 'axonometric' } | { type: 'north-elevation' | 'south-elevation' | 'east-elevation' | 'west-elevation' } | { type: 'storey-plan'; storeyRef: string } | { type: 'section'; axis: 'longitudinal' | 'transverse'; offsetM?: number } | { type: 'sun-study'; month: number; day: number; hour: number }
 export interface StructureViewDescriptor { type: StructureViewRequest['type']; title: string; buildingRefs: string[]; storeyRef?: string; presentation: 'visible-in-page'; imageUrl: string }
 export interface StructureReport {
-  ref: string; createdAt: string; projectRevision: number; views: StructureViewDescriptor[]
+  ref: string; createdAt: string; projectRef: string; projectName: string; projectRevision: number; views: StructureViewDescriptor[]
   buildings: Array<{ ref: string; name: string; positionM: Vec2; rotationDegrees: number; widthM: number; depthM: number; heightM: number; baseElevationM: number }>
 }

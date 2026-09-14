@@ -12,6 +12,13 @@ export function FurnitureModel({ item }: { item: InteriorItem }) {
   const basin = (y: number, width = 0.7, depth = 0.65) => <group>{box('basin', [width, 0.08, depth], [0, y, 0], '#f4f2eb', 0.035)}{box('water', [width * 0.72, 0.018, depth * 0.7], [0, y + 0.047, 0], '#a2b9bb', 0.025)}{box('tap', [0.035, 0.18, 0.04], [0, y + 0.1, -depth / 2 + 0.07], '#9ea9a9', 0.008)}{box('spout', [0.035, 0.03, 0.14], [0, y + 0.19, -depth / 2 + 0.12], '#9ea9a9', 0.008)}</group>
   let model
   switch (item.catalogId) {
+    case 'thermal-buffer':
+      model = <>
+        {cylinder('insulated-tank', [0, 0.5, 0], 0.47, 0.94, color)}
+        {cylinder('top-cap', [0, 0.975, 0], 0.4, 0.04, '#EEF1F2')}
+        {box('service-panel', [0.18, 0.34, 0.035], [0, 0.53, 0.47], '#53636A', 0.015)}
+        {[-0.24, 0, 0.24].map((y) => cylinder(`connector-${y}`, [0.49, 0.52 + y, 0], 0.035, 0.08, '#8A9497', true))}
+      </>; break
     case 'camper':
       model = <>{box('body', [0.96, 0.73, 0.96], [0, 0.57, 0], color, 0.025)}{box('roof', [0.97, 0.05, 0.96], [0, 0.96, 0], '#f4f0e5')}{box('windscreen', [0.8, 0.28, 0.018], [0, 0.7, 0.485], '#334951')}{box('bumper', [0.94, 0.1, 0.04], [0, 0.27, 0.47], '#4c585c')}{[-1, 1].flatMap(x => [-0.25, 0.12].map(z => box(`window-${x}-${z}`, [0.018, 0.25, 0.17], [x * 0.486, 0.7, z], '#334951')))}{[-1, 1].flatMap(x => [-0.31, 0.31].map(z => <mesh key={`wheel-${x}-${z}`} position={[x * 0.46, 0.17, z]} rotation={[0, 0, Math.PI / 2]} scale={[1, 1, item.heightM / item.depthM]} castShadow><cylinderGeometry args={[0.13, 0.13, 0.12, 24]} /><meshStandardMaterial color='#252b2c' /></mesh>))}{box('door', [0.018, 0.6, 0.12], [0.488, 0.48, 0.31], '#c6c7bf')}</>; break
     case 'corner-sofa':
@@ -31,6 +38,7 @@ export function FurnitureModel({ item }: { item: InteriorItem }) {
     case 'car':
       model = <>{box('body', [0.94, 0.36, 0.93], [0, 0.39, 0], color, 0.13)}{box('cabin', [0.77, 0.35, 0.45], [0, 0.7, -0.025], '#35434a', 0.12)}{box('roof', [0.7, 0.075, 0.3], [0, 0.895, -0.03], color, 0.035)}{[-1, 1].flatMap((x) => [-1, 1].map((z) => cylinder(`wheel${x}${z}`, [x * 0.44, 0.25, z * 0.3], 0.17, 0.11, '#252b2c', true)))}{[-1, 1].map((x) => box(`light${x}`, [0.2, 0.075, 0.02], [x * 0.29, 0.45, 0.459], '#f6edcf', 0.009))}{box('grille', [0.45, 0.12, 0.025], [0, 0.29, 0.46], '#333b3d')}{[-1, 1].map((x) => box(`tail${x}`, [0.23, 0.07, 0.025], [x * 0.29, 0.43, -0.46], '#9b3934'))}</>; break
     case 'bathtub':
+    case 'compact-freestanding-bathtub':
       model = <>{box('tub', [0.98, 0.7, 0.98], [0, 0.42, 0], color, 0.16)}{box('inner', [0.75, 0.045, 0.8], [0, 0.79, 0], '#b6c8c7', 0.1)}{box('rim', [0.08, 0.12, 0.79], [-0.42, 0.78, 0], '#fcfaf3')}{box('tap', [0.04, 0.3, 0.04], [0.38, 0.75, -0.3], '#9ea9a9')}</>; break
     case 'toilet':
       model = <>{box('tank', [0.85, 0.65, 0.28], [0, 0.58, -0.33], color, 0.06)}{box('pedestal', [0.5, 0.42, 0.54], [0, 0.26, 0.06], color, 0.08)}{box('bowl', [0.9, 0.18, 0.7], [0, 0.52, 0.12], color, 0.08)}{box('seat', [0.68, 0.025, 0.47], [0, 0.625, 0.15], '#c5d3d0', 0.06)}</>; break
