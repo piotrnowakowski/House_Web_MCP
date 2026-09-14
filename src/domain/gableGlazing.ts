@@ -15,7 +15,7 @@ export function gableGlazingProfile(segment: RoofSegmentModel, side: 'min' | 'ma
   const storey = building?.storeys.find((s) => s.ref === segment.storeyRef)
   if (storey?.kneeWallHeightM !== undefined && building) {
     const along = segment.ridgeDirection === 'z' ? 'z' : 'x'
-    const face = along === 'z' ? (side === 'min' ? bounds.minZ : bounds.maxZ) : (side === 'min' ? bounds.minX : bounds.maxX)
+    const face = (along === 'z' ? (side === 'min' ? bounds.minZ : bounds.maxZ) : (side === 'min' ? bounds.minX : bounds.maxX)) + (side === 'min' ? 1 : -1) * (segment.gableRecess?.[side]?.depthM ?? 0)
     const across = along === 'z' ? 'x' : 'z'
     const walls = building.walls.filter((wall) => storey.wallRefs.includes(wall.ref) && Math.abs(wall.start[along] - face) < 0.01 && Math.abs(wall.end[along] - face) < 0.01 && Math.min(wall.start[across], wall.end[across]) < max && Math.max(wall.start[across], wall.end[across]) > min)
     claddingBase = Math.max(base, ...walls.map((wall) => wall.baseElevationM + wall.heightM))
@@ -27,7 +27,7 @@ export function gableGlazingProfile(segment: RoofSegmentModel, side: 'min' | 'ma
     if (!wall || !opening || wallLength(wall) === 0) return []
     const across = segment.ridgeDirection === 'z' ? 'x' : 'z'
     const along = across === 'x' ? 'z' : 'x'
-    const face = along === 'z' ? (side === 'min' ? bounds.minZ : bounds.maxZ) : (side === 'min' ? bounds.minX : bounds.maxX)
+    const face = (along === 'z' ? (side === 'min' ? bounds.minZ : bounds.maxZ) : (side === 'min' ? bounds.minX : bounds.maxX)) + (side === 'min' ? 1 : -1) * (segment.gableRecess?.[side]?.depthM ?? 0)
     if (Math.abs(wall.start[along] - face) > 0.01 || Math.abs(wall.end[along] - face) > 0.01) return []
     const midpoint = wall.start[across] + (wall.end[across] - wall.start[across]) * opening.offsetM / wallLength(wall)
     return [{ left: midpoint - opening.widthM / 2, right: midpoint + opening.widthM / 2, dividedDoor: opening.kind === 'door' && Boolean(opening.glazed), divisions: opening.mullionFractions, hostRef: opening.ref, connected: Boolean(glazing.continuousWithHost && glazing.shape !== 'triangle' && Math.abs(wall.baseElevationM + opening.sillM + opening.heightM - claddingBase) < 0.001) }]

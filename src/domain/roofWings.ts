@@ -62,14 +62,17 @@ export const gableWallsForBuilding = (building: BuildingModel): GableWallSurface
   const axis = wing.ridgeAxis === 'z' ? 'z' : 'x'
   const values = wing.footprint.map((point) => point[axis])
   const junction = gableRoofJunction(building, wing)
-  return ([['min', Math.min(...values)], ['max', Math.max(...values)]] as const).filter(([side]) => side !== junction?.side).map(([side, value]) => ({
-    ref: `${wing.ref}/gable-wall/${side}`,
-    segmentRef: wing.ref,
-    side,
-    axis,
-    value,
-    supportingWallRef: gableEndWall(building, wing, axis, value)?.ref,
-  }))
+  return ([['min', Math.min(...values)], ['max', Math.max(...values)]] as const).filter(([side]) => side !== junction?.side).map(([side, edge]) => {
+    const value = edge + (side === 'min' ? 1 : -1) * (building.roof.segments.find(s => s.ref === wing.ref)?.gableRecess?.[side]?.depthM ?? 0)
+    return {
+      ref: `${wing.ref}/gable-wall/${side}`,
+      segmentRef: wing.ref,
+      side,
+      axis,
+      value,
+      supportingWallRef: gableEndWall(building, wing, axis, value)?.ref,
+    }
+  })
 })
 
 export const roofRidgeElevation = (building: BuildingModel) => Math.max(building.roof.baseElevationM, ...roofWings(building).map((wing) => wing.ridgeElevationM))

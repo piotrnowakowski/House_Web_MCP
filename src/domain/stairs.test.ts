@@ -1,5 +1,5 @@
 import { expect, it } from 'vitest'
-import current from '../../project-data/zielonki-rear-carport/project.json'
+import current from '../../project-data/zielonki-rear-carport/before-recessed-terrace-r92.json'
 import furnished from '../../project-data/zielonki-rear-carport/proposed-u-stairs-r81.json'
 import previous from '../../project-data/zielonki-rear-carport/before-u-stairs-r50.json'
 import { parseProject } from './schema'

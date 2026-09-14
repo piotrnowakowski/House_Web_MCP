@@ -732,7 +732,9 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
     </>}
     {ends.map((value, index) => {
       if (junction?.side === (index === 0 ? 'min' : 'max')) return null
-      const outward = index === 0 ? -1 : 1; const offset = value + outward * 0.02; const frameOffset = value + outward * 0.06
+      const outward = index === 0 ? -1 : 1
+      value -= outward * (segment.gableRecess?.[index === 0 ? 'min' : 'max']?.depthM ?? 0)
+      const offset = value + outward * 0.02; const frameOffset = value + outward * 0.06
       const wall = gableEndWall(building, wing, alongZ ? 'z' : 'x', value)
       const gableWall = gableWallsForBuilding(building).find((gable) => gable.segmentRef === wing.ref && gable.side === (index === 0 ? 'min' : 'max'))!
       const finish = resolveGableWallFinish(building, gableWall); const texture = resolveWallTexture(finish); const surface = wallSurface[finish.material]
@@ -764,6 +766,34 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
           return <mesh key={mullionIndex} position={at((alongZ ? cx : cz) + mullion, base + height / 2, frameOffset)}><boxGeometry args={alongZ ? [0.075, height, 0.1] : [0.1, height, 0.075]} />{frameMaterial}</mesh>
         })}
         {glass && <mesh position={at(alongZ ? cx : cz, base, frameOffset)}><boxGeometry args={alongZ ? [span, 0.09, 0.1] : [0.1, 0.09, span]} />{frameMaterial}</mesh>}
+      </group>
+    })}
+    {(['min', 'max'] as const).map(side => {
+      const recess = segment.gableRecess?.[side]
+      if (!recess || junction?.side === side) return null
+      const edge = side === 'min' ? ends[0] : ends[1]
+      const center = edge + (side === 'min' ? 1 : -1) * recess.depthM / 2
+      const at = (across: number, y: number): [number, number, number] => alongZ ? [across, y, center] : [center, y, across]
+      const middle = alongZ ? cx : cz
+      return <group key={`recess-${side}`} userData={{ semanticRef: `${segment.ref}/recess/${side}` }}>
+        <mesh position={at(middle, recess.baseElevationM + .015)} receiveShadow>
+          <boxGeometry args={alongZ ? [span, .06, recess.depthM] : [recess.depthM, .06, span]} />
+          <meshStandardMaterial color={recess.soffitColorHex} roughness={.9} />
+        </mesh>
+        {Array.from({ length: Math.floor(span / .15) }, (_, i) => <mesh key={`deck-joint-${i}`} position={at(middle - span / 2 + (i + 1) * .15, recess.baseElevationM + .047)}>
+          <boxGeometry args={alongZ ? [.006, .003, recess.depthM] : [recess.depthM, .003, .006]} />
+          <meshStandardMaterial color="#796048" roughness={1} />
+        </mesh>)}
+        {[-1, 1].map(sign => <group key={sign}>
+          <mesh position={at(middle + sign * span / 4, (base + ridge) / 2 - .14)} rotation={alongZ ? [0, 0, -sign * pitch] : [sign * pitch, 0, 0]} receiveShadow>
+            <boxGeometry args={alongZ ? [span / 2 / Math.cos(pitch), .04, recess.depthM] : [recess.depthM, .04, span / 2 / Math.cos(pitch)]} />
+            <meshStandardMaterial color={recess.soffitColorHex} roughness={.85} />
+          </mesh>
+          <mesh position={at(middle + sign * span / 2, (base + recess.baseElevationM) / 2)} castShadow receiveShadow>
+            <boxGeometry args={alongZ ? [.2, base - recess.baseElevationM, recess.depthM] : [recess.depthM, base - recess.baseElevationM, .2]} />
+            <meshStandardMaterial color={recess.soffitColorHex} roughness={.85} />
+          </mesh>
+        </group>)}
       </group>
     })}
     {segment.gableFrame && (['min', 'max'] as const).filter((side) => side !== junction?.side).map((side) =>

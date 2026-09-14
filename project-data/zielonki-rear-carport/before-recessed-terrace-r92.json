@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-carport",
   "name": "Z garażem za domem przy sąsiadach",
   "units": "metric",
-  "revision": 98,
-  "updatedAt": "2026-09-14T11:19:52.902Z",
+  "revision": 92,
+  "updatedAt": "2026-09-12T13:20:58.014Z",
   "site": {
     "boundary": [
       {
@@ -1821,7 +1821,7 @@
           "storeyRef": "storey/reference-ground",
           "name": "Szafka kuchenna",
           "position": {
-            "x": -4.57,
+            "x": -3.57,
             "z": -5.975
           },
           "widthM": 0.95,
@@ -1836,7 +1836,7 @@
           "storeyRef": "storey/reference-ground",
           "name": "Zlew kuchenny",
           "position": {
-            "x": -4.57,
+            "x": -3.57,
             "z": -5.025
           },
           "widthM": 0.95,
@@ -1851,7 +1851,7 @@
           "storeyRef": "storey/reference-ground",
           "name": "Blat kuchenny",
           "position": {
-            "x": -4.57,
+            "x": -3.57,
             "z": -3.615
           },
           "widthM": 1.84,
@@ -1866,7 +1866,7 @@
           "storeyRef": "storey/reference-ground",
           "name": "Lodówka",
           "position": {
-            "x": -4.57,
+            "x": -3.57,
             "z": -2.275
           },
           "widthM": 0.84,
@@ -1911,8 +1911,8 @@
           "storeyRef": "storey/reference-ground",
           "name": "Toilet",
           "position": {
-            "x": -4.45,
-            "z": 3.0
+            "x": -3.45,
+            "z": 3.25
           },
           "widthM": 0.45,
           "depthM": 0.7,
@@ -1926,7 +1926,7 @@
           "storeyRef": "storey/reference-ground",
           "name": "Vanity",
           "position": {
-            "x": -2.9,
+            "x": -1.75,
             "z": 2.35
           },
           "widthM": 0.85,
@@ -1941,8 +1941,8 @@
           "storeyRef": "storey/reference-ground",
           "name": "Washer",
           "position": {
-            "x": -4.45,
-            "z": 4.1
+            "x": -3.45,
+            "z": 4.6
           },
           "widthM": 0.6,
           "depthM": 0.65,
@@ -1957,7 +1957,7 @@
           "name": "Utility storage",
           "position": {
             "x": -2.75,
-            "z": 5.45
+            "z": 6.45
           },
           "widthM": 2,
           "depthM": 0.6,
@@ -1972,7 +1972,7 @@
           "name": "Shower",
           "position": {
             "x": -1.685,
-            "z": 3.0000000000000004
+            "z": 3.2500000000000004
           },
           "widthM": 0.9,
           "depthM": 0.9,
@@ -1986,7 +1986,7 @@
           "storeyRef": "storey/reference-ground",
           "name": "Szafka RTV i telewizor",
           "position": {
-            "x": 1.9,
+            "x": 2.9,
             "z": -6.199999999999996
           },
           "widthM": 3.35,
@@ -2001,7 +2001,7 @@
           "storeyRef": "storey/reference-ground",
           "name": "Stół i sześć krzeseł",
           "position": {
-            "x": 2,
+            "x": 3,
             "z": -1.1
           },
           "widthM": 2,
@@ -2061,7 +2061,7 @@
           "storeyRef": "storey/reference-ground",
           "name": "Narożnik turkusowy",
           "position": {
-            "x": 1.5000000000000004,
+            "x": 2.5000000000000004,
             "z": -4
           },
           "widthM": 3.45,
@@ -2189,15 +2189,15 @@
           "ref": "slab/reference-ground",
           "footprint": [
             {
-              "x": -5.095,
+              "x": -4.095,
               "z": -6.655
             },
             {
-              "x": 4.595,
+              "x": 5.595,
               "z": -6.655
             },
             {
-              "x": 4.595,
+              "x": 5.595,
               "z": 1.095
             },
             {
@@ -2206,11 +2206,11 @@
             },
             {
               "x": 2.185,
-              "z": 5.985
+              "z": 6.985
             },
             {
-              "x": -5.095,
-              "z": 5.985
+              "x": -4.095,
+              "z": 6.985
             }
           ],
           "topElevationM": 0.45,
@@ -2221,15 +2221,15 @@
           "ref": "slab/reference-upper",
           "footprint": [
             {
-              "x": -5.095,
+              "x": -4.095,
               "z": -6.655
             },
             {
-              "x": 4.685,
+              "x": 5.685,
               "z": -6.655
             },
             {
-              "x": 4.685,
+              "x": 5.685,
               "z": 1.095
             },
             {
@@ -2238,11 +2238,11 @@
             },
             {
               "x": 2.185,
-              "z": 5.985
+              "z": 6.985
             },
             {
-              "x": -5.095,
-              "z": 5.985
+              "x": -4.095,
+              "z": 6.985
             }
           ],
           "holes": [
@@ -2270,11 +2270,11 @@
                 "z": -6.455
               },
               {
-                "x": 4.484999999999999,
+                "x": 5.484999999999999,
                 "z": -6.455
               },
               {
-                "x": 4.485,
+                "x": 5.485,
                 "z": 0.8949999999999987
               },
               {
@@ -2294,37 +2294,13 @@
           "topElevationM": 3.45,
           "thicknessM": 0.2,
           "locked": false
-        },
-        {
-          "ref": "slab/recessed-terrace",
-          "footprint": [
-            {
-              "x": 4.595,
-              "z": -6.655
-            },
-            {
-              "x": 5.685,
-              "z": -6.655
-            },
-            {
-              "x": 5.685,
-              "z": 1.095
-            },
-            {
-              "x": 4.595,
-              "z": 1.095
-            }
-          ],
-          "topElevationM": 0.43,
-          "thicknessM": 0.18,
-          "locked": false
         }
       ],
       "walls": [
         {
           "ref": "wall/reference-upper/1",
           "start": {
-            "x": -4.995,
+            "x": -3.995,
             "z": -6.555
           },
           "end": {
@@ -2339,7 +2315,7 @@
               "ref": "roof/reference/front-barn/glazing-upper",
               "kind": "window",
               "wallRef": "wall/reference-upper/1",
-              "offsetM": 2.7936,
+              "offsetM": 1.7936,
               "widthM": 2.4928,
               "heightM": 1.3199999999999998,
               "sillM": 0.08,
@@ -2383,7 +2359,7 @@
             "z": -1.855
           },
           "end": {
-            "x": -4.995,
+            "x": -3.995,
             "z": -1.855
           },
           "thicknessM": 0.2,
@@ -2410,11 +2386,11 @@
         {
           "ref": "wall/reference-upper/4",
           "start": {
-            "x": -4.995,
+            "x": -3.995,
             "z": -1.855
           },
           "end": {
-            "x": -4.995,
+            "x": -3.995,
             "z": -6.555
           },
           "thicknessM": 0.2,
@@ -2434,7 +2410,7 @@
             "z": -6.555
           },
           "end": {
-            "x": 4.585,
+            "x": 5.585,
             "z": -6.555
           },
           "thicknessM": 0.2,
@@ -2450,11 +2426,11 @@
         {
           "ref": "wall/reference-upper/6",
           "start": {
-            "x": 4.585,
+            "x": 5.585,
             "z": -6.555
           },
           "end": {
-            "x": 4.585,
+            "x": 5.585,
             "z": 0.995
           },
           "thicknessM": 0.2,
@@ -2497,7 +2473,7 @@
         {
           "ref": "wall/reference-upper/7",
           "start": {
-            "x": 4.585,
+            "x": 5.585,
             "z": 0.995
           },
           "end": {
@@ -2687,7 +2663,7 @@
             "z": 0.565
           },
           "end": {
-            "x": -4.995,
+            "x": -3.995,
             "z": 0.565
           },
           "thicknessM": 0.2,
@@ -2704,11 +2680,11 @@
         {
           "ref": "wall/reference-upper/15",
           "start": {
-            "x": -4.995,
+            "x": -3.995,
             "z": 0.565
           },
           "end": {
-            "x": -4.995,
+            "x": -3.995,
             "z": -1.855
           },
           "thicknessM": 0.2,
@@ -2728,7 +2704,7 @@
             "z": 4.115
           },
           "end": {
-            "x": -4.995,
+            "x": -3.995,
             "z": 4.115
           },
           "thicknessM": 0.2,
@@ -2745,11 +2721,11 @@
         {
           "ref": "wall/reference-upper/17",
           "start": {
-            "x": -4.995,
+            "x": -3.995,
             "z": 4.115
           },
           "end": {
-            "x": -4.995,
+            "x": -3.995,
             "z": 0.565
           },
           "thicknessM": 0.2,
@@ -2811,7 +2787,7 @@
           },
           "end": {
             "x": -0.965,
-            "z": 5.885
+            "z": 6.885
           },
           "thicknessM": 0.32,
           "baseElevationM": 3.45,
@@ -2828,11 +2804,11 @@
           "ref": "wall/reference-upper/21",
           "start": {
             "x": -0.965,
-            "z": 5.885
+            "z": 6.885
           },
           "end": {
-            "x": -4.995,
-            "z": 5.885
+            "x": -3.995,
+            "z": 6.885
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -2858,11 +2834,11 @@
         {
           "ref": "wall/reference-upper/22",
           "start": {
-            "x": -4.995,
-            "z": 5.885
+            "x": -3.995,
+            "z": 6.885
           },
           "end": {
-            "x": -4.995,
+            "x": -3.995,
             "z": 4.115
           },
           "thicknessM": 0.2,
@@ -2883,7 +2859,7 @@
           },
           "end": {
             "x": 2.085,
-            "z": 5.885
+            "z": 6.885
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -2899,11 +2875,11 @@
           "ref": "wall/reference-upper/24",
           "start": {
             "x": 2.085,
-            "z": 5.885
+            "z": 6.885
           },
           "end": {
             "x": -0.965,
-            "z": 5.885
+            "z": 6.885
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.45,
@@ -2950,11 +2926,11 @@
         {
           "ref": "wall/reference-ground/1",
           "start": {
-            "x": -4.995,
+            "x": -3.995,
             "z": -6.555
           },
           "end": {
-            "x": 4.495,
+            "x": 5.495,
             "z": -6.555
           },
           "thicknessM": 0.2,
@@ -2965,7 +2941,7 @@
               "ref": "opening/reference-terrace-north",
               "kind": "window",
               "wallRef": "wall/reference-ground/1",
-              "offsetM": 2.7936,
+              "offsetM": 1.7936,
               "widthM": 2.4928,
               "heightM": 2.8,
               "sillM": 0,
@@ -2984,11 +2960,11 @@
         {
           "ref": "wall/reference-ground/2",
           "start": {
-            "x": 4.495,
+            "x": 5.495,
             "z": -6.555
           },
           "end": {
-            "x": 4.495,
+            "x": 5.495,
             "z": 0.995
           },
           "thicknessM": 0.2,
@@ -3031,7 +3007,7 @@
         {
           "ref": "wall/carport-layout/ground/3",
           "start": {
-            "x": 4.495,
+            "x": 5.495,
             "z": 0.995
           },
           "end": {
@@ -3106,7 +3082,7 @@
             "z": 1.915
           },
           "end": {
-            "x": -4.995,
+            "x": -3.995,
             "z": 1.915
           },
           "thicknessM": 0.2,
@@ -3133,11 +3109,11 @@
         {
           "ref": "wall/carport-layout/ground/8",
           "start": {
-            "x": -4.995,
+            "x": -3.995,
             "z": 1.915
           },
           "end": {
-            "x": -4.995,
+            "x": -3.995,
             "z": -6.555
           },
           "thicknessM": 0.2,
@@ -3169,7 +3145,7 @@
           },
           "end": {
             "x": -1.13,
-            "z": 3.575
+            "z": 4.075
           },
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
@@ -3185,11 +3161,11 @@
           "ref": "wall/carport-layout/ground/10",
           "start": {
             "x": -1.13,
-            "z": 3.575
+            "z": 4.075
           },
           "end": {
-            "x": -4.995,
-            "z": 3.575
+            "x": -3.995,
+            "z": 4.075
           },
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
@@ -3204,11 +3180,11 @@
         {
           "ref": "wall/carport-layout/ground/11",
           "start": {
-            "x": -4.995,
-            "z": 3.575
+            "x": -3.995,
+            "z": 4.075
           },
           "end": {
-            "x": -4.995,
+            "x": -3.995,
             "z": 1.915
           },
           "thicknessM": 0.2,
@@ -3225,11 +3201,11 @@
           "ref": "wall/carport-layout/ground/12",
           "start": {
             "x": -1.13,
-            "z": 3.575
+            "z": 4.075
           },
           "end": {
             "x": -1.13,
-            "z": 5.885
+            "z": 6.885
           },
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
@@ -3245,11 +3221,11 @@
           "ref": "wall/carport-layout/ground/13",
           "start": {
             "x": -1.13,
-            "z": 5.885
+            "z": 6.885
           },
           "end": {
-            "x": -4.995,
-            "z": 5.885
+            "x": -3.995,
+            "z": 6.885
           },
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
@@ -3264,12 +3240,12 @@
         {
           "ref": "wall/carport-layout/ground/14",
           "start": {
-            "x": -4.995,
-            "z": 5.885
+            "x": -3.995,
+            "z": 6.885
           },
           "end": {
-            "x": -4.995,
-            "z": 3.575
+            "x": -3.995,
+            "z": 4.075
           },
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
@@ -3301,7 +3277,7 @@
           },
           "end": {
             "x": 2.085,
-            "z": 5.885
+            "z": 6.885
           },
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
@@ -3328,11 +3304,11 @@
           "ref": "wall/carport-layout/ground/16",
           "start": {
             "x": 2.085,
-            "z": 5.885
+            "z": 6.885
           },
           "end": {
             "x": -1.13,
-            "z": 5.885
+            "z": 6.885
           },
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
@@ -3408,7 +3384,7 @@
               "ref": "opening/stair-storage",
               "kind": "door",
               "wallRef": "wall/stair-enclosure/storage-end",
-              "offsetM": 0.51,
+              "offsetM": 0.535,
               "widthM": 0.8,
               "heightM": 2,
               "sillM": 0,
@@ -3735,11 +3711,11 @@
         "ref": "roof/reference",
         "type": "gable",
         "baseElevationM": 4.85,
-        "pitchDegrees": 39.66864783014045,
+        "pitchDegrees": 44,
         "overhangM": 0,
         "footprint": [
           {
-            "x": -4.995,
+            "x": -3.995,
             "z": -6.555
           },
           {
@@ -3756,11 +3732,11 @@
           },
           {
             "x": 2.085,
-            "z": 5.885
+            "z": 6.885
           },
           {
-            "x": -4.995,
-            "z": 5.885
+            "x": -3.995,
+            "z": 6.885
           }
         ],
         "finish": {
@@ -3772,7 +3748,7 @@
             "ref": "roof/reference/rear-barn",
             "footprint": [
               {
-                "x": -1.455,
+                "x": -0.9550000000000001,
                 "z": -6.555
               },
               {
@@ -3784,7 +3760,7 @@
                 "z": 0.995
               },
               {
-                "x": -1.455,
+                "x": -0.9550000000000001,
                 "z": 0.995
               }
             ],
@@ -3827,20 +3803,13 @@
                 ],
                 "continuousWithHost": true
               }
-            },
-            "gableRecess": {
-              "max": {
-                "depthM": 1,
-                "baseElevationM": 0.45,
-                "soffitColorHex": "#B78F60"
-              }
             }
           },
           {
             "ref": "roof/reference/front-barn",
             "footprint": [
               {
-                "x": -4.995,
+                "x": -3.995,
                 "z": -6.555
               },
               {
@@ -3849,17 +3818,17 @@
               },
               {
                 "x": 2.085,
-                "z": 5.885
+                "z": 6.885
               },
               {
-                "x": -4.995,
-                "z": 5.885
+                "x": -3.995,
+                "z": 6.885
               }
             ],
             "storeyRef": "storey/reference-upper",
             "baseElevationM": 4.85,
             "type": "gable",
-            "pitchDegrees": 39.66864783014045,
+            "pitchDegrees": 44,
             "overhangM": 0,
             "ridgeDirection": "z",
             "finish": {
@@ -3923,11 +3892,11 @@
               },
               {
                 "x": 5.585,
-                "z": 5.925000000000001
+                "z": 6.925000000000001
               },
               {
                 "x": 2.085,
-                "z": 5.925000000000001
+                "z": 6.925000000000001
               }
             ],
             "baseElevationM": 2.86,
@@ -3963,11 +3932,11 @@
                 },
                 {
                   "x": 5.455,
-                  "z": 5.795
+                  "z": 6.795
                 },
                 {
                   "x": 2.215,
-                  "z": 5.795
+                  "z": 6.795
                 }
               ],
               "slats": {
@@ -3998,7 +3967,7 @@
           "storeyRef": "storey/carport",
           "name": "Car 1 · 1.90 × 4.70 m",
           "position": {
-            "x": -10.54925,
+            "x": -10.495,
             "z": -3.355
           },
           "widthM": 1.9,
@@ -4013,7 +3982,7 @@
           "storeyRef": "storey/carport",
           "name": "Car 2 · 1.90 × 4.70 m",
           "position": {
-            "x": -7.97975,
+            "x": -7.295,
             "z": -3.355
           },
           "widthM": 1.9,
@@ -4052,19 +4021,19 @@
           "ref": "slab/carport",
           "footprint": [
             {
-              "x": -11.834,
+              "x": -12.095,
               "z": -6.555
             },
             {
-              "x": -6.695,
+              "x": -5.695,
               "z": -6.555
             },
             {
-              "x": -6.695,
+              "x": -5.695,
               "z": -0.155
             },
             {
-              "x": -11.834,
+              "x": -12.095,
               "z": -0.155
             }
           ],
@@ -4085,19 +4054,19 @@
         "overhangM": 0,
         "footprint": [
           {
-            "x": -11.834,
+            "x": -12.095,
             "z": -6.555
           },
           {
-            "x": -6.695,
+            "x": -5.695,
             "z": -6.555
           },
           {
-            "x": -6.695,
+            "x": -5.695,
             "z": -0.155
           },
           {
-            "x": -11.834,
+            "x": -12.095,
             "z": -0.155
           }
         ],
@@ -4110,19 +4079,19 @@
             "ref": "roof/carport/south",
             "footprint": [
               {
-                "x": -11.834,
+                "x": -12.095,
                 "z": -6.555
               },
               {
-                "x": -6.695,
+                "x": -5.695,
                 "z": -6.555
               },
               {
-                "x": -6.695,
+                "x": -5.695,
                 "z": -0.155
               },
               {
-                "x": -11.834,
+                "x": -12.095,
                 "z": -0.155
               }
             ],
@@ -4151,19 +4120,19 @@
               "postBaseElevationM": 0.45,
               "posts": [
                 {
-                  "x": -11.674,
+                  "x": -11.935,
                   "z": -6.395
                 },
                 {
-                  "x": -11.674,
+                  "x": -11.935,
                   "z": -0.315
                 },
                 {
-                  "x": -6.855,
+                  "x": -5.855,
                   "z": -6.395
                 },
                 {
-                  "x": -6.855,
+                  "x": -5.855,
                   "z": -0.315
                 }
               ]

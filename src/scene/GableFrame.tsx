@@ -14,7 +14,7 @@ export function GableFrame({ building, segment, side, selected, ghost }: {
     const alongZ = segment.ridgeDirection === 'z'; const across = alongZ ? 'x' : 'z'; const along = alongZ ? 'z' : 'x'
     const min = alongZ ? bounds.minX : bounds.minZ; const max = alongZ ? bounds.maxX : bounds.maxZ
     const value = alongZ ? (side === 'min' ? bounds.minZ : bounds.maxZ) : (side === 'min' ? bounds.minX : bounds.maxX)
-    const walls = building.walls.filter((w) => Math.abs(w.start[along] - value) < 0.05 && Math.abs(w.end[along] - value) < 0.05
+    const walls = building.walls.filter((w) => Math.abs(w.start[along] - (value + (side === 'min' ? 1 : -1) * (segment.gableRecess?.[side]?.depthM ?? 0))) < 0.05 && Math.abs(w.end[along] - (value + (side === 'min' ? 1 : -1) * (segment.gableRecess?.[side]?.depthM ?? 0))) < 0.05
       && Math.max(w.start[across], w.end[across]) > min && Math.min(w.start[across], w.end[across]) < max)
     const bottom = walls.length ? Math.min(...walls.map((w) => w.baseElevationM)) : segment.baseElevationM
     const halfWall = walls.length ? Math.max(...walls.map((w) => w.thicknessM)) / 2 : 0.1

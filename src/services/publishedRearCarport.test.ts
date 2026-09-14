@@ -3,6 +3,7 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import source from '../../project-data/zielonki-v2/before-road-carport-r49.json'
 import data from '../../project-data/zielonki-rear-carport/project.json'
+import previousPublished from '../../project-data/zielonki-rear-carport/before-recessed-terrace-r92.json'
 import baseline from '../../project-data/zielonki-rear-carport/initial-r49.json'
 import front from '../../project-data/zielonki-v2/before-facade-windows-r70.json'
 import compact from '../../project-data/zielonki-rear-carport/before-u-stairs-r50.json'
@@ -11,7 +12,7 @@ import { validateProject } from '../domain/commands'
 import { buildingFootprintsWorld, distanceToSegment } from '../domain/geometry'
 import { mergeProjects } from '../domain/projectMerge'
 import { publishedProject } from './publishedProject'
-import { loadWorkspace, listWorkspaces, saveWorkspace } from './persistence'
+import { loadWorkspace, listWorkspaces, saveWorkspace, synchronizePublishedProject } from './persistence'
 import { REAR_CARPORT_STUDY_REF, synchronizePublishedRearCarport } from './publishedRearCarport'
 import { groupWorkspaces } from './workspaceGroups'
 import { openHouseStudy, HOUSE_STUDY_REF, CARPORT_STUDY_REF } from './houseStudies'
@@ -48,17 +49,17 @@ it('migrates r49 with independent edits and deletions and preserves conflicting 
   local.name = 'My rear garage'
   local.buildings[1].furniture!.pop()
   await saveWorkspace({ version: 1, project: local, proposals: [], draftChangeSets: [] })
-  expect(await synchronizePublishedRearCarport()).toEqual([])
+  expect(await synchronizePublishedProject(parseProject(previousPublished), parseProject(baseline))).toEqual([])
   const saved = (await loadWorkspace(REAR_CARPORT_STUDY_REF))!.project
   expect(saved.name).toBe(local.name)
-  expect(saved.buildings[0].walls).toEqual(data.buildings[0].walls)
+  expect(saved.buildings[0].walls).toEqual(previousPublished.buildings[0].walls)
   expect(saved.buildings[1].furniture).toEqual(local.buildings[1].furniture)
   expect(saved.buildings[0].walls.flatMap((wall) => wall.openings).some((opening) => opening.ref === 'opening/reference-pantry')).toBe(false)
-  expect(await synchronizePublishedRearCarport()).toEqual([])
+  expect(await synchronizePublishedProject(parseProject(previousPublished), parseProject(baseline))).toEqual([])
   expect((await loadWorkspace(REAR_CARPORT_STUDY_REF))!.project).toEqual(saved)
   const editedWall = local.buildings[0].walls.find((wall) => wall.ref === 'wall/carport-layout/ground/8')!
   editedWall.start.x += .2
-  const result = mergeProjects(parseProject(baseline), local, parseProject(data))
+  const result = mergeProjects(parseProject(baseline), local, parseProject(previousPublished))
   expect(result.conflicts.some((path) => path.includes(editedWall.ref))).toBe(true)
   expect(result.project.buildings[0].walls.find((wall) => wall.ref === editedWall.ref)!.start.x).toBe(editedWall.start.x)
 })
