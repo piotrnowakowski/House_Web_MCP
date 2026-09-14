@@ -112,3 +112,7 @@ Projects r53/r71/r92 contain the four front openings and aligned kitchen/bedroom
 User authorized commit, push and Mikrus deployment of the resized rear-carport study r98. Original/front remain r53/r71. The rear roof pitches are now 39.6686478301 and 37.8710376967 degrees with the shared 7.7856938754 m ridge. The carport boundary clearance is 3.01051 m; the separate parking-to-window constraint remains documented in the rear project README.
 
 Pre-release capture: `tmp/recessed-terrace-release/` contains actual localhost and HTTPS IndexedDB exports, a stable capture of the actual Chrome Default HTTP-origin stores, and the comparison report. Local r99 matches canonical r98. Public r54/r72/r93 match the preceding r53/r71/r92 publication. Historical original-project conflicts and Chrome records are preserved, unchanged from the prior release. The two other canonical project files are unchanged. The 14 direct-manipulation/interior browser checks passed.
+
+## Symmetric upper-floor rooms — 2026-09-14
+
+Rear-carport r103 moves the U stair and slab opening against the left wall, narrows the living void by 1.2 m and adds two equal bedrooms with separate hall entrances and a shared bathroom. Original/front remain r53/r71. Previous rear publication r98 is retained in `before-symmetric-upper-r98.json`. Actual localhost, HTTPS and Chrome HTTP captures and comparison evidence are in `tmp/symmetric-upper-release/`. Unit tests (434), production build and the 14 browser manipulation/interior checks pass. User authorized this release on the house working branch only.
