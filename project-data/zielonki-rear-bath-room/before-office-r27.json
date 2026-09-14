@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-bath-room",
   "name": "GŁÓWNY Garaż za domem — łazienka w pokoju",
   "units": "metric",
-  "revision": 28,
-  "updatedAt": "2026-09-14T22:36:29.423Z",
+  "revision": 27,
+  "updatedAt": "2026-09-14T21:53:16.615Z",
   "site": {
     "boundary": [
       {
@@ -1891,90 +1891,19 @@
           "color": "#B88663"
         },
         {
-          "ref": "interior/office-c5/desk",
+          "ref": "interior/carport-study/desk",
           "catalogId": "desk",
           "storeyRef": "storey/reference-ground",
-          "name": "Biurko dębowe 170 × 80 cm",
+          "name": "Guest desk",
           "position": {
-            "x": 1.585,
-            "z": 4.72
+            "x": 1.675,
+            "z": 3.8
           },
-          "widthM": 1.7,
-          "depthM": 0.8,
+          "widthM": 1.4,
+          "depthM": 0.6,
           "heightM": 0.75,
           "rotationDegrees": 90,
-          "color": "#B78B5A",
-          "elevationM": 0
-        },
-        {
-          "ref": "interior/office-c5/monitor",
-          "catalogId": "brass-sconce",
-          "storeyRef": "storey/reference-ground",
-          "name": "Monitor ultrawide 49 cali · przy ścianie",
-          "position": {
-            "x": 1.84,
-            "z": 4.72
-          },
-          "widthM": 1.2,
-          "depthM": 0.28,
-          "heightM": 0.45,
-          "rotationDegrees": 90,
-          "color": "#202528",
-          "elevationM": 0.75
-        },
-        {
-          "ref": "interior/office-c5/chair",
-          "catalogId": "armchair",
-          "storeyRef": "storey/reference-ground",
-          "name": "IKEA JÄRVFJÄLLET",
-          "position": {
-            "x": 0.75,
-            "z": 4.72
-          },
-          "widthM": 0.68,
-          "depthM": 0.68,
-          "heightM": 1.4,
-          "rotationDegrees": 90,
-          "color": "#343737",
-          "productId": "jarvfjallet",
-          "variantId": "80510639",
-          "elevationM": 0
-        },
-        {
-          "ref": "interior/office-c5/sofa",
-          "catalogId": "sofa",
-          "storeyRef": "storey/reference-ground",
-          "name": "IKEA KIVIK",
-          "position": {
-            "x": -0.555,
-            "z": 3.72
-          },
-          "widthM": 2.28,
-          "depthM": 0.95,
-          "heightM": 0.83,
-          "rotationDegrees": 90,
-          "color": "#c5bcac",
-          "productId": "kivik-sofa",
-          "variantId": "89482830",
-          "elevationM": 0
-        },
-        {
-          "ref": "interior/office-c5/wardrobe",
-          "catalogId": "wardrobe",
-          "storeyRef": "storey/reference-ground",
-          "name": "IKEA PAX / FORSAND",
-          "position": {
-            "x": -0.48,
-            "z": 5.485
-          },
-          "widthM": 1,
-          "depthM": 0.6,
-          "heightM": 2.012,
-          "rotationDegrees": 0,
-          "color": "#eeeae3",
-          "productId": "pax",
-          "variantId": "49500652",
-          "elevationM": 0
+          "color": "#bda17a"
         },
         {
           "ref": "interior/carport-study/wc",
@@ -3571,12 +3500,12 @@
           "openings": [
             {
               "ref": "opening/reference-office-window",
-              "kind": "door",
+              "kind": "window",
               "wallRef": "wall/carport-layout/ground/15",
               "offsetM": 1.15,
               "widthM": 1.8,
-              "heightM": 2.3,
-              "sillM": 0,
+              "heightM": 1.5,
+              "sillM": 0.8,
               "glazed": true
             }
           ],
