@@ -121,7 +121,7 @@ def main() -> None:
             raise ValueError('This release includes sync; use --sync-api to preserve its runtime')
         if not (args.dist / "index.html").is_file():
             raise ValueError("Build the application before deploying")
-        expected_count = len(json.loads((args.dist / "models/interior/manifest.json").read_text())["products"])
+        expected_count = len(json.loads((args.dist / "models/interior/manifest.json").read_text(encoding="utf-8"))["products"])
         stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
         release = remote_dir + "/releases/" + args.revision
         image = project + ":" + args.revision
@@ -263,7 +263,7 @@ def main() -> None:
         write_remote(sftp, config["HOUSE_DEPLOY_PATH"] + "/deployment.txt",
                      "app=House_Web_MCP\nbranch=codex/deploy-furnished-zielonki\n"
                      + "\n".join(f"{key}={value}" for key, value in record.items()) + "\n")
-        Path("tmp/deployment-result.json").write_text(json.dumps(record, indent=2) + "\n")
+        Path("tmp/deployment-result.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
         LOG.info("Published %s at %s", args.revision, config["HOUSE_DEPLOY_URL"])
 
 
