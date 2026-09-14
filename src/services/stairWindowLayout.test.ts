@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
-import data from '../../project-data/zielonki-rear-carport/project.json'
+import data from '../../project-data/zielonki-rear-carport/before-left-bath-r114.json'
 import previous from '../../project-data/zielonki-rear-carport/before-stair-window-r110.json'
 import published from '../../project-data/zielonki-rear-carport/before-upper-reference-r103.json'
 import { parseProject } from '../domain/schema'
