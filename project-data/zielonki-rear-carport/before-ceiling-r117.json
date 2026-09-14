@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-carport",
   "name": "Z garażem za domem przy sąsiadach",
   "units": "metric",
-  "revision": 119,
-  "updatedAt": "2026-09-14T16:19:00.438978+00:00",
+  "revision": 117,
+  "updatedAt": "2026-09-14T14:57:00.883161Z",
   "site": {
     "boundary": [
       {
@@ -2200,9 +2200,9 @@
             "x": -4.865,
             "z": -2.435
           },
-          "runM": 1.88,
+          "runM": 1.75,
           "widthM": 0.89,
-          "steps": 18,
+          "steps": 16,
           "uTurn": {
             "landingDepthM": 0.9,
             "gapM": 0.1
@@ -2261,7 +2261,7 @@
           "ref": "storey/reference-upper",
           "name": "Piętro",
           "level": 1,
-          "elevationM": 3.75,
+          "elevationM": 3.45,
           "clearHeightM": 2.8,
           "baseSlabRef": "slab/reference-upper",
           "topBoundaryRef": "roof/reference",
@@ -2374,11 +2374,11 @@
                 "z": -2.445
               },
               {
-                "x": -2.075,
+                "x": -2.205,
                 "z": -2.445
               },
               {
-                "x": -2.075,
+                "x": -2.205,
                 "z": -0.525
               },
               {
@@ -2413,8 +2413,8 @@
               }
             ]
           ],
-          "topElevationM": 3.75,
-          "thicknessM": 0.5,
+          "topElevationM": 3.45,
+          "thicknessM": 0.2,
           "locked": false
         },
         {
@@ -2454,7 +2454,7 @@
             "z": -6.555
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 1.4,
           "openings": [
             {
@@ -2488,7 +2488,7 @@
             "z": -2.555
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [
             {
@@ -2521,7 +2521,7 @@
             "z": -6.555
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 1.4,
           "openings": [],
           "finish": {
@@ -2541,7 +2541,7 @@
             "z": -6.555
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 1.4,
           "openings": [],
           "finish": {
@@ -2561,7 +2561,7 @@
             "z": 0.995
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 1.4,
           "openings": [
             {
@@ -2608,7 +2608,7 @@
             "z": 0.995
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 1.4,
           "openings": [],
           "finish": {
@@ -2628,7 +2628,7 @@
             "z": 0.995
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -2649,7 +2649,7 @@
             "z": -2.555
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -2670,7 +2670,7 @@
             "z": 1.495
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [
             {
@@ -2703,7 +2703,7 @@
             "z": -2.555
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 1.4,
           "openings": [],
           "finish": {
@@ -2723,7 +2723,7 @@
             "z": 1.495
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -2744,7 +2744,7 @@
             "z": -0.405
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -2765,7 +2765,7 @@
             "z": 5.885
           },
           "thicknessM": 0.32,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -2786,7 +2786,7 @@
             "z": 5.885
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.2,
           "openings": [
             {
@@ -2817,7 +2817,7 @@
             "z": 1.495
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 1.4,
           "openings": [],
           "finish": {
@@ -2837,7 +2837,7 @@
             "z": 5.885
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 1.4,
           "openings": [],
           "finish": {
@@ -2857,7 +2857,7 @@
             "z": 5.885
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.2,
           "openings": [
             {
@@ -3363,7 +3363,7 @@
             "z": 2.495
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [
             {
@@ -3396,7 +3396,7 @@
             "z": -2.555
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -3417,7 +3417,7 @@
             "z": -2.555
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -3438,7 +3438,7 @@
             "z": -2.555
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [
             {
@@ -3471,7 +3471,7 @@
             "z": 2.495
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [
             {
@@ -3504,7 +3504,7 @@
             "z": 2.495
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -3525,7 +3525,7 @@
             "z": 2.495
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -3546,12 +3546,13 @@
             "z": -6.555
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 1.4,
           "openings": [],
           "finish": {
-            "material": "charred-timber",
-            "colorHex": "#242927"
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -3566,7 +3567,7 @@
             "z": 0.995
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -3587,12 +3588,13 @@
             "z": -0.405
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.75,
+          "baseElevationM": 3.45,
           "heightM": 2.8,
           "openings": [],
           "finish": {
-            "material": "charred-timber",
-            "colorHex": "#242927"
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
           },
           "locked": false
         }
@@ -3928,7 +3930,7 @@
       "roof": {
         "ref": "roof/reference",
         "type": "gable",
-        "baseElevationM": 5.15,
+        "baseElevationM": 4.85,
         "pitchDegrees": 39.66864783014045,
         "overhangM": 0,
         "footprint": [
@@ -3983,7 +3985,7 @@
               }
             ],
             "storeyRef": "storey/reference-upper",
-            "baseElevationM": 5.15,
+            "baseElevationM": 4.85,
             "type": "gable",
             "pitchDegrees": 37.87103769668754,
             "overhangM": 0,
@@ -4051,7 +4053,7 @@
               }
             ],
             "storeyRef": "storey/reference-upper",
-            "baseElevationM": 5.15,
+            "baseElevationM": 4.85,
             "type": "gable",
             "pitchDegrees": 39.66864783014045,
             "overhangM": 0,
@@ -4088,8 +4090,8 @@
                 ],
                 "continuousWithHost": true,
                 "transomElevationsM": [
-                  5.95,
-                  7.1
+                  5.65,
+                  6.8
                 ]
               },
               "max": {
@@ -6093,7 +6095,7 @@
         "name": "Kosze do segregacji przy drodze",
         "position": {
           "x": -17.65,
-          "z": -13.357716900980687
+          "z": 7.8
         },
         "rotationDegrees": 86.93072917518555,
         "locked": false

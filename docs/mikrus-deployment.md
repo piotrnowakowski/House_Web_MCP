@@ -120,3 +120,8 @@ Rear-carport r103 moves the U stair and slab opening against the left wall, narr
 ## Window-aligned upper-floor layout — 2026-09-14
 
 Rear-carport r114 moves the stairs and opening 70 cm toward the shortened kitchen, aligns a northeast wardrobe beyond the marked bedroom window, places the bathroom beside the stairs with south entry, and gives each child 14.02 m2. Original/front remain r53/r71. Published r103 and local r110 snapshots are retained independently. User authorized commit, push and Mikrus redeployment after viewing the final plan. Actual localhost, HTTPS and Chrome HTTP captures and comparisons are retained in `tmp/stair-window-release/`. All 441 unit tests, TypeScript, production build and 14 direct-manipulation/interior browser tests pass. Public fresh/saved-project and asset audits accompany the deployment evidence in that directory.
+
+
+## Joined floors and facade corrections — 2026-09-14
+
+Authorized house-branch release: original r54, front r72, rear r119, bathroom alternative r7. All current house designs use a 0.50 m upper slab with preserved living/dining voids, 3.75 m upper-floor elevation and aligned compliant main ridges. Slab contour winding, roof-edge cladding and recessed facade lining are corrected. Three-origin backup/comparison evidence, browser regressions and live audits are retained under ignored `tmp/ceilings-release/`. Earlier project baselines remain immutable and historical conflicts remain recoverable.

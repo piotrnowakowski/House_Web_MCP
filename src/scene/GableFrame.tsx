@@ -3,6 +3,7 @@ import { ExtrudeGeometry, Shape, Vector2 } from 'three'
 import { polygonBounds } from '../domain/geometry'
 import type { BuildingModel, RoofSegmentModel } from '../domain/types'
 import { roofSegmentRidgeElevation } from '../domain/roofs'
+import { gableFrameBottom } from '../domain/gableRecess'
 
 /** A continuous folded portal, inset into the facade instead of an overhanging eave. */
 export function GableFrame({ building, segment, side, selected, ghost }: {
@@ -16,7 +17,7 @@ export function GableFrame({ building, segment, side, selected, ghost }: {
     const value = alongZ ? (side === 'min' ? bounds.minZ : bounds.maxZ) : (side === 'min' ? bounds.minX : bounds.maxX)
     const walls = building.walls.filter((w) => Math.abs(w.start[along] - (value + (side === 'min' ? 1 : -1) * (segment.gableRecess?.[side]?.depthM ?? 0))) < 0.05 && Math.abs(w.end[along] - (value + (side === 'min' ? 1 : -1) * (segment.gableRecess?.[side]?.depthM ?? 0))) < 0.05
       && Math.max(w.start[across], w.end[across]) > min && Math.min(w.start[across], w.end[across]) < max)
-    const bottom = walls.length ? Math.min(...walls.map((w) => w.baseElevationM)) : segment.baseElevationM
+    const bottom = gableFrameBottom(segment, side, walls.length ? Math.min(...walls.map((w) => w.baseElevationM)) : segment.baseElevationM)
     const halfWall = walls.length ? Math.max(...walls.map((w) => w.thicknessM)) / 2 : 0.1
     const left = min - halfWall; const right = max + halfWall; const center = (min + max) / 2
     const ridge = roofSegmentRidgeElevation(segment) + 0.12; const eaves = segment.baseElevationM + 0.12

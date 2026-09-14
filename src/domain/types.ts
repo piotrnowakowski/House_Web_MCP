@@ -75,7 +75,7 @@ export interface RoofSegmentModel {
   /** Fractions across the gable, with a vertical inset below the roof slopes. */
   gableGlazing?: Partial<Record<'min' | 'max', { from: number; to: number; roofInsetM: number; hostOpeningRefs?: string[]; shape?: 'roof-following' | 'triangle'; continuousWithHost?: boolean; transomElevationsM?: number[] }>>
   /** Recessed facade below a roof extension, measured inward from the gable end. */
-  gableRecess?: Partial<Record<'min' | 'max', { depthM: number; baseElevationM: number; soffitColorHex: string }>>
+  gableRecess?: Partial<Record<'min' | 'max', { depthM: number; baseElevationM: number; soffitColorHex: string; sideColorHex?: string }>>
   gableFrame?: { widthM: number; depthM: number; colorHex: string }
   /** Glass guard and optional fascia around connected flat decks. Open edge indices refer to their merged perimeter. */
   terrace?: { railingHeightM: number; openEdgeIndex: number; frameColorHex: string; connectedSegmentRefs?: string[]; openEdgeIndices?: number[]; fasciaHeightM?: number }

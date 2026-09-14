@@ -2,25 +2,27 @@ import { expect, it } from 'vitest'
 import { DoubleSide, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three'
 import front from '../../project-data/zielonki-v2/project.json'
 import rear from '../../project-data/zielonki-rear-carport/project.json'
+import original from '../../project-data/zielonki/project.json'
+import bath from '../../project-data/zielonki-rear-bath-room/project.json'
 import { parseProject } from '../domain/schema'
 import { polygonBounds } from '../domain/geometry'
 import { gableRoofJunction, gableWallsForBuilding, roofWings } from '../domain/roofWings'
 import { clippedRoofBox, roofJunctionCutouts } from './roofJunction'
 
-for (const data of [front, rear]) it(`${data.ref}: joins equal ridges with compliant slopes and no internal roof sheet`, () => {
+for (const data of [original, front, rear, bath]) it(`${data.ref}: joins equal ridges with compliant slopes and no internal roof sheet`, () => {
   const house = parseProject(data).buildings[0]
   const wings = roofWings(house)
   const host = wings.find(w => w.ref.endsWith('/front-barn'))!
   const branch = wings.find(w => w.ref.endsWith('/rear-barn'))!
   expect(host.ridgeElevationM).toBeCloseTo(branch.ridgeElevationM, 9)
-  expect(host.ridgeElevationM).toBeCloseTo(7.7856938754, 9)
+  expect(host.ridgeElevationM).toBeCloseTo(data.ref === original.ref ? 8.345348585919266 : 8.085693875413504, 9)
   for (const wing of [host, branch]) {
     const b = polygonBounds(wing.footprint)
     const span = wing.ridgeAxis === 'z' ? b.maxX - b.minX : b.maxZ - b.minZ
     const angle = Math.atan2(wing.ridgeElevationM - wing.baseElevationM, span / 2) * 180 / Math.PI
     expect(angle).toBeGreaterThanOrEqual(37)
     expect(angle).toBeLessThanOrEqual(45)
-    expect(wing.baseElevationM).toBe(4.85)
+    expect(wing.baseElevationM).toBeCloseTo(5.15)
   }
   expect(gableRoofJunction(house, branch)).toEqual({ host, side: 'min' })
   expect(gableWallsForBuilding(house).some(w => w.segmentRef === branch.ref && w.side === 'min')).toBe(false)

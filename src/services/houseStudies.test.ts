@@ -49,10 +49,9 @@ it('validates room connections, openings, furnishings, canopy and roof constrain
   expect(house.spaces.find(s => s.ref === 'space/reference-office')?.usage).toBe('bedroom')
   expect(house.storeys[1].kneeWallHeightM).toBe(1.4)
   for (const segment of house.roof.segments.filter(s => s.type === 'gable')) {
-    const original = source.buildings[0].roof.segments.find(s => s.ref === segment.ref)!
     expect(segment.pitchDegrees).toBeGreaterThanOrEqual(37)
     expect(segment.pitchDegrees).toBeLessThanOrEqual(45)
-    expect(segment.baseElevationM).toBe(original.baseElevationM)
+    expect(segment.baseElevationM).toBeCloseTo(house.storeys[1].elevationM + house.storeys[1].kneeWallHeightM!)
   }
   expect(house.roof.segments.filter(s => s.canopy?.slats)).toHaveLength(1)
   const roomArea = house.spaces.filter(s => s.baseSlabRef === 'slab/reference-ground').map(s => spaceFootprint(house, s))

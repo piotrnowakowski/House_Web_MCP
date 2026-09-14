@@ -3,8 +3,8 @@
   "ref": "project/zielonki-v2",
   "name": "Garaz przód",
   "units": "metric",
-  "revision": 71,
-  "updatedAt": "2026-09-12T13:20:58.011Z",
+  "revision": 72,
+  "updatedAt": "2026-09-14T16:19:00.434837+00:00",
   "site": {
     "boundary": [
       {
@@ -2111,7 +2111,7 @@
           },
           "runM": 3.16,
           "widthM": 0.94,
-          "steps": 16
+          "steps": 18
         }
       ],
       "ref": "house/main",
@@ -2163,7 +2163,7 @@
           "ref": "storey/reference-upper",
           "name": "Piętro",
           "level": 1,
-          "elevationM": 3.45,
+          "elevationM": 3.75,
           "clearHeightM": 2.8,
           "baseSlabRef": "slab/reference-upper",
           "topBoundaryRef": "roof/reference",
@@ -2313,8 +2313,8 @@
               }
             ]
           ],
-          "topElevationM": 3.45,
-          "thicknessM": 0.2,
+          "topElevationM": 3.75,
+          "thicknessM": 0.5,
           "locked": false
         }
       ],
@@ -2330,7 +2330,7 @@
             "z": -6.555
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 1.4,
           "openings": [
             {
@@ -2364,7 +2364,7 @@
             "z": -1.855
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -2385,7 +2385,7 @@
             "z": -1.855
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [
             {
@@ -2416,7 +2416,7 @@
             "z": -6.555
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 1.4,
           "openings": [],
           "finish": {
@@ -2436,7 +2436,7 @@
             "z": -6.555
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 1.4,
           "openings": [],
           "finish": {
@@ -2456,7 +2456,7 @@
             "z": 0.995
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 1.4,
           "openings": [
             {
@@ -2503,7 +2503,7 @@
             "z": 0.995
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 1.4,
           "openings": [],
           "finish": {
@@ -2523,7 +2523,7 @@
             "z": 0.995
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -2544,7 +2544,7 @@
             "z": -1.855
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -2565,7 +2565,7 @@
             "z": 4.115
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [
             {
@@ -2596,7 +2596,7 @@
             "z": 4.115
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [
             {
@@ -2627,7 +2627,7 @@
             "z": 4.115
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [
             {
@@ -2658,7 +2658,7 @@
             "z": 0.565
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [
             {
@@ -2689,7 +2689,7 @@
             "z": 0.565
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -2710,7 +2710,7 @@
             "z": -1.855
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 1.4,
           "openings": [],
           "finish": {
@@ -2730,7 +2730,7 @@
             "z": 4.115
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -2751,7 +2751,7 @@
             "z": 0.565
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 1.4,
           "openings": [],
           "finish": {
@@ -2771,7 +2771,7 @@
             "z": 4.115
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 1.4,
           "openings": [],
           "finish": {
@@ -2791,7 +2791,7 @@
             "z": 4.115
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -2812,7 +2812,7 @@
             "z": 6.885
           },
           "thicknessM": 0.32,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -2833,7 +2833,7 @@
             "z": 6.885
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.2,
           "openings": [
             {
@@ -2864,7 +2864,7 @@
             "z": 4.115
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 1.4,
           "openings": [],
           "finish": {
@@ -2884,7 +2884,7 @@
             "z": 6.885
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 1.4,
           "openings": [],
           "finish": {
@@ -2904,7 +2904,7 @@
             "z": 6.885
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.2,
           "openings": [
             {
@@ -2935,7 +2935,7 @@
             "z": 0.995
           },
           "thicknessM": 0.2,
-          "baseElevationM": 3.45,
+          "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
           "finish": {
@@ -3654,7 +3654,7 @@
       "roof": {
         "ref": "roof/reference",
         "type": "gable",
-        "baseElevationM": 4.85,
+        "baseElevationM": 5.15,
         "pitchDegrees": 44,
         "overhangM": 0,
         "footprint": [
@@ -3709,7 +3709,7 @@
               }
             ],
             "storeyRef": "storey/reference-upper",
-            "baseElevationM": 4.85,
+            "baseElevationM": 5.15,
             "type": "gable",
             "pitchDegrees": 37.87103769668754,
             "overhangM": 0,
@@ -3770,7 +3770,7 @@
               }
             ],
             "storeyRef": "storey/reference-upper",
-            "baseElevationM": 4.85,
+            "baseElevationM": 5.15,
             "type": "gable",
             "pitchDegrees": 44,
             "overhangM": 0,
@@ -3807,8 +3807,8 @@
                 ],
                 "continuousWithHost": true,
                 "transomElevationsM": [
-                  5.65,
-                  6.8
+                  5.95,
+                  7.1
                 ]
               },
               "max": {

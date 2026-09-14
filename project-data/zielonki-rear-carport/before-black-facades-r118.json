@@ -3,7 +3,7 @@
   "ref": "project/zielonki-rear-carport",
   "name": "Z garażem za domem przy sąsiadach",
   "units": "metric",
-  "revision": 119,
+  "revision": 118,
   "updatedAt": "2026-09-14T16:19:00.438978+00:00",
   "site": {
     "boundary": [
@@ -3550,8 +3550,9 @@
           "heightM": 1.4,
           "openings": [],
           "finish": {
-            "material": "charred-timber",
-            "colorHex": "#242927"
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -3591,8 +3592,9 @@
           "heightM": 2.8,
           "openings": [],
           "finish": {
-            "material": "charred-timber",
-            "colorHex": "#242927"
+            "material": "light-render",
+            "colorHex": "#E5E9E8",
+            "textureId": "none"
           },
           "locked": false
         }

@@ -1,4 +1,5 @@
 import { gableGlazingProfile } from '../domain/gableGlazing'
+import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
 import { CLEAR_MEASUREMENT_EVENT } from './events'
 import { ObjectTransparency } from './ObjectTransparency'
 import { Html, Line as DreiLine, TransformControls } from '@react-three/drei'
@@ -20,6 +21,7 @@ import { isExteriorWall, livingVoidPartitions } from '../domain/zielonkiInterior
 import { ProductModel } from '../interior/ProductModel'
 import { fitVisiblePlot } from './fitVisiblePlot'
 import { resolveGableWallFinish, resolveWallFinish } from '../domain/wallFinishes'
+import { recessSideLayout } from '../domain/gableRecess'
 import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
 import type { GeneratedSolid } from '../geometry/types'
 import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
@@ -648,19 +650,25 @@ function BarnCladding({ building, ghost }: { building: BuildingModel; ghost?: bo
     const dx = wall.end.x - wall.start.x; const dz = wall.end.z - wall.start.z; const length = Math.hypot(dx, dz)
     const ux = dx / length; const uz = dz / length; const nx = uz; const nz = -ux; const rotation = -Math.atan2(dz, dx)
     const spacing = finish.material === 'metal-panel' ? 0.64 : 0.34
+    const stripWidth = finish.material === 'metal-panel' ? 0.022 : 0.026
+    const profile = atticWallProfile(building, wall)
     const strips = Array.from({ length: Math.floor(length / spacing) }, (_, index) => ({ offset: spacing / 2 + index * spacing, index }))
     return strips.flatMap(({ offset, index }) => {
+      // Fit the entire strip below the same sloping cap as the wall solid.
+      const left = Math.max(0, offset - stripWidth / 2), right = Math.min(length, offset + stripWidth / 2)
+      const height = profile ? Math.min(wallProfileHeightAt(profile, left), wallProfileHeightAt(profile, right),
+        ...profile.filter(p => p.x > left && p.x < right).map(p => p.z)) : wall.heightM
       const blocked = wall.openings.filter((opening) => Math.abs(offset - opening.offsetM) < opening.widthM / 2 + 0.08)
-        .map((opening) => ({ start: Math.max(0, opening.sillM - 0.04), end: Math.min(wall.heightM, opening.sillM + opening.heightM + 0.04) })).sort((a, b) => a.start - b.start)
+        .map((opening) => ({ start: Math.min(height, Math.max(0, opening.sillM - 0.04)), end: Math.min(height, opening.sillM + opening.heightM + 0.04) })).sort((a, b) => a.start - b.start)
       const segments: Array<{ start: number; end: number }> = []; let cursor = 0
       blocked.forEach((interval) => { if (interval.start > cursor + 0.03) segments.push({ start: cursor, end: interval.start }); cursor = Math.max(cursor, interval.end) })
-      if (cursor < wall.heightM - 0.03) segments.push({ start: cursor, end: wall.heightM })
+      if (cursor < height - 0.03) segments.push({ start: cursor, end: height })
       return segments.map((segment, segmentIndex) => <mesh key={`${wall.ref}-batten-${index}-${segmentIndex}`} position={[
         wall.start.x + ux * offset + nx * (wall.thicknessM / 2 + 0.018),
         wall.baseElevationM + (segment.start + segment.end) / 2,
         wall.start.z + uz * offset + nz * (wall.thicknessM / 2 + 0.018),
       ]} rotation={[0, rotation, 0]} castShadow>
-        <boxGeometry args={[finish.material === 'metal-panel' ? 0.022 : 0.026, segment.end - segment.start, 0.038]} />
+        <boxGeometry args={[stripWidth, segment.end - segment.start, 0.038]} />
         <meshStandardMaterial color={shade(finish.colorHex, index % 3 === 0 ? 1.2 : 0.72)} roughness={finish.material === 'metal-panel' ? 0.42 : 0.96} metalness={finish.material === 'metal-panel' ? 0.65 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.32 : 1} depthWrite={!ghost} />
       </mesh>)
     })
@@ -775,6 +783,7 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
       const center = edge + (side === 'min' ? 1 : -1) * recess.depthM / 2
       const at = (across: number, y: number): [number, number, number] => alongZ ? [across, y, center] : [center, y, across]
       const middle = alongZ ? cx : cz
+      const lining = recessSideLayout(building, segment, side)
       return <group key={`recess-${side}`} userData={{ semanticRef: `${segment.ref}/recess/${side}` }}>
         <mesh position={at(middle, recess.baseElevationM + .015)} receiveShadow>
           <boxGeometry args={alongZ ? [span, .06, recess.depthM] : [recess.depthM, .06, span]} />
@@ -789,9 +798,9 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
             <boxGeometry args={alongZ ? [span / 2 / Math.cos(pitch), .04, recess.depthM] : [recess.depthM, .04, span / 2 / Math.cos(pitch)]} />
             <meshStandardMaterial color={recess.soffitColorHex} roughness={.85} />
           </mesh>
-          <mesh position={at(middle + sign * span / 2, (base + recess.baseElevationM) / 2)} castShadow receiveShadow>
-            <boxGeometry args={alongZ ? [.2, base - recess.baseElevationM, recess.depthM] : [recess.depthM, base - recess.baseElevationM, .2]} />
-            <meshStandardMaterial color={recess.soffitColorHex} roughness={.85} />
+          <mesh position={alongZ ? [middle + sign * span / 2, (base + recess.baseElevationM) / 2, lining.center] : [lining.center, (base + recess.baseElevationM) / 2, middle + sign * span / 2]} castShadow receiveShadow>
+            <boxGeometry args={alongZ ? [lining.thickness, base - recess.baseElevationM, lining.depth] : [lining.depth, base - recess.baseElevationM, lining.thickness]} />
+            <meshStandardMaterial color={recess.sideColorHex ?? recess.soffitColorHex} roughness={.85} />
           </mesh>
         </group>)}
       </group>

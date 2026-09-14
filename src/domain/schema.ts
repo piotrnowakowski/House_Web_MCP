@@ -101,8 +101,8 @@ const RoofSegmentSchema = z.object({
     slats: z.object({ direction: z.enum(['x', 'z']), spacingM: z.number().min(0.15), widthM: z.number().positive() }).optional(),
   }).optional(),
   gableRecess: z.object({
-    min: z.object({ depthM: z.number().positive(), baseElevationM: z.number().finite(), soffitColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) }).optional(),
-    max: z.object({ depthM: z.number().positive(), baseElevationM: z.number().finite(), soffitColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) }).optional(),
+    min: z.object({ depthM: z.number().positive(), baseElevationM: z.number().finite(), soffitColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), sideColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional() }).optional(),
+    max: z.object({ depthM: z.number().positive(), baseElevationM: z.number().finite(), soffitColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), sideColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional() }).optional(),
   }).optional(),
   gableGlazing: z.object({
     min: GableGlazingSchema.optional(),

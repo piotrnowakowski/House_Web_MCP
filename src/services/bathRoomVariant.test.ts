@@ -1,8 +1,8 @@
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
-import data from '../../project-data/zielonki-rear-bath-room/project.json'
-import source from '../../project-data/zielonki-rear-carport/project.json'
+import data from '../../project-data/zielonki-rear-bath-room/before-ceiling-r3.json'
+import source from '../../project-data/zielonki-rear-carport/before-ceiling-r117.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
 import { roomDimensions } from '../domain/roomDimensions'
@@ -34,7 +34,11 @@ it('extends the bathroom one metre into bedroom 1 with separate hall doors and c
 })
 it('keeps the source study and exterior, stairs, parents and wardrobe intact',()=>{
  expect(p.ref).not.toBe(source.ref)
- for(const k of ['roof','stairs','slabs','position','rotationDegrees'] as const)expect(h[k]).toEqual(old[k])
+ for(const k of ['stairs','slabs','position','rotationDegrees'] as const)expect(h[k]).toEqual(old[k])
+ const roof = structuredClone(h.roof)
+ // The later facade finish revision only darkens the recess side lining.
+ delete roof.segments[0].gableRecess!.max!.sideColorHex
+ expect(roof).toEqual(old.roof)
  expect(h.walls.filter(w=>old.storeys[0].wallRefs.includes(w.ref))).toEqual(old.walls.filter(w=>old.storeys[0].wallRefs.includes(w.ref)))
  for(const id of ['parents','wardrobe'])expect(dims(id)).toEqual(roomDimensions(old,old.spaces.find(s=>s.ref===`space/reference-${id}`)!))
  expect(p.site).toEqual(source.site);expect(p.landscape).toEqual(source.landscape)

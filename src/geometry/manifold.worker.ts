@@ -4,6 +4,7 @@ import wasmUrl from 'manifold-3d/manifold.wasm?url'
 import type { Manifold, ManifoldToplevel } from 'manifold-3d'
 import type { GeneratedSolid, GeometryWorkerRequest, GeometryWorkerResponse, SolidInput } from './types'
 import { assignPlanarUvs, transformWallLocalToBuilding } from './uv'
+import { slabContour } from './slabContour'
 
 const rawMesh = (solid: Manifold) => {
   const mesh = solid.getMesh()
@@ -33,12 +34,12 @@ const buildSolid = (element: SolidInput, module: ManifoldToplevel): GeneratedSol
   const owned: Manifold[] = []
   try {
     if (element.kind === 'slab') {
-      const polygon = element.footprint.map((point) => [point.x, -point.z] as [number, number])
+      const polygon = slabContour(element.footprint)
       const extruded = Manifold.extrude([polygon], element.thicknessM)
       owned.push(extruded)
       let cutSlab = extruded
       for (const hole of element.holes ?? []) {
-        const cutter = Manifold.extrude([hole.map((p) => [p.x, -p.z] as [number, number])], element.thicknessM)
+        const cutter = Manifold.extrude([slabContour(hole)], element.thicknessM)
         owned.push(cutter)
         cutSlab = cutSlab.subtract(cutter); owned.push(cutSlab)
       }
