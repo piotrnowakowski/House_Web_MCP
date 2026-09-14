@@ -33,3 +33,14 @@ describe('project and version hierarchy', () => {
     expect(groups.find((item) => item.ref === 'project/one')?.versions).toEqual([])
   })
 })
+
+it('puts the single favorite first without mixing its recovery versions or mutating records', () => {
+  const records = [entry('project/one'), entry('project/zielonki-rear-carport'), entry('project/two'), entry('project/two/before-published-1-old')]
+  const original = structuredClone(records)
+  expect(groupWorkspaces(records, 'project/zielonki-rear-carport')[0].ref).toBe('project/zielonki-rear-carport')
+  const changed = groupWorkspaces(records, 'project/two')
+  expect(changed[0].ref).toBe('project/two')
+  expect(changed[0].versions).toHaveLength(1)
+  expect(groupWorkspaces(records, null).map(g => g.ref)).toEqual(groupWorkspaces(records, 'missing').map(g => g.ref))
+  expect(records).toEqual(original)
+})

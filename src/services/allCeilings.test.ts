@@ -1,3 +1,4 @@
+// Pin the ceiling-only historical layout; later bathroom edits are covered by mainBathroom.test.ts.
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
@@ -7,7 +8,7 @@ import front from '../../project-data/zielonki-v2/project.json'
 import frontBefore from '../../project-data/zielonki-v2/before-ceiling-r71.json'
 import rear from '../../project-data/zielonki-rear-carport/before-ground-reference-r131.json'
 import rearBefore from '../../project-data/zielonki-rear-carport/before-ceiling-r117.json'
-import bath from '../../project-data/zielonki-rear-bath-room/project.json'
+import bath from '../../project-data/zielonki-rear-bath-room/before-ground-bathroom-b-r7.json'
 import bathBefore from '../../project-data/zielonki-rear-bath-room/before-ceiling-r3.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'

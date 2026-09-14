@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
   "ref": "project/zielonki-rear-bath-room",
-  "name": "GŁÓWNY Garaż za domem — łazienka w pokoju",
+  "name": "Garaż za domem — łazienka w pokoju",
   "units": "metric",
-  "revision": 11,
-  "updatedAt": "2026-09-14T20:05:11.506Z",
+  "revision": 7,
+  "updatedAt": "2026-09-14T16:09:57.723844+00:00",
   "site": {
     "boundary": [
       {
@@ -1877,18 +1877,18 @@
         },
         {
           "ref": "interior/reference-parents-bed",
-          "catalogId": "oak-platform-bed",
+          "catalogId": "bed",
           "storeyRef": "storey/reference-upper",
-          "name": "Łóżko dębowe · platforma 200 × 220",
+          "name": "Łóżko rodziców",
           "position": {
-            "x": -3.755,
-            "z": -4.505
+            "x": -2.745,
+            "z": -4.415
           },
-          "widthM": 2,
-          "depthM": 2.2,
+          "widthM": 1.8,
+          "depthM": 2.1,
           "heightM": 1,
           "rotationDegrees": 90,
-          "color": "#B88663"
+          "color": "#287a89"
         },
         {
           "ref": "interior/carport-study/desk",
@@ -1909,31 +1909,31 @@
           "ref": "interior/carport-study/wc",
           "catalogId": "toilet",
           "storeyRef": "storey/reference-ground",
-          "name": "WC B · biała ceramika",
+          "name": "Toilet",
           "position": {
-            "x": -3.245,
-            "z": 3.405
+            "x": -4.45,
+            "z": 3.0
           },
           "widthM": 0.45,
           "depthM": 0.7,
           "heightM": 0.8,
-          "rotationDegrees": 180,
-          "color": "#F3F0E8"
+          "rotationDegrees": 0,
+          "color": "#bda17a"
         },
         {
           "ref": "interior/carport-study/vanity",
           "catalogId": "vanity",
           "storeyRef": "storey/reference-ground",
-          "name": "Umywalka B · szafka dębowa 100 cm",
+          "name": "Vanity",
           "position": {
-            "x": -3.185,
-            "z": 1.96
+            "x": -2.9,
+            "z": 2.35
           },
-          "widthM": 1,
-          "depthM": 0.45,
+          "widthM": 0.85,
+          "depthM": 0.5,
           "heightM": 0.85,
           "rotationDegrees": 0,
-          "color": "#B89468"
+          "color": "#bda17a"
         },
         {
           "ref": "interior/carport-study/washer",
@@ -1942,7 +1942,7 @@
           "name": "Washer",
           "position": {
             "x": -4.45,
-            "z": 4.55
+            "z": 4.1
           },
           "widthM": 0.6,
           "depthM": 0.65,
@@ -1969,16 +1969,16 @@
           "ref": "interior/carport-study/shower",
           "catalogId": "shower",
           "storeyRef": "storey/reference-ground",
-          "name": "Prysznic B · 90 × 206 cm",
+          "name": "Shower",
           "position": {
-            "x": -4.445,
-            "z": 2.745
+            "x": -1.685,
+            "z": 3.0000000000000004
           },
           "widthM": 0.9,
-          "depthM": 2.06,
+          "depthM": 0.9,
           "heightM": 2.1,
-          "rotationDegrees": 180,
-          "color": "#D7C7B0"
+          "rotationDegrees": 0,
+          "color": "#bda17a"
         },
         {
           "ref": "interior/reference-media",
@@ -2189,133 +2189,6 @@
           "heightM": 0.75,
           "rotationDegrees": 0,
           "color": "#c8b18f"
-        },
-        {
-          "ref": "interior/ground-bathroom-b/linen",
-          "catalogId": "wardrobe",
-          "storeyRef": "storey/reference-ground",
-          "name": "Szafka łazienkowa B · dąb",
-          "position": {
-            "x": -1.455,
-            "z": 3.54
-          },
-          "widthM": 0.41,
-          "depthM": 0.43,
-          "heightM": 1.2,
-          "rotationDegrees": 180,
-          "color": "#B89468"
-        },
-        {
-          "ref": "interior/master-oak/rug",
-          "catalogId": "wool-rug",
-          "storeyRef": "storey/reference-upper",
-          "name": "Dywan kremowy pod łóżkiem · 280 × 280",
-          "position": {
-            "x": -3.425,
-            "z": -4.505
-          },
-          "widthM": 2.8,
-          "depthM": 2.8,
-          "heightM": 0.025,
-          "rotationDegrees": 0,
-          "color": "#E5D9C5",
-          "elevationM": 0
-        },
-        {
-          "ref": "interior/master-oak/nightstand-north",
-          "catalogId": "oak-nightstand",
-          "storeyRef": "storey/reference-upper",
-          "name": "Szafka nocna dębowa · north",
-          "position": {
-            "x": -4.65,
-            "z": -5.775
-          },
-          "widthM": 0.5,
-          "depthM": 0.4,
-          "heightM": 0.24,
-          "rotationDegrees": 90,
-          "color": "#C39C70",
-          "elevationM": 0.34
-        },
-        {
-          "ref": "interior/master-oak/lamp-north",
-          "catalogId": "brass-sconce",
-          "storeyRef": "storey/reference-upper",
-          "name": "Kinkiet mosiężny · north",
-          "position": {
-            "x": -4.725,
-            "z": -5.775
-          },
-          "widthM": 0.22,
-          "depthM": 0.28,
-          "heightM": 0.32,
-          "rotationDegrees": 90,
-          "color": "#B89450",
-          "elevationM": 1.03
-        },
-        {
-          "ref": "interior/master-oak/nightstand-south",
-          "catalogId": "oak-nightstand",
-          "storeyRef": "storey/reference-upper",
-          "name": "Szafka nocna dębowa · south",
-          "position": {
-            "x": -4.65,
-            "z": -3.235
-          },
-          "widthM": 0.5,
-          "depthM": 0.4,
-          "heightM": 0.24,
-          "rotationDegrees": 90,
-          "color": "#C39C70",
-          "elevationM": 0.34
-        },
-        {
-          "ref": "interior/master-oak/lamp-south",
-          "catalogId": "brass-sconce",
-          "storeyRef": "storey/reference-upper",
-          "name": "Kinkiet mosiężny · south",
-          "position": {
-            "x": -4.725,
-            "z": -3.235
-          },
-          "widthM": 0.22,
-          "depthM": 0.28,
-          "heightM": 0.32,
-          "rotationDegrees": 90,
-          "color": "#B89450",
-          "elevationM": 1.03
-        },
-        {
-          "ref": "interior/master-oak/chair",
-          "catalogId": "boucle-chair",
-          "storeyRef": "storey/reference-upper",
-          "name": "Fotel kremowy przy oknie",
-          "position": {
-            "x": -1.435,
-            "z": -5.95
-          },
-          "widthM": 0.72,
-          "depthM": 0.75,
-          "heightM": 0.76,
-          "rotationDegrees": 30,
-          "color": "#E5D9C5",
-          "elevationM": 0
-        },
-        {
-          "ref": "interior/master-oak/side-table",
-          "catalogId": "oak-side-table",
-          "storeyRef": "storey/reference-upper",
-          "name": "Stolik okrągły dębowy",
-          "position": {
-            "x": -2.22,
-            "z": -5.95
-          },
-          "widthM": 0.38,
-          "depthM": 0.38,
-          "heightM": 0.45,
-          "rotationDegrees": 0,
-          "color": "#C39C70",
-          "elevationM": 0
         }
       ],
       "stairs": [
@@ -2583,9 +2456,6 @@
           "heightM": 1.4,
           "openings": [
             {
-              "mullionFractions": [
-                0.5
-              ],
               "ref": "roof/reference/front-barn/glazing-upper",
               "kind": "window",
               "wallRef": "wall/reference-upper/1",
@@ -2593,6 +2463,9 @@
               "widthM": 2.4928,
               "heightM": 1.3199999999999998,
               "sillM": 0.08,
+              "mullionFractions": [
+                0.5
+              ],
               "glazed": true
             }
           ],
@@ -2617,8 +2490,6 @@
           "heightM": 2.8,
           "openings": [
             {
-              "hinge": "left",
-              "swing": "in",
               "ref": "opening/reference-parents",
               "kind": "door",
               "wallRef": "wall/reference-upper/3",
@@ -2626,12 +2497,8 @@
               "widthM": 0.9,
               "heightM": 2.1,
               "sillM": 0,
-              "finish": {
-                "presetId": "natural-oak",
-                "color": "#FFFFFF",
-                "rotationDegrees": 0,
-                "tileM": 1.2
-              }
+              "swing": "in",
+              "hinge": "left"
             }
           ],
           "finish": {
@@ -2659,15 +2526,7 @@
             "material": "charred-timber",
             "colorHex": "#242927"
           },
-          "locked": false,
-          "faceFinishes": {
-            "left": {
-              "presetId": "natural-oak",
-              "color": "#FFFFFF",
-              "rotationDegrees": 0,
-              "tileM": 1.2
-            }
-          }
+          "locked": false
         },
         {
           "ref": "wall/reference-upper/5",
@@ -2704,9 +2563,6 @@
           "heightM": 1.4,
           "openings": [
             {
-              "mullionFractions": [
-                0.5
-              ],
               "ref": "roof/reference/rear-barn/glazing-upper",
               "kind": "window",
               "wallRef": "wall/reference-upper/6",
@@ -2714,12 +2570,12 @@
               "widthM": 2.8955,
               "heightM": 1.3199999999999998,
               "sillM": 0.08,
-              "glazed": true
-            },
-            {
               "mullionFractions": [
                 0.5
               ],
+              "glazed": true
+            },
+            {
               "ref": "roof/reference/rear-barn/glazing-upper/right",
               "kind": "window",
               "wallRef": "wall/reference-upper/6",
@@ -2727,6 +2583,9 @@
               "widthM": 2.8955,
               "heightM": 1.3199999999999998,
               "sillM": 0.08,
+              "mullionFractions": [
+                0.5
+              ],
               "glazed": true
             }
           ],
@@ -2813,15 +2672,15 @@
           "heightM": 2.8,
           "openings": [
             {
-              "hinge": "left",
-              "swing": "in",
               "ref": "opening/reference-bathroom",
               "kind": "door",
               "wallRef": "wall/reference-upper/13",
               "offsetM": 1.25,
               "widthM": 0.8,
               "heightM": 2.1,
-              "sillM": 0
+              "sillM": 0,
+              "hinge": "left",
+              "swing": "in"
             }
           ],
           "finish": {
@@ -3031,9 +2890,6 @@
           "heightM": 2.8,
           "openings": [
             {
-              "mullionFractions": [
-                0.5
-              ],
               "ref": "opening/reference-terrace-north",
               "kind": "window",
               "wallRef": "wall/reference-ground/1",
@@ -3041,7 +2897,10 @@
               "widthM": 2.4928,
               "heightM": 2.8,
               "sillM": 0,
-              "glazed": true
+              "glazed": true,
+              "mullionFractions": [
+                0.5
+              ]
             }
           ],
           "finish": {
@@ -3065,9 +2924,6 @@
           "heightM": 2.8,
           "openings": [
             {
-              "mullionFractions": [
-                0.5
-              ],
               "ref": "opening/reference-terrace-east",
               "kind": "window",
               "wallRef": "wall/reference-ground/2",
@@ -3075,12 +2931,12 @@
               "widthM": 2.8955,
               "heightM": 2.8,
               "sillM": 0,
-              "glazed": true
-            },
-            {
+              "glazed": true,
               "mullionFractions": [
                 0.5
-              ],
+              ]
+            },
+            {
               "ref": "opening/reference-terrace-east/right",
               "kind": "window",
               "wallRef": "wall/reference-ground/2",
@@ -3088,7 +2944,10 @@
               "widthM": 2.8955,
               "heightM": 2.8,
               "sillM": 0,
-              "glazed": true
+              "glazed": true,
+              "mullionFractions": [
+                0.5
+              ]
             }
           ],
           "finish": {
@@ -3125,7 +2984,7 @@
           },
           "end": {
             "x": 2.085,
-            "z": 1.615
+            "z": 1.915
           },
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
@@ -3141,11 +3000,11 @@
           "ref": "wall/carport-layout/ground/5",
           "start": {
             "x": 2.085,
-            "z": 1.615
+            "z": 1.915
           },
           "end": {
             "x": -1.13,
-            "z": 1.615
+            "z": 1.915
           },
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
@@ -3169,22 +3028,14 @@
           "locked": false
         },
         {
-          "faceFinishes": {
-            "right": {
-              "presetId": "sand-tile",
-              "color": "#DCCDB7",
-              "rotationDegrees": 0,
-              "tileM": 0.6
-            }
-          },
           "ref": "wall/carport-layout/ground/7",
           "start": {
             "x": -1.13,
-            "z": 1.615
+            "z": 1.915
           },
           "end": {
             "x": -4.995,
-            "z": 1.615
+            "z": 1.915
           },
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
@@ -3211,7 +3062,7 @@
           "ref": "wall/carport-layout/ground/8",
           "start": {
             "x": -4.995,
-            "z": 1.615
+            "z": 1.915
           },
           "end": {
             "x": -4.995,
@@ -3239,22 +3090,14 @@
           "locked": false
         },
         {
-          "faceFinishes": {
-            "left": {
-              "presetId": "sand-tile",
-              "color": "#DCCDB7",
-              "rotationDegrees": 0,
-              "tileM": 0.6
-            }
-          },
           "ref": "wall/carport-layout/ground/9",
           "start": {
             "x": -1.13,
-            "z": 1.615
+            "z": 1.915
           },
           "end": {
             "x": -1.13,
-            "z": 3.875
+            "z": 3.575
           },
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
@@ -3267,22 +3110,14 @@
           "locked": false
         },
         {
-          "faceFinishes": {
-            "left": {
-              "presetId": "sand-tile",
-              "color": "#DCCDB7",
-              "rotationDegrees": 0,
-              "tileM": 0.6
-            }
-          },
           "ref": "wall/carport-layout/ground/10",
           "start": {
             "x": -1.13,
-            "z": 3.875
+            "z": 3.575
           },
           "end": {
             "x": -4.995,
-            "z": 3.875
+            "z": 3.575
           },
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
@@ -3295,22 +3130,14 @@
           "locked": false
         },
         {
-          "faceFinishes": {
-            "left": {
-              "presetId": "sand-tile",
-              "color": "#DCCDB7",
-              "rotationDegrees": 0,
-              "tileM": 0.6
-            }
-          },
           "ref": "wall/carport-layout/ground/11",
           "start": {
             "x": -4.995,
-            "z": 3.875
+            "z": 3.575
           },
           "end": {
             "x": -4.995,
-            "z": 1.615
+            "z": 1.915
           },
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
@@ -3326,7 +3153,7 @@
           "ref": "wall/carport-layout/ground/12",
           "start": {
             "x": -1.13,
-            "z": 3.875
+            "z": 3.575
           },
           "end": {
             "x": -1.13,
@@ -3370,7 +3197,7 @@
           },
           "end": {
             "x": -4.995,
-            "z": 3.875
+            "z": 3.575
           },
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
@@ -3381,7 +3208,7 @@
               "ref": "opening/reference-utility-exterior",
               "kind": "door",
               "wallRef": "wall/carport-layout/ground/14",
-              "offsetM": 0.944090909090909,
+              "offsetM": 1.085,
               "widthM": 0.95,
               "heightM": 2.1,
               "sillM": 0,
@@ -3398,7 +3225,7 @@
           "ref": "wall/carport-layout/ground/15",
           "start": {
             "x": 2.085,
-            "z": 1.615
+            "z": 1.915
           },
           "end": {
             "x": 2.085,
@@ -3412,7 +3239,7 @@
               "ref": "opening/reference-office-window",
               "kind": "window",
               "wallRef": "wall/carport-layout/ground/15",
-              "offsetM": 3.168936062959698,
+              "offsetM": 2.946294185,
               "widthM": 1.8,
               "heightM": 1.5,
               "sillM": 0.8,
@@ -3580,8 +3407,6 @@
           "heightM": 2.8,
           "openings": [
             {
-              "hinge": "left",
-              "swing": "out",
               "ref": "opening/reference-wardrobe",
               "kind": "door",
               "wallRef": "wall/reference-upper/wardrobe-west",
@@ -3589,12 +3414,8 @@
               "widthM": 0.8,
               "heightM": 2.1,
               "sillM": 0,
-              "finish": {
-                "presetId": "natural-oak",
-                "color": "#FFFFFF",
-                "rotationDegrees": 0,
-                "tileM": 1.2
-              }
+              "hinge": "left",
+              "swing": "out"
             }
           ],
           "finish": {
@@ -3619,15 +3440,15 @@
           "heightM": 2.8,
           "openings": [
             {
-              "hinge": "left",
-              "swing": "out",
               "ref": "opening/reference-child-two",
               "kind": "door",
               "wallRef": "wall/reference-upper/bedroom-hall-east",
               "offsetM": 0.75,
               "widthM": 0.8,
               "heightM": 2.1,
-              "sillM": 0
+              "sillM": 0,
+              "hinge": "left",
+              "swing": "out"
             }
           ],
           "finish": {
@@ -3652,15 +3473,15 @@
           "heightM": 2.8,
           "openings": [
             {
-              "hinge": "left",
-              "swing": "in",
               "ref": "opening/reference-child-one",
               "kind": "door",
               "wallRef": "wall/reference-upper/bedroom-landing-west",
               "offsetM": 0.68,
               "widthM": 0.8,
               "heightM": 2.1,
-              "sillM": 0
+              "sillM": 0,
+              "hinge": "left",
+              "swing": "in"
             }
           ],
           "finish": {
@@ -3757,19 +3578,7 @@
           ],
           "baseSlabRef": "slab/reference-upper",
           "topBoundaryRef": "roof/reference",
-          "locked": false,
-          "floorFinish": {
-            "presetId": "natural-oak",
-            "color": "#FFFFFF",
-            "rotationDegrees": 90,
-            "tileM": 1.2
-          },
-          "ceilingFinish": {
-            "presetId": "natural-oak",
-            "color": "#FFFFFF",
-            "rotationDegrees": 0,
-            "tileM": 1.2
-          }
+          "locked": false
         },
         {
           "ref": "space/reference-landing",
@@ -3946,18 +3755,6 @@
           "locked": false
         },
         {
-          "floorFinish": {
-            "presetId": "sand-tile",
-            "color": "#CDBCA3",
-            "rotationDegrees": 0,
-            "tileM": 0.6
-          },
-          "ceilingFinish": {
-            "presetId": "warm-white",
-            "color": "#F2EEE5",
-            "rotationDegrees": 0,
-            "tileM": 1
-          },
           "ref": "space/reference-wc",
           "name": "Bathroom",
           "usage": "bathroom",
@@ -4153,24 +3950,24 @@
               "depthM": 0.26,
               "colorHex": "#343a3e"
             },
+            "gableGlazing": {
+              "max": {
+                "from": 0.09,
+                "to": 0.91,
+                "roofInsetM": 0.28,
+                "hostOpeningRefs": [
+                  "roof/reference/rear-barn/glazing-upper",
+                  "roof/reference/rear-barn/glazing-upper/right"
+                ],
+                "continuousWithHost": true
+              }
+            },
             "gableRecess": {
               "max": {
                 "depthM": 1,
                 "baseElevationM": 0.45,
                 "soffitColorHex": "#B78F60",
                 "sideColorHex": "#65432E"
-              }
-            },
-            "gableGlazing": {
-              "max": {
-                "from": 0.09,
-                "to": 0.91,
-                "roofInsetM": 0.28,
-                "continuousWithHost": true,
-                "hostOpeningRefs": [
-                  "roof/reference/rear-barn/glazing-upper",
-                  "roof/reference/rear-barn/glazing-upper/right"
-                ]
               }
             }
           },
@@ -4227,24 +4024,24 @@
                 "from": 0.09,
                 "to": 0.5,
                 "roofInsetM": 0.28,
+                "hostOpeningRefs": [
+                  "roof/reference/front-barn/glazing-upper"
+                ],
                 "continuousWithHost": true,
                 "transomElevationsM": [
                   5.95,
                   7.1
-                ],
-                "hostOpeningRefs": [
-                  "roof/reference/front-barn/glazing-upper"
                 ]
               },
               "max": {
                 "from": 0.09,
                 "to": 0.91,
                 "roofInsetM": 0.28,
-                "shape": "triangle",
                 "hostOpeningRefs": [
                   "opening/reference-children-west-window",
                   "opening/reference-children-east-window"
-                ]
+                ],
+                "shape": "triangle"
               }
             }
           },
@@ -5600,6 +5397,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 5.2,
+        "surveyHandle": "5012",
+        "crownShape": "conical",
+        "placementRole": "site",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -5618,10 +5418,7 @@
           12
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "conical",
-        "placementRole": "site",
-        "surveyHandle": "5012"
+        "locked": true
       },
       {
         "ref": "plant/survey-5015",
@@ -5634,6 +5431,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 5.2,
+        "surveyHandle": "5015",
+        "crownShape": "conical",
+        "placementRole": "site",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -5652,10 +5452,7 @@
           12
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "conical",
-        "placementRole": "site",
-        "surveyHandle": "5015"
+        "locked": true
       },
       {
         "ref": "plant/survey-5018",
@@ -5668,6 +5465,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 5.2,
+        "surveyHandle": "5018",
+        "crownShape": "conical",
+        "placementRole": "site",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -5686,10 +5486,7 @@
           12
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "conical",
-        "placementRole": "site",
-        "surveyHandle": "5018"
+        "locked": true
       },
       {
         "ref": "plant/survey-501b",
@@ -5702,6 +5499,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 5.2,
+        "surveyHandle": "501B",
+        "crownShape": "conical",
+        "placementRole": "site",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -5720,10 +5520,7 @@
           12
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "conical",
-        "placementRole": "site",
-        "surveyHandle": "501B"
+        "locked": true
       },
       {
         "ref": "plant/survey-501e",
@@ -5736,6 +5533,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 5.2,
+        "surveyHandle": "501E",
+        "crownShape": "conical",
+        "placementRole": "site",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -5754,10 +5554,7 @@
           12
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "conical",
-        "placementRole": "site",
-        "surveyHandle": "501E"
+        "locked": true
       },
       {
         "ref": "plant/survey-5021",
@@ -5770,6 +5567,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 5.2,
+        "surveyHandle": "5021",
+        "crownShape": "conical",
+        "placementRole": "site",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -5788,10 +5588,7 @@
           12
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "conical",
-        "placementRole": "site",
-        "surveyHandle": "5021"
+        "locked": true
       },
       {
         "ref": "plant/survey-5024",
@@ -5804,6 +5601,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 5.2,
+        "surveyHandle": "5024",
+        "crownShape": "conical",
+        "placementRole": "site",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -5822,10 +5622,7 @@
           12
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "conical",
-        "placementRole": "site",
-        "surveyHandle": "5024"
+        "locked": true
       },
       {
         "ref": "plant/survey-5027",
@@ -5838,6 +5635,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 5.2,
+        "surveyHandle": "5027",
+        "crownShape": "conical",
+        "placementRole": "site",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -5856,10 +5656,7 @@
           12
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "conical",
-        "placementRole": "site",
-        "surveyHandle": "5027"
+        "locked": true
       },
       {
         "ref": "plant/survey-502a",
@@ -5872,6 +5669,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 5.2,
+        "surveyHandle": "502A",
+        "crownShape": "conical",
+        "placementRole": "site",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -5890,10 +5690,7 @@
           12
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "conical",
-        "placementRole": "site",
-        "surveyHandle": "502A"
+        "locked": true
       },
       {
         "ref": "plant/survey-502d",
@@ -5906,6 +5703,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 5.2,
+        "surveyHandle": "502D",
+        "crownShape": "conical",
+        "placementRole": "site",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -5924,10 +5724,7 @@
           12
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "conical",
-        "placementRole": "site",
-        "surveyHandle": "502D"
+        "locked": true
       },
       {
         "ref": "plant/survey-5030",
@@ -5940,6 +5737,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 5.2,
+        "surveyHandle": "5030",
+        "crownShape": "conical",
+        "placementRole": "site",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -5958,10 +5758,7 @@
           12
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "conical",
-        "placementRole": "site",
-        "surveyHandle": "5030"
+        "locked": true
       },
       {
         "ref": "plant/survey-5033",
@@ -5974,6 +5771,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 7,
+        "surveyHandle": "5033",
+        "crownShape": "rounded",
+        "placementRole": "site",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -5987,10 +5787,7 @@
           10
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "rounded",
-        "placementRole": "site",
-        "surveyHandle": "5033"
+        "locked": true
       },
       {
         "ref": "plant/survey-503a",
@@ -6003,6 +5800,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 7,
+        "surveyHandle": "503A",
+        "crownShape": "rounded",
+        "placementRole": "site",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -6016,10 +5816,7 @@
           10
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "rounded",
-        "placementRole": "site",
-        "surveyHandle": "503A"
+        "locked": true
       },
       {
         "ref": "plant/apple",
@@ -6032,6 +5829,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 7,
+        "surveyHandle": "50F5",
+        "crownShape": "rounded",
+        "placementRole": "site",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -6045,10 +5845,7 @@
           10
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "rounded",
-        "placementRole": "site",
-        "surveyHandle": "50F5"
+        "locked": true
       },
       {
         "ref": "plant/orchard-sour-cherry",
@@ -6061,6 +5858,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 6,
+        "surveyHandle": "50C3",
+        "crownShape": "rounded",
+        "placementRole": "context",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -6074,10 +5874,7 @@
           10
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "rounded",
-        "placementRole": "context",
-        "surveyHandle": "50C3"
+        "locked": true
       },
       {
         "ref": "plant/orchard-pear",
@@ -6090,6 +5887,9 @@
         },
         "matureHeightM": 15,
         "canopyM": 6,
+        "surveyHandle": "50CA",
+        "crownShape": "rounded",
+        "placementRole": "context",
         "sunNeed": "sun",
         "waterNeed": 1,
         "hardinessMinC": -25,
@@ -6103,10 +5903,7 @@
           10
         ],
         "bloomMonths": [],
-        "locked": true,
-        "crownShape": "rounded",
-        "placementRole": "context",
-        "surveyHandle": "50CA"
+        "locked": true
       }
     ],
     "fixtures": [

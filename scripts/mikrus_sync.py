@@ -21,6 +21,9 @@ def provision_env(sftp, remote_dir, config):
     except FileNotFoundError:
         previous = ''
     values = {key: config[key] for key in KEYS}
+    values['HOUSE_SYNC_PUBLIC_ACCESS'] = config.get('HOUSE_SYNC_PUBLIC_ACCESS', 'false')
+    if values['HOUSE_SYNC_PUBLIC_ACCESS'] not in ('true', 'false'):
+        raise ValueError('HOUSE_SYNC_PUBLIC_ACCESS must be true or false')
     if config.get('PGSSLROOTCERT'):
         ca = Path(config['PGSSLROOTCERT'])
         sftp.put(str(ca), remote_dir + '/pg-ca.pem')
@@ -57,6 +60,7 @@ def sync_compose(current, revision, project, remote_dir, has_ca):
     web['depends_on'] = {'house-sync-api': {'condition': 'service_healthy'}}
     runtime = {key: '${' + key + ':?' + key + ' is required}' for key in KEYS}
     runtime['PORT'] = '8081'
+    runtime['HOUSE_SYNC_PUBLIC_ACCESS'] = '${HOUSE_SYNC_PUBLIC_ACCESS:-false}'
     api = {'image': project + '-sync:' + revision, 'build': {'context': './releases/' + revision, 'dockerfile': 'Api.Dockerfile'},
            'restart': 'unless-stopped', 'environment': runtime, 'expose': ['8081'], 'mem_limit': '256m', 'read_only': True,
            'tmpfs': ['/tmp'], 'security_opt': ['no-new-privileges:true'], 'cap_drop': ['ALL']}

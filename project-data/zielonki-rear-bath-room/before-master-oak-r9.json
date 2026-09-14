@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-bath-room",
   "name": "GŁÓWNY Garaż za domem — łazienka w pokoju",
   "units": "metric",
-  "revision": 11,
-  "updatedAt": "2026-09-14T20:05:11.506Z",
+  "revision": 9,
+  "updatedAt": "2026-09-14T19:44:13.742Z",
   "site": {
     "boundary": [
       {
@@ -1877,18 +1877,18 @@
         },
         {
           "ref": "interior/reference-parents-bed",
-          "catalogId": "oak-platform-bed",
+          "catalogId": "bed",
           "storeyRef": "storey/reference-upper",
-          "name": "Łóżko dębowe · platforma 200 × 220",
+          "name": "Łóżko rodziców",
           "position": {
-            "x": -3.755,
-            "z": -4.505
+            "x": -2.745,
+            "z": -4.415
           },
-          "widthM": 2,
-          "depthM": 2.2,
+          "widthM": 1.8,
+          "depthM": 2.1,
           "heightM": 1,
           "rotationDegrees": 90,
-          "color": "#B88663"
+          "color": "#287a89"
         },
         {
           "ref": "interior/carport-study/desk",
@@ -2204,118 +2204,6 @@
           "heightM": 1.2,
           "rotationDegrees": 180,
           "color": "#B89468"
-        },
-        {
-          "ref": "interior/master-oak/rug",
-          "catalogId": "wool-rug",
-          "storeyRef": "storey/reference-upper",
-          "name": "Dywan kremowy pod łóżkiem · 280 × 280",
-          "position": {
-            "x": -3.425,
-            "z": -4.505
-          },
-          "widthM": 2.8,
-          "depthM": 2.8,
-          "heightM": 0.025,
-          "rotationDegrees": 0,
-          "color": "#E5D9C5",
-          "elevationM": 0
-        },
-        {
-          "ref": "interior/master-oak/nightstand-north",
-          "catalogId": "oak-nightstand",
-          "storeyRef": "storey/reference-upper",
-          "name": "Szafka nocna dębowa · north",
-          "position": {
-            "x": -4.65,
-            "z": -5.775
-          },
-          "widthM": 0.5,
-          "depthM": 0.4,
-          "heightM": 0.24,
-          "rotationDegrees": 90,
-          "color": "#C39C70",
-          "elevationM": 0.34
-        },
-        {
-          "ref": "interior/master-oak/lamp-north",
-          "catalogId": "brass-sconce",
-          "storeyRef": "storey/reference-upper",
-          "name": "Kinkiet mosiężny · north",
-          "position": {
-            "x": -4.725,
-            "z": -5.775
-          },
-          "widthM": 0.22,
-          "depthM": 0.28,
-          "heightM": 0.32,
-          "rotationDegrees": 90,
-          "color": "#B89450",
-          "elevationM": 1.03
-        },
-        {
-          "ref": "interior/master-oak/nightstand-south",
-          "catalogId": "oak-nightstand",
-          "storeyRef": "storey/reference-upper",
-          "name": "Szafka nocna dębowa · south",
-          "position": {
-            "x": -4.65,
-            "z": -3.235
-          },
-          "widthM": 0.5,
-          "depthM": 0.4,
-          "heightM": 0.24,
-          "rotationDegrees": 90,
-          "color": "#C39C70",
-          "elevationM": 0.34
-        },
-        {
-          "ref": "interior/master-oak/lamp-south",
-          "catalogId": "brass-sconce",
-          "storeyRef": "storey/reference-upper",
-          "name": "Kinkiet mosiężny · south",
-          "position": {
-            "x": -4.725,
-            "z": -3.235
-          },
-          "widthM": 0.22,
-          "depthM": 0.28,
-          "heightM": 0.32,
-          "rotationDegrees": 90,
-          "color": "#B89450",
-          "elevationM": 1.03
-        },
-        {
-          "ref": "interior/master-oak/chair",
-          "catalogId": "boucle-chair",
-          "storeyRef": "storey/reference-upper",
-          "name": "Fotel kremowy przy oknie",
-          "position": {
-            "x": -1.435,
-            "z": -5.95
-          },
-          "widthM": 0.72,
-          "depthM": 0.75,
-          "heightM": 0.76,
-          "rotationDegrees": 30,
-          "color": "#E5D9C5",
-          "elevationM": 0
-        },
-        {
-          "ref": "interior/master-oak/side-table",
-          "catalogId": "oak-side-table",
-          "storeyRef": "storey/reference-upper",
-          "name": "Stolik okrągły dębowy",
-          "position": {
-            "x": -2.22,
-            "z": -5.95
-          },
-          "widthM": 0.38,
-          "depthM": 0.38,
-          "heightM": 0.45,
-          "rotationDegrees": 0,
-          "color": "#C39C70",
-          "elevationM": 0
         }
       ],
       "stairs": [
@@ -2625,13 +2513,7 @@
               "offsetM": 0.87,
               "widthM": 0.9,
               "heightM": 2.1,
-              "sillM": 0,
-              "finish": {
-                "presetId": "natural-oak",
-                "color": "#FFFFFF",
-                "rotationDegrees": 0,
-                "tileM": 1.2
-              }
+              "sillM": 0
             }
           ],
           "finish": {
@@ -2659,15 +2541,7 @@
             "material": "charred-timber",
             "colorHex": "#242927"
           },
-          "locked": false,
-          "faceFinishes": {
-            "left": {
-              "presetId": "natural-oak",
-              "color": "#FFFFFF",
-              "rotationDegrees": 0,
-              "tileM": 1.2
-            }
-          }
+          "locked": false
         },
         {
           "ref": "wall/reference-upper/5",
@@ -3169,14 +3043,6 @@
           "locked": false
         },
         {
-          "faceFinishes": {
-            "right": {
-              "presetId": "sand-tile",
-              "color": "#DCCDB7",
-              "rotationDegrees": 0,
-              "tileM": 0.6
-            }
-          },
           "ref": "wall/carport-layout/ground/7",
           "start": {
             "x": -1.13,
@@ -3205,7 +3071,15 @@
             "material": "natural-timber",
             "colorHex": "#BD9C73"
           },
-          "locked": false
+          "locked": false,
+          "faceFinishes": {
+            "right": {
+              "presetId": "sand-tile",
+              "color": "#DCCDB7",
+              "rotationDegrees": 0,
+              "tileM": 0.6
+            }
+          }
         },
         {
           "ref": "wall/carport-layout/ground/8",
@@ -3239,14 +3113,6 @@
           "locked": false
         },
         {
-          "faceFinishes": {
-            "left": {
-              "presetId": "sand-tile",
-              "color": "#DCCDB7",
-              "rotationDegrees": 0,
-              "tileM": 0.6
-            }
-          },
           "ref": "wall/carport-layout/ground/9",
           "start": {
             "x": -1.13,
@@ -3264,9 +3130,7 @@
             "material": "natural-timber",
             "colorHex": "#BD9C73"
           },
-          "locked": false
-        },
-        {
+          "locked": false,
           "faceFinishes": {
             "left": {
               "presetId": "sand-tile",
@@ -3274,7 +3138,9 @@
               "rotationDegrees": 0,
               "tileM": 0.6
             }
-          },
+          }
+        },
+        {
           "ref": "wall/carport-layout/ground/10",
           "start": {
             "x": -1.13,
@@ -3292,9 +3158,7 @@
             "material": "natural-timber",
             "colorHex": "#BD9C73"
           },
-          "locked": false
-        },
-        {
+          "locked": false,
           "faceFinishes": {
             "left": {
               "presetId": "sand-tile",
@@ -3302,7 +3166,9 @@
               "rotationDegrees": 0,
               "tileM": 0.6
             }
-          },
+          }
+        },
+        {
           "ref": "wall/carport-layout/ground/11",
           "start": {
             "x": -4.995,
@@ -3320,7 +3186,15 @@
             "material": "natural-timber",
             "colorHex": "#BD9C73"
           },
-          "locked": false
+          "locked": false,
+          "faceFinishes": {
+            "left": {
+              "presetId": "sand-tile",
+              "color": "#DCCDB7",
+              "rotationDegrees": 0,
+              "tileM": 0.6
+            }
+          }
         },
         {
           "ref": "wall/carport-layout/ground/12",
@@ -3588,13 +3462,7 @@
               "offsetM": 3.35,
               "widthM": 0.8,
               "heightM": 2.1,
-              "sillM": 0,
-              "finish": {
-                "presetId": "natural-oak",
-                "color": "#FFFFFF",
-                "rotationDegrees": 0,
-                "tileM": 1.2
-              }
+              "sillM": 0
             }
           ],
           "finish": {
@@ -3757,19 +3625,7 @@
           ],
           "baseSlabRef": "slab/reference-upper",
           "topBoundaryRef": "roof/reference",
-          "locked": false,
-          "floorFinish": {
-            "presetId": "natural-oak",
-            "color": "#FFFFFF",
-            "rotationDegrees": 90,
-            "tileM": 1.2
-          },
-          "ceilingFinish": {
-            "presetId": "natural-oak",
-            "color": "#FFFFFF",
-            "rotationDegrees": 0,
-            "tileM": 1.2
-          }
+          "locked": false
         },
         {
           "ref": "space/reference-landing",
@@ -3946,18 +3802,6 @@
           "locked": false
         },
         {
-          "floorFinish": {
-            "presetId": "sand-tile",
-            "color": "#CDBCA3",
-            "rotationDegrees": 0,
-            "tileM": 0.6
-          },
-          "ceilingFinish": {
-            "presetId": "warm-white",
-            "color": "#F2EEE5",
-            "rotationDegrees": 0,
-            "tileM": 1
-          },
           "ref": "space/reference-wc",
           "name": "Bathroom",
           "usage": "bathroom",
@@ -3981,7 +3825,19 @@
           ],
           "baseSlabRef": "slab/reference-ground",
           "topBoundaryRef": "slab/reference-upper",
-          "locked": false
+          "locked": false,
+          "floorFinish": {
+            "presetId": "sand-tile",
+            "color": "#CDBCA3",
+            "rotationDegrees": 0,
+            "tileM": 0.6
+          },
+          "ceilingFinish": {
+            "presetId": "warm-white",
+            "color": "#F2EEE5",
+            "rotationDegrees": 0,
+            "tileM": 1
+          }
         },
         {
           "ref": "space/reference-pantry",

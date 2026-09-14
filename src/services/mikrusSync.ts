@@ -15,12 +15,32 @@ export const rememberConnectionKey = (key: string) => {
   localStorage.setItem(KEY, key.trim())
 }
 const apiRoot = () => import.meta.env.VITE_SYNC_API_URL ?? 'https://natan203-20203.mikrus.cloud'
+let localConfigured = false
+let publicConnection = false
+export async function detectPublicConnection() {
+  if (!isSyncSecure()) return false
+  try {
+    const response = await fetch(`${apiRoot()}/api/sync/access`, { cache: 'no-store', credentials: 'omit', signal: AbortSignal.timeout(5000), redirect: 'error' })
+    publicConnection = response.ok && (await response.json()).publicAccess === true
+  } catch { publicConnection = false }
+  return publicConnection
+}
+export async function detectLocalConnection() {
+  if (!import.meta.env.DEV || !['localhost', '127.0.0.1'].includes(location.hostname)) return false
+  try {
+    const response = await fetch('/api/local-sync/configuration', { headers: { 'X-House-Local-Sync': '1' }, cache: 'no-store', signal: AbortSignal.timeout(5000) })
+    localConfigured = response.ok && (await response.json()).configured === true
+  } catch { localConfigured = false }
+  return localConfigured
+}
 export class SyncHttpError extends Error { constructor(public status: number, message: string) { super(message) } }
 async function request<T>(path: string, body?: unknown): Promise<T> {
   if (!isSyncSecure() || new URL(apiRoot(), location.href).protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(new URL(apiRoot(), location.href).hostname)) throw new Error('Synchronization requires HTTPS.')
   const key = connectionKey()
-  if (!key) throw new Error('Connect this browser with your private connection key first.')
-  const response = await fetch(`${apiRoot()}/api/sync/${path}`, { method: body ? 'PUT' : 'GET', headers: { Authorization: `Bearer ${key}`, ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(20000), credentials: 'omit', cache: 'no-store', redirect: 'error' }).catch(() => { throw new Error('Mikrus is unreachable or the request timed out. Local work is preserved; retry Sync when connected.') })
+  if (!key && !localConfigured) await detectLocalConnection()
+  if (!key && !localConfigured && !publicConnection) await detectPublicConnection()
+  if (!key && !localConfigured && !publicConnection) throw new Error('Connect this browser with your private connection key first.')
+  const response = await fetch(localConfigured ? `/api/local-sync/${path}` : `${apiRoot()}/api/sync/${path}`, { method: body ? 'PUT' : 'GET', headers: { ...(localConfigured ? { 'X-House-Local-Sync': '1' } : { Authorization: `Bearer ${key}` }), ...(body ? { 'Content-Type': 'application/json' } : {}) }, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(20000), credentials: 'omit', cache: 'no-store', redirect: 'error' }).catch(() => { throw new Error('Mikrus is unreachable or the request timed out. Local work is preserved; retry Sync when connected.') })
   if (!response.ok) throw new SyncHttpError(response.status, response.status === 401 ? 'Connection key rejected. Update the key for this browser.' : response.status === 409 ? 'Shared version changed. Sync again to review.' : response.status === 404 ? 'No shared workspace found.' : 'Mikrus synchronization failed. Your local work is preserved.')
   return response.json() as Promise<T>
 }
@@ -36,7 +56,7 @@ const applyWorkspace = (workspace: PersistedWorkspace) => applyLockedWorkspace((
     selectedRef: null, repositioningRef: null, confirmationVariantRef: null, sunOverlay: { enabled: false, targetRef: null, result: null }, hydrated: true, launcherOpen: false })
 })
 interface Conflict { local: PersistedWorkspace; remote: SharedVersion; paths: string[] }
-export const useSyncStatus = create<{ busy: boolean; message: string; conflict: Conflict | null; lastSynced: SharedVersion | null }>(() => ({ busy: false, message: 'Manual sync · local changes stay in this browser until synchronized', conflict: null, lastSynced: null }))
+export const useSyncStatus = create<{ busy: boolean; message: string; conflict: Conflict | null; lastSynced: SharedVersion | null }>(() => ({ busy: false, message: '', conflict: null, lastSynced: null }))
 let releaseLock: (() => void) | null = null
 function finish(message?: string) {
   releaseLock?.(); releaseLock = null
@@ -94,6 +114,46 @@ export async function syncWorkspace() {
     }
     await commitShared(local, remote, record)
   } catch (error) { finish(error instanceof Error ? error.message : 'Sync failed. Local work is preserved.') }
+}
+/** Explicit one-way transfer; a download never issues a write to Mikrus. */
+export async function transferWorkspace(direction: 'get' | 'push') {
+  if (useSyncStatus.getState().busy) return
+  releaseLock = lockWorkspace('Transferring project…')
+  useSyncStatus.setState({ busy: true, conflict: null, message: direction === 'get' ? 'Getting from Mikrus…' : 'Pushing to Mikrus…' })
+  try {
+    await flushAutosave()
+    const local = structuredClone(currentWorkspace())
+    const ref = local.project.ref
+    const record = await readSyncRecord<SyncRecord>(ref) ?? {}
+    const remote = await fetchShared(ref)
+    if (direction === 'get') {
+      if (!remote) throw new Error('This project is not on Mikrus yet. Use Push to Mikrus first.')
+      if (!sameWorkspace(local, remote.workspace)) {
+        await saveRecovery(local); await saveRecovery(remote.workspace)
+        if (!window.confirm('Replace this device’s project with the Mikrus version? Your current version has been backed up.')) { finish('Get cancelled. Your project is unchanged.'); return }
+      }
+      await saveWorkspace(remote.workspace, { sync: { base: remote } })
+      applyWorkspace(remote.workspace)
+      await flushAutosave()
+      useSyncStatus.setState({ lastSynced: remote })
+      finish('Got the project from Mikrus.')
+      return
+    }
+    if (remote && !sameWorkspace(local, remote.workspace) && (!record.base || !sameWorkspace(record.base.workspace, remote.workspace))) {
+      await saveRecovery(remote.workspace); await saveRecovery(local)
+      if (!window.confirm('Mikrus has a different version. Replace it with this device’s project? Both versions are backed up.')) { finish('Push cancelled. Both versions are unchanged.'); return }
+    }
+    if (record.pending) {
+      try { await request<SharedVersion>('workspace', record.pending) }
+      catch (error) { if (!(error instanceof SyncHttpError && error.status === 409)) throw error }
+      await writeSyncRecord(ref, { base: record.base })
+      // Re-read after recovering a possibly acknowledged earlier write.
+      const current = await fetchShared(ref)
+      if (current?.serverVersion !== remote?.serverVersion) throw new Error('Recovered an earlier push. Press Push to Mikrus again to send the current project.')
+    }
+    await commitShared(local, remote, record)
+    finish('Pushed the project to Mikrus.')
+  } catch (error) { finish(error instanceof Error ? error.message : 'Transfer failed. Your local project is preserved.') }
 }
 export async function resolveSync(choice: 'local' | 'remote' | 'copy') {
   const conflict = useSyncStatus.getState().conflict

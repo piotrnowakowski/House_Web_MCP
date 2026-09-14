@@ -15,7 +15,7 @@ export function workspaceProjectRef(ref: string): string {
 }
 
 /** Group existing records for display without modifying, merging or promoting any saved version. */
-export function groupWorkspaces(workspaces: WorkspaceSummary[]): WorkspaceGroup[] {
+export function groupWorkspaces(workspaces: WorkspaceSummary[], favoriteRef: string | null = null): WorkspaceGroup[] {
   const groups = new Map<string, WorkspaceGroup>()
   for (const workspace of workspaces) {
     const ref = workspaceProjectRef(workspace.ref)
@@ -36,7 +36,7 @@ export function groupWorkspaces(workspaces: WorkspaceSummary[]): WorkspaceGroup[
     group.versions.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt) || b.ref.localeCompare(a.ref))
   }
   // Keep the added third design after the two existing projects, including when a copy has a newer date.
-  return [...groups.values()].sort((a, b) => Number(a.ref === REAR_CARPORT_STUDY_REF) - Number(b.ref === REAR_CARPORT_STUDY_REF))
+  return [...groups.values()].sort((a, b) => Number(b.ref === favoriteRef) - Number(a.ref === favoriteRef) || Number(a.ref === REAR_CARPORT_STUDY_REF) - Number(b.ref === REAR_CARPORT_STUDY_REF))
 }
 
 export function workspaceVersionKind(ref: string): string {

@@ -197,3 +197,6 @@ canvas:focus-visible { outline: 2px solid #b9e84d; outline-offset: -4px; }
 .measurement-guide small { flex-basis: 100%; order: 1; color: #b8c2bd; font-size: 10px; }
 
 .editor-loading { display: grid; place-items: center; min-height: 100dvh; color: #dce5dc; background: #19251f; font: 500 15px system-ui; }
+
+.project-favorite { display: inline-flex; align-items: center; justify-content: center; min-width: 44px; min-height: 44px; }
+.project-favorite[aria-pressed="true"] { color: #ef8e9d; border-color: #b96676; }

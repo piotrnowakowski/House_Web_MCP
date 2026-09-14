@@ -4,6 +4,7 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import { resolve } from 'node:path'
 import { createWebMcpManifest } from './src/services/webmcpDefinitions'
+import { localSyncPlugin } from './scripts/local-sync'
 
 const webMcpManifestPlugin = () => ({
   name: 'webmcp-manifest',
@@ -24,7 +25,7 @@ for (const directory of ['models', 'textures']) {
 
 export default defineConfig({
   define: { __STATIC_ASSET_VERSION__: JSON.stringify(assetHash.digest('hex').slice(0, 16)) },
-  plugins: [react(), webMcpManifestPlugin()],
+  plugins: [react(), webMcpManifestPlugin(), localSyncPlugin()],
   resolve: { dedupe: ['react', 'react-dom'] },
   base: process.env.BASE_PATH ?? '/',
   server: { host: '127.0.0.1', watch: { ignored: ['**/tmp/**', '**/output/**', '**/.playwright-mcp/**'] } },

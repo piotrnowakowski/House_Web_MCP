@@ -47,3 +47,16 @@ describe('private PostgreSQL sync API', () => {
     expect(result.headers['cache-control']).toBe('no-store')
   })
 })
+
+it('supports explicitly configured public read/write access without exposing credentials',async()=>{
+ const publicApi=createApi(pool,'',['https://house.example'],true);await publicApi.ready()
+ try {
+  expect((await publicApi.inject({url:'/api/sync/access'})).json()).toEqual({publicAccess:true})
+  expect((await publicApi.inject({url:'/api/sync/projects'})).statusCode).toBe(200)
+  const copy=structuredClone(workspace);copy.project.ref='project/public-sync-test'
+  expect((await publicApi.inject({method:'PUT',url:'/api/sync/workspace',payload:{expectedVersion:0,mutationId:randomUUID(),workspace:copy}})).statusCode).toBe(200)
+  expect((await publicApi.inject({url:'/api/sync/projects',headers:{origin:'https://foreign.example'}})).statusCode).toBe(403)
+  expect((await app.inject({url:'/api/sync/access'})).json()).toEqual({publicAccess:false})
+  expect((await app.inject({url:'/api/sync/projects'})).statusCode).toBe(401)
+ }finally{await publicApi.close()}
+})

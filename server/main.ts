@@ -3,7 +3,7 @@ import { createPool, migrate } from './database'
 import { createApi } from './app'
 
 const pool = createPool()
-const app = createApi(pool, process.env.HOUSE_SYNC_KEY_HASH ?? '', (process.env.HOUSE_SYNC_ORIGINS ?? '').split(',').filter(Boolean))
+const app = createApi(pool, process.env.HOUSE_SYNC_KEY_HASH ?? '', (process.env.HOUSE_SYNC_ORIGINS ?? '').split(',').filter(Boolean), process.env.HOUSE_SYNC_PUBLIC_ACCESS === 'true')
 try {
   await migrate(pool)
   await app.listen({ host: '0.0.0.0', port: Number(process.env.PORT ?? 8081) })

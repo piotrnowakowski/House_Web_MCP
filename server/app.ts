@@ -6,8 +6,8 @@ import type pg from 'pg'
 import { z } from 'zod'
 import { stableJson, validateWorkspace } from '../src/domain/workspaceSync'
 
-export function createApi(pool: pg.Pool, keyHash: string, origins: string[]) {
-  if (!/^[a-f0-9]{64}$/.test(keyHash)) throw new Error('A SHA-256 connection-key hash is required')
+export function createApi(pool: pg.Pool, keyHash: string, origins: string[], publicAccess = false) {
+  if (!publicAccess && !/^[a-f0-9]{64}$/.test(keyHash)) throw new Error('A SHA-256 connection-key hash is required')
   const app = Fastify({ logger: false, bodyLimit: 20 * 1024 * 1024 })
   app.register(cors, { origin: origins, methods: ['GET', 'PUT', 'OPTIONS'], allowedHeaders: ['Authorization', 'Content-Type'] })
   app.register(rateLimit, { max: 120, timeWindow: '1 minute' })
@@ -15,6 +15,7 @@ export function createApi(pool: pg.Pool, keyHash: string, origins: string[]) {
     reply.header('Cache-Control', 'no-store')
     if (request.method === 'OPTIONS' || request.url === '/api/sync/health') return
     if (request.headers.origin && !origins.includes(request.headers.origin)) return reply.code(403).send({ error: 'Origin not allowed' })
+    if (request.url === '/api/sync/access' || publicAccess) return
     const bearer = request.headers.authorization?.match(/^Bearer ([A-Za-z0-9_-]{32,128})$/)?.[1]
     if (!bearer || !timingSafeEqual(createHash('sha256').update(bearer).digest(), Buffer.from(keyHash, 'hex'))) return reply.code(401).send({ error: 'Invalid connection key' })
   })
@@ -25,6 +26,7 @@ export function createApi(pool: pg.Pool, keyHash: string, origins: string[]) {
   app.get('/api/sync/health', async (_request, reply) => {
     try { await pool.query('SELECT 1'); return { status: 'ready' } } catch { return reply.code(503).send({ status: 'unavailable' }) }
   })
+  app.get('/api/sync/access', async () => ({ publicAccess }))
   app.get('/api/sync/projects', async () => {
     const result = await pool.query("SELECT ref, workspace->'project'->>'name' AS name, server_version AS \"serverVersion\" FROM house_sync_projects ORDER BY updated_at DESC")
     return result.rows

@@ -8,7 +8,7 @@ import { ExactMeasureTools } from './editor/ExactMeasureTools'
 import { NeighborControls, NeighborPreferences, NeighborSettings, NeighborToggle } from './NeighborControls'
 import { AdaptiveSheet, useCompactLayout } from './interior/AdaptiveSheet'
 import { PrecisionControls, PrecisionField } from './interior/InteriorPanels'
-import { Box, Eye, EyeOff, Focus, MoreHorizontal, Plus, Ruler, Settings2, Move, Check } from 'lucide-react'
+import { Box, Eye, EyeOff, Focus, MoreHorizontal, Plus, Ruler, Settings2, Move, Check, Heart } from 'lucide-react'
 import './interior/plot-mobile.css'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { dayParts } from './domain/climate'
@@ -414,7 +414,21 @@ const timezoneOptions = (() => { try { const values = (Intl as unknown as { supp
 /** The start screen: continue a saved project, reset to the bundled Zielonki study, or describe a new plot. */
 function StartScreen() {
   const open = useStudioStore((state) => state.launcherOpen); const saved = useStudioStore((state) => state.savedWorkspaces); const hydrated = useStudioStore((state) => state.hydrated); const project = useStudioStore((state) => state.project)
-  const visibleProjects = groupWorkspaces(saved).filter((item) => item.ref !== REFERENCE_HOUSE_REF)
+  const [favoriteRef, setFavoriteRef] = useState<string | null>(() => { try { return localStorage.getItem('house.favoriteProject') } catch { return null } })
+  useEffect(() => {
+    const update = (event: StorageEvent) => { if (event.key === 'house.favoriteProject' || event.key === null) { try { setFavoriteRef(localStorage.getItem('house.favoriteProject')) } catch { /* Keep the current preference if storage is unavailable. */ } } }
+    window.addEventListener('storage', update)
+    return () => window.removeEventListener('storage', update)
+  }, [])
+  const toggleFavorite = (ref: string) => {
+    try {
+      const next = favoriteRef === ref ? null : ref
+      if (next) localStorage.setItem('house.favoriteProject', next)
+      else localStorage.removeItem('house.favoriteProject')
+      setFavoriteRef(next)
+    } catch { useStudioStore.getState().setToast('Nie udało się zapisać ulubionego projektu. Spróbuj ponownie.') }
+  }
+  const visibleProjects = groupWorkspaces(saved, favoriteRef).filter((item) => item.ref !== REFERENCE_HOUSE_REF)
   const [expandedProjects, setExpandedProjects] = useState<string[]>([])
   const syncConflicts = useStudioStore((state) => state.projectSyncConflicts)
   const loading = useStudioStore((state) => state.loadingWorkspaces)
@@ -489,6 +503,7 @@ function StartScreen() {
             <PlotOutline boundary={(current ?? group.versions[0]).boundary} />
             <div><strong>{group.name}</strong><small>{current ? 'Bieżący projekt' : 'Zachowana historia · brak bieżącego zapisu'}</small>{group.hasConflict && <span className="project-conflict">Wersja z konfliktem do sprawdzenia</span>}</div>
             <div className="project-card-actions">
+              <button className="project-favorite" aria-label={`${favoriteRef === group.ref ? 'Usuń z ulubionych' : 'Oznacz jako ulubiony'}: ${group.name}`} title={favoriteRef === group.ref ? 'Ulubiony projekt' : 'Oznacz jako ulubiony'} aria-pressed={favoriteRef === group.ref} onClick={() => toggleFavorite(group.ref)}><Heart size={20} fill={favoriteRef === group.ref ? 'currentColor' : 'none'} aria-hidden="true" /></button>
               {current && <><button disabled={savingName} aria-label={index === 0 ? `Continue · ${group.name}` : `Open · ${group.name}`} className={index === 0 ? 'primary' : ''} onClick={() => void openWorkspace(current.ref)}>Otwórz projekt</button><button disabled={savingName} aria-label={`Zmień nazwę: ${group.name}`} aria-expanded={renameRef === current.ref} onClick={(event) => beginRename(event, current)}>Zmień nazwę</button></>}
               <button disabled={savingName} className="project-versions-toggle" aria-expanded={expanded} aria-controls={`versions-${group.ref}`} onClick={() => { setExpandedProjects((refs) => expanded ? refs.filter((ref) => ref !== group.ref) : [...refs, group.ref]); setRenameRef(null); setRemoveRef(null) }}><span aria-hidden="true">{expanded ? '▾' : '▸'}</span> Wersje ({versions.length})</button>
             </div>
