@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import project from '../../project-data/zielonki-rear-bath-room/project.json'
 import baseline from '../../project-data/zielonki-rear-bath-room/before-dark-side-r2.json'
 import { parseProject } from './schema'
-import { gableFrameBottom, recessSideLayout } from './gableRecess'
+import { gableFrameBottom, recessSideBattenOffsets, recessSideLayout } from './gableRecess'
 import { mergeProjects } from './projectMerge'
 import { IDBFactory } from 'fake-indexeddb'
 import { loadWorkspace, saveWorkspace, synchronizePublishedProject } from '../services/persistence'
@@ -18,6 +18,12 @@ describe('recessed facade lining', () => {
     expect(panel.thickness / 2).toBeGreaterThan(.1)
     expect(gableFrameBottom(segment, 'max', 3.45)).toBe(.45)
     expect(gableFrameBottom(segment, 'min', 3.45)).toBe(3.45)
+  })
+  it('uses centred vertical timber boards on the brown returns while the adjoining wall stays black', () => {
+    const panel = recessSideLayout(building, segment, 'max')
+    expect(recessSideBattenOffsets(panel.depth)).toEqual([-.34, 0, .34])
+    expect(segment.gableRecess!.max).toMatchObject({ sideColorHex: '#65432E', soffitColorHex: '#B78F60' })
+    expect(building.walls.find((wall) => wall.ref === 'wall/reference-upper/6')?.finish).toEqual({ material: 'charred-timber', colorHex: '#242927' })
   })
   it('works when the recess faces the opposite direction or the z axis', () => {
     const mirrored = structuredClone(building)

@@ -62,6 +62,8 @@ it('publishes the complete office and converts the retained opening into a terra
   Object.assign(restoredOpening, previousHouse.walls.flatMap((wall) => wall.openings).find((item) => item.ref === openingRef))
   for (const wall of restoredHouse.walls) wall.openings = wall.openings.filter((item) => ![laterUpperBathroomWindowRef, laterLivingTerraceDoorRef].includes(item.ref))
   delete restoredHouse.slabs.find((slab) => slab.ref === 'slab/reference-upper')!.edgeColorHex
+  // Later landscape revisions are covered independently; isolate this assertion to the office release.
+  restored.landscape = structuredClone(previous.landscape)
   restored.revision = previous.revision
   restored.updatedAt = previous.updatedAt
   expect(restored).toEqual(previous)

@@ -1,5 +1,19 @@
 # Bathroom extending into bedroom 1
 
+## 2026-09-15 — timber-board treatment on the recessed side panel (r42 renderer, local)
+
+The circled rear-gable return keeps the established dark-walnut brown `#65432E`, but now receives centred vertical timber boards at the same 0.34 m rhythm as the rest of the timber façade instead of reading as one flat panel. The adjoining left wall remains black charred-timber cladding `#242927` with its existing vertical battens. The brown deck and soffit remain `#B78F60`; wall, opening, frame, roof and recess geometry are unchanged.
+
+This is a renderer-only correction against canonical r42, so the project revision and the r41 tree-removal baseline are unchanged. A focused test locks the brown/black material split and the three centred boards across the 1.19 m return. The user authorized committing and deploying this correction together with r42 on 2026-09-15.
+
+## 2026-09-15 — remove trees overlapping the GŁÓWNY house (r42, local)
+
+The user asked to remove only the trees visibly overlapping the house in the tree-on view of the GŁÓWNY project, while keeping every other tree and the existing per-project tree on/off control. The actual Mikrus browser workspace at `https://natan203-20203.mikrus.cloud/` was opened with GŁÓWNY selected and trees enabled; an overhead inspection confirmed six crowns crossing the house footprint: `plant/survey-501b`, `plant/survey-501e`, `plant/survey-5021`, `plant/survey-5024`, `plant/survey-503a` and `plant/apple` (survey handle `50F5`).
+
+Canonical r41 is preserved byte-for-byte as `before-house-tree-clearance-r41.json`. Canonical r42 deletes only those six plant records. The other 11 mapped trees, all garden fixtures, buildings, rooms, furniture, slabs, roofs, parcel data and neighboring buildings are unchanged. Tree visibility remains a local per-project view preference and is not encoded in project data.
+
+Pre-release capture `tmp/main-r42-tree-facade-release-20260915/` was taken from the actual Chrome `Default` profile (`Osoba 1`) while the browser was open. The `http://127.0.0.1:5173` GŁÓWNY workspace at r42 matches canonical r42 exactly apart from save metadata. The HTTPS workspace at r42 differs only by retaining the six explicitly deleted overlapping trees; it contains no other unpublished design change. The merge therefore keeps the user-requested deletions and preserves every other HTTPS field. The capture is recoverable and ignored; no browser workspace was overwritten during comparison. The user authorized committing and deploying r42 to Mikrus on 2026-09-15.
+
 ## 2026-09-15 — authorized adjustments release
 
 The user authorized merging the three r39-r41 adjustments below into `codex/deploy-furnished-zielonki` and redeploying that branch to Mikrus. Before the merge, the actual localhost workspace was exported from `http://127.0.0.1:5173/` to ignored recovery evidence at `tmp/adjustments-release-20260915/localhost-r42-webmcp-export.json`. Its r42 project data matches canonical r41 after excluding only save metadata (`revision`, `updatedAt`) and `site.knowledgeBase`, which the read-only browser export intentionally omits. No browser workspace was overwritten; the tracked canonical r41 remains the publication source.

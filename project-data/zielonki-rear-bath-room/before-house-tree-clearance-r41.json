@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-bath-room",
   "name": "GŁÓWNY Garaż za domem — łazienka w pokoju",
   "units": "metric",
-  "revision": 42,
-  "updatedAt": "2026-09-15T15:42:56.754Z",
+  "revision": 41,
+  "updatedAt": "2026-09-15T13:24:36.380Z",
   "site": {
     "boundary": [
       {
@@ -5887,6 +5887,142 @@
         "surveyHandle": "5018"
       },
       {
+        "ref": "plant/survey-501b",
+        "name": "Mapped conifer tree 501B",
+        "species": "Unidentified conifer",
+        "kind": "tree",
+        "position": {
+          "x": -10.223691645184829,
+          "z": 3.484926850225678
+        },
+        "matureHeightM": 15,
+        "canopyM": 5.2,
+        "sunNeed": "sun",
+        "waterNeed": 1,
+        "hardinessMinC": -25,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "locked": true,
+        "crownShape": "conical",
+        "placementRole": "site",
+        "surveyHandle": "501B"
+      },
+      {
+        "ref": "plant/survey-501e",
+        "name": "Mapped conifer tree 501E",
+        "species": "Unidentified conifer",
+        "kind": "tree",
+        "position": {
+          "x": -5.076869551593135,
+          "z": 3.291142591360065
+        },
+        "matureHeightM": 15,
+        "canopyM": 5.2,
+        "sunNeed": "sun",
+        "waterNeed": 1,
+        "hardinessMinC": -25,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "locked": true,
+        "crownShape": "conical",
+        "placementRole": "site",
+        "surveyHandle": "501E"
+      },
+      {
+        "ref": "plant/survey-5021",
+        "name": "Mapped conifer tree 5021",
+        "species": "Unidentified conifer",
+        "kind": "tree",
+        "position": {
+          "x": -3.0927244952683925,
+          "z": 2.360600600829528
+        },
+        "matureHeightM": 15,
+        "canopyM": 5.2,
+        "sunNeed": "sun",
+        "waterNeed": 1,
+        "hardinessMinC": -25,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "locked": true,
+        "crownShape": "conical",
+        "placementRole": "site",
+        "surveyHandle": "5021"
+      },
+      {
+        "ref": "plant/survey-5024",
+        "name": "Mapped conifer tree 5024",
+        "species": "Unidentified conifer",
+        "kind": "tree",
+        "position": {
+          "x": -1.537071658784723,
+          "z": 1.5718698148785841
+        },
+        "matureHeightM": 15,
+        "canopyM": 5.2,
+        "sunNeed": "sun",
+        "waterNeed": 1,
+        "hardinessMinC": -25,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "locked": true,
+        "crownShape": "conical",
+        "placementRole": "site",
+        "surveyHandle": "5024"
+      },
+      {
         "ref": "plant/survey-5027",
         "name": "Mapped conifer tree 5027",
         "species": "Unidentified conifer",
@@ -6050,6 +6186,64 @@
         "crownShape": "rounded",
         "placementRole": "site",
         "surveyHandle": "5033"
+      },
+      {
+        "ref": "plant/survey-503a",
+        "name": "Mapped deciduous tree 503A",
+        "species": "Unidentified deciduous",
+        "kind": "tree",
+        "position": {
+          "x": 1.19335044016006,
+          "z": -0.5710452924112609
+        },
+        "matureHeightM": 15,
+        "canopyM": 7,
+        "sunNeed": "sun",
+        "waterNeed": 1,
+        "hardinessMinC": -25,
+        "leafMonths": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "bloomMonths": [],
+        "locked": true,
+        "crownShape": "rounded",
+        "placementRole": "site",
+        "surveyHandle": "503A"
+      },
+      {
+        "ref": "plant/apple",
+        "name": "Mapped deciduous tree 50F5",
+        "species": "Unidentified deciduous",
+        "kind": "tree",
+        "position": {
+          "x": -12.121907201465316,
+          "z": 1.181268303102935
+        },
+        "matureHeightM": 15,
+        "canopyM": 7,
+        "sunNeed": "sun",
+        "waterNeed": 1,
+        "hardinessMinC": -25,
+        "leafMonths": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "bloomMonths": [],
+        "locked": true,
+        "crownShape": "rounded",
+        "placementRole": "site",
+        "surveyHandle": "50F5"
       },
       {
         "ref": "plant/orchard-sour-cherry",

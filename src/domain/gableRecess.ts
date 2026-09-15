@@ -20,6 +20,12 @@ export function recessSideLayout(building: BuildingModel, segment: RoofSegmentMo
   return { center: (edge + inner) / 2, depth: Math.abs(edge - inner), thickness, inner, edge }
 }
 
+/** Centred vertical-board positions using the same 34 cm rhythm as charred timber walls. */
+export function recessSideBattenOffsets(depth: number, spacing = .34) {
+  const count = Math.max(1, Math.floor(depth / spacing))
+  return Array.from({ length: count }, (_, index) => (index - (count - 1) / 2) * spacing)
+}
+
 export function gableFrameBottom(segment: RoofSegmentModel, side: 'min' | 'max', wallBottom: number) {
   return segment.gableRecess?.[side]?.baseElevationM ?? wallBottom
 }

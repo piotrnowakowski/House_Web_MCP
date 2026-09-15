@@ -22,7 +22,7 @@ import { ProductModel } from '../interior/ProductModel'
 import { FinishMaterial } from '../interior/FinishMaterial'
 import { fitVisiblePlot } from './fitVisiblePlot'
 import { resolveGableWallFinish, resolveWallFinish } from '../domain/wallFinishes'
-import { recessSideLayout } from '../domain/gableRecess'
+import { recessSideBattenOffsets, recessSideLayout } from '../domain/gableRecess'
 import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
 import type { GeneratedSolid } from '../geometry/types'
 import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
@@ -785,6 +785,9 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
       const at = (across: number, y: number): [number, number, number] => alongZ ? [across, y, center] : [center, y, across]
       const middle = alongZ ? cx : cz
       const lining = recessSideLayout(building, segment, side)
+      const sideColor = recess.sideColorHex ?? recess.soffitColorHex
+      const sideHeight = base - recess.baseElevationM
+      const sideBattens = recess.sideColorHex ? recessSideBattenOffsets(lining.depth) : []
       return <group key={`recess-${side}`} userData={{ semanticRef: `${segment.ref}/recess/${side}` }}>
         <mesh position={at(middle, recess.baseElevationM + .015)} receiveShadow>
           <boxGeometry args={alongZ ? [span, .06, recess.depthM] : [recess.depthM, .06, span]} />
@@ -800,9 +803,15 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
             <meshStandardMaterial color={recess.soffitColorHex} roughness={.85} />
           </mesh>
           <mesh position={alongZ ? [middle + sign * span / 2, (base + recess.baseElevationM) / 2, lining.center] : [lining.center, (base + recess.baseElevationM) / 2, middle + sign * span / 2]} castShadow receiveShadow>
-            <boxGeometry args={alongZ ? [lining.thickness, base - recess.baseElevationM, lining.depth] : [lining.depth, base - recess.baseElevationM, lining.thickness]} />
-            <meshStandardMaterial color={recess.sideColorHex ?? recess.soffitColorHex} roughness={.85} />
+            <boxGeometry args={alongZ ? [lining.thickness, sideHeight, lining.depth] : [lining.depth, sideHeight, lining.thickness]} />
+            <meshStandardMaterial color={sideColor} roughness={.9} />
           </mesh>
+          {sideBattens.map((offset, battenIndex) => <mesh key={`side-batten-${battenIndex}`} position={alongZ
+            ? [middle + sign * span / 2 - sign * (lining.thickness / 2 + .018), (base + recess.baseElevationM) / 2, lining.center + offset]
+            : [lining.center + offset, (base + recess.baseElevationM) / 2, middle + sign * span / 2 - sign * (lining.thickness / 2 + .018)]} castShadow>
+            <boxGeometry args={alongZ ? [.038, sideHeight, .026] : [.026, sideHeight, .038]} />
+            <meshStandardMaterial color={shade(sideColor, battenIndex % 3 === 0 ? 1.2 : .72)} roughness={.96} />
+          </mesh>)}
         </group>)}
       </group>
     })}
