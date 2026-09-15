@@ -1,5 +1,27 @@
 # Bathroom extending into bedroom 1
 
+## 2026-09-15 — authorized adjustments release
+
+The user authorized merging the three r39-r41 adjustments below into `codex/deploy-furnished-zielonki` and redeploying that branch to Mikrus. Before the merge, the actual localhost workspace was exported from `http://127.0.0.1:5173/` to ignored recovery evidence at `tmp/adjustments-release-20260915/localhost-r42-webmcp-export.json`. Its r42 project data matches canonical r41 after excluding only save metadata (`revision`, `updatedAt`) and `site.knowledgeBase`, which the read-only browser export intentionally omits. No browser workspace was overwritten; the tracked canonical r41 remains the publication source.
+
+## 2026-09-15 — black slab edge and living-room terrace door (r41, local)
+
+The exposed 0.50 m upper-slab edge now uses the exact main-roof colour `#2D3435` instead of the default grey. A centred glazed terrace door `opening/living-terrace-door` is added to the 2.41 m living-room wall `wall/carport-layout/ground/3` directly under the retained courtyard pergola. It matches the office exit at **1.80 × 2.30 m** with a zero sill and leaves 0.305 m of wall at both ends. The living space boundary already owns this wall; the pergola footprint starts on the same facade line.
+
+Canonical r40 is preserved as `before-terrace-door-black-slab-r40.json`. Walls, rooms, furniture, slab geometry, storey heights, pergola geometry, roof footprints, pitches and ridge elevations are unchanged. This adjustment is local on branch `adjustments`; it is not committed, pushed or deployed. Startup synchronization at `http://127.0.0.1:5173/` merged canonical r41 into the existing local workspace as saved r42. The object panel read back 1.205 m centre offset, 1.80 x 2.30 m opening, zero sill and 0.305 m clear wall at both ends. The east elevation shows the former grey slab band in roof black and the ground plan shows the new salon exit beside the existing office exit under the pergola. The browser console had no errors. Visual evidence is in `output/terrace-door-black-slab/adjustments-r41-east-elevation.png` and `adjustments-r41-ground-plan.png`.
+
+## 2026-09-15 — upper bathroom window (r40, local)
+
+The selected exterior eaves wall `wall/reference-upper/bath-west` now has a centred, glazed **1.20 × 0.60 m** bathroom window with a 0.75 m sill. Its top is 1.35 m above the upper floor, leaving 5 cm below the verified 1.40 m roof-line clearance along this wall. The opening remains inside the 2.90 m wall with 0.85 m clear wall at both ends. Bathroom furniture, walls, rooms, slabs, roof geometry, pitches, ridge junction, landscape and every other project identity remain unchanged.
+
+Canonical r39 is preserved as `before-upper-bath-window-r39.json`. This adjustment is local on branch `adjustments`; it is not committed, pushed or deployed. Startup synchronization at `http://127.0.0.1:5173/` merged canonical r40 into the existing local workspace as saved r41. The upper-floor 3D view and generated west elevation show the opening; the precision panel read back a 1.45 m centre offset, 1.20 x 0.60 m opening and 0.75 m sill. The browser console had no errors. Visual evidence is in `output/upper-bath-window/adjustments-r40-west-elevation.png`.
+
+## 2026-09-15 — ceiling-height wardrobe at the entrance (r39, local)
+
+The selected hall face of `wall/carport-layout/ground/7` now has a built-in wardrobe between the bathroom door and the main entrance door. The new stable item `interior/entry-hall/wardrobe` measures **1.20 × 0.60 × 2.80 m** and reaches the full 2.80 m ground-floor clear height. It sits against the hall side of the wall at local position (-3.23, 1.21) m, leaving approximately 5 cm after the bathroom-door swing and 6.5 cm before the entrance-door swing. No door, wall, room, slab, roof, landscape or other project identity changes.
+
+Canonical r38 is preserved as `before-entry-wardrobe-r38.json`. This adjustment was made locally on branch `adjustments`, created from `codex/deploy-furnished-zielonki`; it is not committed, pushed or deployed. Startup synchronization at `http://127.0.0.1:5173/` merged canonical r39 into the existing local workspace as saved r40. The object panel confirmed 120 × 60 × 280 cm, the 3D view showed the wardrobe flush with the ceiling, the 2D plan confirmed the two door swings remain clear, and the browser console had no errors. Visual evidence is in `output/entry-wardrobe/adjustments-r39.png` and `adjustments-r39-plan.png`.
+
 ## 2026-09-14 — matching black north section (r7, local)
 
 The second circled pale panel is `wall/reference-upper/wardrobe-north`. It now uses the adjoining wall 5's `charred-timber` finish, `#242927`, with no openings. No geometry changed. Actual localhost saved r7 matched canonical r6 before editing; its recoverable capture is `tmp/facade-side/north-wall-before.json`. Canonical r6 is preserved in `before-black-north-r6.json`, with immutable baselines retained. Normal synchronization produced saved r8; the black finish was read back from IndexedDB after reload and visually verified. Ten relevant tests pass. Screenshot and saved result are in `tmp/facade-side/north-wall.png` and `north-wall-after.json`. Local only, not deployed.

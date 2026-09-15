@@ -15,7 +15,7 @@ import { buildingGroundOffset, buildingLocalBounds, elevationAt, pointInPolygon,
 import { gardenFixtureById } from '../domain/gardenFixtures'
 import { SpaFixture } from './SpaFixtures'
 import { measureHeight } from '../domain/heightMeasurements'
-import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, RoofSegmentModel, SiteEntranceModel, StructureReport, WallModel, WallMaterial } from '../domain/types'
+import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, RoofSegmentModel, SiteEntranceModel, SlabModel, StructureReport, WallModel, WallMaterial } from '../domain/types'
 import { inferWallOpeningLayout } from '../domain/wallOpeningLayouts'
 import { isExteriorWall, livingVoidPartitions } from '../domain/zielonkiInterior'
 import { ProductModel } from '../interior/ProductModel'
@@ -573,7 +573,7 @@ const wallSurface: Record<WallMaterial, { roughness: number; metalness: number }
 
 const shade = (hex: string, factor: number) => `#${new Color(hex).multiplyScalar(factor).getHexString()}`
 
-function GeneratedMesh({ solid, selected, buildingRef, style, wall, yOffset, ghost }: { solid: GeneratedSolid; selected: boolean; buildingRef: string; style: BuildingModel['architecturalStyle']; wall?: WallModel; yOffset: number; ghost?: boolean }) {
+function GeneratedMesh({ solid, selected, buildingRef, style, slab, wall, yOffset, ghost }: { solid: GeneratedSolid; selected: boolean; buildingRef: string; style: BuildingModel['architecturalStyle']; slab?: SlabModel; wall?: WallModel; yOffset: number; ghost?: boolean }) {
   const geometry = useMemo(() => {
     const value = new BufferGeometry()
     value.setAttribute('position', new BufferAttribute(solid.positions, 3)); value.setAttribute('uv', new BufferAttribute(solid.uvs, 2)); value.setIndex(new BufferAttribute(solid.indices, 1)); value.computeVertexNormals()
@@ -587,7 +587,7 @@ function GeneratedMesh({ solid, selected, buildingRef, style, wall, yOffset, gho
   const texture = isWall ? resolveWallTexture(finish) : undefined
   const material = texture
     ? <TexturedMaterial asset={texture.id} rotation={texture.rotation} color={selected ? '#b9e84d' : tintForTexturedFinish(finish.colorHex)} fallbackColor={selected ? '#b9e84d' : finish.colorHex} emissive={selected ? '#6c812f' : '#000000'} emissiveIntensity={selected ? 0.35 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.33 : 1} depthWrite={!ghost} side={DoubleSide} roughness={surface.roughness} metalness={surface.metalness} />
-    : <meshStandardMaterial color={isWall ? finish.colorHex : selected ? '#b9e84d' : palette.slab} emissive={isWall && selected ? '#6c812f' : '#000000'} emissiveIntensity={isWall && selected ? 0.35 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.33 : 1} depthWrite={!ghost} side={isWall ? DoubleSide : undefined} roughness={isWall ? surface.roughness : 0.78} metalness={isWall ? surface.metalness : 0.02} />
+    : <meshStandardMaterial color={isWall ? finish.colorHex : selected ? '#b9e84d' : slab?.edgeColorHex ?? palette.slab} emissive={isWall && selected ? '#6c812f' : '#000000'} emissiveIntensity={isWall && selected ? 0.35 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.33 : 1} depthWrite={!ghost} side={isWall ? DoubleSide : undefined} roughness={isWall ? surface.roughness : 0.78} metalness={isWall ? surface.metalness : 0.02} />
   return <mesh geometry={geometry} position={[0, yOffset, 0]} castShadow receiveShadow raycast={acceleratedRaycast} userData={{ semanticRef: solid.ref, buildingRef }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(solid.ref) }}>
     {material}
   </mesh>
@@ -962,7 +962,7 @@ function Building({ project, building, ghost }: { project: ProjectV2; building: 
   const roofOffset = explode ? (Math.max(...building.storeys.map((storey) => storey.level)) + 1) * explodedOffset : 0
   return <>
     <group ref={group} position={[building.position.x, terrainOffset, building.position.z]} rotation={[0, MathUtils.degToRad(building.rotationDegrees), 0]} userData={{ semanticRef: building.ref, buildingRef: building.ref, captureRoot: true, captureSource: ghost ? 'ghost' : 'committed' }} onDoubleClick={(event) => { event.stopPropagation(); useStudioStore.getState().setSelectedRef(building.ref) }}>
-      {solids.map((solid) => <GeneratedMesh key={solid.ref} solid={solid} selected={selectedRef === solid.ref} buildingRef={building.ref} style={building.architecturalStyle} wall={building.walls.find((wall) => wall.ref === solid.ref)} yOffset={offsetFor(solid.ref)} ghost={ghost} />)}
+      {solids.map((solid) => <GeneratedMesh key={solid.ref} solid={solid} selected={selectedRef === solid.ref} buildingRef={building.ref} style={building.architecturalStyle} slab={building.slabs.find((slab) => slab.ref === solid.ref)} wall={building.walls.find((wall) => wall.ref === solid.ref)} yOffset={offsetFor(solid.ref)} ghost={ghost} />)}
       {detailedBarn && <BarnGlazing building={building} ghost={ghost} />}
       {detailedBarn && <BarnCladding building={building} ghost={ghost} />}
       {isLShapedBarn(building) && !building.interiorSource && <BarnInteriorWarmth ghost={ghost} />}

@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-bath-room",
   "name": "GŁÓWNY Garaż za domem — łazienka w pokoju",
   "units": "metric",
-  "revision": 41,
-  "updatedAt": "2026-09-15T13:24:36.380Z",
+  "revision": 39,
+  "updatedAt": "2026-09-15T13:02:56.641Z",
   "site": {
     "boundary": [
       {
@@ -2692,7 +2692,6 @@
           ],
           "topElevationM": 3.75,
           "thicknessM": 0.5,
-          "edgeColorHex": "#2D3435",
           "locked": false
         },
         {
@@ -3287,18 +3286,7 @@
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
           "heightM": 2.8,
-          "openings": [
-            {
-              "ref": "opening/living-terrace-door",
-              "kind": "door",
-              "glazed": true,
-              "wallRef": "wall/carport-layout/ground/3",
-              "offsetM": 1.205,
-              "widthM": 1.8,
-              "heightM": 2.3,
-              "sillM": 0
-            }
-          ],
+          "openings": [],
           "finish": {
             "material": "natural-timber",
             "colorHex": "#BD9C73"
@@ -3912,18 +3900,7 @@
           "thicknessM": 0.2,
           "baseElevationM": 3.75,
           "heightM": 2.8,
-          "openings": [
-            {
-              "ref": "opening/upper-bathroom-window",
-              "kind": "window",
-              "glazed": true,
-              "wallRef": "wall/reference-upper/bath-west",
-              "offsetM": 1.45,
-              "widthM": 1.2,
-              "heightM": 0.6,
-              "sillM": 0.75
-            }
-          ],
+          "openings": [],
           "finish": {
             "material": "charred-timber",
             "colorHex": "#242927"

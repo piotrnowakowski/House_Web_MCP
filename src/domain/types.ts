@@ -62,7 +62,7 @@ export interface WallFinish { material: WallMaterial; colorHex: string; textureI
 export interface WallModel { groupRef?: string; ref: string; start: Vec2; end: Vec2; thicknessM: number; baseElevationM: number; heightM: number; openings: OpeningModel[]; finish?: WallFinish; faceFinishes?: { left?: InteriorFinish; right?: InteriorFinish }; locked: boolean }
 export interface SpaceBoundaryUse { wallRef: string; direction: 1 | -1 }
 export interface SpaceModel { ref: string; name: string; usage: string; boundary: SpaceBoundaryUse[]; baseSlabRef: string; topBoundaryRef: string; floorFinish?: InteriorFinish; ceilingFinish?: InteriorFinish; locked: boolean }
-export interface SlabModel { ref: string; footprint: Polygon2; holes?: Polygon2[]; topElevationM: number; thicknessM: number; locked: boolean }
+export interface SlabModel { ref: string; footprint: Polygon2; holes?: Polygon2[]; topElevationM: number; thicknessM: number; edgeColorHex?: string; locked: boolean }
 export interface CeilingFinishModel { ref: string; spaceRef: string; hostBoundaryRef: string; elevationM: number; thicknessM: number }
 export interface PlatformModel { ref: string; spaceRef: string; footprint: Polygon2; elevationM: number; thicknessM: number }
 export interface StoreyModel { ref: string; name: string; level: number; elevationM: number; clearHeightM: number; kneeWallHeightM?: number; baseSlabRef: string; topBoundaryRef: string; wallRefs: string[]; spaceRefs: string[]; platformRefs: string[]; ceilingFinishRefs: string[] }

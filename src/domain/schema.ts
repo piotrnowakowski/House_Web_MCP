@@ -68,7 +68,7 @@ const SpaceSchema = z.object({
   boundary: z.array(z.object({ wallRef: z.string().min(1), direction: z.union([z.literal(1), z.literal(-1)]) })).min(3),
   baseSlabRef: z.string().min(1), topBoundaryRef: z.string().min(1), locked: z.boolean(),
 })
-const SlabSchema = z.object({ ref: z.string().min(1), footprint: PolygonSchema, holes: z.array(PolygonSchema).optional(), topElevationM: z.number().finite(), thicknessM: z.number().positive(), locked: z.boolean() })
+const SlabSchema = z.object({ ref: z.string().min(1), footprint: PolygonSchema, holes: z.array(PolygonSchema).optional(), topElevationM: z.number().finite(), thicknessM: z.number().positive(), edgeColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(), locked: z.boolean() })
 const StoreySchema = z.object({
   kneeWallHeightM: z.number().positive().optional(),
   ref: z.string().min(1), name: z.string().min(1), level: z.number().int(), elevationM: z.number().finite(), clearHeightM: z.number().positive(),

@@ -13,6 +13,9 @@ const previous = parseProject(previousData)
 const beforeSofa = parseProject(beforeSofaData)
 const officePrefix = 'interior/office-c5/'
 const replacementSofaRef = 'interior/1cad2482-e19c-4b56-8cdf-f8d07664ae95'
+const laterEntryWardrobeRef = 'interior/entry-hall/wardrobe'
+const laterUpperBathroomWindowRef = 'opening/upper-bathroom-window'
+const laterLivingTerraceDoorRef = 'opening/living-terrace-door'
 const openingRef = 'opening/reference-office-window'
 
 it('publishes the complete office and converts the retained opening into a terrace door', () => {
@@ -51,11 +54,14 @@ it('publishes the complete office and converts the retained opening into a terra
   const restoredHouse = restored.buildings.find((building) => building.ref === 'house/main')!
   const previousHouse = previous.buildings.find((building) => building.ref === 'house/main')!
   const previousDesk = previousHouse.furniture!.find((item) => item.ref === 'interior/carport-study/desk')!
-  restoredHouse.furniture = restoredHouse.furniture!.filter((item) => !item.ref.startsWith(officePrefix) && item.ref !== replacementSofaRef)
+  restoredHouse.furniture = restoredHouse.furniture!.filter((item) =>
+    !item.ref.startsWith(officePrefix) && item.ref !== replacementSofaRef && item.ref !== laterEntryWardrobeRef)
   const insertionIndex = previousHouse.furniture!.findIndex((item) => item.ref === previousDesk.ref)
   restoredHouse.furniture.splice(insertionIndex, 0, previousDesk)
   const restoredOpening = restoredHouse.walls.flatMap((wall) => wall.openings).find((item) => item.ref === openingRef)!
   Object.assign(restoredOpening, previousHouse.walls.flatMap((wall) => wall.openings).find((item) => item.ref === openingRef))
+  for (const wall of restoredHouse.walls) wall.openings = wall.openings.filter((item) => ![laterUpperBathroomWindowRef, laterLivingTerraceDoorRef].includes(item.ref))
+  delete restoredHouse.slabs.find((slab) => slab.ref === 'slab/reference-upper')!.edgeColorHex
   restored.revision = previous.revision
   restored.updatedAt = previous.updatedAt
   expect(restored).toEqual(previous)
