@@ -32,6 +32,7 @@ import { deleteWorkspace } from './services/persistence'
 import { flushAutosave } from './services/autosave'
 import { runWorkspaceActivity } from './services/workspaceLock'
 import { groupWorkspaces, workspaceVersionKind } from './services/workspaceGroups'
+import { BATH_ROOM_STUDY_REF } from './services/publishedBathRoom'
 import { showStructureViews } from './services/structureViews'
 import { registerWebMcpTools, resolveVariantConfirmation } from './services/webmcp'
 import type { WebMcpManifest } from './services/webmcpDefinitions'
@@ -428,7 +429,12 @@ function StartScreen() {
       setFavoriteRef(next)
     } catch { useStudioStore.getState().setToast('Nie udało się zapisać ulubionego projektu. Spróbuj ponownie.') }
   }
-  const visibleProjects = groupWorkspaces(saved, favoriteRef).filter((item) => item.ref !== REFERENCE_HOUSE_REF)
+  const [showOtherVersions, setShowOtherVersions] = useState(false)
+  const projectGroups = groupWorkspaces(saved, favoriteRef).filter((item) => item.ref !== REFERENCE_HOUSE_REF)
+  const hasMainProject = projectGroups.some((item) => item.ref === BATH_ROOM_STUDY_REF)
+  const visibleProjects = !import.meta.env.PROD || showOtherVersions || !hasMainProject
+    ? projectGroups
+    : projectGroups.filter((item) => item.ref === BATH_ROOM_STUDY_REF)
   const [expandedProjects, setExpandedProjects] = useState<string[]>([])
   const syncConflicts = useStudioStore((state) => state.projectSyncConflicts)
   const loading = useStudioStore((state) => state.loadingWorkspaces)
@@ -444,7 +450,7 @@ function StartScreen() {
   useEffect(() => {
     if (!open) return
     const trigger = document.activeElement
-    setMode('choose'); setRemoveRef(null); setRenameRef(null)
+    setMode('choose'); setRemoveRef(null); setRenameRef(null); setShowOtherVersions(false); setExpandedProjects([])
     const timer = window.setTimeout(() => dialog.current?.querySelector<HTMLElement>('button:not([disabled]), input:not([disabled]), select:not([disabled])')?.focus(), 0)
     return () => {
       window.clearTimeout(timer)
@@ -488,8 +494,8 @@ function StartScreen() {
     <h2 id="start-screen-title">Where do you want to plan today?</h2>
     {mode === 'choose' ? <>
       {loading && <p role="status">Loading saved and published projects…</p>}
-      {syncConflicts.length > 0 && <div role="alert"><p>Opublikowana wersja i Twój zapis mają sprzeczne zmiany. Oba zapisy są zachowane. Rozwiń „Wersje” przy projekcie, aby otworzyć wersję oznaczoną jako konflikt.</p><details><summary>Show conflicts ({syncConflicts.length})</summary><ul>{syncConflicts.map((path) => <li key={path}>{path}</li>)}</ul></details></div>}
-      {visibleProjects.length > 0 && <div className="start-saved"><h3>Twoje projekty</h3>{visibleProjects.map((group, index) => {
+      {syncConflicts.length > 0 && <div role="alert"><p>Opublikowana wersja i Twój zapis mają sprzeczne zmiany. Oba zapisy są zachowane. Pokaż pozostałe projekty i wersje, a potem rozwiń „Wersje” przy projekcie, aby otworzyć wersję oznaczoną jako konflikt.</p><details><summary>Show conflicts ({syncConflicts.length})</summary><ul>{syncConflicts.map((path) => <li key={path}>{path}</li>)}</ul></details></div>}
+      {visibleProjects.length > 0 && <div className="start-saved"><h3>Twoje projekty</h3>{import.meta.env.PROD && hasMainProject && <button type="button" aria-expanded={showOtherVersions} onClick={() => { setShowOtherVersions((value) => !value); setExpandedProjects([]) }}>{showOtherVersions ? 'Ukryj pozostałe projekty i wersje' : 'Pokaż pozostałe projekty i wersje'}</button>}{visibleProjects.map((group, index) => {
         const current = group.current
         const versions = current ? [current, ...group.versions] : group.versions
         const expanded = expandedProjects.includes(group.ref)
@@ -505,7 +511,7 @@ function StartScreen() {
             <div className="project-card-actions">
               <button className="project-favorite" aria-label={`${favoriteRef === group.ref ? 'Usuń z ulubionych' : 'Oznacz jako ulubiony'}: ${group.name}`} title={favoriteRef === group.ref ? 'Ulubiony projekt' : 'Oznacz jako ulubiony'} aria-pressed={favoriteRef === group.ref} onClick={() => toggleFavorite(group.ref)}><Heart size={20} fill={favoriteRef === group.ref ? 'currentColor' : 'none'} aria-hidden="true" /></button>
               {current && <><button disabled={savingName} aria-label={index === 0 ? `Continue · ${group.name}` : `Open · ${group.name}`} className={index === 0 ? 'primary' : ''} onClick={() => void openWorkspace(current.ref)}>Otwórz projekt</button><button disabled={savingName} aria-label={`Zmień nazwę: ${group.name}`} aria-expanded={renameRef === current.ref} onClick={(event) => beginRename(event, current)}>Zmień nazwę</button></>}
-              <button disabled={savingName} className="project-versions-toggle" aria-expanded={expanded} aria-controls={`versions-${group.ref}`} onClick={() => { setExpandedProjects((refs) => expanded ? refs.filter((ref) => ref !== group.ref) : [...refs, group.ref]); setRenameRef(null); setRemoveRef(null) }}><span aria-hidden="true">{expanded ? '▾' : '▸'}</span> Wersje ({versions.length})</button>
+              {(!import.meta.env.PROD || showOtherVersions || !hasMainProject) && <button disabled={savingName} className="project-versions-toggle" aria-expanded={expanded} aria-controls={`versions-${group.ref}`} onClick={() => { setExpandedProjects((refs) => expanded ? refs.filter((ref) => ref !== group.ref) : [...refs, group.ref]); setRenameRef(null); setRemoveRef(null) }}><span aria-hidden="true">{expanded ? '▾' : '▸'}</span> Wersje ({versions.length})</button>}
             </div>
           </div>
           {expanded && <div className="project-versions" id={`versions-${group.ref}`} role="region" aria-label={`Wersje projektu: ${group.name}`}>
@@ -525,7 +531,7 @@ function StartScreen() {
         </article>
       })}</div>}
       <div className="start-options">
-        <button className="start-card" disabled={loading || savingName} onClick={() => void useStudioStore.getState().openZielonkiStudy()}><strong>Zielonki house study</strong><span>Continue your saved house, or explore the furnished modern barn with the measured interior, both floors and the Zielonki garden.</span></button>
+        {(!import.meta.env.PROD || showOtherVersions || !hasMainProject) && <button className="start-card" disabled={loading || savingName} onClick={() => void useStudioStore.getState().openZielonkiStudy()}><strong>Zielonki house study</strong><span>Continue your saved house, or explore the furnished modern barn with the measured interior, both floors and the Zielonki garden.</span></button>}
         <button className="start-card" disabled={savingName} onClick={() => { cancelRename(); setMode('terrain') }}><strong>New terrain</strong><span>An empty rectangular plot with your own size, north direction and coordinates, ready for a house.</span></button>
       </div>
       {hydrated && <div className="start-actions"><button disabled={savingName} onClick={closeLauncher}>Keep working on {project.name}</button></div>}
