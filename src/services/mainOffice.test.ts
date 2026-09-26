@@ -1,7 +1,8 @@
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
-import currentData from '../../project-data/zielonki-rear-bath-room/project.json'
+// r42 is the release this test covers; later synced edits (r79) replaced parts of it.
+import currentData from '../../project-data/zielonki-rear-bath-room/before-mikrus-sync-r42.json'
 import previousData from '../../project-data/zielonki-rear-bath-room/before-office-r27.json'
 import beforeSofaData from '../../project-data/zielonki-rear-bath-room/before-office-sofa-r28.json'
 import { validateProject } from '../domain/commands'

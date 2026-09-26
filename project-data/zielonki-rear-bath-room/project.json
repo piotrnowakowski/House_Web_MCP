@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-bath-room",
   "name": "GŁÓWNY Garaż za domem — łazienka w pokoju",
   "units": "metric",
-  "revision": 42,
-  "updatedAt": "2026-09-15T15:42:56.754Z",
+  "revision": 79,
+  "updatedAt": "2026-09-26T21:45:00.000Z",
   "site": {
     "boundary": [
       {
@@ -1876,21 +1876,6 @@
           "color": "#bda17a"
         },
         {
-          "ref": "interior/entry-hall/wardrobe",
-          "catalogId": "wardrobe",
-          "storeyRef": "storey/reference-ground",
-          "name": "Szafa wejściowa do sufitu",
-          "position": {
-            "x": -3.23,
-            "z": 1.21
-          },
-          "widthM": 1.2,
-          "depthM": 0.6,
-          "heightM": 2.8,
-          "rotationDegrees": 0,
-          "color": "#cfb38e"
-        },
-        {
           "ref": "interior/reference-parents-bed",
           "catalogId": "oak-platform-bed",
           "storeyRef": "storey/reference-upper",
@@ -1911,13 +1896,13 @@
           "storeyRef": "storey/reference-ground",
           "name": "Biurko dębowe 170 × 80 cm",
           "position": {
-            "x": 1.585,
-            "z": 4.72
+            "x": 1.1299999999999994,
+            "z": 5.38
           },
           "widthM": 1.7,
           "depthM": 0.8,
           "heightM": 0.75,
-          "rotationDegrees": 90,
+          "rotationDegrees": 180,
           "color": "#B78B5A",
           "elevationM": 0
         },
@@ -1927,13 +1912,13 @@
           "storeyRef": "storey/reference-ground",
           "name": "Monitor ultrawide 49 cali · przy ścianie",
           "position": {
-            "x": 1.84,
-            "z": 4.72
+            "x": 1.2000000000000002,
+            "z": 5.3
           },
           "widthM": 1.2,
           "depthM": 0.28,
           "heightM": 0.45,
-          "rotationDegrees": 90,
+          "rotationDegrees": 180,
           "color": "#202528",
           "elevationM": 0.75
         },
@@ -1943,13 +1928,13 @@
           "storeyRef": "storey/reference-ground",
           "name": "IKEA JÄRVFJÄLLET",
           "position": {
-            "x": 0.75,
-            "z": 4.72
+            "x": 0.9900000000000002,
+            "z": 4.55
           },
           "widthM": 0.68,
           "depthM": 0.68,
           "heightM": 1.4,
-          "rotationDegrees": 90,
+          "rotationDegrees": 0,
           "color": "#343737",
           "productId": "jarvfjallet",
           "variantId": "80510639",
@@ -2002,21 +1987,6 @@
           "heightM": 0.85,
           "rotationDegrees": 0,
           "color": "#B89468"
-        },
-        {
-          "ref": "interior/carport-study/washer",
-          "catalogId": "washer",
-          "storeyRef": "storey/reference-ground",
-          "name": "Washer",
-          "position": {
-            "x": -4.45,
-            "z": 4.55
-          },
-          "widthM": 0.6,
-          "depthM": 0.65,
-          "heightM": 0.85,
-          "rotationDegrees": 0,
-          "color": "#bda17a"
         },
         {
           "ref": "interior/carport-study/shower",
@@ -2457,8 +2427,8 @@
           "storeyRef": "storey/reference-ground",
           "name": "SÖDERHAMN 3-seat sofa",
           "position": {
-            "x": -0.03499999999999992,
-            "z": 2.183161205623234
+            "x": 0.99,
+            "z": 2.215
           },
           "widthM": 1.98,
           "depthM": 0.99,
@@ -2468,6 +2438,100 @@
           "productId": "soderhamn",
           "variantId": "99607165",
           "elevationM": 0
+        },
+        {
+          "ref": "interior/67a1c941-8a58-4ec8-95fe-35ee2ad47308",
+          "name": "PAX / FORSAND Wardrobe",
+          "color": "#eeeae3",
+          "depthM": 0.6,
+          "widthM": 1,
+          "heightM": 2.012,
+          "position": {
+            "x": -4.445,
+            "z": -0.1299999999999999
+          },
+          "catalogId": "wardrobe",
+          "productId": "pax",
+          "storeyRef": "storey/reference-ground",
+          "variantId": "49500652",
+          "elevationM": 0,
+          "rotationDegrees": 0
+        },
+        {
+          "ref": "interior/9ed3a95d-bcee-41dc-959a-9f1e83d54b37",
+          "name": "PAX / FORSAND Wardrobe",
+          "color": "#eeeae3",
+          "depthM": 0.6,
+          "locked": false,
+          "widthM": 1,
+          "heightM": 2.012,
+          "position": {
+            "x": -3.5,
+            "z": -0.1299999999999999
+          },
+          "catalogId": "wardrobe",
+          "productId": "pax",
+          "storeyRef": "storey/reference-ground",
+          "variantId": "49500652",
+          "elevationM": 0,
+          "rotationDegrees": 0
+        },
+        {
+          "ref": "interior/cc6337f1-0399-4f49-8000-07c9b01df9c7",
+          "name": "PAX / FORSAND Wardrobe",
+          "color": "#eeeae3",
+          "depthM": 0.6,
+          "locked": false,
+          "widthM": 1,
+          "heightM": 2.012,
+          "position": {
+            "x": -2.644660857829475,
+            "z": -0.1299999999999999
+          },
+          "catalogId": "wardrobe",
+          "productId": "pax",
+          "storeyRef": "storey/reference-ground",
+          "variantId": "49500652",
+          "elevationM": 0,
+          "rotationDegrees": 0
+        },
+        {
+          "ref": "interior/2dc02eae-aa33-4993-9264-b83b20cbb0fb",
+          "name": "PAX / FORSAND Wardrobe",
+          "color": "#eeeae3",
+          "depthM": 0.6,
+          "locked": false,
+          "widthM": 1,
+          "heightM": 2.012,
+          "position": {
+            "x": 0.5,
+            "z": 1.2100000000000002
+          },
+          "catalogId": "wardrobe",
+          "productId": "pax",
+          "storeyRef": "storey/reference-ground",
+          "variantId": "49500652",
+          "elevationM": 0,
+          "rotationDegrees": 0
+        },
+        {
+          "ref": "interior/8f4f11c8-390e-450d-ad85-2bb71ad9d5c5",
+          "name": "PAX / FORSAND Wardrobe",
+          "color": "#eeeae3",
+          "depthM": 0.6,
+          "locked": false,
+          "widthM": 1,
+          "heightM": 2.012,
+          "position": {
+            "x": 1.5000000000000007,
+            "z": 1.21
+          },
+          "catalogId": "wardrobe",
+          "productId": "pax",
+          "storeyRef": "storey/reference-ground",
+          "variantId": "49500652",
+          "elevationM": 0,
+          "rotationDegrees": 0
         }
       ],
       "stairs": [
@@ -3343,7 +3407,7 @@
               "ref": "opening/reference-office",
               "kind": "door",
               "wallRef": "wall/carport-layout/ground/5",
-              "offsetM": 0.6,
+              "offsetM": 2.315,
               "widthM": 0.9,
               "heightM": 2.1,
               "sillM": 0,
