@@ -25,7 +25,23 @@ export const gardenFixtureCatalog: GardenFixtureDefinition[] = [
   { id: 'tomato-row', name: 'Tomato row', category: 'crop', description: 'Four staked tomato plants for a raised bed.', widthM: 2.15, depthM: 0.72, heightM: 1.55 },
   { id: 'potato-row', name: 'Potato row', category: 'crop', description: 'Five compact potato plants in a productive row.', widthM: 2.1, depthM: 0.78, heightM: 0.58 },
   { id: 'cucumber-trellis', name: 'Cucumber trellis', category: 'crop', description: 'Climbing cucumber row on a simple timber frame.', widthM: 2.15, depthM: 0.78, heightM: 1.45 },
+  { id: 'greenhouse', name: 'Glass greenhouse', category: 'structure', description: 'Black aluminium greenhouse, 4.0 × 3.0 m, with a glazed gable roof and a door on one long side.', widthM: 4, depthM: 3, heightM: 2.6 },
+  { id: 'larch-bed-long', name: 'Larch raised bed, long', category: 'structure', description: 'Natural larch bed 3.6 × 1.2 m, four boards high (about 0.6 m), with corner posts and a capping rail.', widthM: 3.6, depthM: 1.2, heightM: 0.6 },
+  { id: 'larch-bed-square', name: 'Larch raised bed, square', category: 'structure', description: 'Natural larch bed 1.2 × 1.2 m, about 0.6 m high, for herbs, flowers or a feature plant.', widthM: 1.2, depthM: 1.2, heightM: 0.6 },
+  { id: 'leafy-greens', name: 'Leafy greens', category: 'crop', description: 'Lettuce, chard and cabbage rosettes filling a long raised bed.', widthM: 3.3, depthM: 0.9, heightM: 0.35 },
+  { id: 'tomato-bed', name: 'Staked tomatoes', category: 'crop', description: 'Seven staked tomato plants with ripening trusses filling a long raised bed.', widthM: 3.3, depthM: 0.9, heightM: 1.4 },
+  { id: 'flower-mix', name: 'Cottage flower mix', category: 'crop', description: 'Mixed perennials with pink, white and yellow flowers and lavender spikes; fills a long bed or forms a border.', widthM: 3.3, depthM: 0.9, heightM: 0.75 },
+  { id: 'flower-clump', name: 'Flower clump', category: 'crop', description: 'Compact mixed flowering planting for a square bed or a border gap.', widthM: 1, depthM: 1, heightM: 0.75 },
+  { id: 'hydrangea', name: 'Panicle hydrangea', category: 'structure', description: 'Rounded shrub with large cream flower heads.', widthM: 1.3, depthM: 1.3, heightM: 1.2 },
+  { id: 'timber-fence', name: 'Larch slatted fence', category: 'structure', description: 'Horizontal-slatted larch fence panel 2.4 m long and 1.1 m high.', widthM: 2.4, depthM: 0.1, heightM: 1.1 },
+  { id: 'festoon-lights', name: 'Festoon lights', category: 'structure', description: 'Warm bulbs on a 6 m cable between two timber posts.', widthM: 6, depthM: 0.2, heightM: 2.85 },
+  { id: 'water-butt', name: 'Rain-water butt', category: 'furniture', description: '300 l water butt on a low stand, fed from a roof gutter.', widthM: 0.62, depthM: 0.62, heightM: 1.1 },
 ]
+
+/** Soil-surface height of each raised-bed type; crops centred on a bed sit on this surface. */
+export const raisedBedSoilHeightM: Partial<Record<GardenFixtureCatalogId, number>> = { 'raised-bed-2x1': 0.41, 'larch-bed-long': 0.53, 'larch-bed-square': 0.53 }
+/** Flower plantings may also form ground-level borders; vegetables need a raised bed on this site's wet clay. */
+export const groundPlantingIds: GardenFixtureCatalogId[] = ['flower-mix', 'flower-clump']
 
 export const gardenFixtureById = (id: GardenFixtureCatalogId) => {
   const definition = gardenFixtureCatalog.find((item) => item.id === id)

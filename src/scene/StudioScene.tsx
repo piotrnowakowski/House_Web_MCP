@@ -2,6 +2,7 @@ import { gableGlazingProfile } from '../domain/gableGlazing'
 import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
 import { CLEAR_MEASUREMENT_EVENT } from './events'
 import { ObjectTransparency } from './ObjectTransparency'
+import { FestoonLightsVisual, FlowerMixVisual, HydrangeaVisual, LarchBedVisual, LeafyGreensVisual, TimberFenceVisual, TomatoBedVisual, WaterButtVisual } from './kitchenGardenVisuals'
 import { Html, Line as DreiLine, TransformControls } from '@react-three/drei'
 import { useFrame, useThree, type RootState } from '@react-three/fiber'
 import CameraControls from 'camera-controls'
@@ -12,7 +13,7 @@ import {
 } from 'three'
 import { acceleratedRaycast, computeBoundsTree, disposeBoundsTree } from 'three-mesh-bvh'
 import { buildingGroundOffset, buildingLocalBounds, elevationAt, pointInPolygon, polygonBounds, polygonCentroid, spaceFootprint } from '../domain/geometry'
-import { gardenFixtureById } from '../domain/gardenFixtures'
+import { gardenFixtureById, raisedBedSoilHeightM } from '../domain/gardenFixtures'
 import { SpaFixture } from './SpaFixtures'
 import { measureHeight } from '../domain/heightMeasurements'
 import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, RoofSegmentModel, SiteEntranceModel, SlabModel, StructureReport, WallModel, WallMaterial } from '../domain/types'
@@ -995,6 +996,8 @@ function Building({ project, building, ghost }: { project: ProjectV2; building: 
   </>
 }
 
+const PLANNING_TINT_Y = 0.055
+
 function ParcelSurface({ boundary, landRole, planning = false }: { boundary: Polygon2; landRole: 'construction' | 'agricultural'; planning?: boolean }) {
   const geometry = useMemo(() => localPolygonGeometry(boundary), [boundary])
   const edges = useMemo(() => new EdgesGeometry(geometry, 1), [geometry])
@@ -1004,8 +1007,8 @@ function ParcelSurface({ boundary, landRole, planning = false }: { boundary: Pol
     ? planning ? '#e6a348' : '#829665'
     : '#627b50'
   return <group>
-    <mesh geometry={geometry} position={[0, TERRAIN_SURFACE_Y + (planning ? 0.055 : 0.006), 0]} renderOrder={1} receiveShadow>
-      <meshStandardMaterial color={fill} transparent opacity={construction ? planning ? 0.58 : 0.34 : 0.82} roughness={1} side={DoubleSide} depthWrite={!construction} />
+    <mesh geometry={geometry} position={[0, TERRAIN_SURFACE_Y + (planning ? PLANNING_TINT_Y : 0.006), 0]} renderOrder={1} receiveShadow>
+      <meshStandardMaterial color={fill} transparent opacity={construction ? planning ? 0.58 : 0.34 : 0.82} roughness={1} side={DoubleSide} depthWrite={!construction} polygonOffset polygonOffsetFactor={2} polygonOffsetUnits={2} />
     </mesh>
     <lineSegments geometry={edges} position={[0, TERRAIN_SURFACE_Y + (planning ? 0.065 : 0.012), 0]} renderOrder={2}>
       <lineBasicMaterial color={construction ? '#526b45' : '#4d6841'} transparent opacity={construction ? 0.95 : 0.88} depthWrite={false} />
@@ -1058,12 +1061,13 @@ function ZoneSurface({ zone }: { zone: LandscapeZone }) {
   useEffect(() => () => geometry.dispose(), [geometry])
   // Finished surfaces are a render skin on the flat visible terrain, not a
   // second elevation model. Ground-bound solids use exact contact at y = 0.
-  const y = groundSurfaceY()
+  // Finished surfaces sit just above the translucent MPZP land-use tint, otherwise paths and terraces vanish under it.
+  const y = groundSurfaceY() + PLANNING_TINT_Y + 0.012
   const selected = selectedRef === zone.ref; const texture = resolveZoneTexture(zone); const grass = texture?.id === 'leafy-grass'; const group = useRef<Group>(null)
   return <><group ref={group} position={[0, y, 0]} userData={{ semanticRef: zone.ref }}>
     <mesh geometry={geometry} receiveShadow onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(zone.ref) }}>{texture
-      ? <TexturedMaterial asset={texture.id} color={selected ? '#b9e84d' : zoneTintFor(zone, month)} fallbackColor={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={grass ? 1 : 0.9} side={DoubleSide} normalScale={grass ? 0.5 : 0.7} />
-      : <meshStandardMaterial color={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={0.95} side={DoubleSide} />}</mesh>
+      ? <TexturedMaterial asset={texture.id} color={selected ? '#b9e84d' : zoneTintFor(zone, month)} fallbackColor={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={grass ? 1 : 0.9} side={DoubleSide} normalScale={grass ? 0.5 : 0.7} depthOffset={-4} />
+      : <meshStandardMaterial color={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={0.95} side={DoubleSide} polygonOffset polygonOffsetFactor={-4} polygonOffsetUnits={-4} />}</mesh>
   </group>{selected && !zone.locked && repositioningRef === zone.ref && group.current && <TransformControls object={group.current} mode="translate" showY={false} userData={{ editorOnly: true }} onMouseUp={() => {
     if (!group.current) return
     try { commitCommand({ type: 'landscape.update', action: 'move', zoneRef: zone.ref, delta: { x: group.current.position.x, z: group.current.position.z } }) }
@@ -1137,6 +1141,31 @@ function PotatoRowFixture({ selected, ghost }: { selected: boolean; ghost: boole
 
 function CucumberTrellisFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
   return <CucumberTrellisVisual selected={selected} ghost={ghost} />
+}
+
+/** 4.0 × 3.0 m glass greenhouse: black aluminium frame, glazed walls and gable roof, door on the +z long side. */
+function GreenhouseFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
+  const length = 4, span = 3, eaves = 1.9, ridge = 2.6, bar = 0.05
+  const pitch = Math.atan2(ridge - eaves, span / 2); const slope = Math.hypot(ridge - eaves, span / 2)
+  const frame = (key: string, position: [number, number, number], size: [number, number, number], rotation: [number, number, number] = [0, 0, 0]) =>
+    <mesh key={key} position={position} rotation={rotation} castShadow={!ghost}><boxGeometry args={size} />{fixtureMaterial('#1d2122', selected, ghost)}</mesh>
+  const glass = <meshPhysicalMaterial color={selected ? '#b9e84d' : '#dfeee8'} roughness={0.08} metalness={0} transmission={ghost ? 0 : 0.6} transparent opacity={ghost ? 0.2 : 0.32} depthWrite={false} side={DoubleSide} />
+  const bays = [-2, -1, 0, 1, 2].map(i => i * length / 4)
+  return <group>
+    <mesh position={[0, 0.1, 0]} receiveShadow><boxGeometry args={[length + 0.1, 0.2, span + 0.1]} />{fixtureMaterial('#6f6a62', selected, ghost)}</mesh>
+    {[-1, 1].map(side => <mesh key={`wall-${side}`} position={[0, 0.2 + (eaves - 0.2) / 2, side * span / 2]}><boxGeometry args={[length, eaves - 0.2, 0.01]} />{glass}</mesh>)}
+    {[-1, 1].map(side => <mesh key={`gable-${side}`} position={[side * length / 2, 0.2, 0]} rotation={[0, Math.PI / 2, 0]}>
+      <shapeGeometry args={[new Shape([new Vector2(-span / 2, 0), new Vector2(span / 2, 0), new Vector2(span / 2, eaves - 0.2), new Vector2(0, ridge - 0.2), new Vector2(-span / 2, eaves - 0.2)])]} />{glass}</mesh>)}
+    {[-1, 1].map(side => <mesh key={`roof-${side}`} position={[0, (eaves + ridge) / 2, side * span / 4]} rotation={[side * pitch, 0, 0]}><boxGeometry args={[length, 0.01, slope]} />{glass}</mesh>)}
+    {bays.flatMap(x => [-1, 1].map(side => frame(`post-${x}-${side}`, [x, (eaves + 0.2) / 2, side * span / 2], [bar, eaves - 0.2, bar])))}
+    {bays.flatMap(x => [-1, 1].map(side => frame(`rafter-${x}-${side}`, [x, (eaves + ridge) / 2, side * span / 4], [bar, bar, slope], [side * pitch, 0, 0])))}
+    {[-1, 1].map(side => frame(`eaves-${side}`, [0, eaves, side * span / 2], [length, bar, bar]))}
+    {[-1, 1].map(side => frame(`sill-${side}`, [0, 0.9, side * span / 2], [length, bar * 0.7, bar * 0.7]))}
+    {frame('ridge', [0, ridge, 0], [length, bar, bar])}
+    {[-0.45, 0.45].map(x => frame(`door-${x}`, [x, 1.05, span / 2 + 0.02], [bar, 1.7, bar]))}
+    {frame('door-head', [0, 1.9, span / 2 + 0.02], [0.95, bar, bar])}
+    {[[-1.2, -0.9], [1.2, -0.9]].map(([x, z]) => <mesh key={`bench-${x}`} position={[x, 0.75, z]} castShadow={!ghost}><boxGeometry args={[1.3, 0.06, 0.7]} />{fixtureMaterial('#8b623d', selected, ghost)}</mesh>)}
+  </group>
 }
 
 function DiningChair({ position, rotation = 0, selected, ghost }: { position: [number, number, number]; rotation?: number; selected: boolean; ghost: boolean }) {
@@ -1242,6 +1271,17 @@ function GardenFixtureModel({ catalogId, selected, ghost }: { catalogId: GardenF
     case 'tomato-row': return <TomatoRowFixture selected={selected} ghost={ghost} />
     case 'potato-row': return <PotatoRowFixture selected={selected} ghost={ghost} />
     case 'cucumber-trellis': return <CucumberTrellisFixture selected={selected} ghost={ghost} />
+    case 'greenhouse': return <GreenhouseFixture selected={selected} ghost={ghost} />
+    case 'larch-bed-long': return <LarchBedVisual length={3.6} width={1.2} selected={selected} ghost={ghost} />
+    case 'larch-bed-square': return <LarchBedVisual length={1.2} width={1.2} selected={selected} ghost={ghost} />
+    case 'tomato-bed': return <TomatoBedVisual length={3.3} selected={selected} ghost={ghost} />
+    case 'leafy-greens': return <LeafyGreensVisual length={3.3} selected={selected} ghost={ghost} />
+    case 'flower-mix': return <FlowerMixVisual length={3.3} selected={selected} ghost={ghost} />
+    case 'flower-clump': return <FlowerMixVisual length={1} width={1} seed={3} selected={selected} ghost={ghost} />
+    case 'hydrangea': return <HydrangeaVisual selected={selected} ghost={ghost} />
+    case 'timber-fence': return <TimberFenceVisual selected={selected} ghost={ghost} />
+    case 'festoon-lights': return <FestoonLightsVisual length={6} selected={selected} ghost={ghost} />
+    case 'water-butt': return <WaterButtVisual selected={selected} ghost={ghost} />
   }
 }
 
@@ -1249,8 +1289,8 @@ function GardenFixture({ fixture, project, ghost = false }: { fixture: GardenFix
   const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
   const repositioningRef = useStudioStore((state) => state.repositioningRef); const commitCommand = useStudioStore((state) => state.commitCommand); const endReposition = useStudioStore((state) => state.endReposition); const setToast = useStudioStore((state) => state.setToast)
   const definition = gardenFixtureById(fixture.catalogId)
-  const hostedInBed = definition.category === 'crop' && project.landscape.fixtures.some((candidate) => candidate.catalogId === 'raised-bed-2x1' && Math.hypot(candidate.position.x - fixture.position.x, candidate.position.z - fixture.position.z) < 0.15)
-  const y = groundContactY(hostedInBed ? 0.41 : 0)
+  const hostedInBed = definition.category === 'crop' && project.landscape.fixtures.find((candidate) => raisedBedSoilHeightM[candidate.catalogId] !== undefined && Math.hypot(candidate.position.x - fixture.position.x, candidate.position.z - fixture.position.z) < 0.15)
+  const y = groundContactY(hostedInBed ? raisedBedSoilHeightM[hostedInBed.catalogId] : 0)
   const selected = selectedRef === fixture.ref; const group = useRef<Group>(null)
   return <><group ref={group} position={[fixture.position.x, y, fixture.position.z]} rotation={[0, -MathUtils.degToRad(fixture.rotationDegrees), 0]} userData={{ semanticRef: fixture.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(fixture.ref) }}>
     <GardenFixtureModel catalogId={fixture.catalogId} selected={selected} ghost={ghost} />

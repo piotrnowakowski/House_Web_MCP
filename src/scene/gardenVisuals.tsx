@@ -9,8 +9,8 @@ import type { PlantModel } from '../domain/types'
 const gardenAsset = (filename: string) => staticAssetUrl(`models/garden/${filename}`)
 const treeAsset = gardenAsset('orchard-tree-realistic.glb')
 const coniferAsset = gardenAsset('conifer-realistic.glb')
-const tomatoFoliageAsset = gardenAsset('crop-tomato-foliage.glb')
-const potatoFoliageAsset = gardenAsset('crop-potato-foliage.glb')
+export const tomatoFoliageAsset = gardenAsset('crop-tomato-foliage.glb')
+export const potatoFoliageAsset = gardenAsset('crop-potato-foliage.glb')
 
 class AssetErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
   state = { failed: false }
@@ -28,7 +28,7 @@ class AssetErrorBoundary extends Component<{ children: ReactNode; fallback: Reac
   }
 }
 
-function AssetBoundary({ children, fallback }: { children: ReactNode; fallback: ReactNode }) {
+export function AssetBoundary({ children, fallback }: { children: ReactNode; fallback: ReactNode }) {
   const quality = useRenderQuality()
   if (quality !== 'detailed') return fallback
   return <AssetErrorBoundary fallback={fallback}><Suspense fallback={fallback}>{children}</Suspense></AssetErrorBoundary>
@@ -93,7 +93,7 @@ function usePreparedScene(path: string, selected: boolean, ghost: boolean, leave
   return { prepared, bounds }
 }
 
-function ImportedPlant({ path, width, height, depth, position: groupPosition = [0, 0, 0], rotation = 0, selected, ghost }: { path: string; width: number; height: number; depth: number; position?: [number, number, number]; rotation?: number; selected: boolean; ghost: boolean }) {
+export function ImportedPlant({ path, width, height, depth, position: groupPosition = [0, 0, 0], rotation = 0, selected, ghost }: { path: string; width: number; height: number; depth: number; position?: [number, number, number]; rotation?: number; selected: boolean; ghost: boolean }) {
   const { prepared, bounds } = usePreparedScene(path, selected, ghost)
   const sourceWidth = Math.max(0.01, bounds.max.x - bounds.min.x)
   const sourceHeight = Math.max(0.01, bounds.max.y - bounds.min.y)
@@ -107,7 +107,7 @@ function ImportedPlant({ path, width, height, depth, position: groupPosition = [
   return <group position={groupPosition} rotation={[0, rotation, 0]}><primitive object={prepared} scale={scale} position={position} /></group>
 }
 
-function FallbackPlant({ position, height, selected, ghost }: { position: [number, number, number]; height: number; selected: boolean; ghost: boolean }) {
+export function FallbackPlant({ position, height, selected, ghost }: { position: [number, number, number]; height: number; selected: boolean; ghost: boolean }) {
   return <group position={position}>
     <mesh position={[0, height * 0.48, 0]} castShadow={!ghost}><cylinderGeometry args={[0.012, 0.018, height * 0.96, 7]} /><AccentMaterial color="#47713b" selected={selected} ghost={ghost} /></mesh>
     {[-0.22, 0.05, 0.25].map((offset, index) => <mesh key={offset} position={[offset, height * (0.38 + index * 0.18), index % 2 ? -0.04 : 0.04]} scale={[1.35, 0.55, 0.8]} rotation={[0, 0, index % 2 ? 0.32 : -0.32]} castShadow={!ghost}>

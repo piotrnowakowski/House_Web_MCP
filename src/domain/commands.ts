@@ -3,7 +3,7 @@ import { transformedPoint } from './precisionEdits'
 import { estimateDayPartTemperatures } from './climate'
 import { applyInterior, availableInteriorHeight, InteriorItemSchema, itemFitsFloor } from './interior'
 import { validateTextureChoice } from './textures'
-import { gardenFixtureById, groupedGardenFixtures } from './gardenFixtures'
+import { gardenFixtureById, groundPlantingIds, groupedGardenFixtures, raisedBedSoilHeightM } from './gardenFixtures'
 import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonBounds, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
 import { decomposeOrthogonalLFootprint, defaultRoofFinish, ridgeDirectionForFootprint, roofSegmentRidgeElevation, segmentContainsFootprint, supportingWallRefs } from './roofs'
 import { gableWallsForBuilding } from './roofWings'
@@ -670,8 +670,8 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
       .map(([x, z]) => ({ x: fixture.position.x + x * c + z * s, z: fixture.position.z - x * s + z * c }))
     if (!corners.every((corner) => project.site.parcels.some((parcel) => pointInPolygon(corner, parcel.boundary)))) issues.push({ severity: 'error', code: 'fixture.site', message: `${fixture.name} extends outside the owned parcels.`, subjectRef: fixture.ref })
   })
-  const raisedBeds = project.landscape.fixtures.filter((fixture) => fixture.catalogId === 'raised-bed-2x1')
-  project.landscape.fixtures.filter((fixture) => gardenFixtureById(fixture.catalogId).category === 'crop').forEach((fixture) => {
+  const raisedBeds = project.landscape.fixtures.filter((fixture) => raisedBedSoilHeightM[fixture.catalogId] !== undefined)
+  project.landscape.fixtures.filter((fixture) => gardenFixtureById(fixture.catalogId).category === 'crop' && !groundPlantingIds.includes(fixture.catalogId)).forEach((fixture) => {
     if (!raisedBeds.some((bed) => Math.hypot(bed.position.x - fixture.position.x, bed.position.z - fixture.position.z) < 0.15)) issues.push({ severity: 'error', code: 'fixture.crop-host', message: `${fixture.name} must remain colocated with a raised bed.`, subjectRef: fixture.ref })
   })
   issues.push(...sunMismatchIssues(project))

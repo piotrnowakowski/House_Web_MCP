@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest'
-import currentData from '../../project-data/zielonki-rear-bath-room/project.json'
+// r79 is the release this test covers; the r80 kitchen garden changed only landscape.
+import currentData from '../../project-data/zielonki-rear-bath-room/before-kitchen-garden-r79.json'
 import previousData from '../../project-data/zielonki-rear-bath-room/before-mikrus-sync-r42.json'
 import { validateProject } from '../domain/commands'
 import { parseProject } from '../domain/schema'

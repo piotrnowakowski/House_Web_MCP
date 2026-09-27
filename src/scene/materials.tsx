@@ -43,12 +43,15 @@ export interface TexturedMaterialProps {
   asset: TextureAssetKey; rotation?: number; color: string; fallbackColor?: string
   roughness?: number; metalness?: number; transparent?: boolean; opacity?: number; depthWrite?: boolean; side?: Side
   emissive?: string; emissiveIntensity?: number; normalScale?: number
+  /** Negative values pull coplanar finishes in front of the terrain at any camera distance. */
+  depthOffset?: number
 }
 
-function TexturedStandardMaterial({ asset, rotation = 0, color, roughness = 1, metalness = 0, transparent, opacity, depthWrite, side, emissive, emissiveIntensity, normalScale = 0.6 }: TexturedMaterialProps) {
+function TexturedStandardMaterial({ asset, rotation = 0, color, roughness = 1, metalness = 0, transparent, opacity, depthWrite, side, emissive, emissiveIntensity, normalScale = 0.6, depthOffset }: TexturedMaterialProps) {
   const set = useTextureSet(asset, rotation)
   return <meshStandardMaterial map={set.map} normalMap={set.normalMap} normalScale={[normalScale, normalScale]} roughnessMap={set.roughnessMap} color={color} roughness={roughness} metalness={metalness}
-    transparent={transparent} opacity={opacity} depthWrite={depthWrite} side={side} emissive={emissive ?? '#000000'} emissiveIntensity={emissiveIntensity ?? 0} />
+    transparent={transparent} opacity={opacity} depthWrite={depthWrite} side={side} emissive={emissive ?? '#000000'} emissiveIntensity={emissiveIntensity ?? 0}
+    polygonOffset={depthOffset !== undefined} polygonOffsetFactor={depthOffset ?? 0} polygonOffsetUnits={depthOffset ?? 0} />
 }
 
 class TextureErrorBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
@@ -61,7 +64,7 @@ class TextureErrorBoundary extends Component<{ fallback: ReactNode; children: Re
 /** A textured standard material that falls back to a flat colour while loading or when a texture fails to load. */
 export function TexturedMaterial(props: TexturedMaterialProps) {
   const quality = useRenderQuality()
-  const fallback = <meshStandardMaterial color={props.fallbackColor ?? props.color} roughness={props.roughness ?? 1} metalness={props.metalness ?? 0} transparent={props.transparent} opacity={props.opacity} depthWrite={props.depthWrite} side={props.side} emissive={props.emissive ?? '#000000'} emissiveIntensity={props.emissiveIntensity ?? 0} />
+  const fallback = <meshStandardMaterial color={props.fallbackColor ?? props.color} roughness={props.roughness ?? 1} metalness={props.metalness ?? 0} transparent={props.transparent} opacity={props.opacity} depthWrite={props.depthWrite} side={props.side} emissive={props.emissive ?? '#000000'} emissiveIntensity={props.emissiveIntensity ?? 0} polygonOffset={props.depthOffset !== undefined} polygonOffsetFactor={props.depthOffset ?? 0} polygonOffsetUnits={props.depthOffset ?? 0} />
   if (quality === 'fast') return fallback
   return <TextureErrorBoundary fallback={fallback}><Suspense fallback={fallback}><TexturedStandardMaterial {...props} /></Suspense></TextureErrorBoundary>
 }
