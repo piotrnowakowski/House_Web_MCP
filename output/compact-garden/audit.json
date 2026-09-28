@@ -1,0 +1,20 @@
+[
+  {
+    "existingR81": false,
+    "revision": 82,
+    "beds": 6,
+    "deletedRefsStayDeleted": true,
+    "savedReloadMatches": true,
+    "independentEditsRetained": false,
+    "errors": []
+  },
+  {
+    "existingR81": true,
+    "revision": 83,
+    "beds": 6,
+    "deletedRefsStayDeleted": true,
+    "savedReloadMatches": true,
+    "independentEditsRetained": true,
+    "errors": []
+  }
+]

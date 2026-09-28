@@ -3,8 +3,8 @@
   "ref": "project/zielonki-rear-bath-room",
   "name": "GŁÓWNY Garaż za domem — łazienka w pokoju",
   "units": "metric",
-  "revision": 80,
-  "updatedAt": "2026-09-27T10:00:00.000Z",
+  "revision": 82,
+  "updatedAt": "2026-09-27T20:49:11.215Z",
   "site": {
     "boundary": [
       {
@@ -5823,20 +5823,20 @@
         "kind": "path",
         "footprint": [
           {
-            "x": 5.3,
+            "x": 9.1,
+            "z": -3.8
+          },
+          {
+            "x": 18.1,
+            "z": -3.8
+          },
+          {
+            "x": 18.1,
             "z": 3.6
           },
           {
-            "x": 17.3,
+            "x": 9.1,
             "z": 3.6
-          },
-          {
-            "x": 17.3,
-            "z": 15.6
-          },
-          {
-            "x": 5.3,
-            "z": 15.6
           }
         ],
         "locked": false,
@@ -5848,20 +5848,20 @@
         "kind": "path",
         "footprint": [
           {
-            "x": 10.700000000000001,
-            "z": -6.9
+            "x": -0.8,
+            "z": -8.4
           },
           {
-            "x": 11.9,
-            "z": -6.9
+            "x": 9.1,
+            "z": -8.4
           },
           {
-            "x": 11.9,
-            "z": 3.6
+            "x": 9.1,
+            "z": -7.0
           },
           {
-            "x": 10.700000000000001,
-            "z": 3.6
+            "x": -0.8,
+            "z": -7.0
           }
         ],
         "locked": false,
@@ -5873,20 +5873,20 @@
         "kind": "path",
         "footprint": [
           {
-            "x": 6,
-            "z": -10.4
+            "x": 9.1,
+            "z": -8.4
           },
           {
-            "x": 14.3,
-            "z": -10.4
+            "x": 18.1,
+            "z": -8.4
           },
           {
-            "x": 14.3,
-            "z": -6.9
+            "x": 18.1,
+            "z": -3.8
           },
           {
-            "x": 6,
-            "z": -6.9
+            "x": 9.1,
+            "z": -3.8
           }
         ],
         "locked": false,
@@ -5898,24 +5898,107 @@
         "kind": "path",
         "footprint": [
           {
-            "x": 10.700000000000001,
-            "z": 15.6
+            "x": 13.0,
+            "z": 3.6
           },
           {
-            "x": 11.9,
-            "z": 15.6
+            "x": 14.2,
+            "z": 3.6
           },
           {
-            "x": 11.9,
-            "z": 20.2
+            "x": 15.0,
+            "z": 17.95
           },
           {
-            "x": 10.700000000000001,
-            "z": 20.2
+            "x": 15.0,
+            "z": 25.5
+          },
+          {
+            "x": 13.8,
+            "z": 25.5
+          },
+          {
+            "x": 13.8,
+            "z": 18.05
           }
         ],
         "locked": false,
         "textureId": "river-pebbles"
+      },
+      {
+        "ref": "zone/kitchen-garden/dining",
+        "name": "Garden table landing",
+        "kind": "path",
+        "footprint": [
+          {
+            "x": 5.8,
+            "z": -11.5
+          },
+          {
+            "x": 10.8,
+            "z": -11.5
+          },
+          {
+            "x": 10.8,
+            "z": -8.4
+          },
+          {
+            "x": 5.8,
+            "z": -8.4
+          }
+        ],
+        "locked": false,
+        "textureId": "river-pebbles"
+      },
+      {
+        "ref": "zone/fire-lounge/approach",
+        "name": "Gravel walk to the sunken lounge",
+        "kind": "path",
+        "footprint": [
+          {
+            "x": 13.8,
+            "z": 25.5
+          },
+          {
+            "x": 15,
+            "z": 25.5
+          },
+          {
+            "x": 15,
+            "z": 31.5
+          },
+          {
+            "x": 13.8,
+            "z": 31.5
+          }
+        ],
+        "locked": false,
+        "textureId": "river-pebbles"
+      },
+      {
+        "ref": "zone/fire-lounge/apron",
+        "name": "Non-combustible lounge surround",
+        "kind": "terrace",
+        "footprint": [
+          {
+            "x": 5.8,
+            "z": 31.5
+          },
+          {
+            "x": 15,
+            "z": 31.5
+          },
+          {
+            "x": 15,
+            "z": 42.1
+          },
+          {
+            "x": 5.8,
+            "z": 42.1
+          }
+        ],
+        "locked": false,
+        "textureId": "concrete-tiles"
       }
     ],
     "plants": [
@@ -6430,8 +6513,8 @@
         "catalogId": "larch-bed-long",
         "name": "Larch raised bed",
         "position": {
-          "x": 8.9,
-          "z": 5
+          "x": 11.15,
+          "z": -3.0
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6441,8 +6524,8 @@
         "catalogId": "tomato-bed",
         "name": "Planting",
         "position": {
-          "x": 8.9,
-          "z": 5
+          "x": 11.15,
+          "z": -3.0
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6452,8 +6535,8 @@
         "catalogId": "larch-bed-long",
         "name": "Larch raised bed",
         "position": {
-          "x": 13.7,
-          "z": 5
+          "x": 16.05,
+          "z": -3.0
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6463,8 +6546,8 @@
         "catalogId": "tomato-bed",
         "name": "Planting",
         "position": {
-          "x": 13.7,
-          "z": 5
+          "x": 16.05,
+          "z": -3.0
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6474,8 +6557,8 @@
         "catalogId": "larch-bed-long",
         "name": "Larch raised bed",
         "position": {
-          "x": 8.9,
-          "z": 7.2
+          "x": 11.15,
+          "z": -0.5
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6485,8 +6568,8 @@
         "catalogId": "leafy-greens",
         "name": "Planting",
         "position": {
-          "x": 8.9,
-          "z": 7.2
+          "x": 11.15,
+          "z": -0.5
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6496,8 +6579,8 @@
         "catalogId": "larch-bed-long",
         "name": "Larch raised bed",
         "position": {
-          "x": 13.7,
-          "z": 7.2
+          "x": 16.05,
+          "z": -0.5
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6507,8 +6590,8 @@
         "catalogId": "flower-mix",
         "name": "Planting",
         "position": {
-          "x": 13.7,
-          "z": 7.2
+          "x": 16.05,
+          "z": -0.5
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6518,8 +6601,8 @@
         "catalogId": "larch-bed-long",
         "name": "Larch raised bed",
         "position": {
-          "x": 8.9,
-          "z": 11.2
+          "x": 11.15,
+          "z": 2.0
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6529,8 +6612,8 @@
         "catalogId": "flower-mix",
         "name": "Planting",
         "position": {
-          "x": 8.9,
-          "z": 11.2
+          "x": 11.15,
+          "z": 2.0
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6540,8 +6623,8 @@
         "catalogId": "larch-bed-long",
         "name": "Larch raised bed",
         "position": {
-          "x": 13.7,
-          "z": 11.2
+          "x": 16.05,
+          "z": 2.0
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6551,184 +6634,8 @@
         "catalogId": "leafy-greens",
         "name": "Planting",
         "position": {
-          "x": 13.7,
-          "z": 11.2
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/bed-nw4",
-        "catalogId": "larch-bed-long",
-        "name": "Larch raised bed",
-        "position": {
-          "x": 8.9,
-          "z": 13.4
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/crop-nw4",
-        "catalogId": "leafy-greens",
-        "name": "Planting",
-        "position": {
-          "x": 8.9,
-          "z": 13.4
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/bed-ne4",
-        "catalogId": "larch-bed-long",
-        "name": "Larch raised bed",
-        "position": {
-          "x": 13.7,
-          "z": 13.4
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/crop-ne4",
-        "catalogId": "flower-mix",
-        "name": "Planting",
-        "position": {
-          "x": 13.7,
-          "z": 13.4
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/square-centre",
-        "catalogId": "larch-bed-square",
-        "name": "Square larch bed",
-        "position": {
-          "x": 11.3,
-          "z": 9.2
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/flowers-centre",
-        "catalogId": "flower-clump",
-        "name": "Flowers",
-        "position": {
-          "x": 11.3,
-          "z": 9.2
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/square-west",
-        "catalogId": "larch-bed-square",
-        "name": "Square larch bed",
-        "position": {
-          "x": 5.95,
-          "z": 9.2
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/flowers-west",
-        "catalogId": "flower-clump",
-        "name": "Flowers",
-        "position": {
-          "x": 5.95,
-          "z": 9.2
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/square-east",
-        "catalogId": "larch-bed-square",
-        "name": "Square larch bed",
-        "position": {
-          "x": 16.65,
-          "z": 9.2
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/flowers-east",
-        "catalogId": "flower-clump",
-        "name": "Flowers",
-        "position": {
-          "x": 16.65,
-          "z": 9.2
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/border-west-5.6",
-        "catalogId": "flower-mix",
-        "name": "Flower border",
-        "position": {
-          "x": 5.85,
-          "z": 5.6
-        },
-        "rotationDegrees": 90,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/border-west-12.8",
-        "catalogId": "flower-mix",
-        "name": "Flower border",
-        "position": {
-          "x": 5.85,
-          "z": 12.8
-        },
-        "rotationDegrees": 90,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/border-east-5.6",
-        "catalogId": "flower-mix",
-        "name": "Flower border",
-        "position": {
-          "x": 16.75,
-          "z": 5.6
-        },
-        "rotationDegrees": 90,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/border-east-12.8",
-        "catalogId": "flower-mix",
-        "name": "Flower border",
-        "position": {
-          "x": 16.75,
-          "z": 12.8
-        },
-        "rotationDegrees": 90,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/border-south-w",
-        "catalogId": "flower-mix",
-        "name": "Flower border",
-        "position": {
-          "x": 7.6,
-          "z": 15
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/border-south-e",
-        "catalogId": "flower-mix",
-        "name": "Flower border",
-        "position": {
-          "x": 15,
-          "z": 15
+          "x": 16.05,
+          "z": 2.0
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6738,8 +6645,8 @@
         "catalogId": "hydrangea",
         "name": "Hydrangea",
         "position": {
-          "x": 9.95,
-          "z": 15
+          "x": 10.3,
+          "z": 4.5
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6749,8 +6656,8 @@
         "catalogId": "hydrangea",
         "name": "Hydrangea",
         "position": {
-          "x": 12.65,
-          "z": 15
+          "x": 16.9,
+          "z": 4.5
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6760,8 +6667,8 @@
         "catalogId": "hydrangea",
         "name": "Hydrangea",
         "position": {
-          "x": 9.95,
-          "z": 2.9
+          "x": 10.2,
+          "z": -4.6
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6771,19 +6678,8 @@
         "catalogId": "hydrangea",
         "name": "Hydrangea",
         "position": {
-          "x": 12.65,
-          "z": 2.9
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/fence-n-6.5",
-        "catalogId": "timber-fence",
-        "name": "Fence",
-        "position": {
-          "x": 6.5,
-          "z": 3.6
+          "x": 17.0,
+          "z": -4.6
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6793,10 +6689,10 @@
         "catalogId": "timber-fence",
         "name": "Fence",
         "position": {
-          "x": 6.5,
-          "z": 15.6
+          "x": 9.1,
+          "z": -4.8
         },
-        "rotationDegrees": 0,
+        "rotationDegrees": 90,
         "locked": false
       },
       {
@@ -6804,10 +6700,10 @@
         "catalogId": "timber-fence",
         "name": "Fence",
         "position": {
-          "x": 8.9,
-          "z": 3.6
+          "x": 9.1,
+          "z": -2.4
         },
-        "rotationDegrees": 0,
+        "rotationDegrees": 90,
         "locked": false
       },
       {
@@ -6815,10 +6711,10 @@
         "catalogId": "timber-fence",
         "name": "Fence",
         "position": {
-          "x": 8.9,
-          "z": 15.6
+          "x": 9.1,
+          "z": 0
         },
-        "rotationDegrees": 0,
+        "rotationDegrees": 90,
         "locked": false
       },
       {
@@ -6826,74 +6722,8 @@
         "catalogId": "timber-fence",
         "name": "Fence",
         "position": {
-          "x": 13.7,
-          "z": 3.6
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/fence-s-13.7",
-        "catalogId": "timber-fence",
-        "name": "Fence",
-        "position": {
-          "x": 13.7,
-          "z": 15.6
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/fence-n-16.1",
-        "catalogId": "timber-fence",
-        "name": "Fence",
-        "position": {
-          "x": 16.1,
-          "z": 3.6
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/fence-s-16.1",
-        "catalogId": "timber-fence",
-        "name": "Fence",
-        "position": {
-          "x": 16.1,
-          "z": 15.6
-        },
-        "rotationDegrees": 0,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/fence-w-4.8",
-        "catalogId": "timber-fence",
-        "name": "Fence",
-        "position": {
-          "x": 5.3,
-          "z": 4.8
-        },
-        "rotationDegrees": 90,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/fence-e-4.8",
-        "catalogId": "timber-fence",
-        "name": "Fence",
-        "position": {
-          "x": 17.3,
-          "z": 4.8
-        },
-        "rotationDegrees": 90,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/fence-w-7.2",
-        "catalogId": "timber-fence",
-        "name": "Fence",
-        "position": {
-          "x": 5.3,
-          "z": 7.2
+          "x": 9.1,
+          "z": 2.4
         },
         "rotationDegrees": 90,
         "locked": false
@@ -6903,8 +6733,8 @@
         "catalogId": "timber-fence",
         "name": "Fence",
         "position": {
-          "x": 17.3,
-          "z": 7.2
+          "x": 18.1,
+          "z": -7.2
         },
         "rotationDegrees": 90,
         "locked": false
@@ -6914,8 +6744,8 @@
         "catalogId": "timber-fence",
         "name": "Fence",
         "position": {
-          "x": 5.3,
-          "z": 9.6
+          "x": 18.1,
+          "z": -4.8
         },
         "rotationDegrees": 90,
         "locked": false
@@ -6925,8 +6755,8 @@
         "catalogId": "timber-fence",
         "name": "Fence",
         "position": {
-          "x": 17.3,
-          "z": 9.6
+          "x": 18.1,
+          "z": -2.4
         },
         "rotationDegrees": 90,
         "locked": false
@@ -6936,8 +6766,8 @@
         "catalogId": "timber-fence",
         "name": "Fence",
         "position": {
-          "x": 5.3,
-          "z": 12
+          "x": 18.1,
+          "z": 0
         },
         "rotationDegrees": 90,
         "locked": false
@@ -6947,30 +6777,8 @@
         "catalogId": "timber-fence",
         "name": "Fence",
         "position": {
-          "x": 17.3,
-          "z": 12
-        },
-        "rotationDegrees": 90,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/fence-w-14.4",
-        "catalogId": "timber-fence",
-        "name": "Fence",
-        "position": {
-          "x": 5.3,
-          "z": 14.4
-        },
-        "rotationDegrees": 90,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/fence-e-14.4",
-        "catalogId": "timber-fence",
-        "name": "Fence",
-        "position": {
-          "x": 17.3,
-          "z": 14.4
+          "x": 18.1,
+          "z": 2.4
         },
         "rotationDegrees": 90,
         "locked": false
@@ -6980,19 +6788,8 @@
         "catalogId": "festoon-lights",
         "name": "Festoon lights",
         "position": {
-          "x": 5.35,
-          "z": 6.6
-        },
-        "rotationDegrees": 90,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/lights-w-12.6",
-        "catalogId": "festoon-lights",
-        "name": "Festoon lights",
-        "position": {
-          "x": 5.35,
-          "z": 12.6
+          "x": 9.15,
+          "z": 0
         },
         "rotationDegrees": 90,
         "locked": false
@@ -7002,19 +6799,8 @@
         "catalogId": "festoon-lights",
         "name": "Festoon lights",
         "position": {
-          "x": 17.25,
-          "z": 6.6
-        },
-        "rotationDegrees": 90,
-        "locked": false
-      },
-      {
-        "ref": "fixture/kitchen-garden/lights-e-12.6",
-        "catalogId": "festoon-lights",
-        "name": "Festoon lights",
-        "position": {
-          "x": 17.25,
-          "z": 12.6
+          "x": 18.05,
+          "z": 0
         },
         "rotationDegrees": 90,
         "locked": false
@@ -7024,8 +6810,8 @@
         "catalogId": "festoon-lights",
         "name": "Festoon lights",
         "position": {
-          "x": 11.3,
-          "z": 9.2
+          "x": 13.6,
+          "z": -3.8
         },
         "rotationDegrees": 0,
         "locked": false
@@ -7035,8 +6821,8 @@
         "catalogId": "greenhouse",
         "name": "Glass greenhouse",
         "position": {
-          "x": 11.3,
-          "z": -8.6
+          "x": 13.6,
+          "z": -6.3
         },
         "rotationDegrees": 0,
         "locked": false
@@ -7046,8 +6832,8 @@
         "catalogId": "water-butt",
         "name": "Rain butt",
         "position": {
-          "x": 13.75,
-          "z": -7.4
+          "x": 16.15,
+          "z": -6.1
         },
         "rotationDegrees": 0,
         "locked": false
@@ -7057,8 +6843,8 @@
         "catalogId": "water-butt",
         "name": "Rain butt",
         "position": {
-          "x": 13.75,
-          "z": -8.15
+          "x": 16.15,
+          "z": -7.0
         },
         "rotationDegrees": 0,
         "locked": false
@@ -7068,8 +6854,8 @@
         "catalogId": "outdoor-dining-set",
         "name": "Dining under the trees",
         "position": {
-          "x": 7.6,
-          "z": -7.6
+          "x": 8.0,
+          "z": -10.0
         },
         "rotationDegrees": 0,
         "locked": false
@@ -7079,8 +6865,8 @@
         "catalogId": "hydrangea",
         "name": "Hydrangea",
         "position": {
-          "x": 9.6,
-          "z": -6.2
+          "x": 10.2,
+          "z": -7.4
         },
         "rotationDegrees": 0,
         "locked": false
@@ -7090,8 +6876,63 @@
         "catalogId": "flower-clump",
         "name": "Flowers",
         "position": {
-          "x": 13.1,
-          "z": -6.1
+          "x": 10.2,
+          "z": -5.9
+        },
+        "rotationDegrees": 0,
+        "locked": false
+      },
+      {
+        "ref": "fixture/kitchen-garden/fence-extension-22",
+        "catalogId": "timber-fence",
+        "name": "Larch garden enclosure",
+        "locked": false,
+        "position": {
+          "x": 10.3,
+          "z": -8.4
+        },
+        "rotationDegrees": 0
+      },
+      {
+        "ref": "fixture/kitchen-garden/fence-extension-23",
+        "catalogId": "timber-fence",
+        "name": "Larch garden enclosure",
+        "locked": false,
+        "position": {
+          "x": 16.9,
+          "z": -8.4
+        },
+        "rotationDegrees": 0
+      },
+      {
+        "ref": "fixture/kitchen-garden/fence-extension-24",
+        "catalogId": "timber-fence",
+        "name": "Larch garden enclosure",
+        "locked": false,
+        "position": {
+          "x": 10.3,
+          "z": 3.6
+        },
+        "rotationDegrees": 0
+      },
+      {
+        "ref": "fixture/kitchen-garden/fence-extension-25",
+        "catalogId": "timber-fence",
+        "name": "Larch garden enclosure",
+        "locked": false,
+        "position": {
+          "x": 16.9,
+          "z": 3.6
+        },
+        "rotationDegrees": 0
+      },
+      {
+        "ref": "fixture/fire-lounge/sunken-court",
+        "catalogId": "sunken-fire-lounge",
+        "name": "Obniżone palenisko · ławy i osłona z drewnem",
+        "position": {
+          "x": 10.4,
+          "z": 37.5
         },
         "rotationDegrees": 0,
         "locked": false

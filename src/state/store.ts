@@ -45,6 +45,8 @@ interface StudioState {
   sunAnimation: 'none' | 'day' | 'year'
   sunOverlay: { enabled: boolean; targetRef: string | null; result: SunlightAnalysis | null }
   explodeStoreys: boolean
+  planningOverlayVisible: boolean
+  setPlanningOverlayVisible: (value: boolean) => void
   treesVisible: boolean
   setTreesVisible: (value: boolean) => void
   neighborsVisible: boolean
@@ -147,6 +149,8 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
   project: structuredClone(modernBarnProject), history: [], future: [], variants: [], proposals: [], draftChangeSets: [], selectedRef: null, repositioningRef: null,
   transformMode: 'translate', viewerMode: 'edit', heightMeasureKind: 'auto', activePlanStoreyRef: null, month: 7,
   sunTime: { month: 7, day: 15, hour: 14 }, sunAnimation: 'none', sunOverlay: { enabled: false, targetRef: null, result: null },
+  planningOverlayVisible: false,
+  setPlanningOverlayVisible: (planningOverlayVisible) => set({ planningOverlayVisible }),
   treesVisible: true,
   setTreesVisible: (treesVisible) => set({ treesVisible }),
   neighborsVisible: false, neighborViewRequest: { sequence: 0, ref: '', eyeHeightM: 1.6 },

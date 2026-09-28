@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
-import currentData from '../../project-data/zielonki-rear-bath-room/project.json'
+import currentData from '../../project-data/zielonki-rear-bath-room/before-integrated-garden-r80.json'
 import previousData from '../../project-data/zielonki-rear-bath-room/before-kitchen-garden-r79.json'
 import { validateProject } from '../domain/commands'
 import { gardenFixtureById } from '../domain/gardenFixtures'

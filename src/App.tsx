@@ -785,7 +785,7 @@ export function App() {
         <strong>{project.buildings.reduce((sum, building) => sum + building.spaces.length, 0)} rooms · {project.buildings.reduce((sum, building) => sum + building.storeys.length, 0)} levels · roof separated</strong>
       </section>}
       {!compact && <SunWidget />}
-      <details className="land-legend-control" key={project.ref}>
+      <details className="land-legend-control" key={project.ref} onToggle={event => useStudioStore.getState().setPlanningOverlayVisible(event.currentTarget.open)}>
         <summary>MPZP</summary>
       <div className="land-legend" aria-label="Land-use legend">{project.site.parcels.some((parcel) => parcel.landUseZones?.length) ? <>
         <strong>MPZP · Zielonki · checked 8 Sep 2026</strong>

@@ -1,3 +1,4 @@
+import { gardenExcavations } from './gardenGround'
 import { pointInPolygon } from '../domain/geometry'
 import type { BuildingModel, Polygon2, ProjectV2, Vec2 } from '../domain/types'
 import { landUseAreas } from '../domain/zoning'
@@ -34,12 +35,14 @@ export const grassBladePoints = (project: ProjectV2, candidates = CANDIDATE_BLAD
     ...project.landscape.zones.filter((zone) => zone.kind === 'lawn').map((zone) => zone.footprint),
   ]
   const exclusions = [
+    ...gardenExcavations(project),
     ...project.buildings.map(buildingFootprint),
     ...project.landscape.zones.filter((zone) => zone.kind !== 'lawn').map((zone) => zone.footprint),
   ]
+  const nearFieldLimit = Math.max(NEAR_FIELD_LIMIT_Z, ...project.landscape.fixtures.filter(fixture => fixture.catalogId === 'sunken-fire-lounge').map(fixture => fixture.position.z + 12))
   const allPoints = areas.flat()
   const minX = Math.min(...allPoints.map((point) => point.x)); const maxX = Math.max(...allPoints.map((point) => point.x))
-  const minZ = Math.min(...allPoints.map((point) => point.z)); const maxZ = Math.min(NEAR_FIELD_LIMIT_Z, Math.max(...allPoints.map((point) => point.z)))
+  const minZ = Math.min(...allPoints.map((point) => point.z)); const maxZ = Math.min(nearFieldLimit, Math.max(...allPoints.map((point) => point.z)))
   const blades: GrassBlade[] = []
   if (!allPoints.length || maxZ <= minZ || maxX <= minX) return blades
 
@@ -70,7 +73,7 @@ export const grassPlacementKey = (project: ProjectV2) => JSON.stringify({
   areas: landUseAreas(project).filter(zone => zone.landRole === 'agricultural').map(zone => zone.boundary),
   buildings: project.buildings.map(buildingFootprint),
   zones: project.landscape.zones.map(zone => ({ kind: zone.kind, footprint: zone.footprint })),
-  fixtures: project.landscape.fixtures.map(fixture => fixture.position),
+  fixtures: project.landscape.fixtures.map(({ position, rotationDegrees, catalogId }) => ({ position, rotationDegrees, catalogId })),
   entrances: project.site.entrances.map(({ start, end }) => ({ start, end })),
 })
 

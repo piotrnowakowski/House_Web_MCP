@@ -30,7 +30,8 @@ export function SunLight() {
   }, [centre, radius, target, quality])
   return <>
     <ambientLight intensity={0.32 + 0.5 * daylight} color={sun.altitudeDeg <= 0 ? '#5d6c86' : '#dfe8ff'} />
+    <hemisphereLight args={['#e1ebf2', '#8d8168', 0.65 * daylight]} />
     <primitive object={target} />
-    <directionalLight key={quality} ref={light} position={position} intensity={intensity} color={sunColorFor(sun.altitudeDeg)} castShadow={quality !== 'fast'} shadow-bias={-0.0002} shadow-normalBias={0.04} shadow-mapSize={quality === 'detailed' ? [2048, 2048] : [1024, 1024]} userData={{ sunLight: true }} />
+    <directionalLight key={quality} ref={light} position={position} intensity={intensity} color={sunColorFor(sun.altitudeDeg)} castShadow={quality !== 'fast'} shadow-bias={-0.0002} shadow-normalBias={0.04} shadow-mapSize={quality === 'detailed' ? [4096, 4096] : [1024, 1024]} userData={{ sunLight: true }} />
   </>
 }

@@ -1,0 +1,16 @@
+[
+  {
+    "existing": false,
+    "revision": 81,
+    "independentEditsRetained": false,
+    "courtDeletionSurvivesReload": true,
+    "consoleErrors": []
+  },
+  {
+    "existing": true,
+    "revision": 82,
+    "independentEditsRetained": true,
+    "courtDeletionSurvivesReload": true,
+    "consoleErrors": []
+  }
+]
