@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test'
 
-test('reference house opens at measured scale, renders both floors and preserves edits on reopening', async ({ page }) => {
+test('Zielonki opens the measured house, renders both floors and preserves edits on reopening', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', (error) => errors.push(error.message))
   await page.addInitScript(() => {
     const tools: Record<string, unknown> = {}
@@ -8,7 +8,8 @@ test('reference house opens at measured scale, renders both floors and preserves
     Object.defineProperty(document, 'modelContext', { configurable: true, value: { registerTool: async (tool: { name: string }) => { tools[tool.name] = tool } } })
   })
   await page.goto(process.env.APP_URL ?? 'http://127.0.0.1:5173')
-  await page.getByRole('button', { name: /Dom z planów · Reference house/ }).click()
+  await expect(page.getByRole('button', { name: /Dom z planów · Reference house/ })).toHaveCount(0)
+  await page.getByRole('button', { name: /Zielonki house study/ }).click()
   await page.getByRole('button', { name: 'House interior', exact: true }).click()
   const rooms = page.getByRole('region', { name: 'Rooms on this level' })
   await expect(rooms).toContainText('86.37 m²')
@@ -39,11 +40,11 @@ test('reference house opens at measured scale, renders both floors and preserves
   await page.waitForTimeout(600)
   await page.screenshot({ path: 'test-results/reference-upper-3d.png' })
   await page.getByText('Plan dimensions & source notes', { exact: true }).click()
-  await expect(page.locator('.interior-reference-notes')).toContainText('provisional 2.80 m')
+  await expect(page.locator('.interior-reference-notes')).toContainText('2.80 m')
   await page.getByText('Plan dimensions & source notes', { exact: true }).click()
   await page.reload()
   // The template entry must continue the saved work, never overwrite its room names or contents.
-  await page.getByRole('button', { name: /Dom z planów · Reference house/ }).click()
+  await page.getByRole('button', { name: /Zielonki house study/ }).click()
   await page.getByRole('button', { name: 'House interior', exact: true }).click()
   await expect(rooms).toContainText('Garaż rodzinny')
   await expect(page.getByRole('region', { name: 'Placed objects' }).getByRole('button')).toHaveCount(21)

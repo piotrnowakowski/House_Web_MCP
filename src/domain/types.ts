@@ -10,7 +10,7 @@ export type BuildingKind = 'house' | 'garage'
 export type ArchitecturalStyle = 'classic' | 'futuristic' | 'barn'
 export type GardenZoneKind = 'lawn' | 'terrace' | 'path' | 'driveway' | 'bed' | 'rain-garden' | 'vegetable'
 export type PlantKind = 'tree' | 'hedge' | 'shrub' | 'perennial' | 'grass' | 'crop' | 'wetland'
-export type GardenFixtureCatalogId = 'raised-bed-2x1' | 'tomato-row' | 'potato-row' | 'cucumber-trellis' | 'outdoor-dining-set' | 'garden-lounge-set' | 'slatted-bench' | 'sun-lounger' | 'cantilever-parasol'
+export type GardenFixtureCatalogId = 'raised-bed-2x1' | 'tomato-row' | 'potato-row' | 'cucumber-trellis' | 'outdoor-dining-set' | 'garden-lounge-set' | 'slatted-bench' | 'sun-lounger' | 'cantilever-parasol' | 'jacuzzi' | 'outdoor-kitchen' | 'recycling-bins' | 'greenhouse' | 'larch-bed-long' | 'larch-bed-square' | 'leafy-greens' | 'flower-mix' | 'flower-clump' | 'hydrangea' | 'timber-fence' | 'festoon-lights' | 'sunken-fire-lounge' | 'water-butt' | 'tomato-bed'
 
 export type ClimateDayPart = 'night' | 'morning' | 'day' | 'evening'
 export type TemperatureByDayPartC = Record<ClimateDayPart, number>
@@ -21,14 +21,15 @@ export interface ClimateProfile {
   irrigationMm: number; months: ClimateMonth[]
 }
 
-export type ParcelLandRole = 'construction' | 'agricultural'
+export type ParcelLandRole = 'construction' | 'agricultural' | 'mixed'
 export type GeometryConfidence = 'surveyed' | 'derived' | 'context-only'
-export interface PlotParcelModel { ref: string; cadastralNumber: string; landRole: ParcelLandRole; officialAreaM2: number; boundary: Polygon2; geometryConfidence: GeometryConfidence }
+export interface LandUseZone { ref: string; code: string; landRole: 'construction' | 'agricultural'; boundary: Polygon2; sourceRef: string; geometryConfidence: GeometryConfidence }
+export interface PlotParcelModel { ref: string; cadastralNumber: string; landRole: ParcelLandRole; officialAreaM2: number; boundary: Polygon2; geometryConfidence: GeometryConfidence; landUseZones?: LandUseZone[] }
 export interface SiteEntranceModel { ref: string; name: string; start: Vec2; end: Vec2; connectsTo: 'public-road'; geometryConfidence: 'user-marked' | 'surveyed' }
 export interface TerrainModel { boundary: Polygon2; elevationPoints: Array<Vec2 & { elevation: number }> }
 /** Source-data shape used by the bundled Zielonki evidence module before it is nested into SiteModel. */
 export interface PlotModel { boundary: Polygon2; northDegrees: number; elevationPoints: TerrainModel['elevationPoints']; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[] }
-export interface KnowledgeSource { ref: string; title: string; date: string; kind: 'survey-map' | 'subdivision-map' | 'working-measurement' | 'geotechnical-report' | 'specialist-email' | 'climate-dataset' | 'horticultural-guidance' | 'user-direction'; authority: 'official' | 'professional' | 'working' | 'user-provided'; summary: string; url?: string }
+export interface KnowledgeSource { ref: string; title: string; date: string; kind: 'planning-document' | 'survey-map' | 'subdivision-map' | 'working-measurement' | 'geotechnical-report' | 'specialist-email' | 'climate-dataset' | 'horticultural-guidance' | 'user-direction'; authority: 'official' | 'professional' | 'working' | 'user-provided'; summary: string; url?: string }
 export interface SiteMeasurement { ref: string; label: string; value: number; unit: 'm' | 'm2' | 'percent'; sourceRef: string; confidence: 'official' | 'professional' | 'derived' | 'conceptual' }
 export interface SoilInterval { fromM: number; toM: number; material: string; condition: string }
 export interface BoreholeKnowledge { ref: string; label: string; position: Vec2; positionConfidence: 'map-derived' | 'surveyed'; depthM: number; groundwaterDepthM: number; intervals: SoilInterval[] }
@@ -44,31 +45,50 @@ export interface SiteKnowledgeBase {
   planting: { strategy: string[]; soilAnalysis: PlantingSoilAnalysis; recommendations: PlantRecommendation[]; exclusions: string[] }
   designRules: Array<{ rule: string; basis: string; sourceRef: string }>; caveats: string[]
 }
-export interface SiteModel { boundary: Polygon2; northDegrees: number; terrain: TerrainModel; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[]; knowledgeBase: SiteKnowledgeBase }
+/** Surrounding context, excluded from the owner's editable buildings and project metrics. */
+export interface NeighborBuilding {
+  ref: string; name: string; footprint: Polygon2; groundElevationM: number
+  eavesHeightM: number; ridgeHeightM: number; ridgeDirectionDegrees: number
+  roofType: 'gable' | 'hip' | 'flat'; footprintSource: string; footprintConfidence: 'map-derived' | 'approximate'
+  heightConfidence: 'estimated'; sourceDate: string
+}
+export interface SiteModel { boundary: Polygon2; northDegrees: number; terrain: TerrainModel; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[]; knowledgeBase: SiteKnowledgeBase; neighbors?: NeighborBuilding[] }
 
-export interface OpeningModel { ref: string; kind: 'door' | 'window'; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number }
+export interface OpeningModel { finish?: InteriorFinish; ref: string; kind: 'door' | 'window'; glazed?: boolean; mullionFractions?: number[]; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number; hinge?: 'left' | 'right'; swing?: 'in' | 'out' }
+export interface InteriorFinish { presetId: string; color: string; rotationDegrees: number; tileM: number }
 export type WallMaterial = 'charred-timber' | 'natural-timber' | 'light-render' | 'brick' | 'metal-panel'
 /** `textureId` picks a scan from the texture library; omit for the material default, `none` for a flat colour. */
 export interface WallFinish { material: WallMaterial; colorHex: string; textureId?: string }
-export interface WallModel { ref: string; start: Vec2; end: Vec2; thicknessM: number; baseElevationM: number; heightM: number; openings: OpeningModel[]; finish?: WallFinish; locked: boolean }
+export interface WallModel { groupRef?: string; ref: string; start: Vec2; end: Vec2; thicknessM: number; baseElevationM: number; heightM: number; openings: OpeningModel[]; finish?: WallFinish; faceFinishes?: { left?: InteriorFinish; right?: InteriorFinish }; locked: boolean }
 export interface SpaceBoundaryUse { wallRef: string; direction: 1 | -1 }
-export interface SpaceModel { ref: string; name: string; usage: string; boundary: SpaceBoundaryUse[]; baseSlabRef: string; topBoundaryRef: string; locked: boolean }
-export interface SlabModel { ref: string; footprint: Polygon2; holes?: Polygon2[]; topElevationM: number; thicknessM: number; locked: boolean }
+export interface SpaceModel { ref: string; name: string; usage: string; boundary: SpaceBoundaryUse[]; baseSlabRef: string; topBoundaryRef: string; floorFinish?: InteriorFinish; ceilingFinish?: InteriorFinish; locked: boolean }
+export interface SlabModel { ref: string; footprint: Polygon2; holes?: Polygon2[]; topElevationM: number; thicknessM: number; edgeColorHex?: string; locked: boolean }
 export interface CeilingFinishModel { ref: string; spaceRef: string; hostBoundaryRef: string; elevationM: number; thicknessM: number }
 export interface PlatformModel { ref: string; spaceRef: string; footprint: Polygon2; elevationM: number; thicknessM: number }
-export interface StoreyModel { ref: string; name: string; level: number; elevationM: number; clearHeightM: number; baseSlabRef: string; topBoundaryRef: string; wallRefs: string[]; spaceRefs: string[]; platformRefs: string[]; ceilingFinishRefs: string[] }
+export interface StoreyModel { ref: string; name: string; level: number; elevationM: number; clearHeightM: number; kneeWallHeightM?: number; baseSlabRef: string; topBoundaryRef: string; wallRefs: string[]; spaceRefs: string[]; platformRefs: string[]; ceilingFinishRefs: string[] }
 export interface RoofFinish { material: RoofMaterial; colorHex: string }
 export type RoofJunctionType = 'valley' | 'intersection'
 export interface RoofJunctionModel { ref: string; type: RoofJunctionType; segmentRefs: [string, string] }
 export interface RoofSegmentModel {
   ref: string; footprint: Polygon2; storeyRef?: string; spaceRef?: string; baseElevationM: number; type: RoofType; pitchDegrees: number; overhangM: number
   ridgeDirection: 'x' | 'z'; finish: RoofFinish; adjacentSegmentRefs: string[]; gableWallFinishes?: Partial<Record<'min' | 'max', WallFinish>>
+  /** Fractions across the gable, with a vertical inset below the roof slopes. */
+  gableGlazing?: Partial<Record<'min' | 'max', { from: number; to: number; roofInsetM: number; hostOpeningRefs?: string[]; shape?: 'roof-following' | 'triangle'; continuousWithHost?: boolean; transomElevationsM?: number[] }>>
+  /** Recessed facade below a roof extension, measured inward from the gable end. */
+  gableRecess?: Partial<Record<'min' | 'max', { depthM: number; baseElevationM: number; soffitColorHex: string; sideColorHex?: string }>>
+  gableFrame?: { widthM: number; depthM: number; colorHex: string }
+  /** Glass guard and optional fascia around connected flat decks. Open edge indices refer to their merged perimeter. */
+  terrace?: { railingHeightM: number; openEdgeIndex: number; frameColorHex: string; connectedSegmentRefs?: string[]; openEdgeIndices?: number[]; fasciaHeightM?: number }
+  /** Ground-floor canopy details; elevations and post positions use building-local coordinates. */
+  canopy?: { fasciaHeightM: number; fasciaEdgeIndices: number[]; frameColorHex?: string; soffitColorHex: string; postWidthM: number; postBaseElevationM: number; posts: Vec2[]; slats?: { direction: 'x' | 'z'; spacingM: number; widthM: number } }
 }
 export interface RoofModel {
   ref: string; type: RoofType; baseElevationM: number; pitchDegrees: number; overhangM: number; footprint?: Polygon2
   finish: RoofFinish; segments: RoofSegmentModel[]; junctions: RoofJunctionModel[]
 }
 export interface BuildingModel {
+  /** A visual study may be saved outside construction land; planning issues remain visible. */
+  designStatus?: 'concept'
   interiorSource?: { id: string; notes: string[] }
   furniture?: InteriorItem[]
   stairs?: StairModel[]
@@ -77,12 +97,25 @@ export interface BuildingModel {
   platforms: PlatformModel[]; ceilingFinishes: CeilingFinishModel[]; roof: RoofModel
 }
 
-export interface StairModel { ref: string; fromStoreyRef: string; toStoreyRef: string; start: Vec2; runM: number; widthM: number; steps: number }
-export type InteriorCatalogId = 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car'
-export interface InteriorItem { ref: string; catalogId: InteriorCatalogId; storeyRef: string; name: string; position: Vec2; widthM: number; depthM: number; heightM: number; rotationDegrees: number; color: string }
+export interface StairModel {
+  ref: string; fromStoreyRef: string; toStoreyRef: string; start: Vec2; runM: number; widthM: number; steps: number
+  /** Two equal flights: runM is one flight's horizontal going, steps counts all risers. */
+  uTurn?: { landingDepthM: number; gapM: number }
+}
+export type InteriorCatalogId = 'oak-platform-bed' | 'oak-nightstand' | 'wool-rug' | 'brass-sconce' | 'oak-side-table' | 'boucle-chair' | 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'thermal-buffer' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'compact-freestanding-bathtub' | 'bathroom-step-cabinet' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car' | 'camper'
+export interface InteriorItem { ref: string; catalogId: InteriorCatalogId; storeyRef: string; name: string; position: Vec2; widthM: number; depthM: number; heightM: number; rotationDegrees: number; color: string; productId?: string; variantId?: string; elevationM?: number; groupRef?: string; locked?: boolean }
 export type InteriorCommand = { type: 'interior.update'; buildingRef: string; storeyRef: string } & (
   { action: 'put'; item: InteriorItem } | { action: 'remove'; itemRef: string } |
-  { action: 'room'; spaceRef: string; name: string; widthM?: number; depthM?: number }
+  { action: 'room'; spaceRef: string; name: string; usage?: string; widthM?: number; depthM?: number } |
+  { action: 'lock'; itemRefs: string[]; locked: boolean } |
+  { action: 'split'; spaceRef: string; start: Vec2; end: Vec2; partitionRef: string; newSpaceRef: string; name: string; thicknessM: number } |
+  { action: 'merge'; wallRef: string } |
+  { action: 'wall-group'; wallRefs: string[]; groupRef: string | null } |
+  { action: 'walls-move'; wallRefs: string[]; delta: Vec2 } |
+  { action: 'wall'; wallRef: string; start: Vec2; end: Vec2; thicknessM?: number; heightM?: number } |
+  { action: 'opening'; wallRef: string; opening: OpeningModel } |
+  { action: 'opening-remove'; wallRef: string; openingRef: string } |
+  { action: 'finish'; targetRef: string; surface: 'floor' | 'ceiling' | 'left' | 'right'; finish: InteriorFinish }
 )
 
 /** `textureId` picks a ground scan from the texture library; omit for the kind default, `none` for a flat colour. */
@@ -97,9 +130,9 @@ export type IssueSeverity = 'error' | 'warning' | 'note'
 export interface ProjectIssue { severity: IssueSeverity; code: string; message: string; subjectRef?: string }
 export interface ProjectMetrics { homeAreaM2: number; garageAreaM2: number; landscapeAreaM2: number; greenAreaM2: number; spaceCount: number; plantCount: number; fixtureCount: number; annualWaterBalanceMm: number }
 
-export type SiteUpdateCommand = { type: 'site.update'; boundary?: Polygon2; northDegrees?: number }
+export type SiteUpdateCommand = { type: 'site.update'; boundary?: Polygon2; northDegrees?: number; entrance?: { ref: string; start: Vec2; end: Vec2 } }
 export type TerrainUpdateCommand = { type: 'terrain.update'; elevationPoints: TerrainModel['elevationPoints'] }
-export type BuildingUpdateCommand = { type: 'building.update'; action: 'add' | 'remove' | 'move' | 'set-style'; buildingRef: string; name?: string; kind?: BuildingKind; architecturalStyle?: ArchitecturalStyle; position?: Vec2; rotationDegrees?: number }
+export type BuildingUpdateCommand = { type: 'building.update'; action: 'add' | 'remove' | 'move' | 'set-style'; buildingRef: string; name?: string; kind?: BuildingKind; architecturalStyle?: ArchitecturalStyle; position?: Vec2; rotationDegrees?: number; moveLinkedFeatures?: boolean }
 export type StoreyUpdateCommand = {
   type: 'storey.update'; action: 'add' | 'remove' | 'set-height' | 'extend-footprint'; buildingRef: string; storeyRef: string
   name?: string; clearHeightM?: number; footprint?: Polygon2; extensionFootprint?: Polygon2; spaceRef?: string; spaceName?: string; usage?: string
@@ -150,6 +183,6 @@ export interface SeasonalMonthAnalysis { month: number; temperatureByDayPartC: T
 export type StructureViewRequest = { type: 'site-plan' } | { type: 'axonometric' } | { type: 'north-elevation' | 'south-elevation' | 'east-elevation' | 'west-elevation' } | { type: 'storey-plan'; storeyRef: string } | { type: 'section'; axis: 'longitudinal' | 'transverse'; offsetM?: number } | { type: 'sun-study'; month: number; day: number; hour: number }
 export interface StructureViewDescriptor { type: StructureViewRequest['type']; title: string; buildingRefs: string[]; storeyRef?: string; presentation: 'visible-in-page'; imageUrl: string }
 export interface StructureReport {
-  ref: string; createdAt: string; projectRevision: number; views: StructureViewDescriptor[]
+  ref: string; createdAt: string; projectRef: string; projectName: string; projectRevision: number; views: StructureViewDescriptor[]
   buildings: Array<{ ref: string; name: string; positionM: Vec2; rotationDegrees: number; widthM: number; depthM: number; heightM: number; baseElevationM: number }>
 }

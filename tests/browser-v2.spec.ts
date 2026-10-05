@@ -33,11 +33,11 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   expect(modelLoads.every(({ path, status }) => path.startsWith(`${appBasePath}/models/`) && status === 200)).toBe(true)
   await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/leafy_grass/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
   await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/concrete_tiles_02/diff_2k.jpg')).length, { timeout: 20_000 }).toBeGreaterThan(0)
-  // The whole library preloads after the scene's own scans, so a later pick is instant: red brick is not drawn by default.
-  await expect.poll(() => textureLoads.filter((path) => path.endsWith('/textures/medieval_red_brick/diff_2k.jpg')).length, { timeout: 30_000 }).toBeGreaterThan(0)
+  // Unused scans must not compete with project textures during startup.
+  expect(textureLoads.some(path => path.endsWith('/textures/medieval_red_brick/diff_2k.jpg'))).toBe(false)
   await page.waitForTimeout(1200)
   await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-textured-realistic.png' })
-  await expect(page.getByText('Spatial Editor', { exact: true })).toBeVisible()
+  await expect(page.getByRole('main', { name: 'ProjectV2 spatial planning workspace' })).toBeVisible()
   await expect(page.getByText('PROJECTV2 / SEMANTIC MODEL')).toBeVisible()
   await expect(page.getByText('L-shaped modern barn')).toBeVisible()
   const modernBarn = page.getByRole('button', { name: /Modern barn/ })
@@ -162,6 +162,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await page.locator('.viewport').screenshot({ path: 'test-results/project-v2-editor.png' })
 
   const sunWidget = page.getByRole('region', { name: 'Sun controls' })
+  await page.getByRole('button', { name: 'Sun controls', exact: true }).click()
   await expect(sunWidget).toBeVisible()
   await expect(sunWidget).toContainText('Altitude')
   await expect(sunWidget).toContainText('Azimuth')
@@ -207,6 +208,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await expect(page.getByRole('button', { name: 'Open garden fixtures' })).toContainText('6 placed')
 
   await page.getByRole('button', { name: 'Climate' }).click()
+  await page.getByRole('button', { name: 'Temperature', exact: true }).click()
   const climate = page.getByRole('region', { name: 'Monthly temperature by part of day' })
   await expect(climate).toBeVisible()
   await expect(climate.getByText('Temperature through the day')).toBeVisible()
@@ -221,6 +223,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await climate.getByRole('button', { name: 'Close climate panel' }).click()
   await expect(climate).toBeHidden()
 
+  await page.getByRole('button', { name: 'Climate' }).click()
   await page.getByRole('button', { name: 'Planting' }).click()
   const planting = page.getByRole('region', { name: 'Planting guide and soil analysis' })
   await expect(planting).toBeVisible()
@@ -401,7 +404,7 @@ test('ProjectV2 editor and architectural report work in one real canvas', async 
   await page.waitForTimeout(500)
   await page.reload()
   await page.getByRole('dialog', { name: 'Where do you want to plan today?' }).getByRole('button', { name: /Continue · / }).click()
-  await expect(page.locator('.connection')).toContainText('WebMCP ready')
+  await expect(page.getByRole('button', { name: 'MCP Tools', exact: true })).toBeVisible()
   await page.getByRole('button', { name: /Proposals/ }).click()
   proposalsPanel = page.getByRole('region', { name: 'Proposal review and history' })
   await proposalsPanel.getByRole('button', { name: /Rejected/ }).click()
@@ -487,10 +490,11 @@ test('house remains visible when zoomed out across the long plot', async ({ page
 })
 
 test('editor remains usable when optional garden models cannot be loaded', async ({ page }) => {
+  await page.addInitScript(() => sessionStorage.setItem('render-quality', 'detailed'))
   const pageErrors: string[] = []
   page.on('pageerror', (error) => pageErrors.push(error.message))
   let blockedModelRequests = 0
-  await page.route('**/models/garden/*.glb', (route) => {
+  await page.route('**/models/garden/*.glb*', (route) => {
     blockedModelRequests += 1
     return route.abort('failed')
   })
@@ -499,11 +503,11 @@ test('editor remains usable when optional garden models cannot be loaded', async
   await startScreen.getByRole('button', { name: /Zielonki house study/ }).click()
   await expect(startScreen).toBeHidden()
   await expect(page.locator('canvas')).toHaveCount(1)
-  await expect(page.getByText('Spatial Editor', { exact: true })).toBeVisible()
+  await expect(page.getByRole('main', { name: 'ProjectV2 spatial planning workspace' })).toBeVisible()
   await page.getByRole('button', { name: 'Open garden fixtures' }).click()
   await expect(page.getByRole('region', { name: 'Garden fixture library' })).toBeVisible()
   await expect.poll(() => blockedModelRequests, { timeout: 20_000 }).toBeGreaterThan(0)
-  expect(pageErrors.every((message) => /^Could not load \/.*\/models\/garden\/.*\.glb: Failed to fetch$/.test(message))).toBe(true)
+  expect(pageErrors.every((message) => /^Could not load \/.*\/models\/garden\/.*\.glb(?:\?v=[a-f0-9]+)?: Failed to fetch$/.test(message))).toBe(true)
 })
 
 const savedBuildingCount = (page: Page, name: string) => page.evaluate((projectName) => new Promise<number>((resolve) => {
@@ -536,6 +540,7 @@ test('creates a blank terrain from the start screen and returns to it after a re
   await expect(page.locator('.brand')).toContainText('Test plot')
   await expect(page.getByRole('status')).toContainText('Test plot created')
   await expect(page.locator('.inspector')).toContainText('No buildings yet')
+  await page.getByRole('button', { name: 'Sun controls', exact: true }).click()
   await expect(page.getByRole('region', { name: 'Sun controls' })).toContainText('sunrise')
   await page.getByRole('button', { name: 'Add a house' }).click()
   await expect(page.getByRole('status')).toContainText('House added')

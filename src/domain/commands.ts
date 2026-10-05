@@ -1,11 +1,17 @@
+import { placementWarnings } from './interiorPlacement'
+import { transformedPoint } from './precisionEdits'
 import { estimateDayPartTemperatures } from './climate'
-import { applyInterior, InteriorItemSchema, itemFitsFloor } from './interior'
+import { applyInterior, availableInteriorHeight, InteriorItemSchema, itemFitsFloor } from './interior'
 import { validateTextureChoice } from './textures'
-import { gardenFixtureById, groupedGardenFixtures } from './gardenFixtures'
-import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
+import { gardenFixtureById, groundPlantingIds, groupedGardenFixtures, raisedBedSoilHeightM } from './gardenFixtures'
+import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonBounds, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
 import { decomposeOrthogonalLFootprint, defaultRoofFinish, ridgeDirectionForFootprint, roofSegmentRidgeElevation, segmentContainsFootprint, supportingWallRefs } from './roofs'
 import { gableWallsForBuilding } from './roofWings'
+import { roofTerraceOutline } from './roofTerrace'
+import { atticWallProfile, wallProfileHeightAt } from './attic'
 import { sunMismatchIssues } from './sunlight'
+import { buildingCrossesAgriculturalZone } from './zoning'
+import { uStairHeadroom } from './stairs'
 import type { BuildingModel, LandscapeZone, OpeningModel, Polygon2, ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, RoofJunctionModel, RoofSegmentDefinition, RoofSegmentModel, SpaceBoundaryUse, StoreyModel, Vec2, WallModel } from './types'
 
 export { polygonArea } from './geometry'
@@ -118,6 +124,14 @@ const defaultBuilding = (ref: string, name: string, kind: BuildingModel['kind'],
 const applySite = (project: ProjectV2, command: Extract<ProjectCommand, { type: 'site.update' }>) => {
   if (command.boundary) { project.site.boundary = clone(command.boundary); project.site.terrain.boundary = clone(command.boundary) }
   if (command.northDegrees !== undefined) project.site.northDegrees = command.northDegrees
+  if (command.entrance) {
+    const update = command.entrance
+    const entrance = project.site.entrances.find((item) => item.ref === update.ref)
+    if (!entrance) throw new Error(`Entrance not found: ${update.ref}`)
+    if (Math.hypot(update.end.x - update.start.x, update.end.z - update.start.z) <= 0.5) throw new Error('Site entrance must have length greater than 0.5 m.')
+    entrance.start = clone(update.start)
+    entrance.end = clone(update.end)
+  }
 }
 
 const applyBuilding = (project: ProjectV2, command: Extract<ProjectCommand, { type: 'building.update' }>) => {
@@ -128,6 +142,22 @@ const applyBuilding = (project: ProjectV2, command: Extract<ProjectCommand, { ty
   }
   if (command.action === 'remove') { project.buildings = project.buildings.filter((item) => item.ref !== command.buildingRef); return }
   const building = getBuilding(project, command.buildingRef)
+  if (command.action === 'move') {
+    const target = command.position ?? building.position
+    const rotation = command.rotationDegrees ?? building.rotationDegrees
+    if (![target.x, target.z, rotation].every(Number.isFinite)) throw new Error('Enter finite building coordinates and angle.')
+    if (command.moveLinkedFeatures) {
+      if (project.ref !== 'project/zielonki-v2' || building.ref !== 'house/main') throw new Error('This building has no linked site features.')
+      const angle = rotation - building.rotationDegrees
+      const transform = (p: Vec2) => transformedPoint(p, building.position, target, angle)
+      const carport = project.buildings.find(b => b.ref === 'building/south-carport')
+      if (carport) { carport.position = transform(carport.position); carport.rotationDegrees += angle }
+      // These fixed local outlines follow their parent assembly, without unlocking their shape.
+      for (const zone of project.landscape.zones.filter(z => ['zone/terrace', 'zone/path'].includes(z.ref))) zone.footprint = zone.footprint.map(transform)
+      const driveway = project.landscape.zones.find(z => z.ref === 'zone/driveway')
+      if (driveway?.footprint.length === 4) driveway.footprint = driveway.footprint.map((p, i) => i === 1 || i === 2 ? transform(p) : p)
+    }
+  }
   if (command.position) building.position = clone(command.position)
   if (command.rotationDegrees !== undefined) building.rotationDegrees = command.rotationDegrees
   if (command.architecturalStyle) {
@@ -508,14 +538,21 @@ const allRefs = (building: BuildingModel) => [building.ref, building.roof.ref, .
 
 export const validateProject = (project: ProjectV2): ProjectIssue[] => {
   const issues: ProjectIssue[] = []
-  const constructionParcels = project.site.parcels.filter((parcel) => parcel.landRole === 'construction')
+  const constructionParcels = project.site.parcels.filter((parcel) => parcel.landRole !== 'agricultural')
   if (polygonSelfIntersects(project.site.boundary)) issues.push({ severity: 'error', code: 'site.self-intersection', message: 'Site boundary self-intersects.', subjectRef: 'site' })
   project.buildings.forEach((building) => {
+    if (buildingCrossesAgriculturalZone(project, building)) issues.push({ severity: 'warning', code: 'building.zoning', message: `${building.name} overlaps agricultural zone 06.R.21. New house mass must stay within 06.MNU.8; review its placement.`, subjectRef: building.ref })
     const refs = [...allRefs(building), ...(building.furniture ?? []).map((item) => item.ref), ...(building.stairs ?? []).map((item) => item.ref)]; const duplicates = refs.filter((ref, index) => refs.indexOf(ref) !== index)
     if (duplicates.length) issues.push({ severity: 'error', code: 'ref.duplicate', message: `Duplicate reference: ${duplicates[0]}`, subjectRef: duplicates[0] })
     for (const stairs of building.stairs ?? []) {
       const lower = building.storeys.find((s) => s.ref === stairs.fromStoreyRef); const upper = building.storeys.find((s) => s.ref === stairs.toStoreyRef)
       if (!lower || !upper || upper.elevationM <= lower.elevationM) issues.push({ severity: 'error', code: 'stairs.connection', message: 'Stairs must connect an existing lower floor to an upper floor.', subjectRef: stairs.ref })
+      if (stairs.uTurn && lower && upper) {
+        const riser = (upper.elevationM - lower.elevationM) / stairs.steps
+        const tread = stairs.runM / (stairs.steps / 2 - 1)
+        if (stairs.steps < 4 || stairs.steps % 2 || riser <= 0 || riser > .19 || stairs.widthM - .04 < .8 || stairs.uTurn.landingDepthM - .04 < .8 || 2 * riser + tread < .6 || 2 * riser + tread > .65) issues.push({ severity: 'error', code: 'stairs.dimensions', message: 'U stairs need equal flights, at least 0.80 m clear width/landing, risers up to 0.19 m and 2h+s between 0.60 and 0.65 m.', subjectRef: stairs.ref })
+        if (uStairHeadroom(building, stairs) < 2) issues.push({ severity: 'error', code: 'stairs.headroom', message: 'Keep at least 2.00 m model clearance above the stair walking surfaces; adjust the slab opening or roof clearance.', subjectRef: stairs.ref })
+      }
     }
     for (const slab of building.slabs) for (const hole of slab.holes ?? []) {
       if (polygonSelfIntersects(hole) || polygonArea(hole) < 0.01 || hole.some((p) => !pointInPolygon(p, slab.footprint))) issues.push({ severity: 'error', code: 'slab.opening', message: 'A stair opening must stay within its floor slab.', subjectRef: slab.ref })
@@ -523,7 +560,8 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
     for (const item of building.furniture ?? []) {
       const host = building.storeys.find((floor) => floor.ref === item.storeyRef)
       const slab = building.slabs.find((floor) => floor.ref === host?.baseSlabRef)
-      if (!InteriorItemSchema.safeParse(item).success || !host || !slab || item.heightM > host.clearHeightM || !itemFitsFloor(item, slab.footprint, slab.holes)) issues.push({ severity: 'error', code: 'interior.invalid', message: `${item.name} must fit on an existing floor with valid dimensions.`, subjectRef: item.ref })
+      if (!InteriorItemSchema.safeParse(item).success || !host || !slab || item.heightM + (item.elevationM ?? 0) > availableInteriorHeight(item, building, host) || !itemFitsFloor(item, slab.footprint, slab.holes)) issues.push({ severity: 'error', code: 'interior.invalid', message: `${item.name} must fit on an existing floor with valid dimensions.`, subjectRef: item.ref })
+      if (host) for (const warning of placementWarnings(item, building, host)) issues.push({ severity: 'warning', code: `interior.${warning.kind}`, message: `${item.name}: ${warning.message}`, subjectRef: item.ref })
     }
     building.storeys.forEach((storey) => {
       const base = building.slabs.find((slab) => slab.ref === storey.baseSlabRef)
@@ -540,6 +578,13 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
     building.walls.forEach((wall) => wall.openings.forEach((opening: OpeningModel) => {
       if (opening.offsetM - opening.widthM / 2 < 0 || opening.offsetM + opening.widthM / 2 > wallLength(wall)) issues.push({ severity: 'error', code: 'opening.bounds', message: `${opening.ref} exceeds its host wall.`, subjectRef: opening.ref })
       if (opening.sillM + opening.heightM > wall.heightM) issues.push({ severity: 'error', code: 'opening.height', message: `${opening.ref} exceeds wall height.`, subjectRef: opening.ref })
+      const profile = atticWallProfile(building, wall)
+      if (profile) {
+        const left = opening.offsetM - opening.widthM / 2, right = opening.offsetM + opening.widthM / 2
+        const points = profile.filter((p) => p.x > left && p.x < right)
+        for (const x of [left, right]) points.push({ x, z: wallProfileHeightAt(profile, x) })
+        if (points.some((p) => p.z + 0.001 < opening.sillM + opening.heightM)) issues.push({ severity: 'error', code: 'opening.roof', message: `${opening.ref} exceeds the sloping roof.`, subjectRef: opening.ref })
+      }
     }))
     if (!building.roof.segments.length) issues.push({ severity: 'error', code: 'roof.segments', message: `${building.name} must have at least one semantic roof segment.`, subjectRef: building.roof.ref })
     building.roof.segments.forEach((segment) => {
@@ -548,12 +593,38 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
       if (segment.spaceRef && !building.spaces.some((space) => space.ref === segment.spaceRef)) issues.push({ severity: 'error', code: 'roof.space', message: `${segment.ref} references a missing supporting space.`, subjectRef: segment.ref })
       if (!/^#[0-9a-fA-F]{6}$/.test(segment.finish.colorHex)) issues.push({ severity: 'error', code: 'roof.finish', message: `${segment.ref} has an invalid finish colour.`, subjectRef: segment.ref })
       const supportRefs = supportingWallRefs(building, segment)
-      if (storey && !supportRefs.length) {
+      if (segment.terrace) {
+        try {
+          const outline = roofTerraceOutline(building, segment)
+          const openEdges = segment.terrace.openEdgeIndices ?? [segment.terrace.openEdgeIndex]
+          if (segment.type !== 'flat' || openEdges.some((index) => index >= outline.length)) throw new Error('Terrace guards require valid edges on a flat roof.')
+        } catch (error) {
+          issues.push({ severity: 'error', code: 'roof.terrace', message: error instanceof Error ? error.message : 'Invalid connected terrace.', subjectRef: segment.ref })
+        }
+      }
+      if (segment.canopy) {
+        const canopy = segment.canopy
+        if (canopy.slats) {
+          const bounds = polygonBounds(segment.footprint)
+          const rectangleArea = (bounds.maxX - bounds.minX) * (bounds.maxZ - bounds.minZ)
+          if (segment.terrace || canopy.slats.widthM >= canopy.slats.spacingM || Math.abs(polygonArea(segment.footprint) - rectangleArea) > 0.001) {
+            issues.push({ severity: 'error', code: 'roof.pergola', message: `${segment.ref} requires an axis-aligned rectangular footprint, gaps between slats and no roof terrace.`, subjectRef: segment.ref })
+          }
+        }
+        const postFits = canopy.posts.every((post) => [-1, 1].every((x) => [-1, 1].every((z) =>
+          pointInPolygon({ x: post.x + x * canopy.postWidthM / 2, z: post.z + z * canopy.postWidthM / 2 }, segment.footprint))))
+        if (segment.type !== 'flat' || segment.baseElevationM + 0.24 - canopy.fasciaHeightM <= canopy.postBaseElevationM || segment.baseElevationM <= canopy.postBaseElevationM || !postFits || canopy.fasciaEdgeIndices.some((index) => index >= segment.footprint.length)) {
+          issues.push({ severity: 'error', code: 'roof.canopy', message: `${segment.ref} requires a flat roof, positive clearance and posts/edges within its footprint.`, subjectRef: segment.ref })
+        }
+      }
+      const attic = segment.type === 'gable' && storey?.kneeWallHeightM !== undefined
+      if (attic && Math.abs(segment.baseElevationM - storey.elevationM - storey.kneeWallHeightM!) > 0.001) issues.push({ severity: 'error', code: 'roof.knee-wall', message: `${segment.ref} does not meet its knee wall height.`, subjectRef: segment.ref })
+      if (storey && !attic && !supportRefs.length) {
         const supportTop = storey.elevationM + storey.clearHeightM
         if (segment.baseElevationM < supportTop - 0.02) issues.push({ severity: 'error', code: 'roof.support-overlap', message: `${segment.ref} is below the top of its supporting storey.`, subjectRef: segment.ref })
         if (segment.baseElevationM > supportTop + 0.02) issues.push({ severity: 'error', code: 'roof.support-gap', message: `${segment.ref} leaves a gap above its supporting storey.`, subjectRef: segment.ref })
       }
-      supportRefs.forEach((ref) => {
+      if (!attic) supportRefs.forEach((ref) => {
         const wall = building.walls.find((item) => item.ref === ref); if (!wall) return
         const wallTop = wall.baseElevationM + wall.heightM
         if (segment.baseElevationM < wallTop - 0.02) issues.push({ severity: 'error', code: 'roof.wall-overlap', message: `${segment.ref} overlaps supporting wall ${ref}.`, subjectRef: segment.ref })
@@ -578,7 +649,11 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
       if (!first || !second) issues.push({ severity: 'error', code: 'roof.junction-ref', message: `${junction.ref} references a missing roof segment.`, subjectRef: junction.ref })
       else if (!polygonsTouch(first.footprint, second.footprint)) issues.push({ severity: 'error', code: 'roof.junction-geometry', message: `${junction.ref} connects roof segment footprints that do not meet.`, subjectRef: junction.ref })
     })
-    if (!buildingFootprintsWorld(building).flat().every((point) => constructionParcels.some((parcel) => pointInPolygon(point, parcel.boundary)))) issues.push({ severity: 'error', code: 'building.site', message: `${building.name} is outside the construction parcels.`, subjectRef: building.ref })
+    const footprint = buildingFootprintsWorld(building).flat()
+    if (!footprint.every((point) => constructionParcels.some((parcel) => pointInPolygon(point, parcel.boundary)))) {
+      const conceptInsideSite = building.designStatus === 'concept' && footprint.every((point) => pointInPolygon(point, project.site.boundary))
+      issues.push({ severity: conceptInsideSite ? 'warning' : 'error', code: 'building.site', message: `${building.name} is outside the construction parcels.${conceptInsideSite ? ' Concept only; this placement is not approved for construction.' : ''}`, subjectRef: building.ref })
+    }
   })
   project.landscape.zones.forEach((zone: LandscapeZone) => {
     if (polygonArea(zone.footprint) < 0.01 || polygonSelfIntersects(zone.footprint)) issues.push({ severity: 'error', code: 'landscape.polygon', message: `${zone.name} has an invalid polygon.`, subjectRef: zone.ref })
@@ -595,8 +670,8 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
       .map(([x, z]) => ({ x: fixture.position.x + x * c + z * s, z: fixture.position.z - x * s + z * c }))
     if (!corners.every((corner) => project.site.parcels.some((parcel) => pointInPolygon(corner, parcel.boundary)))) issues.push({ severity: 'error', code: 'fixture.site', message: `${fixture.name} extends outside the owned parcels.`, subjectRef: fixture.ref })
   })
-  const raisedBeds = project.landscape.fixtures.filter((fixture) => fixture.catalogId === 'raised-bed-2x1')
-  project.landscape.fixtures.filter((fixture) => gardenFixtureById(fixture.catalogId).category === 'crop').forEach((fixture) => {
+  const raisedBeds = project.landscape.fixtures.filter((fixture) => raisedBedSoilHeightM[fixture.catalogId] !== undefined)
+  project.landscape.fixtures.filter((fixture) => gardenFixtureById(fixture.catalogId).category === 'crop' && !groundPlantingIds.includes(fixture.catalogId)).forEach((fixture) => {
     if (!raisedBeds.some((bed) => Math.hypot(bed.position.x - fixture.position.x, bed.position.z - fixture.position.z) < 0.15)) issues.push({ severity: 'error', code: 'fixture.crop-host', message: `${fixture.name} must remain colocated with a raised bed.`, subjectRef: fixture.ref })
   })
   issues.push(...sunMismatchIssues(project))
@@ -605,8 +680,12 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
 }
 
 export const calculateMetrics = (project: ProjectV2): ProjectMetrics => {
-  const homeAreaM2 = project.buildings.filter((building) => building.kind === 'house').reduce((sum, building) => sum + building.storeys.reduce((area, storey) => area + polygonArea(building.slabs.find((slab) => slab.ref === storey.baseSlabRef)?.footprint ?? []), 0), 0)
-  const garageAreaM2 = project.buildings.filter((building) => building.kind === 'garage').reduce((sum, building) => sum + building.storeys.reduce((area, storey) => area + polygonArea(building.slabs.find((slab) => slab.ref === storey.baseSlabRef)?.footprint ?? []), 0), 0)
+  const floorArea = (building: BuildingModel) => building.storeys.reduce((area, storey) => {
+    const slab = building.slabs.find((slab) => slab.ref === storey.baseSlabRef)
+    return area + (slab ? polygonArea(slab.footprint) - (slab.holes ?? []).reduce((sum, hole) => sum + polygonArea(hole), 0) : 0)
+  }, 0)
+  const homeAreaM2 = project.buildings.filter((building) => building.kind === 'house').reduce((sum, building) => sum + floorArea(building), 0)
+  const garageAreaM2 = project.buildings.filter((building) => building.kind === 'garage').reduce((sum, building) => sum + floorArea(building), 0)
   const landscapeAreaM2 = project.landscape.zones.reduce((sum, zone) => sum + polygonArea(zone.footprint), 0)
   const green = new Set(['lawn', 'bed', 'rain-garden', 'vegetable'])
   return { homeAreaM2, garageAreaM2, landscapeAreaM2, greenAreaM2: project.landscape.zones.filter((zone) => green.has(zone.kind)).reduce((sum, zone) => sum + polygonArea(zone.footprint), 0), spaceCount: project.buildings.reduce((sum, building) => sum + building.spaces.length, 0), plantCount: project.landscape.plants.length, fixtureCount: project.landscape.fixtures.length, annualWaterBalanceMm: project.climateProfile.months.reduce((sum, month) => sum + month.precipitationMm + project.climateProfile.irrigationMm - month.et0Mm, 0) }

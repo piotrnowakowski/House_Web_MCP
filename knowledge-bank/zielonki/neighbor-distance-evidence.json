@@ -1,0 +1,51 @@
+{
+  "checkedDate": "2026-09-10",
+  "source": "https://mapy.geoportal.gov.pl/wss/service/PZGIK/EGIB/WFS/UslugaZbiorcza",
+  "sourceCRS": "EPSG:2178",
+  "gmlAxisOrder": "northing,easting",
+  "buildingId": "120617_2.0018.64/2.1_BUD",
+  "neighborRef": "neighbor/south-east-map",
+  "cadastralExterior": [
+    {
+      "northing": 5556070.59,
+      "easting": 7421613.54
+    },
+    {
+      "northing": 5556073.92,
+      "easting": 7421610.93
+    },
+    {
+      "northing": 5556064.16,
+      "easting": 7421598.14
+    },
+    {
+      "northing": 5556057.01,
+      "easting": 7421603.6
+    },
+    {
+      "northing": 5556063.41,
+      "easting": 7421611.98
+    },
+    {
+      "northing": 5556066.03,
+      "easting": 7421609.98
+    },
+    {
+      "northing": 5556065.6,
+      "easting": 7421609.41
+    },
+    {
+      "northing": 5556066.77,
+      "easting": 7421608.52
+    },
+    {
+      "northing": 5556070.59,
+      "easting": 7421613.54
+    }
+  ],
+  "previousCentroidErrorM": 14.836,
+  "previousHouseClearanceM": 53.431,
+  "correctedHouseClearanceM": 62.473,
+  "correctedParcelClearanceM": 52.341,
+  "notes": "Outside faces of the current designed house; horizontal distance, not roof centres. Heights remain estimates. Parcel boundaries /3 agree with cadastral vectors within 0.008 m; map-derived building checks 34/5, 34/3 and 59-outbuilding within 0.025 m. These residuals measure transcription agreement, not survey accuracy."
+}

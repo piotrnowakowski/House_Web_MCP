@@ -1,28 +1,46 @@
-import { Canvas } from '@react-three/fiber'
-import { InteriorEditor } from './interior/InteriorEditor'
-import { Suspense, useEffect, useRef, useState } from 'react'
-import { ACESFilmicToneMapping, PCFSoftShadowMap, SRGBColorSpace } from 'three'
+import { FloorToggle, TreePreferences, TreeToggle } from './PlotViewControls'
+import { staticAssetUrl } from './services/staticAssets'
+import { RenderingControls } from './scene/RenderingControls'
+import { HouseStudyControl } from './HouseStudyControl'
+import { TransparencyControls } from './TransparencyControls'
+import { PrecisionEditor } from './editor/PrecisionEditor'
+import { ExactMeasureTools } from './editor/ExactMeasureTools'
+import { NeighborControls, NeighborPreferences, NeighborSettings, NeighborToggle } from './NeighborControls'
+import { AdaptiveSheet, useCompactLayout } from './interior/AdaptiveSheet'
+import { PrecisionControls, PrecisionField } from './interior/InteriorPanels'
+import { Box, Eye, EyeOff, Focus, MoreHorizontal, Plus, Ruler, Settings2, Move, Check, Heart } from 'lucide-react'
+import './interior/plot-mobile.css'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { dayParts } from './domain/climate'
 import { calculateMetrics } from './domain/commands'
 import { gardenFixtureCatalog, nextFixturePosition, starterGardenCommands } from './domain/gardenFixtures'
-import { polygonCentroid, wallLength } from './domain/geometry'
+import { polygonArea, polygonCentroid, wallLength } from './domain/geometry'
 import { isModernBarnPreset } from './domain/presets'
 import { isExteriorWall } from './domain/zielonkiInterior'
+import { REFERENCE_HOUSE_REF } from './domain/referenceHouse'
 import { TerrainInputSchema, defaultTerrainInput, type TerrainInput } from './domain/terrain'
 import { gableWallsForBuilding } from './domain/roofWings'
 import type { BuildingModel, ClimateDayPart, GardenFixtureCatalogId, HeightMeasureKind, LandscapeZone, PlantingGuideCategory, Polygon2, ProjectCommand, ProposalStatus, WallMaterial, WallModel } from './domain/types'
 import { inferWallOpeningLayout, wallOpeningLayoutCommands, wallOpeningLayoutPresets, type WallOpeningLayoutPreset } from './domain/wallOpeningLayouts'
 import { resolveGableWallFinish, resolveWallFinish, wallFinishCatalog, wallFinishCommands, type WallFinishScope } from './domain/wallFinishes'
 import { FLAT_TEXTURE, defaultGroundTexture, defaultWallTexture, resolveWallTexture, texturePreviewFor, texturesFor, textureById, type TextureId, type TextureSurface } from './scene/materialCatalog'
-import { CLEAR_MEASUREMENT_EVENT, StudioScene } from './scene/StudioScene'
-import { sunHoursColor } from './scene/sun'
+import { CLEAR_MEASUREMENT_EVENT } from './scene/events'
+import { sunHoursColor } from './scene/sun/SunHoursOverlay'
 import { solarPosition, sunriseSunset } from './domain/solar'
 import { formatSunMoment } from './domain/sunlight'
-import { deleteWorkspace, saveWorkspace } from './services/persistence'
+import { deleteWorkspace } from './services/persistence'
+import { flushAutosave } from './services/autosave'
+import { runWorkspaceActivity } from './services/workspaceLock'
+import { groupWorkspaces, workspaceVersionKind } from './services/workspaceGroups'
+import { BATH_ROOM_STUDY_REF } from './services/publishedBathRoom'
 import { showStructureViews } from './services/structureViews'
 import { registerWebMcpTools, resolveVariantConfirmation } from './services/webmcp'
 import type { WebMcpManifest } from './services/webmcpDefinitions'
 import { useStudioStore } from './state/store'
+import { buildingCrossesAgriculturalZone, landUseAreas } from './domain/zoning'
+
+const PlotCanvas = lazy(() => import('./scene/PlotCanvas'))
+const InteriorEditor = lazy(() => import('./interior/InteriorEditor').then(module => ({ default: module.InteriorEditor })))
 
 const modes = [
   ['edit', 'Edit'], ['measure-length', 'Length'], ['measure-area', 'Area'], ['measure-height', 'Height'],
@@ -30,42 +48,94 @@ const modes = [
 
 const modeTitles = {
   edit: 'Select and move semantic objects',
-  'measure-length': 'Click two points to measure the distance',
+  'measure-length': 'Click near objects or boundaries to measure the distance; drag points to adjust',
   'measure-area': 'Drag a rectangle across the ground to measure its area',
   'measure-height': 'Select a semantic object or Shift-click two points to measure vertically',
 } as const
 
-function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenMcpTools, onOpenProposals, onOpenProjects }: { onOpenInterior: () => void; onOpenClimate: () => void; onOpenPlanting: () => void; onOpenMcpTools: () => void; onOpenProposals: () => void; onOpenProjects: () => void }) {
+function ClimateMenu({ onOpenClimate, onOpenPlanting }: { onOpenClimate: () => void; onOpenPlanting: () => void }) {
+  const [open, setOpen] = useState(false)
+  const menu = useRef<HTMLDivElement>(null)
+  const trigger = useRef<HTMLButtonElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const closeOutside = (event: PointerEvent) => { if (!menu.current?.contains(event.target as Node)) setOpen(false) }
+    document.addEventListener('pointerdown', closeOutside)
+    return () => document.removeEventListener('pointerdown', closeOutside)
+  }, [open])
+  return <div className="climate-menu" ref={menu} onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }} onKeyDown={(event) => { if (event.key === 'Escape' && open) { event.stopPropagation(); setOpen(false); trigger.current?.focus() } }}>
+    <button ref={trigger} className={open ? 'active' : ''} aria-expanded={open} aria-controls="climate-options" onClick={() => setOpen(!open)}>Climate <span aria-hidden="true">▾</span></button>
+    {open && <div id="climate-options" className="climate-options" role="group" aria-label="Climate options">
+      <button onClick={() => { setOpen(false); onOpenClimate() }}>Temperature</button>
+      <button onClick={() => { setOpen(false); onOpenPlanting() }}>Planting</button>
+    </div>}
+  </div>
+}
+
+function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenFixtures, fixturesOpen, onOpenMcpTools, onOpenProposals, onOpenProjects }: { onOpenInterior: () => void; onOpenClimate: () => void; onOpenPlanting: () => void; onOpenFixtures: () => void; fixturesOpen: boolean; onOpenMcpTools: () => void; onOpenProposals: () => void; onOpenProjects: () => void }) {
   const project = useStudioStore((state) => state.project); const viewerMode = useStudioStore((state) => state.viewerMode); const setViewerMode = useStudioStore((state) => state.setViewerMode)
   const explode = useStudioStore((state) => state.explodeStoreys); const setExplode = useStudioStore((state) => state.setExplodeStoreys)
-  const webMcp = useStudioStore((state) => state.webMcpAvailable); const setToast = useStudioStore((state) => state.setToast)
-  const proposals = useStudioStore((state) => state.proposals); const proposalCounts = { pending: proposals.filter((proposal) => proposal.status === 'pending').length, approved: proposals.filter((proposal) => proposal.status === 'approved').length, rejected: proposals.filter((proposal) => proposal.status === 'rejected').length, stale: proposals.filter((proposal) => proposal.status === 'stale').length }
+  const compact = useCompactLayout()
+  const setToast = useStudioStore((state) => state.setToast)
   const [busy, setBusy] = useState(false)
+  const reportController = useRef<AbortController | null>(null)
+  useEffect(() => () => reportController.current?.abort(), [])
   const generateReport = async () => {
+    if (reportController.current) return
+    const controller = new AbortController()
+    reportController.current = controller
     setBusy(true)
-    try { await showStructureViews({ mode: 'architectural-set' }, new AbortController().signal) }
+    try { await showStructureViews({ mode: 'architectural-set' }, controller.signal) }
     catch (error) { setToast(error instanceof Error ? error.message : 'Report generation failed.') }
-    finally { setBusy(false) }
+    finally { reportController.current = null; setBusy(false) }
   }
   return <header className="topbar">
-    <div className="brand"><span className="brand-mark">V2</span><div><strong>Spatial Editor</strong><small>{project.name} · r{project.revision}</small></div></div>
-    <nav aria-label="Viewer tools">{modes.map(([value, label]) => <button key={value} className={viewerMode === value ? 'active' : ''} onClick={() => setViewerMode(value)} title={modeTitles[value]}>{label}</button>)}</nav>
+    <div className="project-heading">{!compact && <HouseStudyControl onOpen={onOpenProjects} />}<ProjectTitle key={project.ref} projectRef={project.ref} name={project.name} /></div>
+    <nav aria-label="Viewer tools">{modes.map(([value, label]) => <button key={value} className={viewerMode === value ? 'active' : ''} aria-pressed={viewerMode === value} onClick={() => setViewerMode(viewerMode === value ? 'edit' : value)} title={modeTitles[value]}>{label}</button>)}</nav>
+    {!compact && <TransparencyControls />}
     <div className="top-actions">
+      <RenderingControls />
       <button onClick={onOpenInterior} disabled={!project.buildings.length} title="Edit rooms, furniture and house levels">House interior</button>
-      <button onClick={onOpenProjects} title="Open another project or start a new terrain">Projects</button>
       <button className={explode ? 'active' : ''} aria-pressed={explode} title="Separate every room, storey and the roof" onClick={() => {
         const next = !explode; setViewerMode('edit'); setExplode(next)
         const rooms = project.buildings.reduce((sum, building) => sum + building.spaces.length, 0)
         setToast(next ? `Exploded ${rooms} rooms across every level.` : 'Room explosion collapsed.')
       }}>Explode</button>
-      <button onClick={onOpenClimate}>Climate</button>
-      <button onClick={onOpenPlanting}>Planting</button>
-      <button className="proposal-entry" onClick={onOpenProposals}><span>Proposals</span><small aria-label={`${proposalCounts.pending} pending, ${proposalCounts.approved} approved, ${proposalCounts.rejected} rejected, ${proposalCounts.stale} stale`}><i>P {proposalCounts.pending}</i><i>A {proposalCounts.approved}</i><i>R {proposalCounts.rejected}</i><i>S {proposalCounts.stale}</i></small></button>
+      <button className={`fixtures-button${fixturesOpen ? ' active' : ''}`} onClick={onOpenFixtures} aria-label="Open garden fixtures" aria-expanded={fixturesOpen}><span>Garden fixtures</span><small>{project.landscape.fixtures.length} placed</small></button>
+      <ClimateMenu onOpenClimate={onOpenClimate} onOpenPlanting={onOpenPlanting} />
+      <button onClick={onOpenProposals}>Proposals</button>
       <button onClick={onOpenMcpTools}>MCP Tools</button>
-      <button className="report-button" disabled={busy} onClick={generateReport}>{busy ? 'Rendering…' : 'Architectural set'}</button>
-      <span className={`connection ${webMcp ? 'online' : ''}`}>{webMcp ? 'WebMCP ready' : 'local'}</span>
+      <button disabled={busy} onClick={generateReport}>{busy ? 'Rendering…' : 'Architectural set'}</button>
+      {busy && <button onClick={() => reportController.current?.abort()}>Cancel report</button>}
     </div>
   </header>
+}
+
+function ProjectTitle({ projectRef, name }: { projectRef: string; name: string }) {
+  const renameWorkspace = useStudioStore((state) => state.renameWorkspace)
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(name)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const titleButton = useRef<HTMLButtonElement>(null)
+  const finish = () => { setEditing(false); setError(''); window.setTimeout(() => titleButton.current?.focus(), 0) }
+  const begin = () => { setDraft(name); setError(''); setEditing(true) }
+  const save = async (event: React.FormEvent) => {
+    event.preventDefault()
+    if (saving) return
+    setSaving(true)
+    try { await renameWorkspace(projectRef, draft); finish() }
+    catch (reason) { setError(reason instanceof Error ? reason.message : 'Could not save the project name.') }
+    finally { setSaving(false) }
+  }
+  return <div className="brand project-title">
+    {editing ? <form onSubmit={(event) => void save(event)} onKeyDown={(event) => { event.stopPropagation(); if (event.key === 'Escape' && !saving) { event.preventDefault(); finish() } }}>
+      <input aria-label="Project name" aria-invalid={Boolean(error)} aria-describedby={error ? 'project-title-error' : undefined} value={draft} maxLength={120} autoFocus autoComplete="off" disabled={saving} onFocus={(event) => event.currentTarget.select()} onChange={(event) => { setDraft(event.target.value); setError('') }} />
+      <button type="submit" aria-label="Save project name" title="Save name (Enter)" disabled={saving || !draft.trim()}><Check size={16} /></button>
+      <button type="button" aria-label="Cancel renaming" title="Cancel (Escape)" disabled={saving} onClick={finish}>×</button>
+      {error && <span id="project-title-error" className="project-title-error" role="alert">{error}</span>}
+    </form> : <button ref={titleButton} className="project-title-button" aria-label={`Rename project: ${name}`} title={`${name} — double-click to rename`} onDoubleClick={begin} onKeyDown={(event) => { if (['Enter', ' ', 'F2'].includes(event.key)) { event.preventDefault(); begin() } }}>{name}</button>}
+  </div>
 }
 
 const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -222,7 +292,7 @@ function TexturePicker({ surface, label, value, defaultId, disabled, onChange }:
   const effective = value ?? defaultId ?? FLAT_TEXTURE
   return <div className="texture-picker" role="group" aria-label={label}>
     {texturesFor(surface).map((item) => <button key={item.id} type="button" disabled={disabled} className={effective === item.id ? 'active' : ''} aria-pressed={effective === item.id} onClick={() => onChange(item.id)} title={`${item.description} · ${item.tileM} m tile · CC0 by ${item.author}`}>
-      <i style={{ backgroundImage: `url(${import.meta.env.BASE_URL}${texturePreviewFor(item.id)})` }} /><span>{item.name}{item.id === defaultId ? ' · default' : ''}</span>
+      <i style={{ backgroundImage: `url(${staticAssetUrl(texturePreviewFor(item.id))})` }} /><span>{item.name}{item.id === defaultId ? ' · default' : ''}</span>
     </button>)}
     <button type="button" disabled={disabled} className={effective === FLAT_TEXTURE ? 'active' : ''} aria-pressed={effective === FLAT_TEXTURE} onClick={() => onChange(FLAT_TEXTURE)} title="Plain colour without a scan"><i className="flat" /><span>Flat colour{defaultId ? '' : ' · default'}</span></button>
   </div>
@@ -345,15 +415,54 @@ const timezoneOptions = (() => { try { const values = (Intl as unknown as { supp
 /** The start screen: continue a saved project, reset to the bundled Zielonki study, or describe a new plot. */
 function StartScreen() {
   const open = useStudioStore((state) => state.launcherOpen); const saved = useStudioStore((state) => state.savedWorkspaces); const hydrated = useStudioStore((state) => state.hydrated); const project = useStudioStore((state) => state.project)
+  const [favoriteRef, setFavoriteRef] = useState<string | null>(() => { try { return localStorage.getItem('house.favoriteProject') } catch { return null } })
+  useEffect(() => {
+    const update = (event: StorageEvent) => { if (event.key === 'house.favoriteProject' || event.key === null) { try { setFavoriteRef(localStorage.getItem('house.favoriteProject')) } catch { /* Keep the current preference if storage is unavailable. */ } } }
+    window.addEventListener('storage', update)
+    return () => window.removeEventListener('storage', update)
+  }, [])
+  const toggleFavorite = (ref: string) => {
+    try {
+      const next = favoriteRef === ref ? null : ref
+      if (next) localStorage.setItem('house.favoriteProject', next)
+      else localStorage.removeItem('house.favoriteProject')
+      setFavoriteRef(next)
+    } catch { useStudioStore.getState().setToast('Nie udało się zapisać ulubionego projektu. Spróbuj ponownie.') }
+  }
+  const [showOtherVersions, setShowOtherVersions] = useState(false)
+  const projectGroups = groupWorkspaces(saved, favoriteRef).filter((item) => item.ref !== REFERENCE_HOUSE_REF)
+  const hasMainProject = projectGroups.some((item) => item.ref === BATH_ROOM_STUDY_REF)
+  const visibleProjects = !import.meta.env.PROD || showOtherVersions || !hasMainProject
+    ? projectGroups
+    : projectGroups.filter((item) => item.ref === BATH_ROOM_STUDY_REF)
+  const [expandedProjects, setExpandedProjects] = useState<string[]>([])
+  const syncConflicts = useStudioStore((state) => state.projectSyncConflicts)
+  const loading = useStudioStore((state) => state.loadingWorkspaces)
+  const renameWorkspace = useStudioStore((state) => state.renameWorkspace)
+  const [renameRef, setRenameRef] = useState<string | null>(null)
+  const [versionName, setVersionName] = useState('')
+  const [renameError, setRenameError] = useState('')
+  const [savingName, setSavingName] = useState(false)
+  const renameTrigger = useRef<HTMLButtonElement | null>(null)
   const closeLauncher = useStudioStore((state) => state.closeLauncher); const openLauncher = useStudioStore((state) => state.openLauncher); const startTerrain = useStudioStore((state) => state.startTerrain); const openWorkspace = useStudioStore((state) => state.openWorkspace); const setToast = useStudioStore((state) => state.setToast)
   const [mode, setMode] = useState<'choose' | 'terrain'>('choose'); const [values, setValues] = useState<TerrainFormValues>(terrainFormDefaults); const [errors, setErrors] = useState<Partial<TerrainFormValues>>({}); const [removeRef, setRemoveRef] = useState<string | null>(null)
   const dialog = useRef<HTMLElement>(null)
-  useEffect(() => { if (!open) return; setMode('choose'); setRemoveRef(null); window.setTimeout(() => dialog.current?.querySelector<HTMLElement>('button, input, select')?.focus(), 0) }, [open])
+  useEffect(() => {
+    if (!open) return
+    const trigger = document.activeElement
+    setMode('choose'); setRemoveRef(null); setRenameRef(null); setShowOtherVersions(false); setExpandedProjects([])
+    const timer = window.setTimeout(() => dialog.current?.querySelector<HTMLElement>('button:not([disabled]), input:not([disabled]), select:not([disabled])')?.focus(), 0)
+    return () => {
+      window.clearTimeout(timer)
+      if (trigger instanceof HTMLElement && trigger.isConnected) trigger.focus()
+    }
+  }, [open])
   useEffect(() => { if (mode === 'terrain') window.setTimeout(() => dialog.current?.querySelector<HTMLElement>('input')?.focus(), 0) }, [mode])
   if (!open) return null
-  const focusable = () => Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input, select') ?? [])
+  const focusable = () => Array.from(dialog.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input:not([disabled]), select:not([disabled]), summary') ?? []).filter((item) => item.getClientRects().length > 0)
+  const cancelRename = () => { setRenameRef(null); setRenameError(''); window.setTimeout(() => renameTrigger.current?.focus(), 0) }
   const onKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Escape') { event.stopPropagation(); if (mode === 'terrain') setMode('choose'); else if (hydrated) closeLauncher(); return }
+    if (event.key === 'Escape') { event.stopPropagation(); if (savingName) return; if (renameRef) cancelRename(); else if (mode === 'terrain') setMode('choose'); else if (hydrated) closeLauncher(); return }
     if (event.key !== 'Tab') return
     const items = focusable(); if (!items.length) return
     const index = items.indexOf(document.activeElement as HTMLElement)
@@ -370,23 +479,62 @@ function StartScreen() {
     setErrors({})
     try { startTerrain(parsed.data) } catch (error) { setToast(error instanceof Error ? error.message : 'Terrain could not be created.') }
   }
-  const remove = async (ref: string) => { try { await deleteWorkspace(ref); setRemoveRef(null); await openLauncher() } catch (error) { setToast(error instanceof Error ? error.message : 'Project could not be removed.') } }
+  const remove = async (ref: string) => { try { await runWorkspaceActivity(async () => { await flushAutosave(); await deleteWorkspace(ref); if (useStudioStore.getState().project.ref === ref) useStudioStore.getState().setHydrated(false); setRemoveRef(null); await openLauncher() }) } catch (error) { setToast(error instanceof Error ? error.message : 'Project could not be removed.') } }
+  const saveName = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if (!renameRef || savingName) return
+    setSavingName(true)
+    setRenameError('')
+    try { await renameWorkspace(renameRef, versionName); cancelRename() }
+    catch (error) { setRenameError(error instanceof Error ? error.message : 'Nie udało się zapisać nazwy.') }
+    finally { setSavingName(false) }
+  }
   return <div className="start-screen-scrim"><section className="start-screen" role="dialog" aria-modal="true" aria-labelledby="start-screen-title" ref={dialog} onKeyDown={onKeyDown}>
     <p className="eyebrow">PROJECTS</p>
     <h2 id="start-screen-title">Where do you want to plan today?</h2>
     {mode === 'choose' ? <>
-      {saved.length > 0 && <div className="start-saved"><h3>Saved projects</h3>{saved.map((item, index) => <div className="project-card" key={item.ref}>
-        <PlotOutline boundary={item.boundary} />
-        <div><strong>{item.name}</strong><small>r{item.revision} · saved {new Date(item.updatedAt).toLocaleString()} · {item.proposalCount} proposal{item.proposalCount === 1 ? '' : 's'}</small></div>
-        <div className="project-card-actions"><button className={index === 0 ? 'primary' : ''} onClick={() => void openWorkspace(item.ref)}>{index === 0 ? `Continue · ${item.name}` : 'Open'}</button><button onClick={() => setRemoveRef(removeRef === item.ref ? null : item.ref)} aria-label={`Remove ${item.name}`}>Remove</button></div>
-        {removeRef === item.ref && <div className="remove-confirm"><span>Remove {item.name} from this browser? Its proposals go with it.</span><button onClick={() => setRemoveRef(null)}>Keep</button><button className="confirm-delete" onClick={() => void remove(item.ref)}>Remove project</button></div>}
-      </div>)}</div>}
+      {loading && <p role="status">Loading saved and published projects…</p>}
+      {syncConflicts.length > 0 && <div role="alert"><p>Opublikowana wersja i Twój zapis mają sprzeczne zmiany. Oba zapisy są zachowane. Pokaż pozostałe projekty i wersje, a potem rozwiń „Wersje” przy projekcie, aby otworzyć wersję oznaczoną jako konflikt.</p><details><summary>Show conflicts ({syncConflicts.length})</summary><ul>{syncConflicts.map((path) => <li key={path}>{path}</li>)}</ul></details></div>}
+      {visibleProjects.length > 0 && <div className="start-saved"><h3>Twoje projekty</h3>{import.meta.env.PROD && hasMainProject && <button type="button" aria-expanded={showOtherVersions} onClick={() => { setShowOtherVersions((value) => !value); setExpandedProjects([]) }}>{showOtherVersions ? 'Ukryj pozostałe projekty i wersje' : 'Pokaż pozostałe projekty i wersje'}</button>}{visibleProjects.map((group, index) => {
+        const current = group.current
+        const versions = current ? [current, ...group.versions] : group.versions
+        const expanded = expandedProjects.includes(group.ref)
+        const renameItem = versions.find((item) => item.ref === renameRef)
+        const removeItem = versions.find((item) => item.ref === removeRef)
+        const beginRename = (event: React.MouseEvent<HTMLButtonElement>, item: typeof versions[number]) => {
+          renameTrigger.current = event.currentTarget; setRenameRef(item.ref); setVersionName(item.name); setRenameError(''); setRemoveRef(null)
+        }
+        return <article className="project-group" key={group.ref} aria-label={`Projekt: ${group.name}`}>
+          <div className="project-card">
+            <PlotOutline boundary={(current ?? group.versions[0]).boundary} />
+            <div><strong>{group.name}</strong><small>{current ? 'Bieżący projekt' : 'Zachowana historia · brak bieżącego zapisu'}</small>{group.hasConflict && <span className="project-conflict">Wersja z konfliktem do sprawdzenia</span>}</div>
+            <div className="project-card-actions">
+              <button className="project-favorite" aria-label={`${favoriteRef === group.ref ? 'Usuń z ulubionych' : 'Oznacz jako ulubiony'}: ${group.name}`} title={favoriteRef === group.ref ? 'Ulubiony projekt' : 'Oznacz jako ulubiony'} aria-pressed={favoriteRef === group.ref} onClick={() => toggleFavorite(group.ref)}><Heart size={20} fill={favoriteRef === group.ref ? 'currentColor' : 'none'} aria-hidden="true" /></button>
+              {current && <><button disabled={savingName} aria-label={index === 0 ? `Continue · ${group.name}` : `Open · ${group.name}`} className={index === 0 ? 'primary' : ''} onClick={() => void openWorkspace(current.ref)}>Otwórz projekt</button><button disabled={savingName} aria-label={`Zmień nazwę: ${group.name}`} aria-expanded={renameRef === current.ref} onClick={(event) => beginRename(event, current)}>Zmień nazwę</button></>}
+              {(!import.meta.env.PROD || showOtherVersions || !hasMainProject) && <button disabled={savingName} className="project-versions-toggle" aria-expanded={expanded} aria-controls={`versions-${group.ref}`} onClick={() => { setExpandedProjects((refs) => expanded ? refs.filter((ref) => ref !== group.ref) : [...refs, group.ref]); setRenameRef(null); setRemoveRef(null) }}><span aria-hidden="true">{expanded ? '▾' : '▸'}</span> Wersje ({versions.length})</button>}
+            </div>
+          </div>
+          {expanded && <div className="project-versions" id={`versions-${group.ref}`} role="region" aria-label={`Wersje projektu: ${group.name}`}>
+            {versions.map((item) => <div className="project-version" key={item.ref}>
+              <div><strong>r{item.revision} <span>{item.ref === current?.ref ? 'Bieżąca wersja' : workspaceVersionKind(item.ref)}</span></strong><small>{new Date(item.updatedAt).toLocaleString()} · {item.proposalCount} propozycji</small>{item.ref !== current?.ref && <small className="project-version-name">{item.name}</small>}</div>
+              <div className="project-card-actions"><button disabled={savingName} aria-label={`Otwórz wersję r${item.revision}: ${item.name}`} onClick={() => void openWorkspace(item.ref)}>Otwórz</button>{item.ref !== current?.ref && <button disabled={savingName} aria-label={`Zmień nazwę wersji r${item.revision}: ${item.name}`} onClick={(event) => beginRename(event, item)}>Nazwij wersję</button>}<button disabled={savingName} aria-label={`Remove ${item.name}`} onClick={() => { cancelRename(); setRemoveRef(removeRef === item.ref ? null : item.ref) }}>Usuń zapis</button></div>
+            </div>)}
+          </div>}
+          {renameItem && <form className="project-name-form" aria-label={`Nazwa ${renameItem.ref === current?.ref ? 'projektu' : 'wersji'}: ${renameItem.name}`} onSubmit={(event) => void saveName(event)}>
+            <label htmlFor="version-name">{renameItem.ref === current?.ref ? 'Nazwa projektu' : 'Nazwa wersji'}</label>
+            <input id="version-name" value={versionName} maxLength={120} autoComplete="off" autoFocus onFocus={(event) => event.currentTarget.select()} disabled={savingName} aria-invalid={Boolean(renameError)} aria-describedby={renameError ? 'version-name-error' : undefined} onChange={(event) => { setVersionName(event.target.value); setRenameError('') }} />
+            <div className="project-name-suggestions" role="group" aria-label="Propozycje nazw"><span>Propozycje:</span>{['Bez garażu', 'Z garażem', 'Z wiatą z przodu', 'Z wiatą od ogrodu', 'Z osobnym budynkiem gospodarczym'].map((name) => <button type="button" key={name} disabled={savingName} onClick={() => { setVersionName(name); setRenameError('') }}>{name}</button>)}</div>
+            {renameError && <p id="version-name-error" className="field-error" role="alert">{renameError}</p>}
+            <div className="project-card-actions"><button type="submit" className="primary" disabled={savingName || !versionName.trim()}>{savingName ? 'Zapisywanie…' : 'Zapisz nazwę'}</button><button type="button" disabled={savingName} onClick={cancelRename}>Anuluj</button></div>
+          </form>}
+          {removeItem && <div className="remove-confirm"><span>Usunąć zapis r{removeItem.revision} „{removeItem.name}” i jego propozycje z tej przeglądarki? Pozostałe wersje zostaną zachowane.</span><button onClick={() => setRemoveRef(null)}>Zachowaj</button><button className="confirm-delete" onClick={() => void remove(removeItem.ref)}>Usuń zapis</button></div>}
+        </article>
+      })}</div>}
       <div className="start-options">
-        <button className="start-card" onClick={() => void useStudioStore.getState().openReferenceHouse()}><strong>Dom z planów · Reference house</strong><span>Your two-floor house reconstructed from the supplied plans, with measured rooms, stairs, furniture and garage. Continues your saved edits.</span></button>
-        <button className="start-card" onClick={() => void useStudioStore.getState().openZielonkiStudy()}><strong>Zielonki house study</strong><span>Continue your saved house, or explore the furnished modern barn with the measured interior, both floors and the Zielonki garden.</span></button>
-        <button className="start-card" onClick={() => setMode('terrain')}><strong>New terrain</strong><span>An empty rectangular plot with your own size, north direction and coordinates, ready for a house.</span></button>
+        {(!import.meta.env.PROD || showOtherVersions || !hasMainProject) && <button className="start-card" disabled={loading || savingName} onClick={() => void useStudioStore.getState().openZielonkiStudy()}><strong>Zielonki house study</strong><span>Continue your saved house, or explore the furnished modern barn with the measured interior, both floors and the Zielonki garden.</span></button>}
+        <button className="start-card" disabled={savingName} onClick={() => { cancelRename(); setMode('terrain') }}><strong>New terrain</strong><span>An empty rectangular plot with your own size, north direction and coordinates, ready for a house.</span></button>
       </div>
-      {hydrated && <div className="start-actions"><button onClick={closeLauncher}>Keep working on {project.name}</button></div>}
+      {hydrated && <div className="start-actions"><button disabled={savingName} onClick={closeLauncher}>Keep working on {project.name}</button></div>}
     </> : <form className="terrain-form" aria-label="New terrain" onSubmit={submit} noValidate>
       {field('name', 'Plot name', { type: 'text', maxLength: 60, autoComplete: 'off' })}
       {field('widthM', 'Width (m)', { type: 'number', min: 5, max: 500, step: 0.5, inputMode: 'decimal' })}
@@ -402,6 +550,7 @@ function StartScreen() {
 }
 
 function Inspector() {
+  const confirmationVariantRef = useStudioStore((state) => state.confirmationVariantRef)
   const project = useStudioStore((state) => state.project); const selectedRef = useStudioStore((state) => state.selectedRef); const issues = useStudioStore((state) => state.variants)
   const useModernBarnPreset = useStudioStore((state) => state.useModernBarnPreset)
   const beginReposition = useStudioStore((state) => state.beginReposition); const createVariant = useStudioStore((state) => state.createVariant); const reopenProposal = useStudioStore((state) => state.reopenProposal); const commitCommand = useStudioStore((state) => state.commitCommand); const setToast = useStudioStore((state) => state.setToast)
@@ -437,7 +586,9 @@ function Inspector() {
           : { type: 'landscape.update', action: 'remove', zoneRef: zone!.ref }
     const proposal = createVariant(`Delete ${selectedTitle}`, [command]); setDeleteRef(null); reopenProposal(proposal.ref)
   }
-  return <aside className="inspector">
+  if (confirmationVariantRef) return <aside className="inspector" key={confirmationVariantRef}><VariantApproval /></aside>
+  return <aside className="inspector" key="selection">
+    <PrecisionEditor />
     <p className="eyebrow">PROJECTV2 / SEMANTIC MODEL</p>
     <h2>{selectedTitle}</h2>
     <p className="muted">{selectedRef ?? 'Select a wall, shared slab, space, roof, landscape zone or plant.'}</p>
@@ -455,7 +606,7 @@ function Inspector() {
     {zone && <ZoneSurfaceEditor zone={zone} />}
     {selectedRoofSegment && <dl className="readout"><div><dt>Eaves</dt><dd>{selectedRoofSegment.baseElevationM.toFixed(2)} m</dd></div><div><dt>Pitch</dt><dd>{selectedRoofSegment.pitchDegrees.toFixed(1)}°</dd></div><div><dt>Finish</dt><dd>{selectedRoofSegment.finish.material}</dd></div></dl>}
     {selectedGableWall && <dl className="readout"><div><dt>Wall type</dt><dd>Triangular gable</dd></div><div><dt>Roof segment</dt><dd>{selectedGableWall.segmentRef.split('/').at(-1)?.replaceAll('-', ' ')}</dd></div><div><dt>Finish</dt><dd>{selectedGableFinish?.material}</dd></div></dl>}
-    {selectedWall && openingBuilding ? <OpeningEditor building={openingBuilding} wall={selectedWall} selectedRef={selectedRef} /> : selectedGableWall && selectedGableBuilding && selectedGableFinish ? <WallFinishEditor building={selectedGableBuilding} wall={{ ref: selectedGableWall.ref, finish: selectedGableFinish }} /> : <>
+    {selectedWall && openingBuilding ? <details><summary>Façade layout presets</summary><OpeningEditor building={openingBuilding} wall={selectedWall} selectedRef={selectedRef} /></details> : selectedGableWall && selectedGableBuilding && selectedGableFinish ? <WallFinishEditor building={selectedGableBuilding} wall={{ ref: selectedGableWall.ref, finish: selectedGableFinish }} /> : <>
       {project.buildings.length ? <section className="house-presets"><h3>House preset</h3><button className={modernBarnActive ? 'active' : ''} onClick={() => useModernBarnPreset()}><span>Modern barn</span><small>2 levels · 45° gable</small><b>{modernBarnActive ? 'ACTIVE' : 'USE'}</b></button></section> : <AddHouseCard />}
       <div className="metric-grid"><div><span>Home</span><strong>{metrics.homeAreaM2.toFixed(0)} m²</strong></div><div><span>Green</span><strong>{metrics.greenAreaM2.toFixed(0)} m²</strong></div><div><span>Plants</span><strong>{metrics.plantCount}</strong></div><div><span>Fixtures</span><strong>{metrics.fixtureCount}</strong></div></div>
     </>}
@@ -504,7 +655,7 @@ function ReportPanel() {
   if (!report) return null
   const view = report.views[selected] ?? report.views[0]
   return <section className="report-panel" aria-label="Architectural structure report">
-    <header><div><p className="eyebrow">VISIBLE-IN-PAGE REPORT</p><h2>Architectural set</h2><small>{report.views.length} drawings · project r{report.projectRevision}</small></div><button className="close" onClick={() => setReport(null)} aria-label="Close report">×</button></header>
+    <header><div><p className="eyebrow">VISIBLE-IN-PAGE REPORT</p><h2>Architectural set</h2><small>{report.projectName} · {report.views.length} drawings · project r{report.projectRevision}</small></div><button className="close" onClick={() => setReport(null)} aria-label="Close report">×</button></header>
     <div className="report-body">
       <div className="thumbs">{report.views.map((item, index) => <button key={`${item.type}-${index}`} className={selected === index ? 'active' : ''} onClick={() => setSelected(index)}><img src={item.imageUrl} alt={item.title} /><span>{item.title}</span></button>)}</div>
       <div className="drawing"><img src={view.imageUrl} alt={view.title} /><div><strong>{view.title}</strong><span>960 × 640 · ephemeral view</span></div></div>
@@ -557,13 +708,17 @@ function SunWidget() {
   }, [latitude, longitude, sunAnimation, timezone])
   const targetRef = project.landscape.zones.find((zone) => zone.ref === selectedRef)?.ref ?? 'site'
   const legendTop = sunOverlay.result ? Math.max(sunOverlay.result.sunHours.max, sunOverlay.result.daylightHours * 0.999) : 0
-  return <section className="sun-widget" aria-label="Sun controls">
+  return <details className="sun-control">
+    <summary role="button" aria-label="Sun controls" aria-controls="sun-controls-panel" title="Show or hide sun controls">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" /></svg>
+    </summary>
+    <section id="sun-controls-panel" className="sun-widget" aria-label="Sun controls">
     <header><span className="eyebrow">SUN / LOCAL TIME</span><strong>{formatSunMoment(sunTime.month, sunTime.day, sunTime.hour)}</strong></header>
     <div className="sun-fields">
       <label><span>Month</span><select aria-label="Sun month" value={sunTime.month} onChange={(event) => setSunTime({ month: Number(event.target.value) })}>{monthNames.map((name, index) => <option key={name} value={index + 1}>{name}</option>)}</select></label>
       <label><span>Day</span><input type="number" aria-label="Sun day" min={1} max={monthDays(sunTime.month)} value={sunTime.day} onChange={(event) => setSunTime({ day: Number(event.target.value) })} /></label>
     </div>
-    <label className="sun-slider"><span>Local time</span><input type="range" aria-label="Local time" min={min} max={max} step={0.25} value={Math.min(max, Math.max(min, sunTime.hour))} onChange={(event) => setSunTime({ hour: Number(event.target.value) })} /><small>{events ? `${clockLabel(events.sunriseHour)} sunrise · ${clockLabel(events.sunsetHour)} sunset` : 'No sunrise or sunset on this date'}</small></label>
+    {window.innerWidth <= 900 ? <PrecisionField label='Local time' min={min} max={max} step={0.25} value={Math.min(max, Math.max(min, sunTime.hour))} onChange={(hour) => { if (Number.isFinite(hour)) setSunTime({ hour }) }} /> : <label className="sun-slider"><span>Local time</span><input type="range" aria-label="Local time" min={min} max={max} step={0.25} value={Math.min(max, Math.max(min, sunTime.hour))} onChange={(event) => setSunTime({ hour: Number(event.target.value) })} /><small>{events ? `${clockLabel(events.sunriseHour)} sunrise · ${clockLabel(events.sunsetHour)} sunset` : 'No sunrise or sunset on this date'}</small></label>}
     <dl className="sun-readout"><div><dt>Altitude</dt><dd>{sun.altitudeDeg.toFixed(1)}°</dd></div><div><dt>Azimuth</dt><dd>{sun.azimuthDeg.toFixed(0)}°</dd></div><div><dt>Daylight</dt><dd>{events ? `${events.daylightHours.toFixed(1)} h` : '—'}</dd></div></dl>
     <div className="sun-actions">
       <button className={sunAnimation === 'day' ? 'active' : ''} aria-pressed={sunAnimation === 'day'} onClick={() => setSunAnimation(sunAnimation === 'day' ? 'none' : 'day')}>Play day</button>
@@ -575,70 +730,73 @@ function SunWidget() {
       <div><span>0 h</span><span>{legendTop.toFixed(1)} h direct sun</span></div>
       <small>{sunOverlay.targetRef ?? 'site'} · mean {sunOverlay.result.sunHours.mean.toFixed(1)} h · {sunOverlay.result.expectedSunHours.toFixed(1)} h expected after typical cloud</small>
     </div>}
-  </section>
+    </section>
+  </details>
 }
 
 export function App() {
+  const compact = useCompactLayout(); const [controlsHidden, setControlsHidden] = useState(false); const [sheetExpanded, setSheetExpanded] = useState(false)
+  const selectedRef = useStudioStore((state) => state.selectedRef); const confirmationRef = useStudioStore((state) => state.confirmationVariantRef)
   const [interiorOpen, setInteriorOpen] = useState(false)
+  const [initialStoreyRef, setInitialStoreyRef] = useState<string | undefined>()
+  const openFloor = (ref: string) => { setInitialStoreyRef(ref); setInteriorOpen(true); setDataPanel(null) }
   const project = useStudioStore((state) => state.project); const toast = useStudioStore((state) => state.toast); const hydrated = useStudioStore((state) => state.hydrated); const viewerMode = useStudioStore((state) => state.viewerMode); const explode = useStudioStore((state) => state.explodeStoreys)
   const heightMeasureKind = useStudioStore((state) => state.heightMeasureKind); const setHeightMeasureKind = useStudioStore((state) => state.setHeightMeasureKind)
   const openLauncher = useStudioStore((state) => state.openLauncher); const setToast = useStudioStore((state) => state.setToast); const undo = useStudioStore((state) => state.undo)
   const refocusCamera = useStudioStore((state) => state.refocusCamera)
   const focusGardenFixtures = useStudioStore((state) => state.focusGardenFixtures)
-  const [dataPanel, setDataPanel] = useState<'climate' | 'planting' | 'fixtures' | 'mcp-tools' | 'proposals' | null>(null)
+  const [dataPanel, setDataPanel] = useState<'climate' | 'planting' | 'fixtures' | 'mcp-tools' | 'proposals' | 'inspector' | 'more' | 'measure' | null>(null)
   useEffect(() => { void openLauncher() }, [openLauncher])
-  useEffect(() => {
-    if (!hydrated) return
-    let timer: number | null = null
-    const persist = () => {
-      const state = useStudioStore.getState()
-      return saveWorkspace({ version: 1, project: state.project, proposals: state.proposals, draftChangeSets: state.draftChangeSets }).catch(() => setToast('ProjectV2 autosave failed.'))
-    }
-    const schedule = () => {
-      if (timer !== null) window.clearTimeout(timer)
-      timer = window.setTimeout(() => { timer = null; void persist() }, 350)
-    }
-    const unsubscribe = useStudioStore.subscribe((state, previous) => {
-      if (state.project !== previous.project || state.proposals !== previous.proposals || state.draftChangeSets !== previous.draftChangeSets) schedule()
-    })
-    const flush = () => { if (timer !== null) { window.clearTimeout(timer); timer = null; void persist() } }
-    window.addEventListener('pagehide', flush)
-    schedule()
-    return () => { unsubscribe(); window.removeEventListener('pagehide', flush); flush() }
-  }, [hydrated, setToast])
+  useEffect(() => { if (compact && confirmationRef) { setControlsHidden(false); setDataPanel('inspector'); setSheetExpanded(true) } }, [compact, confirmationRef])
   useEffect(() => hydrated ? registerWebMcpTools() : undefined, [hydrated])
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(null), 4200); return () => window.clearTimeout(timer) }, [setToast, toast])
   useEffect(() => {
     const keyboard = (event: KeyboardEvent) => {
+      if (interiorOpen) return
       if (event.target instanceof HTMLElement && (event.target.matches('input, textarea, select') || event.target.isContentEditable)) return
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); try { undo() } catch (error) { setToast(error instanceof Error ? error.message : 'Undo failed.') } }
       if (event.key === 'Escape') { if (useStudioStore.getState().launcherOpen) return; useStudioStore.getState().setViewerMode('edit'); useStudioStore.getState().setSelectedRef(null); useStudioStore.getState().endReposition(); setDataPanel(null) }
     }
     window.addEventListener('keydown', keyboard); return () => window.removeEventListener('keydown', keyboard)
-  }, [setToast, undo])
+  }, [setToast, undo, interiorOpen])
   useEffect(() => () => useStudioStore.getState().setStructureReport(null), [])
-  if (interiorOpen) return <InteriorEditor onBack={() => setInteriorOpen(false)} />
-  return <main aria-label="ProjectV2 spatial planning workspace"><Toolbar onOpenInterior={() => { setDataPanel(null); setInteriorOpen(true) }} onOpenClimate={() => setDataPanel('climate')} onOpenPlanting={() => setDataPanel('planting')} onOpenMcpTools={() => setDataPanel('mcp-tools')} onOpenProposals={() => setDataPanel('proposals')} onOpenProjects={() => { setDataPanel(null); void openLauncher() }} /><Inspector />
-    <div className="viewport"><Canvas shadows dpr={[1, 2]} camera={{ position: [29, 23, 32], fov: 38, near: 0.1, far: 1200 }} gl={{ antialias: true, alpha: false, preserveDrawingBuffer: true, powerPreference: 'high-performance' }} onCreated={({ gl }) => { gl.outputColorSpace = SRGBColorSpace; gl.toneMapping = ACESFilmicToneMapping; gl.toneMappingExposure = 1.08; gl.shadowMap.type = PCFSoftShadowMap; gl.domElement.setAttribute('role', 'application'); gl.domElement.setAttribute('aria-label', 'Interactive ProjectV2 spatial editor'); gl.domElement.tabIndex = 0 }}><Suspense fallback={null}><StudioScene /></Suspense></Canvas>
+  if (interiorOpen) return <Suspense fallback={<div className="editor-loading" role="status">Opening house interior...</div>}><InteriorEditor initialStoreyRef={initialStoreyRef} onBack={() => { setInteriorOpen(false); setInitialStoreyRef(undefined) }} approval={<VariantApproval />} /></Suspense>
+  const toolbar = <Toolbar onOpenInterior={() => { setDataPanel(null); setInteriorOpen(true) }} onOpenClimate={() => setDataPanel('climate')} onOpenPlanting={() => setDataPanel('planting')} fixturesOpen={dataPanel === 'fixtures'} onOpenFixtures={() => { const opening = dataPanel !== 'fixtures'; setDataPanel(opening ? 'fixtures' : null); if (opening) focusGardenFixtures() }} onOpenMcpTools={() => setDataPanel('mcp-tools')} onOpenProposals={() => setDataPanel('proposals')} onOpenProjects={() => { setDataPanel(null); void openLauncher() }} />
+  const dataContent = <>{dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'proposals' && <ProposalsPanel onClose={() => setDataPanel(null)} />}</>
+  const movable = !!selectedRef && [...project.buildings, ...project.landscape.fixtures, ...project.landscape.plants, ...project.landscape.zones].some((value) => value.ref === selectedRef && !('locked' in value && value.locked))
+  return <PrecisionControls><NeighborPreferences /><TreePreferences /><main className={`${compact ? 'compact-plot' : ''} ${controlsHidden ? 'plot-controls-hidden' : ''}`} aria-label="ProjectV2 spatial planning workspace">{!compact && <>{toolbar}<Inspector /></>}
+    {compact && (controlsHidden ? <button className="plot-restore" onClick={() => setControlsHidden(false)}><Eye size={18} />Show controls</button> : <><header className="plot-compact-top"><strong>Spatial editor</strong><TransparencyControls /><NeighborToggle iconOnly /><TreeToggle /><FloorToggle onSelect={openFloor} /><HouseStudyControl /><button className="plot-interior-button" aria-label="House interior" disabled={!project.buildings.length} onClick={() => { setDataPanel(null); setInteriorOpen(true) }}><Box size={18} /><span>House interior</span></button><button aria-label="Fit plot view" onClick={refocusCamera}><Focus size={20} /></button></header><nav className="plot-action-bar" aria-label="Plot actions">{viewerMode !== 'edit' ? <><button onClick={() => setDataPanel(dataPanel === 'measure' ? null : 'measure')}><Ruler size={19} />Measure options</button><button onClick={() => { window.dispatchEvent(new Event(CLEAR_MEASUREMENT_EVENT)); useStudioStore.getState().setViewerMode('edit'); setDataPanel(null) }}><Check size={19} />Done</button></> : <><button onClick={() => setDataPanel(dataPanel === 'fixtures' ? null : 'fixtures')}><Plus size={20} />Add</button><button onClick={() => setDataPanel(dataPanel === 'inspector' ? null : 'inspector')}><Settings2 size={19} />{selectedRef ? 'Edit selection' : 'Edit'}</button>{selectedRef && movable ? <button onClick={() => { useStudioStore.getState().beginReposition(selectedRef); setDataPanel(null) }}><Move size={19} />Move</button> : <button onClick={() => { useStudioStore.getState().setViewerMode('measure-length'); setDataPanel(null) }}><Ruler size={19} />Measure</button>}<button onClick={() => setDataPanel(dataPanel === 'more' ? null : 'more')}><MoreHorizontal size={19} />More</button></>}</nav><AdaptiveSheet open={!!dataPanel} title={dataPanel === 'inspector' ? 'Selection' : dataPanel === 'fixtures' ? 'Garden fixtures' : dataPanel === 'measure' ? 'Measure' : dataPanel === 'more' ? 'View & project' : 'Project tools'} expanded={sheetExpanded} onExpanded={setSheetExpanded} onClose={() => setDataPanel(null)}>{dataPanel === 'inspector' && <Inspector />}{dataPanel === 'more' && <><NeighborSettings onView={() => setDataPanel(null)} /><button onClick={() => { setControlsHidden(true); setDataPanel(null) }}><EyeOff size={18} />Hide controls</button>{toolbar}<SunWidget /><div className="plot-history"><button disabled={!useStudioStore.getState().history.length} onClick={undo}>Undo</button><button disabled={!useStudioStore.getState().future.length} onClick={() => useStudioStore.getState().redo()}>Redo</button></div></>}{dataPanel === 'measure' && <ExactMeasureTools />}{dataPanel === 'measure' && modes.filter(([value]) => value !== 'edit').map(([value, label]) => <button key={value} onClick={() => { useStudioStore.getState().setViewerMode(value); setDataPanel(null) }}>{label}</button>)}{dataContent}</AdaptiveSheet></>)}
+
+    <div className="viewport">{hydrated && <Suspense fallback={<div className="editor-loading" role="status">Opening plot...</div>}><PlotCanvas /></Suspense>}
+      {!compact && <NeighborControls onSelectFloor={openFloor} />}
       <button className="refocus-button" onClick={refocusCamera} aria-label={project.buildings.length ? 'Refocus on Main house' : 'Refocus on the site'}>
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" /><circle cx="12" cy="12" r="3.25" /></svg>
         <span>{project.buildings.length ? 'Refocus building' : 'Refocus site'}</span>
       </button>
-      <button className="fixtures-button" onClick={() => { const opening = dataPanel !== 'fixtures'; setDataPanel(opening ? 'fixtures' : null); if (opening) focusGardenFixtures() }} aria-label="Open garden fixtures"><span>Garden fixtures</span><small>{project.landscape.fixtures.length} placed</small></button>
       <div className="navigation-hint" aria-label="Garden navigation controls"><span>Move across garden</span><kbd>←</kbd><kbd>↑</kbd><kbd>↓</kbd><kbd>→</kbd><i>or hold wheel + drag</i></div>
       {(viewerMode === 'measure-length' || viewerMode === 'measure-area' || viewerMode === 'measure-height') && <section className="measurement-guide" aria-label={`${viewerMode === 'measure-length' ? 'Length' : viewerMode === 'measure-area' ? 'Area' : 'Height'} measurement instructions`}>
         <span>{viewerMode === 'measure-length' ? 'LENGTH' : viewerMode === 'measure-area' ? 'AREA' : 'HEIGHT'}</span>
         <strong>{viewerMode === 'measure-length' ? 'Click point 1, then point 2' : viewerMode === 'measure-area' ? 'Hold and drag a rectangle on the ground' : 'Select an object · Shift-click twice for free vertical'}</strong>
         {viewerMode === 'measure-height' && <select aria-label="Height reference" value={heightMeasureKind} onChange={(event) => setHeightMeasureKind(event.target.value as HeightMeasureKind)}><option value="auto">Object height</option><option value="ground-to-eaves">Ground to eaves</option><option value="ground-to-ridge">Ground to ridge</option><option value="clear-height">Storey clear height</option><option value="opening-height">Opening height</option><option value="terrain-clearance">Terrain clearance</option></select>}
-        <button onClick={() => window.dispatchEvent(new Event(CLEAR_MEASUREMENT_EVENT))}>Clear</button>
+        <small>Snaps to objects and boundaries · Drag points to adjust · Hold Alt for free placement</small><button onClick={() => window.dispatchEvent(new Event(CLEAR_MEASUREMENT_EVENT))}>Clear</button>
       </section>}
       {explode && <section className="explode-guide" aria-label="Exploded room view">
         <span>EXPLODED ROOMS</span>
         <strong>{project.buildings.reduce((sum, building) => sum + building.spaces.length, 0)} rooms · {project.buildings.reduce((sum, building) => sum + building.storeys.length, 0)} levels · roof separated</strong>
       </section>}
-      <SunWidget />
-      <div className="land-legend" aria-label="Land-use legend"><span><i className="construction" />House land</span><span><i className="garden" />Garden / agricultural land</span><span><i className="entrance" />Road entrance</span></div>
+      {!compact && <SunWidget />}
+      <details className="land-legend-control" key={project.ref} onToggle={event => useStudioStore.getState().setPlanningOverlayVisible(event.currentTarget.open)}>
+        <summary>MPZP</summary>
+      <div className="land-legend" aria-label="Land-use legend">{project.site.parcels.some((parcel) => parcel.landUseZones?.length) ? <>
+        <strong>MPZP · Zielonki · checked 8 Sep 2026</strong>
+        <span><i className="residential" />06.MNU.8 · Residential / services · ≈{Math.round(landUseAreas(project).filter((zone) => zone.landRole === 'construction').reduce((sum, zone) => sum + polygonArea(zone.boundary), 0))} m²</span>
+        <span><i className="garden" />06.R.21 · Agricultural, including parts of /3</span>
+        <span><i className="zoning-boundary" />Dashed amber: zoning boundary</span>
+        <small>54/3, 55/3, 58/3 are mixed-use parcels.<br />Derived boundary · not a building setback line.</small>
+        {project.buildings.some((building) => buildingCrossesAgriculturalZone(project, building)) && <strong className="zoning-warning">House overlaps agricultural zoning — review placement.</strong>}
+      </> : <><span><i className="construction" />House land</span><span><i className="garden" />Garden / agricultural land</span></>}<span><i className="entrance" />Road entrance</span></div>
+      </details>
     </div>
-    {dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'proposals' && <ProposalsPanel onClose={() => setDataPanel(null)} />}<ReportPanel /><VariantApproval /><StartScreen />{toast && <div className="toast" role="status">{toast}</div>}
-  </main>
+    {!compact && dataContent}<ReportPanel /><StartScreen />{toast && <div className="toast" role="status">{toast}</div>}
+  </main></PrecisionControls>
 }

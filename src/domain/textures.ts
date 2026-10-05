@@ -30,7 +30,7 @@ export const textureLibrary: TextureDefinition[] = [
   { id: 'leafy-grass', folder: 'leafy_grass', name: 'Leafy grass', author: 'Charlotte Baglioni', description: 'Late-summer lawn with fallen leaves', tileM: 2, surfaces: ['ground'], diffuse: '2k', wallRotation: 0 },
   { id: 'dirt', folder: 'dirt_floor', name: 'Bare soil', author: 'eye-candy.xyz', description: 'Compacted brown dirt', tileM: 2.1, surfaces: ['ground'], diffuse: '1k', wallRotation: 0 },
   { id: 'forest-floor', folder: 'forest_leaves_02', name: 'Mulch and moss', author: 'Rob Tuytel', description: 'Leaf litter and moss under trees', tileM: 3, surfaces: ['ground'], diffuse: '1k', wallRotation: 0 },
-  { id: 'river-pebbles', folder: 'dry_river_pebbles', name: 'River pebbles', author: 'Amal Kumar', description: 'Rounded beige and charcoal pebbles', tileM: 2, surfaces: ['ground'], diffuse: '1k', wallRotation: 0 },
+  { id: 'river-pebbles', folder: 'dry_river_pebbles', name: 'River pebbles', author: 'Amal Kumar', description: 'Rounded beige and charcoal pebbles', tileM: 0.8, surfaces: ['ground'], diffuse: '1k', wallRotation: 0 },
 ]
 
 const byId = new Map(textureLibrary.map((item) => [item.id, item]))

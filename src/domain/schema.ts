@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { InteriorItemSchema } from './interior'
+import { InteriorFinishSchema } from './interiorFinishes'
 import { polygonArea, polygonSelfIntersects } from './geometry'
 import { estimateDayPartTemperatures } from './climate'
 import type { PlantRecommendation, PlantingGuideCategory, PlantingSoilAnalysis, ProjectV2, SiteKnowledgeBase } from './types'
@@ -38,50 +39,86 @@ export const PolygonSchema = z.array(Vec2Schema).min(3)
   .refine((value) => !polygonSelfIntersects(value), { message: 'Polygon must not self-intersect.' })
 
 const ParcelSchema = z.object({
-  ref: z.string().min(1), cadastralNumber: z.string().min(1), landRole: z.enum(['construction', 'agricultural']),
+  ref: z.string().min(1), cadastralNumber: z.string().min(1), landRole: z.enum(['construction', 'agricultural', 'mixed']),
   officialAreaM2: z.number().positive(), boundary: PolygonSchema, geometryConfidence: z.enum(['surveyed', 'derived', 'context-only']),
+  landUseZones: z.array(z.object({ ref: z.string().min(1), code: z.string().min(1), landRole: z.enum(['construction', 'agricultural']), boundary: PolygonSchema, sourceRef: z.string().min(1), geometryConfidence: z.enum(['surveyed', 'derived', 'context-only']) })).min(1).optional(),
 })
 const SiteEntranceSchema = z.object({
   ref: z.string().min(1), name: z.string().min(1), start: Vec2Schema, end: Vec2Schema,
   connectsTo: z.literal('public-road'), geometryConfidence: z.enum(['user-marked', 'surveyed']),
 }).refine((entrance) => Math.hypot(entrance.end.x - entrance.start.x, entrance.end.z - entrance.start.z) > 0.5, { message: 'Site entrance must have length.' })
 const OpeningSchema = z.object({
+  finish: InteriorFinishSchema.optional(),
+  mullionFractions: z.array(z.number().gt(0).lt(1)).optional(),
+  hinge: z.enum(['left', 'right']).optional(), swing: z.enum(['in', 'out']).optional(),
   ref: z.string().min(1), kind: z.enum(['door', 'window']), wallRef: z.string().min(1), offsetM: z.number().min(0),
-  widthM: z.number().positive(), heightM: z.number().positive(), sillM: z.number().min(0),
+  widthM: z.number().positive(), heightM: z.number().positive(), sillM: z.number().min(0), glazed: z.boolean().optional(),
 })
 const WallSchema = z.object({
+  groupRef: z.string().min(1).optional(),
+  faceFinishes: z.object({ left: InteriorFinishSchema.optional(), right: InteriorFinishSchema.optional() }).optional(),
   ref: z.string().min(1), start: Vec2Schema, end: Vec2Schema, thicknessM: z.number().positive(), baseElevationM: z.number().finite(),
   heightM: z.number().positive(), openings: z.array(OpeningSchema),
   finish: z.object({ material: z.enum(['charred-timber', 'natural-timber', 'light-render', 'brick', 'metal-panel']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), textureId: z.string().optional() }).optional(),
   locked: z.boolean(),
 }).refine((wall) => Math.hypot(wall.end.x - wall.start.x, wall.end.z - wall.start.z) > 0.1, { message: 'Wall must have length.' })
 const SpaceSchema = z.object({
+  floorFinish: InteriorFinishSchema.optional(), ceilingFinish: InteriorFinishSchema.optional(),
   ref: z.string().min(1), name: z.string().min(1), usage: z.string().min(1),
   boundary: z.array(z.object({ wallRef: z.string().min(1), direction: z.union([z.literal(1), z.literal(-1)]) })).min(3),
   baseSlabRef: z.string().min(1), topBoundaryRef: z.string().min(1), locked: z.boolean(),
 })
-const SlabSchema = z.object({ ref: z.string().min(1), footprint: PolygonSchema, holes: z.array(PolygonSchema).optional(), topElevationM: z.number().finite(), thicknessM: z.number().positive(), locked: z.boolean() })
+const SlabSchema = z.object({ ref: z.string().min(1), footprint: PolygonSchema, holes: z.array(PolygonSchema).optional(), topElevationM: z.number().finite(), thicknessM: z.number().positive(), edgeColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(), locked: z.boolean() })
 const StoreySchema = z.object({
+  kneeWallHeightM: z.number().positive().optional(),
   ref: z.string().min(1), name: z.string().min(1), level: z.number().int(), elevationM: z.number().finite(), clearHeightM: z.number().positive(),
   baseSlabRef: z.string().min(1), topBoundaryRef: z.string().min(1), wallRefs: z.array(z.string().min(1)), spaceRefs: z.array(z.string().min(1)),
   platformRefs: z.array(z.string().min(1)), ceilingFinishRefs: z.array(z.string().min(1)),
 })
 const RoofFinishSchema = z.object({ material: z.enum(['standing-seam-metal', 'tile', 'slate', 'membrane']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) })
 const WallFinishSchema = z.object({ material: z.enum(['charred-timber', 'natural-timber', 'light-render', 'brick', 'metal-panel']), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), textureId: z.string().optional() })
+const GableGlazingSchema = z.object({
+  from: z.number().gt(0).lt(1), to: z.number().gt(0).lt(1), roofInsetM: z.number().positive(),
+  shape: z.enum(['roof-following', 'triangle']).optional(),
+  continuousWithHost: z.boolean().optional(),
+  transomElevationsM: z.array(z.number().finite()).optional(),
+  hostOpeningRefs: z.array(z.string().min(1)).min(1).refine((refs) => new Set(refs).size === refs.length).optional(),
+}).refine((g) => g.from < g.to)
 const RoofSegmentSchema = z.object({
   ref: z.string().min(1), footprint: PolygonSchema, storeyRef: z.string().min(1).optional(), spaceRef: z.string().min(1).optional(), baseElevationM: z.number().finite(),
   type: z.enum(['flat', 'gable', 'hip']), pitchDegrees: z.number().min(0).max(70), overhangM: z.number().min(0).max(3), ridgeDirection: z.enum(['x', 'z']),
   finish: RoofFinishSchema, adjacentSegmentRefs: z.array(z.string().min(1)).default([]),
   gableWallFinishes: z.object({ min: WallFinishSchema.optional(), max: WallFinishSchema.optional() }).optional(),
+  gableFrame: z.object({ widthM: z.number().positive(), depthM: z.number().positive(), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) }).optional(),
+  terrace: z.object({
+    railingHeightM: z.number().positive(), openEdgeIndex: z.number().int().min(0), frameColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+    connectedSegmentRefs: z.array(z.string().min(1)).optional(), openEdgeIndices: z.array(z.number().int().nonnegative()).optional(), fasciaHeightM: z.number().positive().optional(),
+  }).optional(),
+  canopy: z.object({
+    fasciaHeightM: z.number().positive(), fasciaEdgeIndices: z.array(z.number().int().nonnegative()),
+    frameColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
+    soffitColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), postWidthM: z.number().positive(),
+    postBaseElevationM: z.number().finite(), posts: z.array(Vec2Schema).min(1),
+    slats: z.object({ direction: z.enum(['x', 'z']), spacingM: z.number().min(0.15), widthM: z.number().positive() }).optional(),
+  }).optional(),
+  gableRecess: z.object({
+    min: z.object({ depthM: z.number().positive(), baseElevationM: z.number().finite(), soffitColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), sideColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional() }).optional(),
+    max: z.object({ depthM: z.number().positive(), baseElevationM: z.number().finite(), soffitColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), sideColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional() }).optional(),
+  }).optional(),
+  gableGlazing: z.object({
+    min: GableGlazingSchema.optional(),
+    max: GableGlazingSchema.optional(),
+  }).optional(),
 })
 const RoofJunctionSchema = z.object({
   ref: z.string().min(1), type: z.enum(['valley', 'intersection']),
   segmentRefs: z.tuple([z.string().min(1), z.string().min(1)]),
 })
 const BuildingSchema = z.object({
+  designStatus: z.literal('concept').optional(),
   interiorSource: z.object({ id: z.string().min(1), notes: z.array(z.string()) }).optional(),
   furniture: z.array(InteriorItemSchema).optional(),
-  stairs: z.array(z.object({ ref: z.string().min(1), fromStoreyRef: z.string().min(1), toStoreyRef: z.string().min(1), start: Vec2Schema, runM: z.number().positive(), widthM: z.number().positive(), steps: z.number().int().min(2).max(40) })).optional(),
+  stairs: z.array(z.object({ ref: z.string().min(1), fromStoreyRef: z.string().min(1), toStoreyRef: z.string().min(1), start: Vec2Schema, runM: z.number().positive(), widthM: z.number().positive(), steps: z.number().int().min(2).max(40), uTurn: z.object({ landingDepthM: z.number().positive(), gapM: z.number().nonnegative() }).optional() })).optional(),
   ref: z.string().min(1), name: z.string().min(1), kind: z.enum(['house', 'garage']), architecturalStyle: z.enum(['classic', 'futuristic', 'barn']),
   garageMode: z.enum(['integrated', 'attached']).optional(), position: Vec2Schema, rotationDegrees: z.number().finite(), storeys: z.array(StoreySchema).min(1),
   slabs: z.array(SlabSchema).min(1), walls: z.array(WallSchema), spaces: z.array(SpaceSchema),
@@ -101,7 +138,7 @@ const PlantSchema = z.object({
   attachment: z.object({ hostRef: z.string().min(1), hostFace: z.enum(['top', 'bottom', 'inside', 'outside', 'terrain']), localPosition: Vec3Schema, rotationDegrees: z.number().finite() }).optional(),
 })
 const GardenFixtureSchema = z.object({
-  ref: z.string().min(1), catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol']), name: z.string().min(1),
+  ref: z.string().min(1), catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'jacuzzi', 'outdoor-kitchen', 'recycling-bins', 'greenhouse', 'larch-bed-long', 'larch-bed-square', 'leafy-greens', 'flower-mix', 'flower-clump', 'hydrangea', 'timber-fence', 'festoon-lights', 'sunken-fire-lounge', 'water-butt', 'tomato-bed']), name: z.string().min(1),
   position: Vec2Schema, rotationDegrees: z.number().finite(), locked: z.boolean(),
 })
 const TemperatureByDayPartSchema = z.object({ night: z.number(), morning: z.number(), day: z.number(), evening: z.number() }).strict()
@@ -111,6 +148,13 @@ export const ProjectSchema = z.object({
   schemaVersion: z.literal(2), ref: z.string().min(1), name: z.string().min(1), units: z.literal('metric'), revision: z.number().int().positive(), updatedAt: z.string(),
   site: z.object({
     boundary: PolygonSchema, northDegrees: z.number().finite(),
+    neighbors: z.array(z.object({
+      ref: z.string().min(1), name: z.string().min(1), footprint: PolygonSchema,
+      groundElevationM: z.number().finite(), eavesHeightM: z.number().positive().max(100), ridgeHeightM: z.number().positive().max(100),
+      ridgeDirectionDegrees: z.number().finite(), roofType: z.enum(['gable', 'hip', 'flat']),
+      footprintSource: z.string().min(1), footprintConfidence: z.enum(['map-derived', 'approximate']),
+      heightConfidence: z.literal('estimated'), sourceDate: z.string().min(1),
+    }).refine((value) => value.ridgeHeightM >= value.eavesHeightM, 'Neighbor ridge must be at or above its eaves')).refine((items) => new Set(items.map((item) => item.ref)).size === items.length, 'Neighbor references must be unique').optional(),
     terrain: z.object({ boundary: PolygonSchema, elevationPoints: z.array(Vec2Schema.extend({ elevation: z.number().finite() })).min(1) }),
     parcels: z.array(ParcelSchema).min(1), entrances: z.array(SiteEntranceSchema).default([]), knowledgeBase: z.custom<SiteKnowledgeBase>((value) => Boolean(value) && typeof value === 'object').transform(hydrateKnowledgeBase),
   }),

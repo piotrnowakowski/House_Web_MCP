@@ -80,5 +80,6 @@ export const roofSegmentSummary = (segment: RoofSegmentModel, junctions: Buildin
   ridgeDirection: segment.ridgeDirection,
   finish: segment.finish,
   gableWallFinishes: segment.gableWallFinishes,
+  canopy: segment.canopy,
   junctions: junctions.filter((junction) => junction.segmentRefs.includes(segment.ref)),
 })

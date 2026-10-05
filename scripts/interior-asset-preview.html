@@ -1,0 +1,21 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Interior asset studio</title><style>html,body{margin:0;background:#eeede7}canvas{display:block}</style></head><body><script type="module">
+import * as THREE from '/node_modules/three/build/three.module.js';
+import { GLTFLoader } from '/node_modules/three/examples/jsm/loaders/GLTFLoader.js';
+const renderer = new THREE.WebGLRenderer({ antialias:true, preserveDrawingBuffer:true });
+renderer.setSize(512,448); renderer.setPixelRatio(1); renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=1.1; document.body.appendChild(renderer.domElement);
+const scene=new THREE.Scene(); scene.background=new THREE.Color('#eeede7');
+scene.add(new THREE.HemisphereLight('#ffffff','#b6a184',2));
+const light=new THREE.DirectionalLight('#fff8ef',4); light.position.set(-3,6,4); light.castShadow=true; light.shadow.mapSize.set(2048,2048); light.shadow.camera.left=-4; light.shadow.camera.right=4; light.shadow.camera.top=4; light.shadow.camera.bottom=-4; light.shadow.normalBias=.015; scene.add(light);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(100,100),new THREE.MeshStandardMaterial({color:'#eeede7',roughness:1})); floor.rotation.x=-Math.PI/2; floor.position.y=-.006; floor.receiveShadow=true;scene.add(floor);
+const camera=new THREE.OrthographicCamera(-2,2,1.75,-1.75,.01,100);let model;
+window.renderProduct=async(id,mobile=false)=>{
+ if(model)scene.remove(model);
+ model=(await new GLTFLoader().loadAsync(`/models/interior/${id}${mobile?'-mobile':''}.glb`)).scene;
+ model.traverse(node=>{if(node.isMesh){node.castShadow=true;node.receiveShadow=true}});scene.add(model);
+ const box=new THREE.Box3().setFromObject(model), centre=box.getCenter(new THREE.Vector3()), size=box.getSize(new THREE.Vector3());
+ camera.position.copy(centre).add(new THREE.Vector3(3,2.15,4));camera.lookAt(centre);camera.zoom=1;camera.updateMatrixWorld();camera.updateProjectionMatrix();
+ const corners=[];for(const x of [box.min.x,box.max.x])for(const y of [box.min.y,box.max.y])for(const z of [box.min.z,box.max.z])corners.push(new THREE.Vector3(x,y,z).project(camera));
+ const width=Math.max(...corners.map(p=>p.x))-Math.min(...corners.map(p=>p.x)),height=Math.max(...corners.map(p=>p.y))-Math.min(...corners.map(p=>p.y));camera.zoom=Math.min(1.58/width,1.54/height);camera.updateProjectionMatrix();
+ await new Promise(resolve=>requestAnimationFrame(resolve));renderer.render(scene,camera);return {size:size.toArray(),calls:renderer.info.render.calls,triangles:renderer.info.render.triangles};
+};window.studioReady=true;
+</script></body></html>

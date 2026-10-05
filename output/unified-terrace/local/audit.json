@@ -1,0 +1,32 @@
+{
+  "url": "http://127.0.0.1:5173/",
+  "projectRevision": 43,
+  "plants": 6,
+  "reports": [
+    {
+      "scenario": "fresh-desktop",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "scenario": "fresh-mobile",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "scenario": "legacy",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "scenario": "recovered",
+      "passed": true,
+      "errors": []
+    },
+    {
+      "scenario": "conflict",
+      "passed": true,
+      "errors": []
+    }
+  ]
+}

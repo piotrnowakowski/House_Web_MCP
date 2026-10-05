@@ -1,3 +1,4 @@
+import { interiorCommandSchema } from '../domain/interiorCommandSchema'
 import { z } from 'zod'
 import { operationReference, webMcpFieldDescriptions, webMcpToolPrompts, type WebMcpPromptBlocks } from '../../prompts/webmcp-tools'
 
@@ -11,7 +12,7 @@ const ref = z.string().min(1)
 const colorHex = z.string().regex(/^#[0-9a-fA-F]{6}$/)
 const wallMaterial = z.enum(['charred-timber', 'natural-timber', 'light-render', 'brick', 'metal-panel'])
 const plantKind = z.enum(['tree', 'hedge', 'shrub', 'perennial', 'grass', 'crop', 'wetland'])
-const fixtureCatalogId = z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol'])
+const fixtureCatalogId = z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'jacuzzi', 'outdoor-kitchen', 'greenhouse', 'larch-bed-long', 'larch-bed-square', 'leafy-greens', 'flower-mix', 'flower-clump', 'hydrangea', 'timber-fence', 'festoon-lights', 'sunken-fire-lounge', 'water-butt', 'tomato-bed'])
 const roofMaterial = z.enum(['standing-seam-metal', 'tile', 'slate', 'membrane'])
 const roofJunction = z.object({ ref, type: z.enum(['valley', 'intersection']), segmentRefs: z.tuple([ref, ref]) }).strict()
 const roofSegmentDefinition = z.object({
@@ -42,9 +43,10 @@ const validateRoofUpdate = (value: z.infer<typeof roofUpdateBase>, context: z.Re
  * garden-fixture.preset) expand into commands in the handler. The registered JSON Schema does not carry these shapes.
  */
 export const operationSchema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('site.update'), boundary: polygon.optional(), northDegrees: z.number().optional() }),
+  interiorCommandSchema,
+  z.object({ type: z.literal('site.update'), boundary: polygon.optional(), northDegrees: z.number().optional(), entrance: z.object({ ref, start: point, end: point }).strict().optional() }),
   z.object({ type: z.literal('terrain.update'), elevationPoints: z.array(point.extend({ elevation: z.number() })).min(1) }),
-  z.object({ type: z.literal('building.update'), action: z.enum(['add', 'remove', 'move', 'set-style']), buildingRef: ref, name: z.string().optional(), kind: z.enum(['house', 'garage']).optional(), architecturalStyle: z.enum(['classic', 'futuristic', 'barn']).optional(), position: point.optional(), rotationDegrees: z.number().optional() }),
+  z.object({ type: z.literal('building.update'), action: z.enum(['add', 'remove', 'move', 'set-style']), buildingRef: ref, name: z.string().optional(), kind: z.enum(['house', 'garage']).optional(), architecturalStyle: z.enum(['classic', 'futuristic', 'barn']).optional(), position: point.optional(), rotationDegrees: z.number().optional(), moveLinkedFeatures: z.boolean().optional() }),
   z.object({
     type: z.literal('storey.update'), action: z.enum(['add', 'remove', 'set-height', 'extend-footprint']), buildingRef: ref, storeyRef: ref, name: z.string().optional(), clearHeightM: z.number().min(2).max(8).optional(),
     footprint: polygon.optional(), extensionFootprint: polygon.optional(), spaceRef: ref.optional(), spaceName: z.string().optional(), usage: z.string().optional(),
@@ -108,7 +110,7 @@ export const webMcpSchemas = {
     if (value.action === 'diff' && !value.proposalRef) context.addIssue({ code: 'custom', path: ['proposalRef'], message: 'diff requires proposalRef.' })
     if (value.action === 'compare' && !value.variantRefs?.length) context.addIssue({ code: 'custom', path: ['variantRefs'], message: 'compare requires variantRefs.' })
   }),
-  list_catalog: z.object({ catalog: z.enum(['garden-fixtures', 'textures', 'operations']), surface: z.enum(['wall', 'ground']).optional(), type: z.string().min(1).optional() }),
+  list_catalog: z.object({ catalog: z.enum(['garden-fixtures', 'textures', 'operations', 'ikea', 'interior-generic', 'interior-finishes']), surface: z.enum(['wall', 'ground']).optional(), type: z.string().min(1).optional() }),
   measure_height: z.object({
     mode: z.enum(['semantic', 'free-vertical']), objectRef: ref.optional(),
     measurement: z.enum(['auto', 'object-height', 'ground-to-eaves', 'ground-to-ridge', 'clear-height', 'opening-height', 'terrain-clearance']).default('auto'),
@@ -121,7 +123,7 @@ export const webMcpSchemas = {
     kind: z.enum(['seasonal', 'sunlight']), months: z.array(z.number().int().min(1).max(12)).min(1).max(12).optional(),
     targetRef: z.string().min(1).optional(), point: point.optional(), month: z.number().int().min(1).max(12).optional(), day: z.number().int().min(1).max(31).optional(),
     stepMinutes: z.number().int().min(15).max(60).optional(), hours: z.object({ from: z.number().min(0).max(24), to: z.number().min(0).max(24) }).strict().optional(),
-    includeGrid: z.boolean().optional(), variantRef: ref.optional(),
+    includeGrid: z.boolean().optional(), includeNeighbors: z.boolean().optional(), variantRef: ref.optional(),
   }).superRefine((value, context) => {
     if (value.kind !== 'sunlight') return
     if (value.month === undefined) context.addIssue({ code: 'custom', path: ['month'], message: 'month is required for sunlight analysis.' })

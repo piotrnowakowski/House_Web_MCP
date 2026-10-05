@@ -1,0 +1,13 @@
+.plot-floor-control { position:relative; }
+.plot-floor-options { position:absolute; bottom:52px; left:0; display:grid; gap:6px; width:190px; padding:12px; border:1px solid #405049; border-radius:8px; background:#18202c; color:#e4e9ee; box-shadow:0 8px 32px #0005; }
+.plot-floor-options > span { font-size:12px; }
+.plot-floor-options button { min-height:44px; }
+@media(max-width:900px) {
+ .plot-compact-top > button, .plot-compact-top > .plot-floor-control { flex-shrink:0; }
+ .plot-floor-options { top:52px; bottom:auto; left:auto; right:0; }
+}
+@media(max-width:600px) {
+ .plot-compact-top .plot-interior-button span { display:none; }
+ .plot-compact-top > strong { display:none; }
+ .plot-compact-top > .house-study-toggle { margin-right:auto; }
+}

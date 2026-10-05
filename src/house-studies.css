@@ -1,0 +1,6 @@
+.house-study-toggle { display:flex; align-items:center; justify-content:center; min-width:44px; min-height:44px; padding:8px; border:1px solid #405049; border-radius:5px; background:#101815f5; color:#dce5df; cursor:pointer; }
+.project-heading { display:flex; align-items:center; gap:6px; min-width:0; max-width:260px; }
+.project-heading .house-study-toggle { flex-shrink:0; }
+.plot-compact-top .house-study-toggle { order:-1; }
+.house-study-toggle:focus-visible { outline:2px solid #b9e84d; outline-offset:3px; }
+@media(max-width:900px) { .plot-compact-top strong { min-width:0; flex:1; } }

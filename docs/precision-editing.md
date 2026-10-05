@@ -1,0 +1,25 @@
+# Precise editing and measurements
+
+House interior has a persistent **Floor** control beneath the header. Select **Parter** or **Piętro** directly in plan, 3D cutaway or room view, including on mobile. Switching floors clears the active placement/measurement tool and selection; each floor retains its own camera. The Building selector under More also opens the distant outbuilding's interior.
+
+Open **Edit & measure** in the plot's right inspector, or **Edit** in the mobile bottom bar. Select something in the scene or use **Choose an element** to reach windows and furniture obscured by the roof.
+
+In **House interior**, touch or press an unlocked partition, furniture item, window or door and drag immediately; an initial selection tap or inspector button is not required. Partitions slide perpendicular to their length with connected walls/rooms and hosted openings updating in the preview. Openings slide along their host wall. Furniture uses the existing grid/alignment settings and carries its group or current multi-selection. Release saves a valid change as one undo entry; taps and movements that snap back to the starting position create no edit. Invalid positions show a message and leave the model unchanged. Escape, pointer cancellation, lost capture, leaving the app or a second finger cancel the current object gesture. Empty-space gestures still operate the camera. Room labels pass pointer events through; select rooms by tapping their floor or using the room list.
+
+- **Move house** exposes position, rotation and 1 cm / 10 cm / 1 m adjustment steps. Apply position commits the draft as one undo entry; Cancel adjustment restores the displayed values. Positions use plot coordinates. In zielonki v2 the enabled linked-features checkbox also moves the carport, terrace and entrance path, and adjusts the house-side driveway edge. The road entrance stays fixed. Check the resulting approach after moving. The existing scene gizmo moves only its selected object.
+- Windows and doors have an exact centre offset along their host wall, width, height, sill height and 1 cm offset buttons. Save applies the change only if it fits. Side clearances show the distances between the opening edges and wall ends.
+- Partitions have length, start/centre/end length anchors, endpoint coordinates, thickness and height. Save updates connected walls, room boundaries and hosted openings atomically. Invalid shapes are rejected. The exterior outline remains protected in this editor; changing the building envelope requires the existing plot geometry tools.
+- Furniture retains its catalogue dimensions and separate size editor. Position, elevation and rotation can be entered precisely. Coordinates are local to the building floor. Group moves produce one undo entry; locked edits are rejected. Open **House interior** for direct furniture dragging in 2D or 3D. Garden objects also have precise position controls.
+- **Measure distance** accepts two scene points or exact X/Y/Z endpoints. It shows the three-dimensional model distance to 0.001 m, plus millimetres. Edit endpoint values and press **Apply endpoints**. Scene snapping and dragging measurement endpoints use the same values. Measurements are temporary view tools, not saved project entities; survey accuracy is unchanged.
+
+**Undo / Redo** reverses completed edits. Changes use the existing autosave and per-origin project storage. A pending proposal must be applied or rejected before a direct edit. Browser edits still need explicit capture into tracked project data before a release; they do not automatically commit to Git.
+
+WebMCP `building.update` supports optional `moveLinkedFeatures` on a `move` of `house/main` in `project/zielonki-v2`. It uses the same domain operation and validation as the panel, while preserving the proposal Apply/Reject workflow.
+
+Run `node scripts/audit-precision-editor.mjs --url <preview-or-public-url> --output output/precision-editor` for isolated desktop/mobile coverage of building and linked-feature movement, undo/redo, draft cancellation, opening movement, partition shortening, furniture positioning, exact measurements and reload persistence.
+
+Run `APP_URL=http://127.0.0.1:5173 npx playwright test tests/direct-manipulation.spec.ts tests/interior.spec.ts --config=playwright.interior.config.ts` against a development server for real mouse/touch dragging, camera stability, invalid edits, cancellation, second-finger interruption, undo/redo and reload. Fixtures are isolated; the user's browser project is never replaced by these tests.
+
+Run `node scripts/audit-direct-drag.mjs --url <built-preview-or-public-url> --output output/direct-drag-production` to verify wall/furniture dragging and reload with mouse and touch against the built application, without development hooks. It reads visible plan labels to locate gesture targets and uses a separate disposable Chrome profile for each input type.
+
+Wall sets can be saved and dragged together. See [Wall groups](wall-groups.md) for mouse/touch selection, grouping, movement and validation.

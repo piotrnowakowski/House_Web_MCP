@@ -1,26 +1,29 @@
 import { describe, expect, it } from 'vitest'
-import { legacySurveyTreePosition, registerTreeMapPoint, surveyTreeRef, treeMapRegistration, zielonkiSurveyTrees } from '../../knowledge-bank/zielonki/trees'
+import { surveyMapPosition, surveyTreeRef, zielonkiSurveyTrees } from '../../knowledge-bank/zielonki/trees'
+import { zielonkiZoningBoundary, zielonkiZoningParts } from '../../knowledge-bank/zielonki/zoning'
 import { ensureStarterOrchard } from './orchard'
 import { modernBarnProject } from './sampleProject'
 import { parseProject } from './schema'
 import { validateProject } from './commands'
 import { collectOccluders } from './sunlight'
-import { buildingFootprintsWorld, pointInPolygon } from './geometry'
+import { distanceToSegment, pointInPolygon } from './geometry'
 
 const mapped = (project: typeof modernBarnProject) => project.landscape.plants.filter((plant) => plant.surveyHandle)
 
 describe('survey tree inventory', () => {
-  it('registers the PDF corners and puts the tree row at the garden edge, clear of the house', () => {
-    treeMapRegistration.pdf.forEach((point, index) => {
-      const transformed = registerTreeMapPoint(point)
-      expect(transformed.x).toBeCloseTo(treeMapRegistration.model[index].x, 5)
-      expect(transformed.z).toBeCloseTo(treeMapRegistration.model[index].z, 5)
-    })
+  it('places the main conifer row along the MNU/R boundary in the shared survey frame', () => {
     const trees = mapped(modernBarnProject)
-    const footprints = modernBarnProject.buildings.flatMap(buildingFootprintsWorld)
-    expect(trees.every((tree) => footprints.every((footprint) => !pointInPolygon(tree.position, footprint)))).toBe(true)
-    expect(trees.filter((tree) => tree.crownShape === 'conical').every((tree) => tree.position.z > 8 && tree.position.z < 16)).toBe(true)
-    expect(trees.filter((tree) => tree.species === 'Unidentified fruit').every((tree) => tree.position.x > 10)).toBe(true)
+    const anchor = trees.find((tree) => tree.surveyHandle === '5012')!
+    expect(anchor.position.x).toBeCloseTo(-14.62626, 4)
+    expect(anchor.position.z).toBeCloseTo(2.77505, 4)
+    const mainRow = trees.filter((tree) => ['501E', '5021', '5024', '5027', '502A', '502D', '5030'].includes(tree.surveyHandle!))
+    expect(mainRow).toHaveLength(7)
+    for (const tree of mainRow) {
+      const distance = Math.min(...zielonkiZoningBoundary.slice(1).map((end, index) => distanceToSegment(tree.position, zielonkiZoningBoundary[index], end)))
+      expect(distance).toBeGreaterThan(1.3)
+      expect(distance).toBeLessThan(1.8)
+      expect(zielonkiZoningParts.some((zone) => zone.landRole === 'construction' && pointInPolygon(tree.position, zone.boundary))).toBe(true)
+    }
     expect(zielonkiSurveyTrees).toHaveLength(17)
     expect(new Set(zielonkiSurveyTrees.map((tree) => tree.handle)).size).toBe(17)
     expect(zielonkiSurveyTrees.filter((tree) => tree.category === 'conifer')).toHaveLength(11)
@@ -33,7 +36,7 @@ describe('survey tree inventory', () => {
     old.landscape.orchardCatalogVersion = 4
     for (const source of zielonkiSurveyTrees) {
       const tree = old.landscape.plants.find((plant) => plant.ref === surveyTreeRef(source.handle))!
-      const bad = { ...structuredClone(tree), ref: `plant/survey-${source.handle.toLowerCase()}`, position: legacySurveyTreePosition(source.easting, source.northing) }
+      const bad = { ...structuredClone(tree), ref: `plant/survey-${source.handle.toLowerCase()}`, position: surveyMapPosition(source.easting, source.northing) }
       old.landscape.plants = old.landscape.plants.filter((plant) => plant.ref !== bad.ref)
       old.landscape.plants.push(bad)
     }

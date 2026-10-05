@@ -1,0 +1,11 @@
+.neighbor-controls { position:absolute; bottom:16px; left:70px; z-index:12; display:flex; gap:4px; }
+.neighbor-controls button, .neighbor-settings button, .neighbor-toggle { display:flex; align-items:center; justify-content:center; gap:7px; min-height:44px; min-width:44px; padding:8px 11px; border:1px solid #405049; border-radius:5px; background:#101815f5; color:#dce5df; cursor:pointer; }
+.neighbor-toggle[aria-pressed=true] { color:#d3fa76; border-color:#b9e84d; background:#293829; }
+.neighbor-controls button:focus-visible, .neighbor-settings :is(button,select):focus-visible, .neighbor-toggle:focus-visible { outline:2px solid #b9e84d; outline-offset:2px; }
+.neighbor-popover { position:absolute; bottom:52px; left:0; width:300px; max-height:calc(100dvh - 190px); overflow:auto; padding:12px; border:1px solid #405049; border-radius:8px; background:#101815; box-shadow:0 8px 32px #0005; }
+.neighbor-popover > button { margin-left:auto; }
+.neighbor-settings { display:grid; gap:10px; color:#dce5df; padding:12px 0; }
+.neighbor-settings p, .neighbor-settings small { margin:0; line-height:1.5; color:#a8b7ad; font-size:12px; }
+.neighbor-settings label { display:grid; gap:5px; font-size:13px; }
+.neighbor-settings select { width:100%; min-height:44px; padding:8px; border:1px solid #405049; border-radius:5px; color:#dce5df; background:#18221c; }
+@media (max-width:900px) { .plot-compact-top strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } }

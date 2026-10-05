@@ -1,0 +1,11 @@
+{
+  "revision": 1,
+  "plants": 20,
+  "profile": null,
+  "building": "house/main",
+  "segments": [
+    "roof/main/segment-upper-wing",
+    "roof/main/segment-rear-wing"
+  ],
+  "errors": []
+}

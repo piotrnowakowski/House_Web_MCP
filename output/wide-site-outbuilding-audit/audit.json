@@ -1,0 +1,18 @@
+[
+  {
+    "existing": false,
+    "passed": true,
+    "projectRef": "project/zielonki-v2",
+    "revision": 54,
+    "buildings": 3,
+    "jacuzziDeletionSurvivesReload": true
+  },
+  {
+    "existing": true,
+    "passed": true,
+    "projectRef": "project/zielonki-v2",
+    "revision": 55,
+    "buildings": 3,
+    "jacuzziDeletionSurvivesReload": true
+  }
+]

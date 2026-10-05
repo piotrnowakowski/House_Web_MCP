@@ -1,0 +1,32 @@
+{
+  "url": "http://127.0.0.1:5173/",
+  "reports": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "result": "passed",
+      "projectRevision": 45,
+      "neighbors": 8
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "result": "passed",
+      "projectRevision": 45,
+      "neighbors": 8
+    },
+    {
+      "viewport": {
+        "width": 844,
+        "height": 390
+      },
+      "result": "passed",
+      "projectRevision": 45,
+      "neighbors": 8
+    }
+  ]
+}

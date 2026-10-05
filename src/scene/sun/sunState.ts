@@ -16,7 +16,7 @@ export const sunStateFor = (project: ProjectV2, time: SunTime) => {
 }
 
 /** World bounds of everything that should receive crisp shadows: buildings, fixtures and the zones around them. */
-export const shadowFocusBounds = (project: ProjectV2) => {
+export const shadowFocusBounds = (project: ProjectV2, includeNeighbors = false) => {
   const box = new Box3()
   for (const building of project.buildings) {
     const top = roofRidgeElevation(building) + 1
@@ -24,6 +24,10 @@ export const shadowFocusBounds = (project: ProjectV2) => {
   }
   project.landscape.fixtures.forEach((fixture) => box.expandByPoint(new Vector3(fixture.position.x, 1.6, fixture.position.z)))
   project.landscape.zones.forEach((zone) => zone.footprint.forEach((point) => box.expandByPoint(new Vector3(point.x, 0, point.z))))
+  if (includeNeighbors) project.site.neighbors?.forEach((neighbor) => neighbor.footprint.forEach((point) => {
+    box.expandByPoint(new Vector3(point.x, neighbor.groundElevationM, point.z))
+    box.expandByPoint(new Vector3(point.x, neighbor.groundElevationM + neighbor.ridgeHeightM, point.z))
+  }))
   if (box.isEmpty()) box.setFromCenterAndSize(new Vector3(0, 2, 0), new Vector3(30, 10, 30))
   return box
 }

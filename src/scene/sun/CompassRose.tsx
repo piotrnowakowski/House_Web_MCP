@@ -2,6 +2,7 @@ import { Html, Line } from '@react-three/drei'
 import { useMemo } from 'react'
 import { Vector3 } from 'three'
 import { polygonBounds } from '../../domain/geometry'
+import { sunDirectionModel } from '../../domain/solar'
 import { useStudioStore } from '../../state/store'
 
 const RADIUS_M = 1.8
@@ -9,7 +10,7 @@ const RADIUS_M = 1.8
 /** A ground compass rose whose N arm follows the site's true north. Editor overlay only. */
 export function CompassRose() {
   const project = useStudioStore((state) => state.project)
-  const north = useMemo(() => { const angle = project.site.northDegrees * Math.PI / 180; return { x: Math.sin(angle), z: Math.cos(angle) } }, [project.site.northDegrees])
+  const north = useMemo(() => sunDirectionModel(0, 0, project.site.northDegrees), [project.site.northDegrees])
   const position = useMemo(() => {
     const bounds = polygonBounds(project.buildings[0]?.slabs[0]?.footprint ?? project.site.boundary)
     const origin = project.buildings[0]?.position ?? { x: 0, z: 0 }
@@ -20,6 +21,9 @@ export function CompassRose() {
   return <group position={position} userData={{ editorOnly: true }}>
     <Line points={ring} color="#dce5df" lineWidth={1.2} transparent opacity={0.8} />
     <Line points={arrow} color="#f7d568" lineWidth={2.4} />
-    <Html position={[north.x * RADIUS_M * 1.35, 0, north.z * RADIUS_M * 1.35]} center zIndexRange={[6, 0]} style={{ pointerEvents: 'none' }}><span className="compass-label">N</span></Html>
+    {['N', 'E', 'S', 'W'].map((label, index) => {
+      const direction = sunDirectionModel(index * 90, 0, project.site.northDegrees)
+      return <Html key={label} position={[direction.x * RADIUS_M * 1.35, 0, direction.z * RADIUS_M * 1.35]} center zIndexRange={[6, 0]} style={{ pointerEvents: 'none' }}><span className="compass-label" style={{ color: index ? '#dce5df' : '#f7d568', fontSize: index ? 11 : 14 }}>{label}</span></Html>
+    })}
   </group>
 }

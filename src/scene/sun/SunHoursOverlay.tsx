@@ -13,6 +13,7 @@ export const sunHoursColor = (fraction: number) => {
 /** Ground heatmap of direct sun hours drawn from the same grid the WebMCP analysis returns. Editor overlay only. */
 export function SunHoursOverlay() {
   const project = useStudioStore((state) => state.project)
+  const neighborsVisible = useStudioStore((state) => state.neighborsVisible)
   const overlay = useStudioStore((state) => state.sunOverlay)
   const month = useStudioStore((state) => state.sunTime.month)
   const day = useStudioStore((state) => state.sunTime.day)
@@ -22,9 +23,9 @@ export function SunHoursOverlay() {
     if (!overlay.enabled) return
     try {
       const target = resolveSunTarget(project, overlay.targetRef ?? 'site', undefined)
-      setSunOverlay({ result: analyzeSunlight(project, { target, month, day, cellM: 0.5, stepMinutes: 30, includeGrid: true }) })
+      setSunOverlay({ result: analyzeSunlight(project, { target, month, day, cellM: 0.5, stepMinutes: 30, includeGrid: true, includeNeighbors: neighborsVisible }) })
     } catch (error) { setToast(error instanceof Error ? error.message : 'Sun-hours analysis failed.'); setSunOverlay({ enabled: false, result: null }) }
-  }, [day, month, overlay.enabled, overlay.targetRef, project, setSunOverlay, setToast])
+  }, [day, month, neighborsVisible, overlay.enabled, overlay.targetRef, project, setSunOverlay, setToast])
   const grid = overlay.enabled ? overlay.result?.grid : undefined
   const daylight = overlay.result?.daylightHours ?? 1
   const texture = useMemo(() => {

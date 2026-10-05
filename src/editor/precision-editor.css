@@ -1,0 +1,31 @@
+.precision-editor { margin: 0 0 24px; border-bottom: 1px solid #33413b; padding-bottom: 20px; }
+.precision-editor > header { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+.precision-editor h3 { font-size:14px; margin:16px 0 12px; }
+.edit-history,.edit-quick-actions,.edit-nudge { display:flex; gap:6px; flex-wrap:wrap; margin:10px 0; }
+.edit-history button,.edit-quick-actions button { display:flex; align-items:center; justify-content:center; gap:5px; }
+.precision-editor button,.exact-measure button,.edit-history button { min-height:44px; }
+.precision-editor .interior-primary { background:#b9e84d; color:#172019; border-color:#b9e84d; }
+.precision-editor input,.precision-editor select,.exact-measure input { min-width:0; width:100%; min-height:44px; padding:8px; background:#17201c; color:#edf2eb; border:1px solid #526157; border-radius:5px; }
+.precision-editor select { max-width:100%; text-overflow:ellipsis; }
+.precision-editor label { margin-bottom:10px; }
+.precision-editor fieldset,.exact-measure fieldset { min-width:0; padding:0; margin:12px 0; border:0; }
+.precision-editor fieldset:disabled { opacity:.65; }
+.precision-editor .edit-check { display:flex; align-items:center; gap:10px; font-size:12px; line-height:1.5; }
+.precision-editor .edit-check input { width:20px; min-height:20px; height:20px; flex-shrink:0; }
+.precision-editor .interior-note { color:#bac6ba; }
+.edit-nudge button { flex:1; padding:8px; }
+.edit-error { padding:10px; background:#462723; color:#ffd5c8; font-size:13px; line-height:1.5; }
+.edit-success { color:#c8ed90; font-size:12px; }
+.edit-warnings { font-size:12px; margin:12px 0; }
+.edit-warnings summary { cursor:pointer; min-height:44px; padding:12px 0; }
+.exact-measure { border-top:1px solid #526157; margin-top:16px; font-size:12px; line-height:1.5; }
+.exact-measure output { font-size:23px; display:block; color:#c9ef85; margin:12px 0; }
+.exact-measure output small { font-size:12px; }
+.precision-editor .interior-inspector-form { margin-top:15px; }
+.precision-editor .precision-strip input { padding:0; }
+.precision-editor .interior-fields { grid-template-columns:repeat(2,minmax(0,1fr)); }
+
+.precision-editor > header h3 { flex:1; white-space:nowrap; margin:0; }
+.precision-editor > header .edit-history { flex-wrap:nowrap; flex:0; }
+.precision-editor > header .edit-history button { width:auto; min-width:44px; padding:8px; font-size:11px; }
+.precision-editor .edit-body[hidden] { display:none; }

@@ -1,9 +1,10 @@
 import { zielonkiClimate, zielonkiKnowledgeBase, zielonkiPlot } from '../../knowledge-bank/zielonki/data'
+import neighborData from '../../knowledge-bank/zielonki/neighbors.json'
 import { rectangle } from './geometry'
 import { ensureStarterGarden } from './gardenFixtures'
 import { applyModernBarnPreset } from './presets'
 import { ensureStarterOrchard, ZIELONKI_TREE_HEIGHT_M } from './orchard'
-import type { BuildingModel, ProjectV2, WallModel } from './types'
+import type { BuildingModel, NeighborBuilding, ProjectV2, WallModel } from './types'
 
 const wall = (ref: string, start: { x: number; z: number }, end: { x: number; z: number }, openings: WallModel['openings'] = []): WallModel => ({
   ref, start, end, thicknessM: 0.24, baseElevationM: 0.45, heightM: 3, openings, finish: { material: 'light-render', colorHex: '#E8E1D2' }, locked: false,
@@ -46,6 +47,7 @@ export const sampleProject: ProjectV2 = {
   site: {
     boundary: zielonkiPlot.boundary,
     northDegrees: zielonkiPlot.northDegrees,
+    neighbors: neighborData as NeighborBuilding[],
     terrain: { boundary: zielonkiPlot.boundary, elevationPoints: zielonkiPlot.elevationPoints },
     parcels: zielonkiPlot.parcels,
     entrances: zielonkiPlot.entrances,
@@ -85,7 +87,8 @@ const lBarnFootprint = [
 ]
 
 const lShapedModernBarn: BuildingModel = {
-  ref: 'house/main', name: 'L-shaped modern barn', kind: 'house', architecturalStyle: 'barn', position: { x: 0, z: -1 }, rotationDegrees: 0,
+  // Turn the long wing toward the house-road entrance, retaining its footprint centre at (0, 1.5).
+  ref: 'house/main', name: 'L-shaped modern barn', kind: 'house', architecturalStyle: 'barn', position: { x: 2.5, z: 1.5 }, rotationDegrees: 270,
   storeys: [
     {
       ref: 'storey/ground', name: 'Ground storey', level: 0, elevationM: 0.45, clearHeightM: 3,

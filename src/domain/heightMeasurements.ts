@@ -1,5 +1,6 @@
 import { buildingGroundOffset, elevationAt, polygonCentroid, spaceFootprint } from './geometry'
 import { roofSegmentRidgeElevation, roofSegmentRise } from './roofs'
+import { atticWallProfile, wallProfileHeightAt } from './attic'
 import type { BuildingModel, HeightMeasureKind, HeightMeasurement, HeightMeasurementPoint, ProjectV2, RoofSegmentModel, Vec3 } from './types'
 
 export type HeightMeasurementRequest =
@@ -94,7 +95,9 @@ export const measureHeight = (project: ProjectV2, request: HeightMeasurementRequ
         return measured(project, { objectRef: opening.ref, buildingRef: building.ref, kind: requestedKind === 'auto' ? 'opening-height' : requestedKind, label: `${opening.kind === 'door' ? 'Door' : 'Window'} opening height`, bottom: point(position.x, sillY, position.z, `${opening.ref}/sill`), top: point(position.x, sillY + opening.heightM, position.z, `${opening.ref}/head`) })
       }
       if (requestedKind === 'terrain-clearance') return measured(project, { objectRef: wall.ref, buildingRef: building.ref, kind: requestedKind, label: 'Terrain to wall base', bottom: point(wallMid.x, elevationAt(project, wallMid.x, wallMid.z), wallMid.z, 'terrain/surface'), top: point(wallMid.x, wall.baseElevationM + offsetY, wallMid.z, `${wall.ref}/base`) })
-      return measured(project, { objectRef: wall.ref, buildingRef: building.ref, kind: requestedKind, label: 'Wall height', bottom: point(wallMid.x, wall.baseElevationM + offsetY, wallMid.z, `${wall.ref}/base`), top: point(wallMid.x, wall.baseElevationM + wall.heightM + offsetY, wallMid.z, `${wall.ref}/top`) })
+      const profile = atticWallProfile(building, wall)
+      const height = profile ? wallProfileHeightAt(profile, Math.hypot(wall.end.x - wall.start.x, wall.end.z - wall.start.z) / 2) : wall.heightM
+      return measured(project, { objectRef: wall.ref, buildingRef: building.ref, kind: requestedKind, label: 'Wall height', bottom: point(wallMid.x, wall.baseElevationM + offsetY, wallMid.z, `${wall.ref}/base`), top: point(wallMid.x, wall.baseElevationM + height + offsetY, wallMid.z, `${wall.ref}/top`) })
     }
     const slab = building.slabs.find((item) => item.ref === request.objectRef)
     if (slab) {

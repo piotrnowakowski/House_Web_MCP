@@ -16,6 +16,21 @@ const extension = { type: 'storey.update', action: 'extend-footprint', buildingR
 beforeEach(() => useStudioStore.setState({ project: structuredClone(sampleProject), history: [], variants: [], proposals: [], draftChangeSets: [], selectedRef: 'space/living', repositioningRef: null, confirmationVariantRef: null, structureReport: null }))
 
 describe('ProjectV2 WebMCP surface', () => {
+  it('moves one existing entrance without losing metadata, other entrances or planting', async () => {
+    useStudioStore.setState({ project: structuredClone(modernBarnProject) })
+    const entrance = modernBarnProject.site.entrances[0]
+    const update = { ref: entrance.ref, start: { x: -19.5, z: -10 }, end: { x: -19.1, z: -2.5 } }
+    const result = await propose([{ type: 'site.update', entrance: update }])
+    expect(result.status).toBe('variant_created')
+    const preview = useStudioStore.getState().variants[0].project
+    expect(preview.site.entrances[0]).toEqual({ ...entrance, ...update })
+    expect(preview.site.entrances.slice(1)).toEqual(modernBarnProject.site.entrances.slice(1))
+    expect(preview.landscape).toEqual(modernBarnProject.landscape)
+    expect(useStudioStore.getState().project).toEqual(modernBarnProject)
+    expect(() => applyCommand(modernBarnProject, { type: 'site.update', entrance: { ...update, ref: 'missing' } })).toThrow(/Entrance not found/)
+    expect(() => applyCommand(modernBarnProject, { type: 'site.update', entrance: { ...update, end: update.start } })).toThrow(/length/)
+  })
+
   it('replaces an older page registration so hot reload cannot keep a stale store alive', () => {
     const originalDocument = globalThis.document
     const signals: AbortSignal[] = []
@@ -81,7 +96,7 @@ describe('ProjectV2 WebMCP surface', () => {
   })
 
   it('documents every operation type the union accepts, and nothing else', () => {
-    const unionTypes = operationSchema.options.map((option) => option.shape.type.value).sort()
+    const unionTypes = [...new Set(operationSchema.options.flatMap((option) => 'options' in option ? option.options.map((action) => action.shape.type.value) : [option.shape.type.value]))].sort()
     expect(operationReference.map((item) => item.type).sort()).toEqual(unionTypes)
     for (const prompt of [webMcpToolPrompts.propose_change]) for (const type of unionTypes) expect(prompt.blocks.input).toContain(type)
     for (const entry of operationReference) expect(entry.purpose.length, entry.type).toBeLessThanOrEqual(160)
@@ -110,8 +125,9 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(planting.data.soilAnalysis.findings).toHaveLength(5)
     expect(planting.data.recommendations.map((plant: { commonName: string }) => plant.commonName)).toEqual(expect.arrayContaining(['Tomato', 'Potato', 'Cucumber', 'Apple tree']))
     const sources = await tool('get_site_knowledge').execute({ section: 'sources' })
-    expect(payload(sources).data).toHaveLength(12)
-    expect(sources.content[0].text.length).toBeLessThan(4000)
+    expect(payload(sources).data).toHaveLength(sampleProject.site.knowledgeBase.sources.length)
+    // Includes the municipal certificate, operative plan and traced DWG boundary.
+    expect(sources.content[0].text.length).toBeLessThan(6000)
     expect(payload(await tool('get_project_state').execute({ detail: 'knowledge' })).status).toBe('error')
     const wallResult = await tool('get_project_state').execute({ objectRef: 'wall/east' }); const wall = payload(wallResult)
     expect(wall.data).toMatchObject({ kind: 'wall', buildingRef: 'house/main', storeyRef: 'storey/ground', object: { ref: 'wall/east', openings: expect.any(Array) } })
@@ -121,7 +137,7 @@ describe('ProjectV2 WebMCP surface', () => {
 
   it('lists the three catalogues compactly, including the operation reference', async () => {
     const fixtures = payload(await tool('list_catalog').execute({ catalog: 'garden-fixtures' }))
-    expect(fixtures.data.map((item: { id: string }) => item.id)).toEqual(['outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis'])
+    expect(fixtures.data.map((item: { id: string }) => item.id)).toEqual(['recycling-bins', 'jacuzzi', 'outdoor-kitchen', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'sunken-fire-lounge', 'greenhouse', 'larch-bed-long', 'larch-bed-square', 'leafy-greens', 'tomato-bed', 'flower-mix', 'flower-clump', 'hydrangea', 'timber-fence', 'festoon-lights', 'water-butt'])
     const texturesResult = await tool('list_catalog').execute({ catalog: 'textures' }); const textures = payload(texturesResult)
     expect(textures.data).toHaveLength(12)
     expect(textures.data[0]).toMatchObject({ id: expect.any(String), name: expect.any(String), tileM: expect.any(Number), surfaces: expect.any(Array) })
@@ -430,6 +446,22 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(() => expandStructureViews(tooMany, { mode: 'architectural-set' })).toThrow(/contains 13 views/)
   })
 
+  it('keeps the full project in the site plan but focuses architectural drawings per building', () => {
+    const project = structuredClone(sampleProject)
+    const outbuilding = structuredClone(project.buildings[0])
+    outbuilding.ref = 'building/outbuilding'
+    outbuilding.name = 'Outbuilding'
+    outbuilding.kind = 'garage'
+    outbuilding.position = { x: 0, z: 55 }
+    outbuilding.storeys = outbuilding.storeys.map((storey) => ({ ...storey, ref: 'building/outbuilding/storey-ground', name: 'Workshop' }))
+    project.buildings.push(outbuilding)
+
+    const { views } = expandStructureViews(project, { mode: 'architectural-set' })
+    expect(views.find((view) => view.type === 'site-plan')?.buildingRefs).toEqual(['house/main', 'building/outbuilding'])
+    expect(views.filter((view) => view.type === 'north-elevation' || view.type === 'axonometric' || view.type === 'section').every((view) => JSON.stringify(view.buildingRefs) === JSON.stringify(['house/main']))).toBe(true)
+    expect(views.filter((view) => view.type === 'storey-plan').map((view) => view.buildingRefs)).toEqual([['house/main'], ['building/outbuilding']])
+  })
+
   it('returns validation failures as readable field messages and honors an aborted signal', async () => {
     const parsed = payload(await tool('run_analysis').execute({ kind: 'sunlight', month: 6 }))
     expect(parsed.status).toBe('error')
@@ -500,6 +532,18 @@ describe('variant explanation and viewer tools', () => {
 describe('sunlight through run_analysis', () => {
   beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), history: [], variants: [], sunTime: { month: 7, day: 15, hour: 14 } }))
 
+  it('follows the neighbor view option unless analysis explicitly overrides it', async () => {
+    useStudioStore.getState().setNeighborsVisible(true)
+    try {
+      const input = { kind: 'sunlight', point: { x: 0, z: 0 }, month: 12, stepMinutes: 60 }
+      expect(payload(await tool('run_analysis').execute(input)).analysis.includeNeighbors).toBe(true)
+      expect(payload(await tool('run_analysis').execute({ ...input, includeNeighbors: false })).analysis.includeNeighbors).toBe(false)
+      const neighbor = payload(await tool('get_project_state').execute({ objectRef: 'neighbor/34-5' }))
+      expect(neighbor.data.object.heightConfidence).toBe('estimated')
+      expect(useStudioStore.getState().history).toEqual([])
+    } finally { useStudioStore.getState().setNeighborsVisible(false) }
+  })
+
   it('analyses sun hours for a zone within the output budget and without variants', async () => {
     const result = await tool('run_analysis').execute({ kind: 'sunlight', targetRef: 'zone/lawn', month: 6, day: 21 })
     const parsed = payload(result)
@@ -514,7 +558,9 @@ describe('sunlight through run_analysis', () => {
     const griddedResult = await tool('run_analysis').execute({ kind: 'sunlight', targetRef: 'zone/lawn', month: 6, includeGrid: true }); const gridded = payload(griddedResult)
     expect(gridded.analysis.grid.width).toBeLessThanOrEqual(12)
     expect(griddedResult.content[0].text.length).toBeLessThan(1500)
-    useStudioStore.setState({ project: structuredClone(partialUpperModernBarnProject), variants: [] })
+    const source = structuredClone(partialUpperModernBarnProject)
+    source.landscape.plants = [] // Isolate the proposed roof extension from tree shade.
+    useStudioStore.setState({ project: source, variants: [] })
     const proposal = await propose([{ ...extension, spaceName: undefined, usage: undefined }])
     const committed = payload(await tool('run_analysis').execute({ kind: 'sunlight', targetRef: 'zone/terrace', month: 9 }))
     const ghost = payload(await tool('run_analysis').execute({ kind: 'sunlight', targetRef: 'zone/terrace', month: 9, variantRef: proposal.variantRef }))

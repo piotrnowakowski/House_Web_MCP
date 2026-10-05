@@ -1,0 +1,72 @@
+[
+  {
+    "at": "00:00",
+    "kind": "warning",
+    "message": "[GroupMarkerNotSet(crbug.com/242999)!:A0003500DC290000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader (about:flags#enable-unsafe-swiftshader) flag to opt in to lower security guarantees for trusted content."
+  },
+  {
+    "at": "00:00",
+    "kind": "warning",
+    "message": "[.WebGL-0x4d3c01d38700]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+  },
+  {
+    "at": "00:00",
+    "kind": "warning",
+    "message": "[.WebGL-0x4d3c01d38700]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+  },
+  {
+    "at": "00:00",
+    "kind": "warning",
+    "message": "[.WebGL-0x4d3c01d38700]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels"
+  },
+  {
+    "at": "00:00",
+    "kind": "warning",
+    "message": "using deprecated parameters for the initialization function; pass a single object instead"
+  },
+  {
+    "at": "00:00",
+    "kind": "warning",
+    "message": "[.WebGL-0x4d3c01d38700]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels (this message will no longer repeat)"
+  },
+  {
+    "at": "00:03",
+    "kind": "warning",
+    "message": "[GroupMarkerNotSet(crbug.com/242999)!:A0303500DC290000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader (about:flags#enable-unsafe-swiftshader) flag to opt in to lower security guarantees for trusted content."
+  },
+  {
+    "at": "00:08",
+    "kind": "step",
+    "message": "A furnished house, with the canvas at the centre"
+  },
+  {
+    "at": "00:14",
+    "kind": "step",
+    "message": "24 dimensioned IKEA configurations; original reusable models"
+  },
+  {
+    "at": "00:30",
+    "kind": "step",
+    "message": "Place directly, then rotate or enter exact values"
+  },
+  {
+    "at": "00:51",
+    "kind": "step",
+    "message": "Mobile: one compact action bar and a full-height canvas"
+  },
+  {
+    "at": "00:58",
+    "kind": "step",
+    "message": "One sheet for browsing; close it to restore the house"
+  },
+  {
+    "at": "01:10",
+    "kind": "warning",
+    "message": "[GroupMarkerNotSet(crbug.com/242999)!:A0903500DC290000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader (about:flags#enable-unsafe-swiftshader) flag to opt in to lower security guarantees for trusted content."
+  },
+  {
+    "at": "01:28",
+    "kind": "step",
+    "message": "The plot uses the same mobile controls"
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "health": {
+    "status": "healthy",
+    "app": "House Web MCP furnished branch",
+    "revision": "244220544fea63c96de1f2bd029a9385841147d9"
+  },
+  "errors": [],
+  "passed": true
+}
