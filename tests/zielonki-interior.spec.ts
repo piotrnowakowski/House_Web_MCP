@@ -1,0 +1,57 @@
+import { expect, test } from '@playwright/test'
+import { saveLegacyZielonki } from './helpers/legacy-zielonki'
+
+test('Zielonki keeps its site and barn style with the measured interior, including after reopening', async ({ page }) => {
+  const errors: string[] = []; page.on('pageerror', (error) => errors.push(error.message))
+  await page.addInitScript(() => {
+    const tools: Record<string, unknown> = {}
+    Object.assign(window, { __fitTools: tools })
+    Object.defineProperty(document, 'modelContext', { configurable: true, value: { registerTool: async (tool: { name: string }) => { tools[tool.name] = tool } } })
+  })
+  const state = async () => {
+    await page.waitForFunction(() => Boolean((window as unknown as { __fitTools: Record<string, unknown> }).__fitTools?.get_project_state))
+    return page.evaluate(async () => {
+    const tools = (window as unknown as { __fitTools: Record<string, { execute: (args: unknown) => Promise<{ content: { text: string }[] }> }> }).__fitTools
+    return JSON.parse((await tools.get_project_state.execute({ detail: 'structure' })).content[0].text).data
+    })
+  }
+  await page.goto(process.env.APP_URL ?? 'http://127.0.0.1:5173')
+  await saveLegacyZielonki(page)
+  await page.getByRole('button', { name: /Zielonki house study/ }).click()
+  const before = await state()
+  await page.getByRole('button', { name: 'House interior', exact: true }).click()
+  await page.getByRole('button', { name: 'Fit reference interior to Zielonki', exact: true }).click()
+  const rooms = page.getByRole('region', { name: 'Rooms on this level' })
+  await expect(rooms).toContainText('45.14 m²')
+  await page.getByRole('button', { name: 'Hide catalog', exact: true }).click()
+  await page.getByRole('button', { name: '2D Plan', exact: true }).click()
+  await rooms.getByRole('button', { name: /Garaż/ }).click()
+  await expect(page.getByRole('spinbutton', { name: 'Room width (m)' })).toHaveValue('7.28')
+  await expect(page.getByRole('spinbutton', { name: 'Room depth (m)' })).toHaveValue('6.2')
+  await page.getByRole('textbox', { name: 'Room name', exact: true }).fill('Garaż Zielonki')
+  await page.getByRole('button', { name: 'Save room', exact: true }).click()
+  await page.screenshot({ path: 'test-results/zielonki-interior-plan.png' })
+  await page.getByRole('button', { name: /1 Piętro/ }).click()
+  await expect(rooms.getByRole('button')).toHaveCount(7)
+  await expect(rooms).toContainText('40.65 m²')
+  await page.getByRole('button', { name: '3D Interior', exact: true }).click()
+  await page.getByText('Plan dimensions & source notes', { exact: true }).click()
+  await expect(page.locator('.interior-reference-notes')).toContainText('11.19 × 18.31 m')
+  await page.getByRole('button', { name: '← Back to plot', exact: true }).click()
+  await page.waitForTimeout(2000)
+  await page.screenshot({ path: 'test-results/zielonki-fitted-exterior.png' })
+  const after = await state()
+  expect(after.site).toEqual(before.site)
+  expect(after.landscape).toEqual(before.landscape)
+  expect(after.buildings[0].architecturalStyle).toBe('barn')
+  expect(after.buildings[0].roof.segments).toHaveLength(3)
+  expect(after.buildings[0].furniture).toHaveLength(22)
+  await page.reload()
+  await page.getByRole('button', { name: /Zielonki house study/ }).click()
+  const loaded = await state()
+  expect(loaded.buildings).toEqual(after.buildings)
+  await page.getByRole('button', { name: 'House interior', exact: true }).click()
+  await expect(rooms).toContainText('Garaż Zielonki')
+  await expect(page.getByRole('button', { name: 'Fit reference interior to Zielonki', exact: true })).toHaveCount(0)
+  expect(errors).toEqual([])
+})

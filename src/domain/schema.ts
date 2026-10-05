@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { InteriorItemSchema } from './interior'
 import { polygonArea, polygonSelfIntersects } from './geometry'
 import { estimateDayPartTemperatures } from './climate'
 import type { PlantRecommendation, PlantingGuideCategory, PlantingSoilAnalysis, ProjectV2, SiteKnowledgeBase } from './types'
@@ -59,7 +60,7 @@ const SpaceSchema = z.object({
   boundary: z.array(z.object({ wallRef: z.string().min(1), direction: z.union([z.literal(1), z.literal(-1)]) })).min(3),
   baseSlabRef: z.string().min(1), topBoundaryRef: z.string().min(1), locked: z.boolean(),
 })
-const SlabSchema = z.object({ ref: z.string().min(1), footprint: PolygonSchema, topElevationM: z.number().finite(), thicknessM: z.number().positive(), locked: z.boolean() })
+const SlabSchema = z.object({ ref: z.string().min(1), footprint: PolygonSchema, holes: z.array(PolygonSchema).optional(), topElevationM: z.number().finite(), thicknessM: z.number().positive(), locked: z.boolean() })
 const StoreySchema = z.object({
   ref: z.string().min(1), name: z.string().min(1), level: z.number().int(), elevationM: z.number().finite(), clearHeightM: z.number().positive(),
   baseSlabRef: z.string().min(1), topBoundaryRef: z.string().min(1), wallRefs: z.array(z.string().min(1)), spaceRefs: z.array(z.string().min(1)),
@@ -78,6 +79,9 @@ const RoofJunctionSchema = z.object({
   segmentRefs: z.tuple([z.string().min(1), z.string().min(1)]),
 })
 const BuildingSchema = z.object({
+  interiorSource: z.object({ id: z.string().min(1), notes: z.array(z.string()) }).optional(),
+  furniture: z.array(InteriorItemSchema).optional(),
+  stairs: z.array(z.object({ ref: z.string().min(1), fromStoreyRef: z.string().min(1), toStoreyRef: z.string().min(1), start: Vec2Schema, runM: z.number().positive(), widthM: z.number().positive(), steps: z.number().int().min(2).max(40) })).optional(),
   ref: z.string().min(1), name: z.string().min(1), kind: z.enum(['house', 'garage']), architecturalStyle: z.enum(['classic', 'futuristic', 'barn']),
   garageMode: z.enum(['integrated', 'attached']).optional(), position: Vec2Schema, rotationDegrees: z.number().finite(), storeys: z.array(StoreySchema).min(1),
   slabs: z.array(SlabSchema).min(1), walls: z.array(WallSchema), spaces: z.array(SpaceSchema),
@@ -92,6 +96,8 @@ const PlantSchema = z.object({
   ref: z.string().min(1), name: z.string().min(1), species: z.string().min(1), kind: z.enum(['tree', 'hedge', 'shrub', 'perennial', 'grass', 'crop', 'wetland']),
   position: Vec2Schema, matureHeightM: z.number().positive(), canopyM: z.number().positive(), sunNeed: z.enum(['shade', 'partial', 'sun']), waterNeed: z.number().min(0),
   hardinessMinC: z.number(), leafMonths: z.array(z.number().int().min(1).max(12)), bloomMonths: z.array(z.number().int().min(1).max(12)), locked: z.boolean(),
+  crownShape: z.enum(['rounded', 'conical']).optional(), placementRole: z.enum(['site', 'context']).optional(),
+  surveyHandle: z.string().optional(),
   attachment: z.object({ hostRef: z.string().min(1), hostFace: z.enum(['top', 'bottom', 'inside', 'outside', 'terrain']), localPosition: Vec3Schema, rotationDegrees: z.number().finite() }).optional(),
 })
 const GardenFixtureSchema = z.object({

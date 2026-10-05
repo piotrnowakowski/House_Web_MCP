@@ -2,7 +2,7 @@ import { zielonkiClimate, zielonkiKnowledgeBase, zielonkiPlot } from '../../know
 import { rectangle } from './geometry'
 import { ensureStarterGarden } from './gardenFixtures'
 import { applyModernBarnPreset } from './presets'
-import { ensureStarterOrchard } from './orchard'
+import { ensureStarterOrchard, ZIELONKI_TREE_HEIGHT_M } from './orchard'
 import type { BuildingModel, ProjectV2, WallModel } from './types'
 
 const wall = (ref: string, start: { x: number; z: number }, end: { x: number; z: number }, openings: WallModel['openings'] = []): WallModel => ({
@@ -61,7 +61,7 @@ export const sampleProject: ProjectV2 = {
       { ref: 'zone/path', name: 'Entry path', kind: 'path', footprint: rectangle({ x: -5, z: -5.5 }, 1.3, 10), locked: false },
     ],
     plants: [
-      { ref: 'plant/apple', name: 'Old apple tree', species: 'Malus domestica', kind: 'tree', position: { x: 11, z: 11 }, matureHeightM: 5.5, canopyM: 5, sunNeed: 'sun', waterNeed: 0.8, hardinessMinC: -25, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [4,5], locked: true, attachment: { hostRef: 'site/terrain', hostFace: 'terrain', localPosition: { x: 11, y: 0, z: 11 }, rotationDegrees: 0 } },
+      { ref: 'plant/apple', name: 'Old apple tree', species: 'Malus domestica', kind: 'tree', position: { x: 11, z: 11 }, matureHeightM: ZIELONKI_TREE_HEIGHT_M, canopyM: 5, sunNeed: 'sun', waterNeed: 0.8, hardinessMinC: -25, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [4,5], locked: true, attachment: { hostRef: 'site/terrain', hostFace: 'terrain', localPosition: { x: 11, y: 0, z: 11 }, rotationDegrees: 0 } },
       { ref: 'plant/hornbeam-1', name: 'Hornbeam hedge', species: 'Carpinus betulus', kind: 'hedge', position: { x: -13.8, z: 2 }, matureHeightM: 2.2, canopyM: 7, sunNeed: 'partial', waterNeed: 0.65, hardinessMinC: -28, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [], locked: false },
       { ref: 'plant/hydrangea', name: 'Hydrangea group', species: 'Hydrangea paniculata', kind: 'shrub', position: { x: -8.5, z: 8 }, matureHeightM: 1.8, canopyM: 2.4, sunNeed: 'partial', waterNeed: 1.15, hardinessMinC: -25, leafMonths: [4,5,6,7,8,9,10], bloomMonths: [7,8,9], locked: false },
       { ref: 'plant/sedge', name: 'Rain garden sedge', species: 'Carex spp.', kind: 'wetland', position: { x: -10, z: 12 }, matureHeightM: 0.7, canopyM: 2.4, sunNeed: 'sun', waterNeed: 1.2, hardinessMinC: -25, leafMonths: [3,4,5,6,7,8,9,10,11], bloomMonths: [5,6], locked: false },

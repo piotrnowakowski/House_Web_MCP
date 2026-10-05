@@ -19,6 +19,7 @@ type Plane = { normal: Vec3; d: number }
 export type Occluder =
   | { kind: 'convex'; ref: string; planes: Plane[]; centre: Vec2; radius: number; top: number }
   | { kind: 'sphere'; ref: string; center: Vec3; radius: number }
+  | { kind: 'ellipsoid'; ref: string; center: Vec3; radii: Vec3 }
 
 const MAX_CELLS = 2500
 const SAMPLE_HEIGHT_M = 0.3
@@ -108,7 +109,27 @@ export const collectOccluders = (project: ProjectV2): Occluder[] => {
     occluders.push(...roofOccluders(building, frame))
   }
   for (const plant of project.landscape.plants) {
-    occluders.push({ kind: 'sphere', ref: plant.ref, center: { x: plant.position.x, y: elevationAt(project, plant.position.x, plant.position.z) + plant.matureHeightM * 0.72, z: plant.position.z }, radius: Math.max(0.25, plant.canopyM / 2) })
+    // The registered survey trees are rooted on the current flat rendered site.
+    const ground = plant.surveyHandle ? 0 : elevationAt(project, plant.position.x, plant.position.z)
+    const radius = Math.max(0.25, plant.canopyM / 2)
+    if (plant.crownShape === 'conical') {
+      const base = plant.matureHeightM * 0.2; const top = plant.matureHeightM
+      const planes: Plane[] = [{ normal: { x: 0, y: -1, z: 0 }, d: -base }]
+      const corners: Vec3[] = [{ x: 0, y: top, z: 0 }]
+      // Coarse conifer crown envelope, including low branches; not individual needles.
+      const apothem = radius * Math.cos(Math.PI / 14)
+      for (let side = 0; side < 14; side += 1) {
+        const angle = (side + 0.5) * Math.PI * 2 / 14
+        const slope = apothem / (top - base)
+        planes.push({ normal: { x: Math.sin(angle), y: slope, z: Math.cos(angle) }, d: slope * top })
+        corners.push({ x: radius * Math.sin(side * Math.PI * 2 / 14), y: base, z: radius * Math.cos(side * Math.PI * 2 / 14) })
+      }
+      occluders.push(convexFromLocalPlanes(plant.ref, planes, corners, { position: plant.position, yaw: 0, offsetY: ground }))
+    } else if (plant.crownShape === 'rounded') {
+      occluders.push({ kind: 'ellipsoid', ref: plant.ref, center: { x: plant.position.x, y: ground + plant.matureHeightM * 0.72, z: plant.position.z }, radii: { x: radius, y: plant.matureHeightM * 0.28, z: radius } })
+    } else {
+      occluders.push({ kind: 'sphere', ref: plant.ref, center: { x: plant.position.x, y: ground + plant.matureHeightM * 0.72, z: plant.position.z }, radius })
+    }
   }
   for (const fixture of project.landscape.fixtures) {
     const definition = gardenFixtureById(fixture.catalogId)
@@ -143,6 +164,12 @@ const rayIsBlocked = (origin: Vec3, direction: Vec3, occluders: Occluder[]) => {
   const horizontal = Math.hypot(direction.x, direction.z)
   for (const occluder of occluders) {
     if (occluder.kind === 'sphere') { if (rayHitsSphere(origin, direction, occluder)) return true; continue }
+    if (occluder.kind === 'ellipsoid') {
+      const localOrigin = { x: (origin.x - occluder.center.x) / occluder.radii.x, y: (origin.y - occluder.center.y) / occluder.radii.y, z: (origin.z - occluder.center.z) / occluder.radii.z }
+      const localDirection = normalize({ x: direction.x / occluder.radii.x, y: direction.y / occluder.radii.y, z: direction.z / occluder.radii.z })
+      if (rayHitsSphere(localOrigin, localDirection, { kind: 'sphere', ref: occluder.ref, center: { x: 0, y: 0, z: 0 }, radius: 1 })) return true
+      continue
+    }
     if (origin.y >= occluder.top) continue
     const reach = direction.y > 1e-9 ? (occluder.top - origin.y) / direction.y * horizontal : Number.POSITIVE_INFINITY
     if (Math.hypot(occluder.centre.x - origin.x, occluder.centre.z - origin.z) - occluder.radius > reach) continue
@@ -246,7 +273,9 @@ export const analyzeSunlight = (project: ProjectV2, input: SunlightInput): Sunli
 /** Sun-loving plants and crop fixtures that get little direct sun between 09:00 and 17:00 on 21 June, and shade plants that get too much. */
 export const sunMismatchIssues = (project: ProjectV2) => {
   const targets = [
-    ...project.landscape.plants.filter((plant) => plant.sunNeed !== 'partial').map((plant) => ({ ref: plant.ref, name: plant.name, need: plant.sunNeed as 'sun' | 'shade', target: { kind: 'plant', ref: plant.ref } as SunTarget })),
+    // Survey trees describe existing shade sources with unidentified species.
+    // Ground-level planting samples cannot assess their canopy's sunlight needs.
+    ...project.landscape.plants.filter((plant) => !plant.surveyHandle && plant.sunNeed !== 'partial').map((plant) => ({ ref: plant.ref, name: plant.name, need: plant.sunNeed as 'sun' | 'shade', target: { kind: 'plant', ref: plant.ref } as SunTarget })),
     ...project.landscape.fixtures.filter((fixture) => gardenFixtureById(fixture.catalogId).category === 'crop').map((fixture) => ({ ref: fixture.ref, name: fixture.name, need: 'sun' as const, target: { kind: 'fixture', ref: fixture.ref } as SunTarget })),
   ]
   return targets.flatMap(({ ref, name, need, target }) => {

@@ -1,4 +1,5 @@
 import { applyCommand } from './commands'
+import { hasZielonkiInterior } from './zielonkiInterior'
 import { pointInPolygon, pointOnPolygonBoundary, polygonArea, polygonCentroid, spaceFootprint } from './geometry'
 import { decomposeOrthogonalLFootprint, ridgeDirectionForFootprint } from './roofs'
 import type { BuildingModel, Polygon2, ProjectV2, StoreyModel } from './types'
@@ -31,6 +32,7 @@ const spaceForFootprint = (building: BuildingModel, storey: StoreyModel, footpri
 export const isModernBarnPreset = (project: ProjectV2) => {
   const building = project.buildings.find((item) => item.ref === 'house/main') ?? project.buildings.find((item) => item.kind === 'house')
   if (!building || building.architecturalStyle !== 'barn' || building.storeys.length < 2 || building.roof.type !== 'gable' || building.roof.pitchDegrees !== 45) return false
+  if (hasZielonkiInterior(project)) return true
   const upper = topStorey(building)
   const upperSlab = building.slabs.find((slab) => slab.ref === upper.baseSlabRef)
   const footprint = targetFootprint(building)
@@ -48,6 +50,8 @@ export const isModernBarnPreset = (project: ProjectV2) => {
 }
 
 export const applyModernBarnPreset = (source: ProjectV2): ProjectV2 => {
+  // A fitted interior has its own upper outline and lower garage roof; it must not be expanded by the legacy demo migration.
+  if (hasZielonkiInterior(source)) return structuredClone(source)
   if (isModernBarnPreset(source)) return structuredClone(source)
   let project = structuredClone(source)
   let building = project.buildings.find((item) => item.ref === 'house/main') ?? project.buildings.find((item) => item.kind === 'house')

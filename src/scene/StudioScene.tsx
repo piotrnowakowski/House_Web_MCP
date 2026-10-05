@@ -14,13 +14,15 @@ import { gardenFixtureById } from '../domain/gardenFixtures'
 import { measureHeight } from '../domain/heightMeasurements'
 import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, RoofSegmentModel, SiteEntranceModel, StructureReport, Vec2, WallModel, WallMaterial } from '../domain/types'
 import { inferWallOpeningLayout } from '../domain/wallOpeningLayouts'
+import { isExteriorWall } from '../domain/zielonkiInterior'
+import { FurnitureModel } from '../interior/FurnitureModel'
 import { resolveGableWallFinish, resolveWallFinish } from '../domain/wallFinishes'
 import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
 import type { GeneratedSolid } from '../geometry/types'
 import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
 import { gableEndWall, gableWallsForBuilding, roofWings, type RoofWing } from '../domain/roofWings'
 import { CompassRose, SUN_DISTANCE_M, SunHoursOverlay, SunLight, SunPath, sunStateFor } from './sun'
-import { CucumberTrellisVisual, FruitTreeVisual, hasFruitTreeVisual, PotatoRowVisual, TomatoRowVisual } from './gardenVisuals'
+import { CucumberTrellisVisual, FruitTreeVisual, hasFruitTreeVisual, PotatoRowVisual, SurveyTreeVisual, TomatoRowVisual } from './gardenVisuals'
 import { RealisticGrass } from './grassVisuals'
 import { interiorFloorTexture, raisedBedSoilTexture, raisedBedTexture, resolveWallTexture, resolveZoneTexture, terrainTexture, tintForTexturedFinish, zoneTintFor } from './materialCatalog'
 import { TexturedMaterial, TexturePreloader, waitForTextures } from './materials'
@@ -413,12 +415,12 @@ function GeneratedMesh({ solid, selected, buildingRef, style, wall, yOffset, gho
 
 const isLShapedBarn = (building: BuildingModel) => building.architecturalStyle === 'barn'
   && building.slabs[0]?.footprint.length === 6
-  && building.walls.some((wall) => wall.ref === 'wall/front-glass')
+  && (Boolean(building.interiorSource) || building.walls.some((wall) => wall.ref === 'wall/front-glass'))
 
 function BarnGlazing({ building, ghost }: { building: BuildingModel; ghost?: boolean }) {
   const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
   const internalWalls = new Set(['wall/rear-partition', 'wall/wing-divider', 'wall/upper-north'])
-  const panes = building.walls.flatMap((wall) => internalWalls.has(wall.ref) ? [] : wall.openings.map((opening) => ({ wall, opening })))
+  const panes = building.walls.flatMap((wall) => (building.interiorSource ? !isExteriorWall(building, wall) : internalWalls.has(wall.ref)) ? [] : wall.openings.map((opening) => ({ wall, opening })))
   return <>{panes.map(({ wall, opening }) => {
     const dx = wall.end.x - wall.start.x; const dz = wall.end.z - wall.start.z; const length = Math.hypot(dx, dz)
     const ux = dx / length; const uz = dz / length; const rotation = -Math.atan2(dz, dx)
@@ -428,7 +430,9 @@ function BarnGlazing({ building, ghost }: { building: BuildingModel; ghost?: boo
     const frame = selectedRef === opening.ref ? '#b9e84d' : '#121817'
     return <group key={opening.ref} position={[x, y, z]} rotation={[0, rotation, 0]} userData={{ semanticRef: opening.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(opening.ref) }}>
       <mesh castShadow receiveShadow><boxGeometry args={[Math.max(0.08, opening.widthM - 0.08), Math.max(0.08, opening.heightM - 0.08), 0.045]} />
-        <meshPhysicalMaterial color="#78959a" transparent opacity={ghost ? 0.2 : 0.42} transmission={0.55} roughness={0.08} metalness={0.08} depthWrite={false} />
+        {building.interiorSource && opening.kind === 'door'
+          ? <meshStandardMaterial color="#303736" roughness={0.62} metalness={0.3} transparent={Boolean(ghost)} opacity={ghost ? 0.2 : 1} />
+          : <meshPhysicalMaterial color="#78959a" transparent opacity={ghost ? 0.2 : 0.42} transmission={0.55} roughness={0.08} metalness={0.08} depthWrite={false} />}
       </mesh>
       <mesh position={[0, opening.heightM / 2, 0]}><boxGeometry args={[opening.widthM + 0.08, 0.075, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
       <mesh position={[0, -opening.heightM / 2, 0]}><boxGeometry args={[opening.widthM + 0.08, 0.075, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
@@ -682,7 +686,8 @@ function Building({ project, building, ghost }: { project: ProjectV2; building: 
       {solids.map((solid) => <GeneratedMesh key={solid.ref} solid={solid} selected={selectedRef === solid.ref} buildingRef={building.ref} style={building.architecturalStyle} wall={building.walls.find((wall) => wall.ref === solid.ref)} yOffset={offsetFor(solid.ref)} ghost={ghost} />)}
       {isLShapedBarn(building) && <BarnGlazing building={building} ghost={ghost} />}
       {isLShapedBarn(building) && <BarnCladding building={building} ghost={ghost} />}
-      {isLShapedBarn(building) && <BarnInteriorWarmth ghost={ghost} />}
+      {isLShapedBarn(building) && !building.interiorSource && <BarnInteriorWarmth ghost={ghost} />}
+      {!ghost && building.interiorSource && building.furniture?.map((item) => <group key={item.ref} position={[item.position.x, (building.storeys.find((s) => s.ref === item.storeyRef)?.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.level ?? 0) * explodedOffset, item.position.z]} rotation={[0, -item.rotationDegrees * Math.PI / 180, 0]}><FurnitureModel item={item} /></group>)}
       <Roof building={building} selected={selectedRef === building.roof.ref} yOffset={roofOffset} ghost={ghost} />
       {!ghost && <><SpaceOverlays building={building} explodedOffset={explodedOffset} explode={explode} /><PlatformsAndFinishes building={building} explodeOffset={explodedOffset} /></>}
       {!ghost && <RigidBody type="fixed" colliders={false}>{solids.map((solid) => <CuboidCollider key={solid.ref} args={solid.collider.halfExtents} position={[solid.collider.center[0], solid.collider.center[1] + offsetFor(solid.ref), solid.collider.center[2]]} rotation={[0, solid.collider.rotationY, 0]} />)}<CuboidCollider args={[roofWidth / 2, 0.2, roofDepth / 2]} position={[(roofBounds.minX + roofBounds.maxX) / 2, building.roof.baseElevationM + 0.2 + roofOffset, (roofBounds.minZ + roofBounds.maxZ) / 2]} /></RigidBody>}
@@ -736,10 +741,19 @@ function RoadEntranceMarker({ entrance }: { entrance: SiteEntranceModel }) {
 
 function TerrainAndSite({ project }: { project: ProjectV2 }) {
   const boundaryGeometry = useMemo(() => localPolygonGeometry(project.site.boundary), [project.site.boundary])
+  const neighbouringGround = useMemo(() => {
+    const trees = project.landscape.plants.filter((plant) => plant.surveyHandle && plant.placementRole === 'context')
+    if (!trees.length) return null
+    const minX = Math.min(...trees.map((tree) => tree.position.x)) - 8; const maxX = Math.max(...trees.map((tree) => tree.position.x)) + 8
+    const minZ = Math.min(...trees.map((tree) => tree.position.z)) - 8; const maxZ = Math.max(...trees.map((tree) => tree.position.z)) + 8
+    return localPolygonGeometry([{ x: minX, z: minZ }, { x: maxX, z: minZ }, { x: maxX, z: maxZ }, { x: minX, z: maxZ }])
+  }, [project.landscape.plants])
   const landBounds = useMemo(() => project.site.parcels.flatMap((parcel) => parcel.boundary).reduce((box, point) => box.expandByPoint(new Vector3(point.x, 0, point.z)), new Box3()), [project.site.parcels])
   const landCenter = landBounds.getCenter(new Vector3()); const landSize = landBounds.getSize(new Vector3())
   useEffect(() => () => boundaryGeometry.dispose(), [boundaryGeometry])
+  useEffect(() => () => neighbouringGround?.dispose(), [neighbouringGround])
   return <group userData={{ semanticRef: 'site' }}>
+    {neighbouringGround && <mesh geometry={neighbouringGround} position={[0, TERRAIN_SURFACE_Y - 0.01, 0]} receiveShadow userData={{ contextOnly: true }}><TexturedMaterial asset={terrainTexture.asset} color="#727b60" fallbackColor="#727b60" roughness={1} side={DoubleSide} normalScale={0.4} /></mesh>}
     <mesh geometry={boundaryGeometry} position={[0, TERRAIN_SURFACE_Y, 0]} receiveShadow userData={{ semanticRef: 'site/terrain' }}><TexturedMaterial asset={terrainTexture.asset} color={terrainTexture.tint} fallbackColor={REAL.soil} roughness={1} side={DoubleSide} normalScale={0.4} /></mesh>
     {project.site.parcels.map((parcel) => <ParcelSurface key={parcel.ref} boundary={parcel.boundary} landRole={parcel.landRole} />)}
     {project.site.entrances.map((entrance) => <RoadEntranceMarker key={entrance.ref} entrance={entrance} />)}
@@ -776,11 +790,14 @@ function Landscape({ project }: { project: ProjectV2 }) {
 
 function Plant({ plant, project, selected, onSelect, ghost = false }: { plant: PlantModel; project: ProjectV2; selected: boolean; onSelect: () => void; ghost?: boolean }) {
   const month = useStudioStore((state) => state.month); const repositioningRef = useStudioStore((state) => state.repositioningRef); const commitCommand = useStudioStore((state) => state.commitCommand); const endReposition = useStudioStore((state) => state.endReposition); const setToast = useStudioStore((state) => state.setToast)
-  const y = elevationAt(project, plant.position.x, plant.position.z); const canopy = Math.max(0.25, plant.canopyM / 2); const visibleLeaf = plant.leafMonths.includes(month); const group = useRef<Group>(null)
+  const y = plant.surveyHandle ? TERRAIN_SURFACE_Y : elevationAt(project, plant.position.x, plant.position.z); const canopy = Math.max(0.25, plant.canopyM / 2); const visibleLeaf = plant.leafMonths.includes(month); const group = useRef<Group>(null)
   return <><group ref={group} position={[plant.position.x, y, plant.position.z]} userData={{ semanticRef: plant.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) onSelect() }}>
-    {hasFruitTreeVisual(plant) ? <FruitTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : <>
-      <mesh position={[0, plant.matureHeightM * 0.28, 0]} castShadow={!ghost}><cylinderGeometry args={[0.1, 0.15, plant.matureHeightM * 0.56, 8]} /><meshStandardMaterial color="#584434" transparent={ghost} opacity={ghost ? 0.42 : 1} /></mesh>
-      <mesh position={[0, plant.matureHeightM * 0.72, 0]} castShadow={!ghost}><sphereGeometry args={[canopy, 12, 9]} /><meshStandardMaterial color={selected ? '#b9e84d' : ghost ? '#b9e84d' : visibleLeaf ? '#477348' : '#756955'} transparent opacity={ghost ? 0.38 : visibleLeaf ? 0.92 : 0.52} depthWrite={!ghost} /></mesh>
+    {plant.surveyHandle ? <SurveyTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : hasFruitTreeVisual(plant) ? <FruitTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.crownShape === 'conical' ? <>
+      <mesh position={[0, plant.matureHeightM * 0.4, 0]} castShadow={!ghost}><cylinderGeometry args={[0.12, 0.24, plant.matureHeightM * 0.8, 10]} /><meshStandardMaterial color="#584434" transparent={ghost} opacity={ghost ? 0.42 : 1} /></mesh>
+      <mesh position={[0, plant.matureHeightM * 0.6, 0]} castShadow={!ghost}><coneGeometry args={[canopy, plant.matureHeightM * 0.8, 14]} /><meshStandardMaterial color={selected || ghost ? '#b9e84d' : '#355a3c'} transparent={ghost} opacity={ghost ? 0.38 : 1} depthWrite={!ghost} /></mesh>
+    </> : <>
+      <mesh position={[0, plant.matureHeightM * (plant.kind === 'tree' ? 0.36 : 0.28), 0]} castShadow={!ghost}><cylinderGeometry args={[0.1, 0.15, plant.matureHeightM * (plant.kind === 'tree' ? 0.72 : 0.56), 8]} /><meshStandardMaterial color="#584434" transparent={ghost} opacity={ghost ? 0.42 : 1} /></mesh>
+      <mesh position={[0, plant.matureHeightM * 0.72, 0]} scale={[1, plant.kind === 'tree' ? plant.matureHeightM * 0.28 / canopy : 1, 1]} castShadow={!ghost}><sphereGeometry args={[canopy, 12, 9]} /><meshStandardMaterial color={selected ? '#b9e84d' : ghost ? '#b9e84d' : visibleLeaf ? '#477348' : '#756955'} transparent opacity={ghost ? 0.38 : visibleLeaf ? 0.92 : 0.52} depthWrite={!ghost} /></mesh>
     </>}
   </group>{selected && !ghost && repositioningRef === plant.ref && group.current && <TransformControls object={group.current} mode="translate" showY={false} userData={{ editorOnly: true }} onMouseUp={() => {
     if (!group.current) return
@@ -1045,7 +1062,7 @@ export function StudioScene() {
   const sky = sunAltitude > 12 ? '#aebdb1' : sunAltitude > 0 ? `#${new Color('#aebdb1').lerp(new Color('#c9a98c'), 1 - sunAltitude / 12).getHexString()}` : '#4b5461'
   const changedGhostPlants = ghost?.landscape.plants.filter((plant) => {
     const committed = project.landscape.plants.find((item) => item.ref === plant.ref)
-    return !committed || committed.position.x !== plant.position.x || committed.position.z !== plant.position.z
+    return !committed || committed.position.x !== plant.position.x || committed.position.z !== plant.position.z || committed.matureHeightM !== plant.matureHeightM
   }) ?? []
   return <>
     <color attach="background" args={[sky]} /><fog attach="fog" args={[sky, 450, 1100]} />
