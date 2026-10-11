@@ -12,6 +12,7 @@ import { atticWallProfile, wallProfileHeightAt } from './attic'
 import { sunMismatchIssues } from './sunlight'
 import { buildingCrossesAgriculturalZone } from './zoning'
 import { uStairHeadroom } from './stairs'
+import { roomDimensions } from './roomDimensions'
 import type { BuildingModel, LandscapeZone, OpeningModel, Polygon2, ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, RoofJunctionModel, RoofSegmentDefinition, RoofSegmentModel, SpaceBoundaryUse, StoreyModel, Vec2, WallModel } from './types'
 
 export { polygonArea } from './geometry'
@@ -680,12 +681,16 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
 }
 
 export const calculateMetrics = (project: ProjectV2): ProjectMetrics => {
-  const floorArea = (building: BuildingModel) => building.storeys.reduce((area, storey) => {
+  const slabArea = (building: BuildingModel) => building.storeys.reduce((area, storey) => {
     const slab = building.slabs.find((slab) => slab.ref === storey.baseSlabRef)
     return area + (slab ? polygonArea(slab.footprint) - (slab.holes ?? []).reduce((sum, hole) => sum + polygonArea(hole), 0) : 0)
   }, 0)
+  const floorArea = (building: BuildingModel) => building.storeys.reduce((area, storey) => area + storey.spaceRefs.reduce((storeyArea, spaceRef) => {
+    const space = building.spaces.find((candidate) => candidate.ref === spaceRef)
+    return storeyArea + (space ? roomDimensions(building, space).area : 0)
+  }, 0), 0)
   const homeAreaM2 = project.buildings.filter((building) => building.kind === 'house').reduce((sum, building) => sum + floorArea(building), 0)
-  const garageAreaM2 = project.buildings.filter((building) => building.kind === 'garage').reduce((sum, building) => sum + floorArea(building), 0)
+  const garageAreaM2 = project.buildings.filter((building) => building.kind === 'garage').reduce((sum, building) => sum + slabArea(building), 0)
   const landscapeAreaM2 = project.landscape.zones.reduce((sum, zone) => sum + polygonArea(zone.footprint), 0)
   const green = new Set(['lawn', 'bed', 'rain-garden', 'vegetable'])
   return { homeAreaM2, garageAreaM2, landscapeAreaM2, greenAreaM2: project.landscape.zones.filter((zone) => green.has(zone.kind)).reduce((sum, zone) => sum + polygonArea(zone.footprint), 0), spaceCount: project.buildings.reduce((sum, building) => sum + building.spaces.length, 0), plantCount: project.landscape.plants.length, fixtureCount: project.landscape.fixtures.length, annualWaterBalanceMm: project.climateProfile.months.reduce((sum, month) => sum + month.precipitationMm + project.climateProfile.irrigationMm - month.et0Mm, 0) }

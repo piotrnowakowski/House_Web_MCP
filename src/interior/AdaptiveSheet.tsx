@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronUp, X } from 'lucide-react'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import './adaptive.css'
+import { WorkspaceSaveStatus } from '../components/WorkspaceSaveStatus'
 
 export function useCompactLayout() {
   const [compact, setCompact] = useState(() => window.matchMedia('(max-width: 900px)').matches)
@@ -20,6 +21,8 @@ export function AdaptiveSheet({
   children,
   expanded,
   onExpanded,
+  revealKey,
+  footer,
 }: {
   open: boolean
   title: string
@@ -27,9 +30,17 @@ export function AdaptiveSheet({
   children: ReactNode
   expanded: boolean
   onExpanded: (expanded: boolean) => void
+  revealKey?: string | null
+  footer?: ReactNode
 }) {
   const start = useRef<number | null>(null)
   const panel = useRef<HTMLElement>(null)
+  const body = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    if (!open || !revealKey || !body.current) return
+    body.current.scrollTop = 0
+    body.current.querySelector<HTMLElement>('[data-selection-inspector]')?.focus({ preventScroll: true })
+  }, [open, revealKey])
   useEffect(() => {
     const viewport = window.visualViewport
     const update = () => {
@@ -62,7 +73,7 @@ export function AdaptiveSheet({
   return (
     <section
       ref={panel}
-      className={`adaptive-sheet ${expanded ? 'is-expanded' : ''}`}
+      className={`adaptive-sheet ${expanded ? 'is-expanded' : ''} ${footer ? 'has-edit-actions' : ''}`}
       role="dialog"
       aria-label={title}
       onPointerDown={(event) => event.stopPropagation()}
@@ -92,14 +103,16 @@ export function AdaptiveSheet({
       >
         <span className="sheet-grip" />
         <h2>{title}</h2>
-        <button aria-label={expanded ? 'Collapse panel' : 'Expand panel'} onClick={() => onExpanded(!expanded)}>
+        <button aria-label={expanded ? "Zwiń panel" : "Rozwiń panel"} onClick={() => onExpanded(!expanded)}>
           {expanded ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
         </button>
-        <button aria-label="Close panel" onClick={onClose}>
+        <button aria-label="Zamknij panel" onClick={onClose}>
           <X size={18} />
         </button>
       </header>
-      <div className="sheet-body">{children}</div>
+      <div className="sheet-body" ref={body}>{children}</div>
+      {footer && <div className="sheet-edit-actions">{footer}</div>}
+      <WorkspaceSaveStatus className="sheet-save-status" />
     </section>
   )
 }

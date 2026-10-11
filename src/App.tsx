@@ -1,5 +1,6 @@
 import { FloorToggle, TreePreferences, TreeToggle } from './PlotViewControls'
 import { staticAssetUrl } from './services/staticAssets'
+import { randomId } from './domain/randomId'
 import { RenderingControls } from './scene/RenderingControls'
 import { HouseStudyControl } from './HouseStudyControl'
 import { TransparencyControls } from './TransparencyControls'
@@ -12,7 +13,7 @@ import { Box, Eye, EyeOff, Focus, MoreHorizontal, Plus, Ruler, Settings2, Move, 
 import './interior/plot-mobile.css'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { dayParts } from './domain/climate'
-import { calculateMetrics } from './domain/commands'
+import { calculateMetrics, validateProject } from './domain/commands'
 import { gardenFixtureCatalog, nextFixturePosition, starterGardenCommands } from './domain/gardenFixtures'
 import { polygonArea, polygonCentroid, wallLength } from './domain/geometry'
 import { isModernBarnPreset } from './domain/presets'
@@ -33,6 +34,8 @@ import { flushAutosave } from './services/autosave'
 import { runWorkspaceActivity } from './services/workspaceLock'
 import { groupWorkspaces, workspaceVersionKind } from './services/workspaceGroups'
 import { BATH_ROOM_STUDY_REF } from './services/publishedBathRoom'
+import { ARCHITEKT_REF } from './services/publishedArchitekt'
+import { PAULINA_REF } from './services/publishedPaulina'
 import { showStructureViews } from './services/structureViews'
 import { registerWebMcpTools, resolveVariantConfirmation } from './services/webmcp'
 import type { WebMcpManifest } from './services/webmcpDefinitions'
@@ -43,7 +46,7 @@ const PlotCanvas = lazy(() => import('./scene/PlotCanvas'))
 const InteriorEditor = lazy(() => import('./interior/InteriorEditor').then(module => ({ default: module.InteriorEditor })))
 
 const modes = [
-  ['edit', 'Edit'], ['measure-length', 'Length'], ['measure-area', 'Area'], ['measure-height', 'Height'],
+  ['edit', "Edytuj"], ['measure-length', 'Length'], ['measure-area', 'Area'], ['measure-height', 'Height'],
 ] as const
 
 const modeTitles = {
@@ -95,7 +98,7 @@ function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenFixtures
     {!compact && <TransparencyControls />}
     <div className="top-actions">
       <RenderingControls />
-      <button onClick={onOpenInterior} disabled={!project.buildings.length} title="Edit rooms, furniture and house levels">House interior</button>
+      <button onClick={onOpenInterior} disabled={!project.buildings.length} title="Edit rooms, furniture and house levels">Wnętrze domu</button>
       <button className={explode ? 'active' : ''} aria-pressed={explode} title="Separate every room, storey and the roof" onClick={() => {
         const next = !explode; setViewerMode('edit'); setExplode(next)
         const rooms = project.buildings.reduce((sum, building) => sum + building.spaces.length, 0)
@@ -103,7 +106,7 @@ function Toolbar({ onOpenInterior, onOpenClimate, onOpenPlanting, onOpenFixtures
       }}>Explode</button>
       <button className={`fixtures-button${fixturesOpen ? ' active' : ''}`} onClick={onOpenFixtures} aria-label="Open garden fixtures" aria-expanded={fixturesOpen}><span>Garden fixtures</span><small>{project.landscape.fixtures.length} placed</small></button>
       <ClimateMenu onOpenClimate={onOpenClimate} onOpenPlanting={onOpenPlanting} />
-      <button onClick={onOpenProposals}>Proposals</button>
+      <button onClick={onOpenProposals}>Propozycje</button>
       <button onClick={onOpenMcpTools}>MCP Tools</button>
       <button disabled={busy} onClick={generateReport}>{busy ? 'Rendering…' : 'Architectural set'}</button>
       {busy && <button onClick={() => reportController.current?.abort()}>Cancel report</button>}
@@ -242,8 +245,7 @@ function McpToolsPanel({ onClose }: { onClose: () => void }) {
 function GardenFixturesPanel({ onClose }: { onClose: () => void }) {
   const project = useStudioStore((state) => state.project); const commitCommand = useStudioStore((state) => state.commitCommand); const commitCommands = useStudioStore((state) => state.commitCommands); const setSelectedRef = useStudioStore((state) => state.setSelectedRef); const setToast = useStudioStore((state) => state.setToast); const focusGardenFixtures = useStudioStore((state) => state.focusGardenFixtures)
   const placeOne = (catalogId: GardenFixtureCatalogId) => {
-    const count = project.landscape.fixtures.filter((fixture) => fixture.catalogId === catalogId).length + 1
-    const fixtureRef = `fixture/${catalogId}-${count}`
+    const fixtureRef = `fixture/${catalogId}-${randomId()}`
     try {
       commitCommand({ type: 'garden-fixture.update', action: 'add', fixtureRef, catalogId, position: nextFixturePosition(project) })
       setSelectedRef(fixtureRef)
@@ -265,7 +267,7 @@ function GardenFixturesPanel({ onClose }: { onClose: () => void }) {
   const fixtureRows = (items: typeof gardenFixtureCatalog) => items.map((item) => <article className="fixture-row" key={item.id}>
     <span className={`fixture-thumb ${item.id}`} aria-hidden="true"><i /><i /><i /><i /></span>
     <div><h3>{item.name}</h3><p>{item.description}</p><small>{item.widthM.toFixed(1)} × {item.depthM.toFixed(1)} m · {project.landscape.fixtures.filter((fixture) => fixture.catalogId === item.id).length} placed</small></div>
-    <button onClick={() => placeOne(item.id)}>Add</button>
+    <button onClick={() => placeOne(item.id)}>Dodaj</button>
   </article>)
   return <section className="garden-fixtures-panel" aria-label="Garden fixture library">
     <header><div><p className="eyebrow">SEMANTIC GARDEN / FIXTURES</p><h2>Garden fixtures</h2><small>{project.landscape.fixtures.length} placed · shared by editor and WebMCP</small></div><button className="close" onClick={onClose} aria-label="Close garden fixtures">×</button></header>
@@ -431,10 +433,13 @@ function StartScreen() {
   }
   const [showOtherVersions, setShowOtherVersions] = useState(false)
   const projectGroups = groupWorkspaces(saved, favoriteRef).filter((item) => item.ref !== REFERENCE_HOUSE_REF)
-  const hasMainProject = projectGroups.some((item) => item.ref === BATH_ROOM_STUDY_REF)
-  const visibleProjects = !import.meta.env.PROD || showOtherVersions || !hasMainProject
+  const featuredRefs = [BATH_ROOM_STUDY_REF, ARCHITEKT_REF, PAULINA_REF]
+  const hasMainProject = projectGroups.some((item) => featuredRefs.includes(item.ref))
+  const showHistory = showOtherVersions || !hasMainProject
+  const visibleProjects = showHistory
     ? projectGroups
-    : projectGroups.filter((item) => item.ref === BATH_ROOM_STUDY_REF)
+    : projectGroups.filter((item) => featuredRefs.includes(item.ref)).sort((a, b) =>
+      Number(b.ref === favoriteRef) - Number(a.ref === favoriteRef) || featuredRefs.indexOf(a.ref) - featuredRefs.indexOf(b.ref))
   const [expandedProjects, setExpandedProjects] = useState<string[]>([])
   const syncConflicts = useStudioStore((state) => state.projectSyncConflicts)
   const loading = useStudioStore((state) => state.loadingWorkspaces)
@@ -490,12 +495,12 @@ function StartScreen() {
     finally { setSavingName(false) }
   }
   return <div className="start-screen-scrim"><section className="start-screen" role="dialog" aria-modal="true" aria-labelledby="start-screen-title" ref={dialog} onKeyDown={onKeyDown}>
-    <p className="eyebrow">PROJECTS</p>
-    <h2 id="start-screen-title">Where do you want to plan today?</h2>
+    <p className="eyebrow">PROJEKTY</p>
+    <h2 id="start-screen-title">Który projekt chcesz otworzyć?</h2>
     {mode === 'choose' ? <>
-      {loading && <p role="status">Loading saved and published projects…</p>}
-      {syncConflicts.length > 0 && <div role="alert"><p>Opublikowana wersja i Twój zapis mają sprzeczne zmiany. Oba zapisy są zachowane. Pokaż pozostałe projekty i wersje, a potem rozwiń „Wersje” przy projekcie, aby otworzyć wersję oznaczoną jako konflikt.</p><details><summary>Show conflicts ({syncConflicts.length})</summary><ul>{syncConflicts.map((path) => <li key={path}>{path}</li>)}</ul></details></div>}
-      {visibleProjects.length > 0 && <div className="start-saved"><h3>Twoje projekty</h3>{import.meta.env.PROD && hasMainProject && <button type="button" aria-expanded={showOtherVersions} onClick={() => { setShowOtherVersions((value) => !value); setExpandedProjects([]) }}>{showOtherVersions ? 'Ukryj pozostałe projekty i wersje' : 'Pokaż pozostałe projekty i wersje'}</button>}{visibleProjects.map((group, index) => {
+      {loading && <p role="status">Wczytywanie zapisanych i opublikowanych projektów…</p>}
+      {syncConflicts.length > 0 && (showHistory || visibleProjects.some(group => group.hasConflict)) && <div role="alert"><p>Opublikowana wersja i Twój zapis mają sprzeczne zmiany. Oba zapisy są zachowane. Otwórz archiwum, a potem rozwiń „Wersje” przy projekcie, aby otworzyć wersję oznaczoną jako konflikt.</p><details><summary>Pokaż konflikty ({syncConflicts.length})</summary><ul>{syncConflicts.map((path) => <li key={path}>{path}</li>)}</ul></details></div>}
+      {visibleProjects.length > 0 && <div className="start-saved"><h3>Twoje projekty</h3>{visibleProjects.map((group, index) => {
         const current = group.current
         const versions = current ? [current, ...group.versions] : group.versions
         const expanded = expandedProjects.includes(group.ref)
@@ -510,8 +515,8 @@ function StartScreen() {
             <div><strong>{group.name}</strong><small>{current ? 'Bieżący projekt' : 'Zachowana historia · brak bieżącego zapisu'}</small>{group.hasConflict && <span className="project-conflict">Wersja z konfliktem do sprawdzenia</span>}</div>
             <div className="project-card-actions">
               <button className="project-favorite" aria-label={`${favoriteRef === group.ref ? 'Usuń z ulubionych' : 'Oznacz jako ulubiony'}: ${group.name}`} title={favoriteRef === group.ref ? 'Ulubiony projekt' : 'Oznacz jako ulubiony'} aria-pressed={favoriteRef === group.ref} onClick={() => toggleFavorite(group.ref)}><Heart size={20} fill={favoriteRef === group.ref ? 'currentColor' : 'none'} aria-hidden="true" /></button>
-              {current && <><button disabled={savingName} aria-label={index === 0 ? `Continue · ${group.name}` : `Open · ${group.name}`} className={index === 0 ? 'primary' : ''} onClick={() => void openWorkspace(current.ref)}>Otwórz projekt</button><button disabled={savingName} aria-label={`Zmień nazwę: ${group.name}`} aria-expanded={renameRef === current.ref} onClick={(event) => beginRename(event, current)}>Zmień nazwę</button></>}
-              {(!import.meta.env.PROD || showOtherVersions || !hasMainProject) && <button disabled={savingName} className="project-versions-toggle" aria-expanded={expanded} aria-controls={`versions-${group.ref}`} onClick={() => { setExpandedProjects((refs) => expanded ? refs.filter((ref) => ref !== group.ref) : [...refs, group.ref]); setRenameRef(null); setRemoveRef(null) }}><span aria-hidden="true">{expanded ? '▾' : '▸'}</span> Wersje ({versions.length})</button>}
+              {current && <><button disabled={savingName} aria-label={`Otwórz projekt: ${group.name}`} className={index === 0 ? 'primary' : ''} onClick={() => void openWorkspace(current.ref)}>Otwórz projekt</button><button disabled={savingName} aria-label={`Zmień nazwę: ${group.name}`} aria-expanded={renameRef === current.ref} onClick={(event) => beginRename(event, current)}>Zmień nazwę</button></>}
+              {showHistory && <button disabled={savingName} className="project-versions-toggle" aria-expanded={expanded} aria-controls={`versions-${group.ref}`} onClick={() => { setExpandedProjects((refs) => expanded ? refs.filter((ref) => ref !== group.ref) : [...refs, group.ref]); setRenameRef(null); setRemoveRef(null) }}><span aria-hidden="true">{expanded ? '▾' : '▸'}</span> Wersje ({versions.length})</button>}
             </div>
           </div>
           {expanded && <div className="project-versions" id={`versions-${group.ref}`} role="region" aria-label={`Wersje projektu: ${group.name}`}>
@@ -530,15 +535,16 @@ function StartScreen() {
           {removeItem && <div className="remove-confirm"><span>Usunąć zapis r{removeItem.revision} „{removeItem.name}” i jego propozycje z tej przeglądarki? Pozostałe wersje zostaną zachowane.</span><button onClick={() => setRemoveRef(null)}>Zachowaj</button><button className="confirm-delete" onClick={() => void remove(removeItem.ref)}>Usuń zapis</button></div>}
         </article>
       })}</div>}
-      <div className="start-options">
-        {(!import.meta.env.PROD || showOtherVersions || !hasMainProject) && <button className="start-card" disabled={loading || savingName} onClick={() => void useStudioStore.getState().openZielonkiStudy()}><strong>Zielonki house study</strong><span>Continue your saved house, or explore the furnished modern barn with the measured interior, both floors and the Zielonki garden.</span></button>}
-        <button className="start-card" disabled={savingName} onClick={() => { cancelRename(); setMode('terrain') }}><strong>New terrain</strong><span>An empty rectangular plot with your own size, north direction and coordinates, ready for a house.</span></button>
-      </div>
+      {hasMainProject && <div className="start-actions"><button type="button" aria-expanded={showOtherVersions} onClick={() => { setShowOtherVersions((value) => !value); setExpandedProjects([]); cancelRename(); setRemoveRef(null) }}>{showOtherVersions ? 'Zamknij archiwum' : 'Archiwum i pozostałe projekty'}</button></div>}
+      {showHistory && <div className="start-options">
+        <button className="start-card" disabled={loading || savingName} onClick={() => void useStudioStore.getState().openZielonkiStudy()}><strong>Dom w Zielonkach</strong><span>Otwórz zapisany dom lub obejrzyj wyposażone wnętrze, obie kondygnacje i ogród w Zielonkach.</span></button>
+        <button className="start-card" disabled={savingName} onClick={() => { cancelRename(); setMode('terrain') }}><strong>Nowa działka</strong><span>Pusta prostokątna działka z własnymi wymiarami, kierunkiem północy i współrzędnymi, gotowa na dom.</span></button>
+      </div>}
       {hydrated && <div className="start-actions"><button disabled={savingName} onClick={closeLauncher}>Keep working on {project.name}</button></div>}
-    </> : <form className="terrain-form" aria-label="New terrain" onSubmit={submit} noValidate>
+    </> : <form className="terrain-form" aria-label="Nowa działka" onSubmit={submit} noValidate>
       {field('name', 'Plot name', { type: 'text', maxLength: 60, autoComplete: 'off' })}
-      {field('widthM', 'Width (m)', { type: 'number', min: 5, max: 500, step: 0.5, inputMode: 'decimal' })}
-      {field('depthM', 'Depth (m)', { type: 'number', min: 5, max: 500, step: 0.5, inputMode: 'decimal' })}
+      {field('widthM', "Szerokość (m)", { type: 'number', min: 5, max: 500, step: 0.5, inputMode: 'decimal' })}
+      {field('depthM', "Głębokość (m)", { type: 'number', min: 5, max: 500, step: 0.5, inputMode: 'decimal' })}
       {field('northDegrees', 'North (°)', { type: 'number', min: -180, max: 180, step: 0.1, inputMode: 'decimal' })}
       <label><span>Timezone</span><select name="timezone" value={values.timezone} onChange={(event) => setValues({ ...values, timezone: event.target.value })}>{timezoneOptions.map((zone) => <option key={zone} value={zone}>{zone}</option>)}</select>{errors.timezone && <em className="field-error" role="alert">{errors.timezone}</em>}</label>
       {field('latitude', 'Latitude', { type: 'number', min: -90, max: 90, step: 0.0001, inputMode: 'decimal' })}
@@ -566,7 +572,7 @@ function Inspector() {
   const selectedWall = openingBuilding?.walls.find((wall) => wall.ref === selectedRef || wall.openings.some((opening) => opening.ref === selectedRef))
   const selectedOpening = selectedWall?.openings.find((opening) => opening.ref === selectedRef)
   const exteriorWalls = project.buildings.flatMap((item) => item.walls.filter((wall) => item.interiorSource ? isExteriorWall(item, wall) : item.spaces.filter((space) => space.boundary.some((boundary) => boundary.wallRef === wall.ref)).length <= 1))
-  const selectedTitle = building?.name ?? fixture?.name ?? plant?.name ?? zone?.name ?? (selectedGableWall ? 'Gable wall' : selectedRoofSegment ? 'Roof segment' : selectedOpening ? `${selectedOpening.kind === 'window' ? 'Window' : 'Door'} opening` : selectedWall ? wallLabel(selectedWall) : selectedRef ? selectedRef.split('/').at(-1) : 'Project overview')
+  const selectedTitle = building?.name ?? fixture?.name ?? plant?.name ?? zone?.name ?? (selectedGableWall ? 'Gable wall' : selectedRoofSegment ? 'Roof segment' : selectedOpening ? `${selectedOpening.kind === 'window' ? "Okno" : "Drzwi"} opening` : selectedWall ? wallLabel(selectedWall) : selectedRef ? selectedRef.split('/').at(-1) : 'Project overview')
   const modernBarnActive = isModernBarnPreset(project)
   const actionObject = building ?? fixture ?? plant ?? zone; const movable = Boolean(building || fixture || plant || zone); const locked = actionObject && 'locked' in actionObject ? actionObject.locked : false
   const zoneCenter = zone ? polygonCentroid(zone.footprint) : null
@@ -597,7 +603,7 @@ function Inspector() {
         {movable && <button disabled={locked} onClick={() => selectedRef && beginReposition(selectedRef)}>Move</button>}
         <button className="delete-object" disabled={locked} onClick={() => setDeleteRef(selectedRef)}>Delete</button>
       </>}
-      {deleteRef === selectedRef && <div className="delete-confirm"><strong>Delete {selectedTitle}?</strong><span>This creates a reviewable proposal. Nothing changes until approval.</span><div><button onClick={() => setDeleteRef(null)}>Cancel</button><button className="confirm-delete" onClick={proposeDelete}>Create delete proposal</button></div></div>}
+      {deleteRef === selectedRef && <div className="delete-confirm"><strong>Delete {selectedTitle}?</strong><span>This creates a reviewable proposal. Nothing changes until approval.</span><div><button onClick={() => setDeleteRef(null)}>Anuluj</button><button className="confirm-delete" onClick={proposeDelete}>Create delete proposal</button></div></div>}
     </section>}
     {building && <dl className="readout"><div><dt>Position</dt><dd>{building.position.x.toFixed(2)}, {building.position.z.toFixed(2)} m</dd></div><div><dt>Rotation</dt><dd>{building.rotationDegrees.toFixed(1)}°</dd></div><div><dt>Storeys</dt><dd>{building.storeys.length}</dd></div></dl>}
     {fixture && <dl className="readout"><div><dt>Fixture</dt><dd>{fixture.catalogId}</dd></div><div><dt>Position</dt><dd>{fixture.position.x.toFixed(2)}, {fixture.position.z.toFixed(2)} m</dd></div><div><dt>Rotation</dt><dd>{fixture.rotationDegrees.toFixed(1)}°</dd></div></dl>}
@@ -608,7 +614,7 @@ function Inspector() {
     {selectedGableWall && <dl className="readout"><div><dt>Wall type</dt><dd>Triangular gable</dd></div><div><dt>Roof segment</dt><dd>{selectedGableWall.segmentRef.split('/').at(-1)?.replaceAll('-', ' ')}</dd></div><div><dt>Finish</dt><dd>{selectedGableFinish?.material}</dd></div></dl>}
     {selectedWall && openingBuilding ? <details><summary>Façade layout presets</summary><OpeningEditor building={openingBuilding} wall={selectedWall} selectedRef={selectedRef} /></details> : selectedGableWall && selectedGableBuilding && selectedGableFinish ? <WallFinishEditor building={selectedGableBuilding} wall={{ ref: selectedGableWall.ref, finish: selectedGableFinish }} /> : <>
       {project.buildings.length ? <section className="house-presets"><h3>House preset</h3><button className={modernBarnActive ? 'active' : ''} onClick={() => useModernBarnPreset()}><span>Modern barn</span><small>2 levels · 45° gable</small><b>{modernBarnActive ? 'ACTIVE' : 'USE'}</b></button></section> : <AddHouseCard />}
-      <div className="metric-grid"><div><span>Home</span><strong>{metrics.homeAreaM2.toFixed(0)} m²</strong></div><div><span>Green</span><strong>{metrics.greenAreaM2.toFixed(0)} m²</strong></div><div><span>Plants</span><strong>{metrics.plantCount}</strong></div><div><span>Fixtures</span><strong>{metrics.fixtureCount}</strong></div></div>
+      <div className="metric-grid"><div><span>Floor area</span><strong>{metrics.homeAreaM2.toFixed(1)} m²</strong></div><div><span>Green</span><strong>{metrics.greenAreaM2.toFixed(0)} m²</strong></div><div><span>Plants</span><strong>{metrics.plantCount}</strong></div><div><span>Fixtures</span><strong>{metrics.fixtureCount}</strong></div></div>
     </>}
     <section className="model-tree"><h3>Buildings</h3>{!project.buildings.length && <p className="tree-empty">No buildings yet</p>}{project.buildings.map((item) => <button key={item.ref} onClick={() => useStudioStore.getState().setSelectedRef(item.ref)}><span>{item.name}</span><small>{item.storeys.length} storey</small></button>)}</section>
     <section className="model-tree wall-tree"><h3>Exterior walls</h3>{!exteriorWalls.length && <p className="tree-empty">No walls yet</p>}{exteriorWalls.map((wall) => <button key={wall.ref} className={selectedWall?.ref === wall.ref ? 'active' : ''} onClick={() => useStudioStore.getState().setSelectedRef(wall.ref)} aria-label={`Edit openings on ${wallLabel(wall)}`}><span>{wallLabel(wall)}</span><small>{wall.openings.length ? `${wall.openings.length} opening${wall.openings.length === 1 ? '' : 's'}` : 'solid'}</small></button>)}</section>
@@ -634,13 +640,13 @@ function ProposalsPanel({ onClose }: { onClose: () => void }) {
   const review = () => { if (!selected || !isProposal) return; reopenProposal(selected.ref); onClose() }
   const recreate = () => { if (!selected || !isProposal) return; recreateProposal(selected.ref); onClose() }
   return <section className="proposals-panel" aria-label="Proposal review and history">
-    <header><div><p className="eyebrow">PERSISTENT REVIEW / PROJECT r{useStudioStore.getState().project.revision}</p><h2>Proposals</h2><small>Drafts, ghost variants and decisions are kept separately from undo history.</small></div><button className="close" onClick={onClose} aria-label="Close proposals">×</button></header>
+    <header><div><p className="eyebrow">PERSISTENT REVIEW / PROJECT r{useStudioStore.getState().project.revision}</p><h2>Propozycje</h2><small>Drafts, ghost variants and decisions are kept separately from undo history.</small></div><button className="close" onClick={onClose} aria-label="Close proposals">×</button></header>
     <nav className="proposal-filters" aria-label="Proposal status filters">{proposalFilters.map((item) => <button key={item.value} className={filter === item.value ? 'active' : ''} onClick={() => { setFilter(item.value); setSelectedRef(null) }}><span>{item.label}</span><b>{counts[item.value]}</b></button>)}</nav>
     <div className="proposals-body">
       <div className="proposal-list">{records.length ? records.map((record) => <button key={record.ref} className={selected?.ref === record.ref ? 'active' : ''} onClick={() => setSelectedRef(record.ref)}><span>{record.label}</span><small>{record.ref}</small><em>r{record.baseRevision} · {new Date(record.createdAt).toLocaleString()}</em></button>) : <p>No {filter} proposals.</p>}</div>
       <article className="proposal-detail">{selected ? <>
         <div className="proposal-detail-head"><div><span className={`proposal-status ${'status' in selected ? selected.status : 'draft'}`}>{'status' in selected ? selected.status : 'draft'}</span><h3>{selected.label}</h3><code>{selected.ref}</code></div>{isProposal && selected.status === 'pending' && <button onClick={review}>Review in scene</button>}{isProposal && selected.status === 'stale' && <button onClick={recreate}>Recreate from current revision</button>}</div>
-        <dl><div><dt>Base revision</dt><dd>r{selected.baseRevision}</dd></div><div><dt>Operations</dt><dd>{selected.commands.length}</dd></div>{isProposal && <><div><dt>Home area</dt><dd>{selected.metrics.homeAreaM2.toFixed(1)} m²</dd></div><div><dt>Validation</dt><dd>{selected.issues.filter((issue) => issue.severity === 'error').length ? `${selected.issues.filter((issue) => issue.severity === 'error').length} blocking` : 'Ready'}</dd></div></>}</dl>
+        <dl><div><dt>Base revision</dt><dd>r{selected.baseRevision}</dd></div><div><dt>Operations</dt><dd>{selected.commands.length}</dd></div>{isProposal && <><div><dt>Floor area</dt><dd>{selected.metrics.homeAreaM2.toFixed(1)} m²</dd></div><div><dt>Validation</dt><dd>{selected.issues.filter((issue) => issue.severity === 'error').length ? `${selected.issues.filter((issue) => issue.severity === 'error').length} blocking` : 'Ready'}</dd></div></>}</dl>
         <h4>Operation audit</h4><ol>{selected.commands.map((command, index) => <li key={index}><span>{index + 1}</span><code>{command.type} · {Object.entries(command).filter(([key, value]) => key.endsWith('Ref') && typeof value === 'string').map(([, value]) => value).join(' · ')}</code></li>)}</ol>
         {isProposal && selected.issues.length > 0 && <><h4>Validation and warnings</h4><ul className="proposal-issues">{selected.issues.map((issue, index) => <li key={`${issue.code}-${index}`} className={issue.severity}>{issue.severity}: {issue.message}</li>)}</ul></>}
         {isProposal && selected.decisionAt && <p className="proposal-decision">Decision {new Date(selected.decisionAt).toLocaleString()}{selected.resultingRevision ? ` · project r${selected.resultingRevision}` : ''}{selected.rejectionReason ? ` · ${selected.rejectionReason}` : ''}</p>}
@@ -659,7 +665,7 @@ function ReportPanel() {
     <div className="report-body">
       <div className="thumbs">{report.views.map((item, index) => <button key={`${item.type}-${index}`} className={selected === index ? 'active' : ''} onClick={() => setSelected(index)}><img src={item.imageUrl} alt={item.title} /><span>{item.title}</span></button>)}</div>
       <div className="drawing"><img src={view.imageUrl} alt={view.title} /><div><strong>{view.title}</strong><span>960 × 640 · ephemeral view</span></div></div>
-      <div className="placement"><h3>Building placement</h3><table><thead><tr><th>Building</th><th>X / Z</th><th>Rotation</th><th>W × D × H</th><th>Base</th></tr></thead><tbody>{report.buildings.map((item) => <tr key={item.ref}><td>{item.name}<small>{item.ref}</small></td><td>{item.positionM.x.toFixed(2)} / {item.positionM.z.toFixed(2)} m</td><td>{item.rotationDegrees.toFixed(1)}°</td><td>{item.widthM.toFixed(2)} × {item.depthM.toFixed(2)} × {item.heightM.toFixed(2)} m</td><td>{item.baseElevationM.toFixed(2)} m</td></tr>)}</tbody></table></div>
+      <div className="placement"><h3>Building placement</h3><table><thead><tr><th>Budynek</th><th>X / Z</th><th>Rotation</th><th>W × D × H</th><th>Base</th></tr></thead><tbody>{report.buildings.map((item) => <tr key={item.ref}><td>{item.name}<small>{item.ref}</small></td><td>{item.positionM.x.toFixed(2)} / {item.positionM.z.toFixed(2)} m</td><td>{item.rotationDegrees.toFixed(1)}°</td><td>{item.widthM.toFixed(2)} × {item.depthM.toFixed(2)} × {item.heightM.toFixed(2)} m</td><td>{item.baseElevationM.toFixed(2)} m</td></tr>)}</tbody></table></div>
     </div>
   </section>
 }
@@ -671,13 +677,20 @@ const commandAudit = (command: ProjectCommand) => {
 }
 
 function VariantApproval() {
+  const project = useStudioStore((state) => state.project)
   const ref = useStudioStore((state) => state.confirmationVariantRef); const variant = useStudioStore((state) => state.variants.find((item) => item.ref === ref)); if (!ref || !variant) return null
   const blocking = variant.issues.filter((issue) => issue.severity === 'error')
+  const issueKey = (issue: typeof variant.issues[number]) => JSON.stringify([issue.severity, issue.code, issue.subjectRef, issue.message])
+  const existing = new Set(validateProject(project).filter(issue => issue.severity === 'warning').map(issueKey))
+  const priorWarnings = variant.issues.filter(issue => issue.severity === 'warning' && existing.has(issueKey(issue)))
+  const newIssues = variant.issues.filter(issue => issue.severity === 'error' || !existing.has(issueKey(issue)))
   return <div className="approval"><p className="eyebrow">GHOST VARIANT / {variant.commands.length} OPERATION{variant.commands.length === 1 ? '' : 'S'}</p><h2>{variant.label}</h2><p>Review the translucent proposal and its combined impact before one atomic approval.</p>
-    <dl><div><dt>Home area</dt><dd>{variant.metrics.homeAreaM2.toFixed(1)} m²</dd></div><div><dt>Plants</dt><dd>{variant.metrics.plantCount}</dd></div><div><dt>Fixtures</dt><dd>{variant.metrics.fixtureCount}</dd></div><div><dt>Validation</dt><dd>{blocking.length ? `${blocking.length} blocking` : 'Ready'}</dd></div></dl>
+    <dl><div><dt>Floor area</dt><dd>{variant.metrics.homeAreaM2.toFixed(1)} m²</dd></div><div><dt>Plants</dt><dd>{variant.metrics.plantCount}</dd></div><div><dt>Fixtures</dt><dd>{variant.metrics.fixtureCount}</dd></div><div><dt>Validation</dt><dd>{blocking.length ? `${blocking.length} blocking` : 'Ready'}</dd></div></dl>
     <ol aria-label="Variant operation audit">{variant.commands.map((command, index) => <li key={index}><span>{index + 1}</span><code>{commandAudit(command)}</code></li>)}</ol>
-    {variant.issues.length > 0 && <ul className="approval-issues">{variant.issues.map((issue, index) => <li key={`${issue.code}-${index}`} className={issue.severity}>{issue.severity}: {issue.message}</li>)}</ul>}
-    <div className="approval-actions"><button className="report-button" disabled={blocking.length > 0} onClick={() => resolveVariantConfirmation(true)}>Apply complete variant</button><button onClick={() => resolveVariantConfirmation(false)}>Reject all</button></div></div>
+    <div className="approval-actions"><button className="report-button" disabled={blocking.length > 0} onClick={() => resolveVariantConfirmation(true)}>Apply complete variant</button><button onClick={() => resolveVariantConfirmation(false)}>Reject all</button></div>
+    {newIssues.length > 0 && <ul className="approval-issues">{newIssues.map((issue, index) => <li key={`${issue.code}-${index}`} className={issue.severity}>{issue.severity}: {issue.message}</li>)}</ul>}
+    {priorWarnings.length > 0 && <details className="approval-existing-warnings"><summary>Istniejące uwagi do projektu ({priorWarnings.length})</summary><ul className="approval-issues">{priorWarnings.map((issue, index) => <li key={`${issue.code}-${index}`}>{issue.message}</li>)}</ul></details>}
+    </div>
 }
 
 const monthDays = (month: number) => new Date(Date.UTC(2026, month, 0)).getUTCDate()
@@ -760,12 +773,12 @@ export function App() {
     window.addEventListener('keydown', keyboard); return () => window.removeEventListener('keydown', keyboard)
   }, [setToast, undo, interiorOpen])
   useEffect(() => () => useStudioStore.getState().setStructureReport(null), [])
-  if (interiorOpen) return <Suspense fallback={<div className="editor-loading" role="status">Opening house interior...</div>}><InteriorEditor initialStoreyRef={initialStoreyRef} onBack={() => { setInteriorOpen(false); setInitialStoreyRef(undefined) }} approval={<VariantApproval />} /></Suspense>
+  if (interiorOpen) return <Suspense fallback={<div className="editor-loading" role="status">Otwieranie wnętrza domu…</div>}><InteriorEditor initialStoreyRef={initialStoreyRef} onBack={() => { setInteriorOpen(false); setInitialStoreyRef(undefined) }} approval={<VariantApproval />} /></Suspense>
   const toolbar = <Toolbar onOpenInterior={() => { setDataPanel(null); setInteriorOpen(true) }} onOpenClimate={() => setDataPanel('climate')} onOpenPlanting={() => setDataPanel('planting')} fixturesOpen={dataPanel === 'fixtures'} onOpenFixtures={() => { const opening = dataPanel !== 'fixtures'; setDataPanel(opening ? 'fixtures' : null); if (opening) focusGardenFixtures() }} onOpenMcpTools={() => setDataPanel('mcp-tools')} onOpenProposals={() => setDataPanel('proposals')} onOpenProjects={() => { setDataPanel(null); void openLauncher() }} />
   const dataContent = <>{dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'proposals' && <ProposalsPanel onClose={() => setDataPanel(null)} />}</>
   const movable = !!selectedRef && [...project.buildings, ...project.landscape.fixtures, ...project.landscape.plants, ...project.landscape.zones].some((value) => value.ref === selectedRef && !('locked' in value && value.locked))
   return <PrecisionControls><NeighborPreferences /><TreePreferences /><main className={`${compact ? 'compact-plot' : ''} ${controlsHidden ? 'plot-controls-hidden' : ''}`} aria-label="ProjectV2 spatial planning workspace">{!compact && <>{toolbar}<Inspector /></>}
-    {compact && (controlsHidden ? <button className="plot-restore" onClick={() => setControlsHidden(false)}><Eye size={18} />Show controls</button> : <><header className="plot-compact-top"><strong>Spatial editor</strong><TransparencyControls /><NeighborToggle iconOnly /><TreeToggle /><FloorToggle onSelect={openFloor} /><HouseStudyControl /><button className="plot-interior-button" aria-label="House interior" disabled={!project.buildings.length} onClick={() => { setDataPanel(null); setInteriorOpen(true) }}><Box size={18} /><span>House interior</span></button><button aria-label="Fit plot view" onClick={refocusCamera}><Focus size={20} /></button></header><nav className="plot-action-bar" aria-label="Plot actions">{viewerMode !== 'edit' ? <><button onClick={() => setDataPanel(dataPanel === 'measure' ? null : 'measure')}><Ruler size={19} />Measure options</button><button onClick={() => { window.dispatchEvent(new Event(CLEAR_MEASUREMENT_EVENT)); useStudioStore.getState().setViewerMode('edit'); setDataPanel(null) }}><Check size={19} />Done</button></> : <><button onClick={() => setDataPanel(dataPanel === 'fixtures' ? null : 'fixtures')}><Plus size={20} />Add</button><button onClick={() => setDataPanel(dataPanel === 'inspector' ? null : 'inspector')}><Settings2 size={19} />{selectedRef ? 'Edit selection' : 'Edit'}</button>{selectedRef && movable ? <button onClick={() => { useStudioStore.getState().beginReposition(selectedRef); setDataPanel(null) }}><Move size={19} />Move</button> : <button onClick={() => { useStudioStore.getState().setViewerMode('measure-length'); setDataPanel(null) }}><Ruler size={19} />Measure</button>}<button onClick={() => setDataPanel(dataPanel === 'more' ? null : 'more')}><MoreHorizontal size={19} />More</button></>}</nav><AdaptiveSheet open={!!dataPanel} title={dataPanel === 'inspector' ? 'Selection' : dataPanel === 'fixtures' ? 'Garden fixtures' : dataPanel === 'measure' ? 'Measure' : dataPanel === 'more' ? 'View & project' : 'Project tools'} expanded={sheetExpanded} onExpanded={setSheetExpanded} onClose={() => setDataPanel(null)}>{dataPanel === 'inspector' && <Inspector />}{dataPanel === 'more' && <><NeighborSettings onView={() => setDataPanel(null)} /><button onClick={() => { setControlsHidden(true); setDataPanel(null) }}><EyeOff size={18} />Hide controls</button>{toolbar}<SunWidget /><div className="plot-history"><button disabled={!useStudioStore.getState().history.length} onClick={undo}>Undo</button><button disabled={!useStudioStore.getState().future.length} onClick={() => useStudioStore.getState().redo()}>Redo</button></div></>}{dataPanel === 'measure' && <ExactMeasureTools />}{dataPanel === 'measure' && modes.filter(([value]) => value !== 'edit').map(([value, label]) => <button key={value} onClick={() => { useStudioStore.getState().setViewerMode(value); setDataPanel(null) }}>{label}</button>)}{dataContent}</AdaptiveSheet></>)}
+    {compact && (controlsHidden ? <button className="plot-restore" onClick={() => setControlsHidden(false)}><Eye size={18} />Pokaż narzędzia</button> : <><header className="plot-compact-top"><strong>Spatial editor</strong><TransparencyControls /><NeighborToggle iconOnly /><TreeToggle /><FloorToggle onSelect={openFloor} /><HouseStudyControl /><button className="plot-interior-button" aria-label="Wnętrze domu" disabled={!project.buildings.length} onClick={() => { setDataPanel(null); setInteriorOpen(true) }}><Box size={18} /><span>Wnętrze domu</span></button><button aria-label="Fit plot view" onClick={refocusCamera}><Focus size={20} /></button></header><nav className="plot-action-bar" aria-label="Plot actions">{viewerMode !== 'edit' ? <><button onClick={() => setDataPanel(dataPanel === 'measure' ? null : 'measure')}><Ruler size={19} />Measure options</button><button onClick={() => { window.dispatchEvent(new Event(CLEAR_MEASUREMENT_EVENT)); useStudioStore.getState().setViewerMode('edit'); setDataPanel(null) }}><Check size={19} />Zakończ</button></> : <><button onClick={() => setDataPanel(dataPanel === 'fixtures' ? null : 'fixtures')}><Plus size={20} />Dodaj</button><button onClick={() => setDataPanel(dataPanel === 'inspector' ? null : 'inspector')}><Settings2 size={19} />{selectedRef ? 'Edit selection' : "Edytuj"}</button>{selectedRef && movable ? <button onClick={() => { useStudioStore.getState().beginReposition(selectedRef); setDataPanel(null) }}><Move size={19} />Move</button> : <button onClick={() => { useStudioStore.getState().setViewerMode('measure-length'); setDataPanel(null) }}><Ruler size={19} />Zmierz</button>}<button onClick={() => setDataPanel(dataPanel === 'more' ? null : 'more')}><MoreHorizontal size={19} />Więcej</button></>}</nav><AdaptiveSheet open={!!dataPanel} title={dataPanel === 'inspector' ? "Zaznaczenie" : dataPanel === 'fixtures' ? 'Garden fixtures' : dataPanel === 'measure' ? "Zmierz" : dataPanel === 'more' ? "Widok i projekt" : 'Project tools'} expanded={sheetExpanded} onExpanded={setSheetExpanded} onClose={() => setDataPanel(null)}>{dataPanel === 'inspector' && <Inspector />}{dataPanel === 'more' && <><NeighborSettings onView={() => setDataPanel(null)} /><button onClick={() => { setControlsHidden(true); setDataPanel(null) }}><EyeOff size={18} />Ukryj narzędzia</button>{toolbar}<SunWidget /><div className="plot-history"><button disabled={!useStudioStore.getState().history.length} onClick={undo}>Cofnij</button><button disabled={!useStudioStore.getState().future.length} onClick={() => useStudioStore.getState().redo()}>Ponów</button></div></>}{dataPanel === 'measure' && <ExactMeasureTools />}{dataPanel === 'measure' && modes.filter(([value]) => value !== 'edit').map(([value, label]) => <button key={value} onClick={() => { useStudioStore.getState().setViewerMode(value); setDataPanel(null) }}>{label}</button>)}{dataContent}</AdaptiveSheet></>)}
 
     <div className="viewport">{hydrated && <Suspense fallback={<div className="editor-loading" role="status">Opening plot...</div>}><PlotCanvas /></Suspense>}
       {!compact && <NeighborControls onSelectFloor={openFloor} />}

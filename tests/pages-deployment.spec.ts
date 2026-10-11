@@ -5,7 +5,7 @@ const appBasePath = new URL(appUrl).pathname.replace(/\/$/, '')
 
 const openZielonkiStudy = async (page: import('@playwright/test').Page) => {
   await page.goto(appUrl, { waitUntil: 'domcontentloaded' })
-  const startScreen = page.getByRole('dialog', { name: 'Where do you want to plan today?' })
+  const startScreen = page.getByRole('dialog', { name: "Który projekt chcesz otworzyć?" })
   await expect(startScreen).toBeVisible()
   await startScreen.getByRole('button', { name: /Zielonki house study/ }).click()
   await expect(startScreen).toBeHidden()
@@ -25,11 +25,11 @@ test('GitHub Pages base path serves every requested garden model', async ({ page
 
   await expect.poll(() => modelResponses.length, { timeout: 20_000 }).toBeGreaterThan(0)
   expect(modelResponses.every(({ path, status }) => path.startsWith(`${appBasePath}/models/garden/`) && status === 200)).toBe(true)
-  await page.getByRole('button', { name: 'House interior', exact: true }).click()
-  await expect(page.getByRole('region', { name: 'Placed objects' }).getByRole('button')).toHaveCount(21)
-  await expect(page.getByRole('region', { name: 'Rooms on this level' })).toContainText('45.14 m²')
+  await page.getByRole('button', { name: "Wnętrze domu", exact: true }).click()
+  await expect(page.getByRole('region', { name: "Ustawione obiekty" }).getByRole('button')).toHaveCount(21)
+  await expect(page.getByRole('region', { name: "Pomieszczenia na kondygnacji" })).toContainText('45.14 m²')
   await page.getByRole('button', { name: /1 Piętro/ }).click()
-  await expect(page.getByRole('region', { name: 'Placed objects' }).getByRole('button')).toHaveCount(1)
+  await expect(page.getByRole('region', { name: "Ustawione obiekty" }).getByRole('button')).toHaveCount(1)
 })
 
 test('editor stays usable when optional garden models fail', async ({ page }) => {

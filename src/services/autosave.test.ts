@@ -30,3 +30,16 @@ it('retains failed work, blocks switching and permits an explicit retry', async 
   await a.retryAutosave()
   expect(a.useSaveStatus.getState().phase).toBe('saved')
 })
+it('captures the undo trail with the matching project through a failed save and retry', async () => {
+  save.mockRejectedValueOnce(new Error('Quota exceeded')).mockResolvedValue(undefined)
+  const a = await import('./autosave'), w = workspace()
+  const history = { history: [structuredClone(w.project)], future: [] }
+  w.project.revision++
+  a.captureWorkspace(w, history)
+  history.history[0].name = 'Later mutation'
+  await expect(a.flushAutosave()).rejects.toThrow('Quota exceeded')
+  expect(a.recoveryWorkspace()?.project.revision).toBe(w.project.revision)
+  await a.retryAutosave()
+  expect(save.mock.calls[1][1].editHistory.history[0].name).toBe('Saved')
+  expect(save.mock.calls[1][0]).toEqual(w)
+})

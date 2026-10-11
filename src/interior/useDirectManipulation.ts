@@ -10,7 +10,7 @@ import { dragCommands, type DragTarget } from './directManipulation'
 
 interface Options {
   project: ProjectV2; building: BuildingModel; storey: StoreyModel; enabled: boolean
-  snap: SnapSettings; selectedRefs: string[]; selectOnly?: boolean
+  snap: SnapSettings; selectedRefs: string[]; selectOnly?: boolean; touchMoveEnabled?: boolean
   onSelect: (ref: string, additive?: boolean) => void
   onCommit: (commands: ProjectCommand[]) => boolean
   onNotice: (message: string, error?: boolean) => void
@@ -20,6 +20,9 @@ interface Options {
 export function useDirectManipulation(options: Options) {
   const { camera, gl, scene, get } = useThree()
   const latest = useRef(options); latest.current = options
+  // Move mode disarms on commit. Keep suppression across that effect restart so
+  // the synthetic click following a quick touch release cannot clear selection.
+  const suppressClick = useRef(false)
   const [preview, setPreview] = useState<BuildingModel | null>(null)
   const [dragging, setDragging] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -29,7 +32,7 @@ export function useDirectManipulation(options: Options) {
     raycaster.params.Line.threshold = .06
     let active: { pointer: number; origin: Vector3; screen: Vector2; source: Options; target: DragTarget; refs: string[]; commands: ProjectCommand[] | null; moved: boolean; error: string | null } | null = null
     const pointers = new Set<number>()
-    let suppressClick = false
+    let tap: { pointer: number; screen: Vector2; ref: string } | null = null
     const stop = (e: Event) => { e.preventDefault(); e.stopImmediatePropagation() }
     const cast = (e: PointerEvent) => {
       const b = element.getBoundingClientRect()
@@ -44,9 +47,9 @@ export function useDirectManipulation(options: Options) {
       return old
     }
     const down = (e: PointerEvent) => {
-      suppressClick = false
+      suppressClick.current = false
       pointers.add(e.pointerId)
-      if (pointers.size > 1) { if (active) { end(); stop(e) } return }
+      if (pointers.size > 1) { tap = null; if (active) { end(); stop(e) } return }
       if (e.button !== 0) return
       cast(e)
       let target: DragTarget | undefined
@@ -56,8 +59,13 @@ export function useDirectManipulation(options: Options) {
         if (object) { target = object.userData.dragTarget; break }
       }
       if (!target) return
-      stop(e); suppressClick = true
       const current = latest.current
+      // Let OrbitControls own navigation until the user explicitly arms a selected target.
+      if (e.pointerType === 'touch' && (!current.touchMoveEnabled || !current.selectedRefs.includes(target.ref))) {
+        tap = { pointer: e.pointerId, screen: new Vector2(e.clientX, e.clientY), ref: target.ref }
+        return
+      }
+      stop(e); suppressClick.current = true
       const controls = get().controls as OrbitControls | null
       if (controls) controls.enabled = false
       const refs = current.selectedRefs.includes(target.ref) ? [...current.selectedRefs] : [target.ref]
@@ -76,6 +84,7 @@ export function useDirectManipulation(options: Options) {
       element.setPointerCapture(e.pointerId); element.style.cursor = 'grabbing'; setDragging(true)
     }
     const move = (e: PointerEvent) => {
+      if (tap?.pointer === e.pointerId && tap.screen.distanceTo(new Vector2(e.clientX, e.clientY)) >= 5) tap = null
       if (!active || e.pointerId !== active.pointer) return
       stop(e)
       if (latest.current.project !== active.source.project) { end(); return }
@@ -98,6 +107,13 @@ export function useDirectManipulation(options: Options) {
     }
     const up = (e: PointerEvent) => {
       pointers.delete(e.pointerId)
+      if (tap?.pointer === e.pointerId) {
+        if (tap.screen.distanceTo(new Vector2(e.clientX, e.clientY)) < 5) {
+          latest.current.onSelect(tap.ref, e.shiftKey)
+          suppressClick.current = true
+        }
+        tap = null
+      }
       if (!active || e.pointerId !== active.pointer) return
       move(e)
       const current = end()
@@ -105,11 +121,11 @@ export function useDirectManipulation(options: Options) {
       if (current.moved && current.commands?.length) latest.current.onCommit(current.commands)
       else if (current.error) latest.current.onNotice(current.error, true)
     }
-    const cancel = (e?: PointerEvent) => { if (e) pointers.delete(e.pointerId); if (!e || e.pointerId === active?.pointer) end() }
+    const cancel = (e?: PointerEvent) => { tap = null; if (e) pointers.delete(e.pointerId); if (!e || e.pointerId === active?.pointer) end() }
     const escape = (e: KeyboardEvent) => { if (e.key === 'Escape' && active) { stop(e); end() } }
-    const blur = () => { pointers.clear(); end() }
+    const blur = () => { tap = null; pointers.clear(); end() }
     const visibility = () => { if (document.hidden) blur() }
-    const click = (e: MouseEvent) => { if (suppressClick) { stop(e); suppressClick = false } }
+    const click = (e: MouseEvent) => { if (suppressClick.current) { stop(e); suppressClick.current = false } }
     element.addEventListener('pointerdown', down, true); element.addEventListener('pointermove', move, true)
     element.addEventListener('pointerup', up, true); element.addEventListener('pointercancel', cancel, true)
     element.addEventListener('lostpointercapture', cancel, true); element.addEventListener('click', click, true)
@@ -121,6 +137,6 @@ export function useDirectManipulation(options: Options) {
       element.removeEventListener('lostpointercapture', cancel, true); element.removeEventListener('click', click, true)
       window.removeEventListener('blur', blur); window.removeEventListener('keydown', escape, true); document.removeEventListener('visibilitychange', visibility)
     }
-  }, [camera, gl, scene, get, options.enabled, options.project.ref, options.building.ref, options.storey.ref])
+  }, [camera, gl, scene, get, options.enabled, options.touchMoveEnabled, options.project.ref, options.building.ref, options.storey.ref])
   return { preview, dragging, error }
 }

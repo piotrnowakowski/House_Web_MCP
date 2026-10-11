@@ -263,7 +263,12 @@ export function moveConnectedWall(
     { x: command.start.x - oldStart.x, z: command.start.z - oldStart.z },
     { x: command.end.x - oldEnd.x, z: command.end.z - oldEnd.z },
   )
-  moveWallEndpoints(building, storey, translation ? rightAngleMap(building, storey, map) : map)
+  const keepsAxis =
+    (Math.abs(oldStart.x - oldEnd.x) < .0001 && Math.abs(command.start.x - command.end.x) < .0001) ||
+    (Math.abs(oldStart.z - oldEnd.z) < .0001 && Math.abs(command.start.z - command.end.z) < .0001)
+  // A length edit also moves a shared corner. Carry its displacement through
+  // perpendicular returns, just as dragging does, so rectangular rooms stay rectangular.
+  moveWallEndpoints(building, storey, translation || keepsAxis ? rightAngleMap(building, storey, map) : map)
   if (command.thicknessM !== undefined) {
     if (!Number.isFinite(command.thicknessM) || command.thicknessM < 0.06 || command.thicknessM > 0.5)
       throw new Error('Wall thickness must be between 0.06 and 0.5 m.')

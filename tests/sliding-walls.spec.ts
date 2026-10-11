@@ -7,10 +7,10 @@ for (const touch of [false, true]) test(`slide a wall past the room junction wit
   page.on('pageerror', error => errors.push(error.message))
   try {
     await page.goto(process.env.APP_URL ?? 'http://127.0.0.1:5173/')
-    await page.getByRole('dialog', { name: 'Where do you want to plan today?' }).waitFor()
+    await page.getByRole('dialog', { name: "Który projekt chcesz otworzyć?" }).waitFor()
     await page.evaluate(async () => (await import('/tests/browser-harness.ts')).dragFixture())
-    await page.getByRole('button', { name: 'House interior', exact: true }).click()
-    await page.getByRole('button', { name: '2D Plan', exact: true }).click()
+    await page.getByRole('button', { name: "Wnętrze domu", exact: true }).click()
+    await page.getByRole('button', { name: "Rzut 2D", exact: true }).click()
     await page.waitForTimeout(600)
     const read = () => page.evaluate(async () => (await import('/tests/browser-harness.ts')).state())
     const before = await read()
@@ -35,7 +35,7 @@ for (const touch of [false, true]) test(`slide a wall past the room junction wit
     for (const wall of building.walls.filter((wall: { ref: string }) => building.storeys[0].wallRefs.includes(wall.ref))) {
       expect(Math.min(Math.abs(wall.start.x - wall.end.x), Math.abs(wall.start.z - wall.end.z))).toBeLessThan(.0001)
     }
-    await page.getByRole('button', { name: '3D Interior', exact: true }).click()
+    await page.getByRole('button', { name: "Wnętrze 3D", exact: true }).click()
     await page.screenshot({ path: testInfo.outputPath('moved-wall.png') })
     await page.keyboard.press('Control+z')
     expect((await read()).project).toEqual(before.project)
@@ -43,8 +43,8 @@ for (const touch of [false, true]) test(`slide a wall past the room junction wit
     expect((await read()).project).toEqual(moved.project)
     await page.waitForTimeout(650)
     await page.reload()
-    await page.getByRole('button', { name: /Continue · Interior drag test/ }).click()
-    await expect(page.getByRole('dialog', { name: 'Where do you want to plan today?' })).toBeHidden()
+    await page.getByRole('button', { name: /Otwórz projekt: Interior drag test/ }).click()
+    await expect(page.getByRole('dialog', { name: "Który projekt chcesz otworzyć?" })).toBeHidden()
     expect((await read()).project).toEqual(moved.project)
     expect(errors).toEqual([])
   } finally { await context.close() }

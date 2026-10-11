@@ -53,7 +53,7 @@ test('tools remain usable while loading and reports use asynchronous readback', 
   expect(metrics.invalidTextures).toBe(0)
   await testInfo.attach('webgl-metrics', { body: JSON.stringify({ startupClickMs, reportMs: Date.now() - reportStarted, ...metrics }, null, 2), contentType: 'application/json' })
   await page.getByRole('button', { name: 'Close report', exact: true }).click()
-  await page.getByLabel('View quality', { exact: true }).selectOption('detailed')
+  await page.getByLabel("Jakość widoku", { exact: true }).selectOption('detailed')
   await page.getByRole('button', { name: 'Architectural set', exact: true }).click()
   await page.getByRole('button', { name: 'Cancel report', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Architectural set', exact: true })).toBeEnabled({ timeout: 15_000 })
@@ -108,11 +108,11 @@ test('a lost graphics context can be retried without losing the project', async 
 
 test('interior PNG contains a rendered scene without a preserved drawing buffer', async ({ page }) => {
   await openStudy(page)
-  await page.getByRole('button', { name: 'House interior', exact: true }).click()
-  await expect(page.getByRole('application', { name: 'Interactive interior floor' })).toBeVisible()
-  await page.getByRole('button', { name: 'More', exact: true }).click()
+  await page.getByRole('button', { name: "Wnętrze domu", exact: true }).click()
+  await expect(page.getByRole('application', { name: "Interaktywny rzut wnętrza" })).toBeVisible()
+  await page.getByRole('button', { name: "Więcej", exact: true }).click()
   const download = page.waitForEvent('download')
-  await page.getByRole('button', { name: 'Export scene PNG', exact: true }).click()
+  await page.getByRole('button', { name: "Eksportuj widok PNG", exact: true }).click()
   const file = await download
   expect(file.suggestedFilename()).toBe('interior-scene.png')
   const stream = await file.createReadStream()

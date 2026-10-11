@@ -1,11 +1,13 @@
 import 'fake-indexeddb/auto'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/zielonki-v2/project.json'
+import paulina from '../../project-data/paulina-poprawki/project.json'
 import { parseProject } from './schema'
 import { applyCommand, validateProject } from './commands'
 import { isEnvelopeWall } from './interiorLayout'
-import { furnitureMoveCommands, wallWithLength } from './precisionEdits'
+import { furnitureMoveCommands, wallLengthAnchors, wallWithLength } from './precisionEdits'
 import { wallLength } from './geometry'
+import { roomDimensions } from './roomDimensions'
 import { useStudioStore } from '../state/store'
 
 beforeEach(() => useStudioStore.getState().restoreWorkspace({ version: 1, project: parseProject(data), proposals: [], draftChangeSets: [] }))
@@ -47,6 +49,29 @@ it('recognizes the outside wall behind the slab rim and rejects shortening it in
   expect(() => applyCommand(before, { type: 'interior.update', action: 'wall', buildingRef: b.ref, storeyRef: s.ref, wallRef: wall.ref, start: draft.start, end: draft.end })).toThrow(/exterior/)
 })
 
+it('resizes the Paulina pantry wall without bending its return or blocking a later room resize', () => {
+  const before = parseProject(paulina), building = before.buildings[0], storey = building.storeys[0]
+  const wall = building.walls.find(w => w.ref === 'wall/paulina/ground/3')!
+  const draft = wallWithLength(wall, wallLength(wall) + .2, 'end')
+  const resized = applyCommand(before, { type: 'interior.update', action: 'wall', buildingRef: building.ref,
+    storeyRef: storey.ref, wallRef: wall.ref, start: draft.start, end: draft.end })
+  const house = resized.buildings[0]
+  const returned = house.walls.find(w => w.ref === 'wall/paulina/ground/2')!
+  expect(returned.start.x).toBeCloseTo(returned.end.x, 8)
+  expect(returned.start.x).toBeCloseTo(-2.575, 8)
+  expect(house.roof).toEqual(building.roof)
+  expect(house.slabs).toEqual(building.slabs)
+  const pantry = house.spaces.find(room => room.name === 'Spiżarnia')!
+  expect(roomDimensions(house, pantry).width).toBeCloseTo(1.85)
+  const final = applyCommand(resized, { type: 'interior.update', action: 'room', buildingRef: house.ref,
+    storeyRef: storey.ref, spaceRef: pantry.ref, name: pantry.name, widthM: 2.15 })
+  expect(roomDimensions(final.buildings[0], final.buildings[0].spaces.find(room => room.ref === pantry.ref)!).width).toBeCloseTo(1.95)
+  for (const changed of final.buildings[0].walls.filter(w => storey.wallRefs.includes(w.ref)))
+    expect(Math.min(Math.abs(changed.start.x - changed.end.x), Math.abs(changed.start.z - changed.end.z))).toBeLessThan(.0001)
+  expect(validateProject(final).filter(issue => issue.severity === 'error')).toEqual([])
+  expect(before).toEqual(parseProject(paulina))
+})
+
 it('keeps a selected length anchor and rejects non-finite input', () => {
   const wall = parseProject(data).buildings[0].walls[0]
   expect(wallWithLength(wall, 2, 'end').end.x).toBeCloseTo(wall.end.x)
@@ -73,4 +98,19 @@ it('rejects invalid window placement without adding undo history', () => {
   expect(() => state.commitCommand({ type: 'interior.update', action: 'opening', buildingRef: b.ref, storeyRef: s.ref, wallRef: wall.ref, opening: { ...opening, offsetM: 0 } })).toThrow()
   expect(useStudioStore.getState().project).toEqual(before)
   expect(useStudioStore.getState().history).toHaveLength(0)
+})
+
+it('chooses the fixed exterior endpoint for length edits without mutating connected geometry', () => {
+  const project = parseProject(data), b = project.buildings[0], s = b.storeys[0]
+  const before = structuredClone(b)
+  const wall = b.walls.find(w => w.ref === 'wall/carport-layout/ground/10')!
+  expect(wallLengthAnchors(b, s, wall)).toEqual(['end'])
+  expect(b).toEqual(before)
+  const reversed = { ...wall, start: wall.end, end: wall.start }
+  b.walls[b.walls.indexOf(wall)] = reversed
+  for (const room of b.spaces) for (const use of room.boundary) if (use.wallRef === wall.ref) use.direction = use.direction === 1 ? -1 : 1
+  for (const opening of reversed.openings) opening.offsetM = wallLength(wall) - opening.offsetM
+  expect(wallLengthAnchors(b, s, reversed)).toEqual(['start'])
+  reversed.locked = true
+  expect(wallLengthAnchors(b, s, reversed)).toEqual([])
 })

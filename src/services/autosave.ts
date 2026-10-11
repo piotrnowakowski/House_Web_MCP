@@ -1,9 +1,9 @@
 import { create } from 'zustand'
 import type { PersistedWorkspace } from '../domain/types'
-import { saveWorkspace } from './persistence'
+import { saveWorkspace, type LocalEditHistory } from './persistence'
 
 export const useSaveStatus = create<{ phase: 'idle' | 'saving' | 'saved' | 'error'; error: string | null }>(() => ({ phase: 'idle', error: null }))
-let pending: PersistedWorkspace[] = []
+let pending: Array<{ workspace: PersistedWorkspace; editHistory?: LocalEditHistory }> = []
 let running: Promise<void> | null = null
 let failure: Error | null = null
 let latest: PersistedWorkspace | null = null
@@ -12,7 +12,7 @@ const drain = () => {
   if (running || failure) return
   running = (async () => {
     while (pending.length) {
-      try { await saveWorkspace(pending[0]); pending.shift() }
+      try { await saveWorkspace(pending[0].workspace, pending[0].editHistory ? { editHistory: pending[0].editHistory } : undefined); pending.shift() }
       catch (error) {
         failure = error instanceof Error ? error : new Error('Local storage unavailable')
         useSaveStatus.setState({ phase: 'error', error: failure.message })
@@ -22,9 +22,9 @@ const drain = () => {
     useSaveStatus.setState({ phase: 'saved', error: null })
   })().finally(() => { running = null; if (pending.length && !failure) drain() })
 }
-export const captureWorkspace = (workspace: PersistedWorkspace) => {
+export const captureWorkspace = (workspace: PersistedWorkspace, editHistory?: LocalEditHistory) => {
   latest = structuredClone(workspace)
-  pending.push(latest)
+  pending.push({ workspace: latest, editHistory: editHistory ? structuredClone(editHistory) : undefined })
   if (!failure) useSaveStatus.setState({ phase: 'saving', error: null })
   drain()
 }

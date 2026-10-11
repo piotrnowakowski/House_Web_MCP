@@ -15,6 +15,8 @@ interface Props {
   cameraKey: string
   bottomInset?: number
   rightInset?: number
+  topInset?: number
+  framingKey?: string | null
 }
 interface SavedCamera {
   width: number
@@ -25,7 +27,16 @@ interface SavedCamera {
 }
 const cameras = new Map<string, SavedCamera>()
 
-export function InteriorCamera({ view, footprint, reset, enabled, cameraKey, bottomInset = 0, rightInset = 0 }: Props) {
+function saveCamera(key: string, saved: SavedCamera) {
+  cameras.set(key, saved)
+  try {
+    sessionStorage.setItem(`interior-camera/${key}`, JSON.stringify(saved))
+  } catch {
+    /* Navigation still works without storage. */
+  }
+}
+
+export function InteriorCamera({ view, footprint, reset, enabled, cameraKey, bottomInset = 0, rightInset = 0, topInset = 0, framingKey }: Props) {
   const controls = useRef<Controls>(null)
   const { size, set } = useThree()
   const perspective = view === 'room'
@@ -37,11 +48,22 @@ export function InteriorCamera({ view, footprint, reset, enabled, cameraKey, bot
     set({ camera })
   }, [camera, set])
   const previousReset = useRef(reset)
-  const key = `${cameraKey}/${view}`
-  const insets = useRef({ bottomInset, rightInset })
-  insets.current = { bottomInset, rightInset }
+  // Keep phone portrait, phone landscape and desktop framing independent.
+  // Scaling a wide desktop view down by screen width made a tall phone plan tiny.
+  const layout = `${size.width <= 900 ? 'compact' : 'wide'}-${size.width < size.height ? 'portrait' : 'landscape'}`
+  const key = `${cameraKey}/${view}/${layout}${framingKey ? `/edit/${framingKey}` : ''}`
+  const insets = useRef({ bottomInset, rightInset, topInset })
+  insets.current = { bottomInset, rightInset, topInset }
+  // Only the selection inspector reframes automatically; other panels preserve navigation.
+  const framingLayout = framingKey ? `${bottomInset}/${rightInset}/${topInset}` : ''
   const footprintKey = JSON.stringify(footprint)
   useLayoutEffect(() => {
+    // Finish old damping before applying an explicit fit or restoring a view.
+    if (controls.current) {
+      controls.current.enableDamping = false
+      controls.current.update()
+      controls.current.enableDamping = true
+    }
     camera.clearViewOffset()
     if (camera instanceof OrthographicCamera) {
       camera.left = -size.width / 2
@@ -66,6 +88,7 @@ export function InteriorCamera({ view, footprint, reset, enabled, cameraKey, bot
     const target = new Vector3(x, view === 'room' ? 1.35 : 0, z)
     if (
       saved &&
+      !framingKey &&
       !fitRequested &&
       saved.position.every(Number.isFinite) &&
       saved.target.every(Number.isFinite) &&
@@ -95,7 +118,7 @@ export function InteriorCamera({ view, footprint, reset, enabled, cameraKey, bot
       const projectedHeight =
         Math.max(...projected.map((point) => point.y)) - Math.min(...projected.map((point) => point.y))
       const width = Math.max(100, size.width - insets.current.rightInset - 70)
-      const height = Math.max(100, size.height - insets.current.bottomInset - 125)
+      const height = Math.max(60, size.height - insets.current.bottomInset - (framingKey ? insets.current.topInset + 32 : 125))
       camera.zoom = Math.max(
         1,
         Math.min(width / ((projectedWidth * size.width) / 2), height / ((projectedHeight * size.height) / 2)),
@@ -106,7 +129,7 @@ export function InteriorCamera({ view, footprint, reset, enabled, cameraKey, bot
           size.width,
           size.height,
           insets.current.rightInset / 2,
-          insets.current.bottomInset / 2,
+          (insets.current.bottomInset - insets.current.topInset) / 2,
           size.width,
           size.height,
         )
@@ -115,7 +138,14 @@ export function InteriorCamera({ view, footprint, reset, enabled, cameraKey, bot
     camera.updateProjectionMatrix()
     controls.current?.target.copy(target)
     controls.current?.update()
-  }, [camera, key, view, footprintKey, reset, size.width, size.height])
+    saveCamera(key, {
+      width: size.width,
+      height: size.height,
+      position: camera.position.toArray(),
+      target: target.toArray(),
+      zoom: camera.zoom,
+    })
+  }, [camera, key, view, footprintKey, reset, size.width, size.height, framingKey, framingLayout])
   const remember = () => {
     if (!controls.current) return
     const saved: SavedCamera = {
@@ -125,12 +155,7 @@ export function InteriorCamera({ view, footprint, reset, enabled, cameraKey, bot
       target: controls.current.target.toArray(),
       zoom: camera.zoom,
     }
-    cameras.set(key, saved)
-    try {
-      sessionStorage.setItem(`interior-camera/${key}`, JSON.stringify(saved))
-    } catch {
-      /* Navigation still works without storage. */
-    }
+    saveCamera(key, saved)
   }
   return (
     <OrbitControls

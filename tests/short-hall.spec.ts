@@ -28,7 +28,7 @@ for (const existing of [false, true]) test(`shorter hall survives reload in ${ex
     await page.goto(url)
     for (let visit = 0; visit < 2; visit++) {
       await page.getByRole('button', { name: /^(Continue|Open) · Garaz przód$/ }).click()
-      await expect(page.getByRole('dialog', { name: 'Where do you want to plan today?' })).not.toBeVisible()
+      await expect(page.getByRole('dialog', { name: "Który projekt chcesz otworzyć?" })).not.toBeVisible()
       const saved = await page.evaluate(async () => {
         const { loadWorkspace } = await import('/src/services/persistence.ts')
         return (await loadWorkspace('project/zielonki-v2'))!.project
@@ -48,8 +48,8 @@ for (const existing of [false, true]) test(`shorter hall survives reload in ${ex
       }
       if (visit === 0) await page.reload()
     }
-    await page.getByRole('button', { name: 'House interior', exact: true }).click()
-    await page.getByRole('button', { name: '2D Plan', exact: true }).click()
+    await page.getByRole('button', { name: "Wnętrze domu", exact: true }).click()
+    await page.getByRole('button', { name: "Rzut 2D", exact: true }).click()
     await expect(page.locator('canvas')).toBeVisible()
     await page.screenshot({ path: testInfo.outputPath('shorter-hall.png') })
     expect(errors).toEqual([])

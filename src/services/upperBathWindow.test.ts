@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
-import currentData from '../../project-data/zielonki-rear-bath-room/project.json'
+import currentData from '../../project-data/zielonki-rear-bath-room/before-mikrus-sync-r42.json'
 import previousData from '../../project-data/zielonki-rear-bath-room/before-upper-bath-window-r39.json'
 import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
 import { validateProject } from '../domain/commands'

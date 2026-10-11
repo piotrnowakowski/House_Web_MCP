@@ -84,10 +84,16 @@
 .interior-restore { position:absolute; top:max(12px,env(safe-area-inset-top)); left:max(12px,env(safe-area-inset-left)); }
 .interior-room-label { display:flex!important; flex-direction:column; gap:1px!important; padding:5px 8px!important; min-height:44px!important; border:1px solid #d8ddd288!important; background:#faf9f0dc!important; font-size:10px!important; white-space:nowrap; }
 .interior-room-label strong { font-weight:500; }
-.interior-room-label span { color:#647464; font-size:9px; }
+.interior-room-label.is-plan { min-height:0!important; padding:3px 5px!important; white-space:normal; }
+.interior-room-label.is-plan strong { display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2; overflow:hidden; overflow-wrap:anywhere; }
+.interior-room-label span { color:#647464; font-size:9px; white-space:nowrap; }
 .interior-room-label.selected { border-color:#3d896d!important; background:#e3eee1!important; }
 .interior-dimension, .interior-measure-label { display:block; background:#f9f8eedb; color:#4b5e50; border-radius:3px; padding:2px 5px; white-space:nowrap; font:10px Arial,sans-serif; }
 .interior-dimension.is-vertical { transform:rotate(-90deg); }
+.interior-label-leader { position:absolute; top:50%; left:50%; height:1px; background:#287466; transform-origin:0 50%; z-index:-1; }
+.interior-add-wall { width:100%; margin-bottom:16px; }
+.interior-mobile-history { position:absolute; right:max(6px,env(safe-area-inset-right)); top:calc(env(safe-area-inset-top,0px) + 58px); display:flex; gap:2px; padding:4px; background:#fcfbf7; border:1px solid #d7ded3; border-radius:11px; }
+.interior-mobile-history button { padding:6px; font-size:11px; gap:4px; }
 .interior-measure-label { background:#285f4e; color:white; font-size:12px; padding:6px 10px; }
 @media (max-width:900px) {
  .interior-editor .desktop-only, .interior-editor .desktop-label { display:none; }
@@ -96,7 +102,9 @@
  .interior-title strong { font-size:12px; white-space:nowrap; }
  .interior-title small { max-width:95px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:10px; }
  .interior-header button { padding:7px; }
- .interior-floor-switcher { top:calc(env(safe-area-inset-top,0px) + 58px); left:max(6px,env(safe-area-inset-left)); max-width:calc(100% - 12px); }
+ .interior-floor-switcher { top:calc(env(safe-area-inset-top,0px) + 58px); left:max(6px,env(safe-area-inset-left)); max-width:calc(100% - 143px); }
+ .interior-floor-switcher > span { display:none; }
+ .interior-floor-switcher button { padding:6px 9px; font-size:12px; }
  .interior-segment { padding:0; border-radius:9px; }
  .interior-segment button { min-height:44px; padding:5px 9px; }
  .interior-action-bar { bottom:env(safe-area-inset-bottom,0px); left:max(6px,env(safe-area-inset-left)); right:max(6px,env(safe-area-inset-right)); transform:none; height:60px; padding:3px; gap:0; border-radius:12px 12px 0 0; }
@@ -117,3 +125,11 @@
 }
 .interior-drag-status { position:absolute; top:12px; left:50%; transform:translateX(-50%); max-width:80%; padding:10px 16px; border-radius:12px; background:#286253; color:white; font-size:13px; text-align:center; }
 .interior-drag-status.invalid { background:#963f2d; }
+
+.interior-placement-warning { position: absolute; z-index: 39; bottom: 82px; left: 16px; width: min(380px, calc(100% - 32px)); box-sizing: border-box; padding: 12px; border: 1px solid #c47b12; border-radius: 10px; background: #fff6df; color: #654200; display: grid; gap: 6px; font-size: 13px; }
+.interior-placement-warning > div { display: flex; gap: 8px; }
+.interior-placement-warning button { flex: 1; background: #fffaf0; }
+.interior-wall-anchor { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: #1676b9; color: white; font-weight: 700; }
+.interior-drag-status.warning { background: #fff6df; color: #654200; border-color: #c47b12; }
+.interior-anchor-hint { grid-column: 1 / -1; }
+@media (max-width: 900px) { .interior-placement-warning { bottom: calc(68px + env(safe-area-inset-bottom)); left: 8px; width: calc(100% - 16px); } }

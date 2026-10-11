@@ -1,5 +1,9 @@
 # Bathroom extending into bedroom 1
 
+## 2026-10-11 — shortened launcher name
+
+User requested a three-project launcher: Główny, architekt and paulinka poprawki. Canonical r80 changes this project's name to **Główny** only, with revision metadata; all geometry, furnishing, landscape and stable refs remain unchanged. `before-launcher-name-r79.json` preserves the previous canonical publication. The existing browser r80 matched canonical r79 before the rename; ordinary publication merging preserves its workspace and historical versions. Actual in-app origin `http://127.0.0.1:5173/` captures and comparisons are in ignored `tmp/three-projects/`. No new deployment.
+
 ## 2026-09-15 — timber-board treatment on the recessed side panel (r42 renderer, local)
 
 The circled rear-gable return keeps the established dark-walnut brown `#65432E`, but now receives centred vertical timber boards at the same 0.34 m rhythm as the rest of the timber façade instead of reading as one flat panel. The adjoining left wall remains black charred-timber cladding `#242927` with its existing vertical battens. The brown deck and soffit remain `#B78F60`; wall, opening, frame, roof and recess geometry are unchanged.

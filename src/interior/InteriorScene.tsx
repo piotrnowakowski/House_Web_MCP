@@ -1,14 +1,16 @@
+import { interiorMessage } from './interiorLocale'
 import { useRenderQuality } from '../scene/renderingPreferences'
 import { floorGeometry } from './floorGeometry'
 import { Grid, Html, Line } from '@react-three/drei'
-import { useThree, type ThreeEvent } from '@react-three/fiber'
+import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BoxGeometry, DoubleSide, ExtrudeGeometry, Line3, Object3D, Plane, PlaneGeometry, Raycaster, Shape, ShapeGeometry, Vector2, Vector3 } from 'three'
+import { BoxGeometry, DoubleSide, ExtrudeGeometry, Line3, Object3D, OrthographicCamera, Plane, PlaneGeometry, Raycaster, Shape, ShapeGeometry, Vector2, Vector3 } from 'three'
 import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
 import { useDirectManipulation } from './useDirectManipulation'
 import { pointInPolygon, polygonCentroid, spaceFootprint, wallLength } from '../domain/geometry'
 import { roomDimensions } from '../domain/roomDimensions'
 import { gablePlanGuides } from '../domain/gablePlanGuides'
+import { gableWallsForBuilding, roofWings } from '../domain/roofWings'
 import { interiorCorners } from '../domain/interior'
 import type { BuildingModel, InteriorFinish, InteriorItem, Polygon2, ProjectV2, ProjectCommand, StoreyModel, Vec2, WallModel } from '../domain/types'
 import { interiorFloorTexture } from '../scene/materialCatalog'
@@ -20,10 +22,38 @@ import { GlazedGable } from '../scene/GlazedGable'
 import { polygonBounds } from '../domain/geometry'
 import { Staircase } from './Staircase'
 import { InteriorCamera, type InteriorView } from './InteriorCamera'
-import { wallDistances, type SnapSettings } from '../domain/interiorPlacement'
+import { placementWarnings, wallDistances, type SnapSettings } from '../domain/interiorPlacement'
 import { itemFitsFloor } from '../domain/interior'
 import { interiorMeasurementEdges, measurementScreenPoint, snapMeasurementPoint } from '../scene/measurementSnapping'
 import { MeasurementPoint } from '../scene/MeasurementPoint'
+import { PlanLabelLayout } from './PlanLabelLayout'
+
+function RoomLabel({ centre, name, area, width, depth, plan, selected }: {
+  centre: Vec2; name: string; area: number; width: number; depth: number; plan: boolean; selected: boolean
+}) {
+  const label = useRef<HTMLDivElement>(null)
+  const previous = useRef('')
+  useFrame(({ camera, size }) => {
+    if (!label.current) return
+    const scale = camera instanceof OrthographicCamera ? camera.zoom * size.width / (camera.right - camera.left) : 1
+    const availableWidth = Math.floor(width * scale - 12)
+    const availableHeight = depth * scale - 24
+    const visible = !plan || (availableWidth >= (selected ? 44 : 90) && availableHeight >= (selected ? 38 : 60))
+    const cssWidth = plan ? `${Math.max(selected ? 80 : 44, Math.min(220, availableWidth))}px` : width < 3 ? '72px' : 'auto'
+    const signature = `${visible}/${cssWidth}`
+    if (signature === previous.current) return
+    previous.current = signature
+    label.current.dataset.spaceVisible = String(visible)
+    label.current.style.visibility = visible ? 'visible' : 'hidden'
+    label.current.style.width = 'max-content'
+    label.current.style.maxWidth = cssWidth === 'auto' ? 'none' : cssWidth
+  })
+  return <Html center position={[centre.x, 0.06, centre.z]} zIndexRange={[8, 0]} style={{ pointerEvents: 'none' }}>
+    <div ref={label} data-plan-label={selected ? 35 : 20} title={name} className={`interior-room-label ${plan ? 'is-plan' : ''} ${selected ? 'selected' : ''}`} style={{ whiteSpace: 'normal' }}>
+      <strong>{name}</strong><span>{area.toFixed(2)} m²</span>
+    </div>
+  </Html>
+}
 
 function Floor({ points, holes, slab, onPick, tiled = false, plan = false, finish, elevation = 0, onHover }: { points: Polygon2; holes?: Polygon2[]; slab?: Polygon2; onPick: (event: ThreeEvent<MouseEvent>) => void; onHover?: (point: Vec2) => void; tiled?: boolean; plan?: boolean; finish?: InteriorFinish; elevation?: number }) {
   const geometry = useMemo(() => floorGeometry(points, holes, slab), [points, holes, slab])
@@ -96,16 +126,67 @@ function CutawayWall({ wall, profile, plan, fullHeight, selected, onSelect, onPi
 }
 
 interface Props {
-  projectRef: string; project: ProjectV2; onCommit: (commands: ProjectCommand[]) => boolean; onNotice: (message: string, error?: boolean) => void; interactionDisabled?: boolean; selectOnly?: boolean
+  projectRef: string; project: ProjectV2; onCommit: (commands: ProjectCommand[]) => boolean; onNotice: (message: string, error?: boolean) => void; interactionDisabled?: boolean; selectOnly?: boolean; touchMoveEnabled?: boolean
   building: BuildingModel; storey: StoreyModel; plan: boolean; reset: number; selected: string | null; mode: 'select' | 'measure' | 'partition'; placing: boolean; snap: boolean; labels: boolean
-  view?: InteriorView; selectedRefs?: string[]; mobile?: boolean; ghost?: InteriorItem | null; snapSettings?: SnapSettings; focusFootprint?: Polygon2; bottomInset?: number; rightInset?: number; onHover?: (point: Vec2) => void
+  view?: InteriorView; selectedRefs?: string[]; mobile?: boolean; ghost?: InteriorItem | null; snapSettings?: SnapSettings; focusFootprint?: Polygon2; framingKey?: string | null; topInset?: number; wallPreview?: WallModel; bottomInset?: number; rightInset?: number; onHover?: (point: Vec2) => void
   dimensions: boolean; points: Vec2[]; onPointsChange: (points: Vec2[]) => void; onPick: (point: Vec2) => void; onSelect: (ref: string | null, additive?: boolean) => void
 }
+
+// Room mode keeps the next floor visible through the real slab openings.
+// Its surfaces are context only: selecting/editing still targets the active floor.
+function UpperRoomContext({ building, storey }: { building: BuildingModel; storey: StoreyModel }) {
+  const slab = building.slabs.find(s => s.ref === storey.baseSlabRef)!
+  const rooms = building.spaces.filter(room => storey.spaceRefs.includes(room.ref))
+  const root = useRef<Object3D>(null)
+  useEffect(() => { root.current?.traverse(object => { object.raycast = () => {} }) }, [building, storey])
+  return <group ref={root}>
+    <Floor points={slab.footprint} holes={slab.holes} onPick={() => {}} />
+    {[slab.footprint, ...(slab.holes ?? [])].flatMap((ring, ringIndex) => ring.map((a, i) => {
+      const b = ring[(i + 1) % ring.length]
+      return <mesh key={`${ringIndex}/${i}`} position={[(a.x + b.x) / 2, -slab.thicknessM / 2, (a.z + b.z) / 2]} rotation-y={-Math.atan2(b.z - a.z, b.x - a.x)}>
+        <boxGeometry args={[Math.hypot(b.x - a.x, b.z - a.z), slab.thicknessM, .01]} /><meshStandardMaterial color='#E9E5DC' />
+      </mesh>
+    }))}
+    {building.walls.filter(wall => storey.wallRefs.includes(wall.ref)).map(wall =>
+      <CutawayWall key={wall.ref} wall={wall} profile={atticWallProfile(building, wall)} plan={false} fullHeight />)}
+    {rooms.map(room => room.ceilingFinish && <RoomCeiling key={room.ref} building={building} storey={storey} footprint={spaceFootprint(building, room)} finish={room.ceilingFinish} flatHeight={storey.clearHeightM} />)}
+    <VoidCeilings building={building} storey={storey} />
+  </group>
+}
+
+function VoidCeilings({ building, storey }: { building: BuildingModel; storey: StoreyModel }) {
+  if (storey.kneeWallHeightM === undefined) return null
+  const slab = building.slabs.find(s => s.ref === storey.baseSlabRef)
+  const finish: InteriorFinish = { presetId: 'warm-white', color: '#F5F1E8', rotationDegrees: 0, tileM: 1 }
+  return <>{slab?.holes?.map((hole, index) => <RoomCeiling key={index} building={building} storey={storey} footprint={hole} finish={finish} flatHeight={storey.clearHeightM} overVoid />)}</>
+}
+
+function InteriorGableCaps({ building, storeyRefs }: { building: BuildingModel; storeyRefs: string[] }) {
+  return <>{gableWallsForBuilding(building).map(gable => {
+    const segment = building.roof.segments.find(s => s.ref === gable.segmentRef)!
+    if (!segment.storeyRef || !storeyRefs.includes(segment.storeyRef) || segment.gableGlazing?.[gable.side]) return null
+    const wing = roofWings(building).find(w => w.ref === segment.ref)!
+    const storey = building.storeys.find(s => s.ref === segment.storeyRef)!
+    const bounds = polygonBounds(segment.footprint)
+    const base = Math.max(segment.baseElevationM, storey.elevationM + storey.clearHeightM)
+    const rise = wing.ridgeElevationM - base
+    if (rise <= 0) return null
+    const half = rise / Math.tan(segment.pitchDegrees * Math.PI / 180)
+    const center = gable.axis === 'z' ? (bounds.minX + bounds.maxX) / 2 : (bounds.minZ + bounds.maxZ) / 2
+    const edge = gable.value + (gable.side === 'min' ? .1 : -.1)
+    return <group key={gable.ref} position={gable.axis === 'z' ? [center, base, edge] : [edge, base, center]} rotation-y={gable.axis === 'z' ? 0 : Math.PI / 2}>
+      <WallFace width={2 * half} height={rise} outline={[{ x: -half, z: 0 }, { x: half, z: 0 }, { x: 0, z: rise }]} finish={{ presetId: 'warm-white', color: '#E9E5DC', rotationDegrees: 0, tileM: 1 }} />
+    </group>
+  })}</>
+}
+
 export function InteriorScene(props: Props) {
   const { storey, plan, selected, mode, placing, snap, labels, onPick, onSelect } = props
-  const manipulation = useDirectManipulation({ project: props.project, building: props.building, storey, enabled: mode === 'select' && !placing && !props.interactionDisabled, snap: props.snapSettings ?? { enabled: snap, gridM: .1, alignment: true }, selectedRefs: props.selectedRefs ?? [], onSelect, selectOnly: props.selectOnly, onCommit: props.onCommit, onNotice: props.onNotice })
+  const manipulation = useDirectManipulation({ project: props.project, building: props.building, storey, enabled: mode === 'select' && !placing && !props.interactionDisabled, snap: props.snapSettings ?? { enabled: snap, gridM: .1, alignment: true }, selectedRefs: props.selectedRefs ?? [], onSelect, selectOnly: props.selectOnly, touchMoveEnabled: props.touchMoveEnabled, onCommit: props.onCommit, onNotice: props.onNotice })
   const building = manipulation.preview ?? props.building
   const slab = building.slabs.find((item) => item.ref === storey.baseSlabRef)!
+  const upper = building.slabs.find(s => s.ref === storey.topBoundaryRef)?.holes?.length
+    ? building.storeys.find(s => s.baseSlabRef === storey.topBoundaryRef) : undefined
   const { camera, gl, scene } = useThree()
   const [preview, setPreview] = useState<Vector3 | null>(null)
   const pointsRef = useRef(props.points); pointsRef.current = props.points
@@ -215,14 +296,19 @@ export function InteriorScene(props: Props) {
   }
   const items = (building.furniture ?? []).filter((item) => item.storeyRef === storey.ref)
   const selectedItem = items.find((item) => item.ref === selected)
+  const dragWarnings = selectedItem ? placementWarnings(selectedItem, building, storey) : []
   return <>
-    {manipulation.dragging && <Html fullscreen style={{ pointerEvents: 'none' }}><div className={`interior-drag-status ${manipulation.error ? 'invalid' : ''}`} role='status'>{manipulation.error ?? 'Release to save · Esc to cancel'}</div></Html>}
+    {manipulation.dragging && <Html fullscreen style={{ pointerEvents: 'none' }}><div className={`interior-drag-status ${manipulation.error ? 'invalid' : dragWarnings.length ? 'warning' : ''}`} role='status'>{manipulation.error ? interiorMessage(manipulation.error) : dragWarnings.length ? interiorMessage(dragWarnings[0].message) : props.mobile ? 'Puść, aby zapisać · drugi palec anuluje' : 'Puść, aby zapisać · Esc anuluje'}</div></Html>}
     <color attach='background' args={['#eeeee8']} />
     <ambientLight intensity={0.9} /><hemisphereLight args={['#e8f1ff', '#b6a387', 1.3]} />
     <directionalLight key={quality} position={[-12, 20, -8]} intensity={3.1} castShadow={quality !== 'fast'} shadow-mapSize={quality === 'detailed' ? [2048, 2048] : [1024, 1024]} shadow-camera-left={-30} shadow-camera-right={30} shadow-camera-top={30} shadow-camera-bottom={-30} shadow-normalBias={0.025} shadow-bias={-0.0002} />
-    <InteriorCamera view={props.view ?? (plan ? 'plan' : 'cutaway')} footprint={props.focusFootprint ?? slab.footprint} reset={props.reset} enabled={!manipulation.dragging && mode === 'select' && !placing} cameraKey={`${props.projectRef}/${building.ref}/${storey.ref}`} bottomInset={props.bottomInset} rightInset={props.rightInset} />
+    <InteriorCamera view={props.view ?? (plan ? 'plan' : 'cutaway')} footprint={props.focusFootprint ?? slab.footprint} reset={props.reset} enabled={!manipulation.dragging && mode === 'select' && !placing} cameraKey={`${props.projectRef}/${building.ref}/${storey.ref}`} bottomInset={props.bottomInset} rightInset={props.rightInset} topInset={props.topInset} framingKey={props.framingKey} />
     <Grid position={[0, -storey.elevationM - 0.06, 0]} infiniteGrid cellSize={1} cellThickness={0.5} cellColor='#d1d4cd' sectionSize={5} sectionThickness={0.65} sectionColor='#c3c8bf' fadeDistance={95} />
     <Floor points={slab.footprint} holes={slab.holes} onPick={onFloor} onHover={props.onHover} tiled={building.kind === 'garage'} plan={plan} />
+    {props.view === 'room' && <>
+      <VoidCeilings building={building} storey={storey} />
+      {upper && <group position-y={upper.elevationM - storey.elevationM}><UpperRoomContext building={building} storey={upper} /></group>}
+    </>}
     {(building.stairs ?? []).filter((stairs) => stairs.fromStoreyRef === storey.ref || stairs.toStoreyRef === storey.ref).map((stairs) => {
       const lower = building.storeys.find((s) => s.ref === stairs.fromStoreyRef)!; const upper = building.storeys.find((s) => s.ref === stairs.toStoreyRef)!
       const rise = upper.elevationM - lower.elevationM; const base = lower.elevationM - storey.elevationM
@@ -243,11 +329,11 @@ export function InteriorScene(props: Props) {
         {room.floorFinish && <Floor points={footprint} holes={slab.holes} slab={slab.footprint} elevation={0.008} finish={room.floorFinish} onPick={onFloor} onHover={props.onHover} />}
         {room.ceilingFinish && props.view === 'room' && <RoomCeiling building={building} storey={storey} footprint={footprint} finish={room.ceilingFinish} flatHeight={Math.min(storey.clearHeightM, ...building.ceilingFinishes.filter(c => c.spaceRef === room.ref).map(c => c.elevationM - storey.elevationM - c.thicknessM))} />}
         {selected === room.ref && <Line points={[...footprint, footprint[0]].map((p) => [p.x, 0.06, p.z] as [number, number, number])} color='#287466' lineWidth={2.5} />}
-        {labels && <Html center position={[centre.x, 0.06, centre.z]} zIndexRange={[8, 0]} style={{ pointerEvents: 'none' }}><div className={`interior-room-label ${selected === room.ref ? 'selected' : ''}`} style={sizes.width < 3 ? { width: 72, whiteSpace: 'normal' } : undefined}><strong>{room.name}</strong><span>{sizes.area.toFixed(2)} m²</span></div></Html>}
+        {labels && <RoomLabel centre={centre} name={room.name} area={sizes.area} width={sizes.width} depth={sizes.depth} plan={plan} selected={selected === room.ref} />}
         {plan && props.dimensions && [horizontal, vertical].map((edge, i) => {
           if (!edge) return null
           const length = Math.hypot(edge.q.x - edge.p.x, edge.q.z - edge.p.z); const nx = -(edge.q.z - edge.p.z) / length * 0.24; const nz = (edge.q.x - edge.p.x) / length * 0.24
-          return <group key={i}><Line points={[[edge.p.x + nx, 0.19, edge.p.z + nz], [edge.q.x + nx, 0.19, edge.q.z + nz]]} color='#7c837b' lineWidth={0.75} />{[edge.p, edge.q].map((p, j) => <Line key={j} points={[[p.x + nx * 0.6, 0.19, p.z + nz * 0.6], [p.x + nx * 1.4, 0.19, p.z + nz * 1.4]]} color='#7c837b' lineWidth={0.75} />)}<Html center position={[(edge.p.x + edge.q.x) / 2 + nx, 0.2, (edge.p.z + edge.q.z) / 2 + nz]} style={{ pointerEvents: 'none' }} zIndexRange={[7, 0]}><span className={`interior-dimension ${i ? 'is-vertical' : ''}`}>{length.toFixed(2)} m</span></Html></group>
+          return <group key={i}><Line points={[[edge.p.x + nx, 0.19, edge.p.z + nz], [edge.q.x + nx, 0.19, edge.q.z + nz]]} color='#7c837b' lineWidth={0.75} />{[edge.p, edge.q].map((p, j) => <Line key={j} points={[[p.x + nx * 0.6, 0.19, p.z + nz * 0.6], [p.x + nx * 1.4, 0.19, p.z + nz * 1.4]]} color='#7c837b' lineWidth={0.75} />)}<Html center position={[(edge.p.x + edge.q.x) / 2 + nx, 0.2, (edge.p.z + edge.q.z) / 2 + nz]} style={{ pointerEvents: 'none' }} zIndexRange={[7, 0]}><span data-plan-label="10" className={`interior-dimension ${i ? 'is-vertical' : ''}`}>{length.toFixed(2)} m</span></Html></group>
         })}
       </group>
     })}
@@ -258,10 +344,10 @@ export function InteriorScene(props: Props) {
       return <group key={`gable-guide-${guide.ref}`}>
         <Line points={[point(guide.start, -.5), point(guide.end, -.5)]} color='#1676b9' lineWidth={2.5} />
         {[guide.start, guide.end].map((p, i) => <Line key={i} points={[point(p, -.65), point(p, .8)]} color='#1676b9' lineWidth={1.5} dashed dashSize={.09} gapSize={.05} />)}
-        <Html center position={[(guide.start.x + guide.end.x) / 2 - nx * .85, .3, (guide.start.z + guide.end.z) / 2 - nz * .85]} style={{ pointerEvents: 'none' }} zIndexRange={[8, 0]}><span className='interior-dimension' style={{ color: '#12699f' }}>Okno · {guide.width.toFixed(2)} m</span></Html>
+        <Html center position={[(guide.start.x + guide.end.x) / 2 - nx * .85, .3, (guide.start.z + guide.end.z) / 2 - nz * .85]} style={{ pointerEvents: 'none' }} zIndexRange={[8, 0]}><span data-plan-label='25' className='interior-dimension' style={{ color: '#12699f' }}>Okno · {guide.width.toFixed(2)} m</span></Html>
       </group>
     })}
-    {props.view === 'room' && <group position-y={-storey.elevationM}>{building.roof.segments.filter(s => s.storeyRef === storey.ref).flatMap(segment => (['min','max'] as const).flatMap(side => {
+    {props.view === 'room' && <group position-y={-storey.elevationM}><InteriorGableCaps building={building} storeyRefs={[storey.ref, ...(upper ? [upper.ref] : [])]} />{building.roof.segments.filter(s => s.storeyRef === storey.ref || s.storeyRef === upper?.ref).flatMap(segment => (['min','max'] as const).flatMap(side => {
       if (!segment.gableGlazing?.[side]) return []
       const bounds=polygonBounds(segment.footprint)
       const value=(segment.ridgeDirection === 'z' ? (side==='min'?bounds.minZ:bounds.maxZ) : (side==='min'?bounds.minX:bounds.maxX)) + (side==='min'?1:-1)*(segment.gableRecess?.[side]?.depthM ?? 0)
@@ -271,18 +357,23 @@ export function InteriorScene(props: Props) {
       onPointerDown={event => { if (mode !== 'select' || placing) { event.stopPropagation(); onPick({ x: event.point.x, z: event.point.z }) } }}>
       <ProductModel item={item} mobile={props.mobile} />
     </group>)}
-    {items.filter((item) => item.ref === selected || props.selectedRefs?.includes(item.ref)).map((item) => <Line key={`selection-${item.ref}`} points={(() => { const corners = interiorCorners(item); return [...corners, corners[0]].map((p) => [p.x, (item.elevationM ?? 0) + 0.07, p.z] as [number, number, number]) })()} color={item.locked ? '#ad8551' : '#287466'} lineWidth={2} />)}
+    {items.filter((item) => item.ref === selected || props.selectedRefs?.includes(item.ref)).map((item) => <Line key={`selection-${item.ref}`} points={(() => { const corners = interiorCorners(item); return [...corners, corners[0]].map((p) => [p.x, (item.elevationM ?? 0) + 0.07, p.z] as [number, number, number]) })()} color={placementWarnings(item, building, storey).length ? '#c47b12' : item.locked ? '#ad8551' : '#287466'} lineWidth={3} />)}
+    {props.wallPreview && <group>
+      <Line points={[props.wallPreview.start, props.wallPreview.end].map(p => [p.x, plan ? .24 : 1.3, p.z] as [number, number, number])} color="#1676b9" lineWidth={3} dashed dashSize={.12} gapSize={.06} />
+      {[props.wallPreview.start, props.wallPreview.end].map((p, i) => <Html key={i} center position={[p.x, plan ? .3 : 1.35, p.z]} style={{ pointerEvents: 'none' }} zIndexRange={[9, 0]}><span className="interior-wall-anchor">{i ? 'B' : 'A'}</span></Html>)}
+    </group>}
     {selectedItem && !manipulation.dragging && mode === 'select' && wallDistances(selectedItem, building, storey).map((entry) => <group key={`distance-${entry.ref}`}>
       <Line points={[[entry.point.x, 0.09, entry.point.z], [entry.wallPoint.x, 0.09, entry.wallPoint.z]]} color='#287466' lineWidth={1} dashed dashSize={0.06} gapSize={0.04} />
-      <Html center position={[(entry.point.x + entry.wallPoint.x) / 2, 0.1, (entry.point.z + entry.wallPoint.z) / 2]} zIndexRange={[7, 0]} style={{ pointerEvents: 'none' }}><span className='interior-dimension'>{entry.distanceM.toFixed(2)} m</span></Html>
+      <Html center position={[(entry.point.x + entry.wallPoint.x) / 2, 0.1, (entry.point.z + entry.wallPoint.z) / 2]} zIndexRange={[7, 0]} style={{ pointerEvents: 'none' }}><span className='interior-dimension' data-plan-label="50" data-movable="true"><i className="interior-label-leader" />{entry.distanceM.toFixed(2)} m</span></Html>
     </group>)}
     {props.ghost && <group position={[props.ghost.position.x, (props.ghost.elevationM ?? 0) + props.ghost.heightM / 2 + 0.02, props.ghost.position.z]} rotation-y={props.ghost.rotationDegrees * Math.PI / 180}>
-      <mesh raycast={() => {}}><boxGeometry args={[props.ghost.widthM, props.ghost.heightM, props.ghost.depthM]} /><meshBasicMaterial color={itemFitsFloor(props.ghost, slab.footprint, slab.holes) ? '#438b77' : '#c57054'} transparent opacity={0.25} depthWrite={false} /></mesh>
+      <mesh raycast={() => {}}><boxGeometry args={[props.ghost.widthM, props.ghost.heightM, props.ghost.depthM]} /><meshBasicMaterial color={!itemFitsFloor(props.ghost, slab.footprint, slab.holes) ? '#c57054' : placementWarnings(props.ghost, building, storey).length ? '#c47b12' : '#438b77'} transparent opacity={0.25} depthWrite={false} /></mesh>
     </group>}
     {props.points.length > 0 && <>
       {props.points.map((point, i) => <MeasurementPoint key={i} position={new Vector3(point.x, 0.09, point.z)} color='#236959' waiting={props.points.length === 1} />)}
-      {props.points.length === 2 && <><Line points={props.points.map((p) => [p.x, 0.1, p.z] as [number, number, number])} color='#236959' lineWidth={2.5} dashed dashSize={0.16} gapSize={0.07} /><Html center style={{ pointerEvents: 'none' }} position={[(props.points[0].x + props.points[1].x) / 2, 0.14, (props.points[0].z + props.points[1].z) / 2]}><span className='interior-measure-label'>{Math.hypot(props.points[1].x - props.points[0].x, props.points[1].z - props.points[0].z).toFixed(2)} m</span></Html></>}
+      {props.points.length === 2 && <><Line points={props.points.map((p) => [p.x, 0.1, p.z] as [number, number, number])} color='#236959' lineWidth={2.5} dashed dashSize={0.16} gapSize={0.07} /><Html center style={{ pointerEvents: 'none' }} position={[(props.points[0].x + props.points[1].x) / 2, 0.14, (props.points[0].z + props.points[1].z) / 2]}><span data-plan-label='60' className='interior-measure-label'>{Math.hypot(props.points[1].x - props.points[0].x, props.points[1].z - props.points[0].z).toFixed(2)} m</span></Html></>}
     </>}
-    {preview && mode === 'measure' && <Html center position={preview} style={{ pointerEvents: 'none' }}><span className='measurement-snap-preview'>Snapped</span></Html>}
+    {preview && mode === 'measure' && <Html center position={preview} style={{ pointerEvents: 'none' }}><span className='measurement-snap-preview'>Przyciągnięto</span></Html>}
+    <PlanLabelLayout />
   </>
 }
