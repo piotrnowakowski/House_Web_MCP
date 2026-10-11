@@ -10,6 +10,7 @@ import { roofWings, gableRoofJunction } from '../src/domain/roofWings'
 import type { BuildingModel, InteriorCatalogId, Polygon2, SpaceBoundaryUse, StoreyModel, Vec2 } from '../src/domain/types'
 
 const dir = 'project-data/architekt'
+if (existsSync(`${dir}/project.json`) && JSON.parse(readFileSync(`${dir}/project.json`, 'utf8')).revision > 4) throw Error('Historical r4 reconstruction: refusing to overwrite later exterior/interior edits. Use the current canonical project.')
 mkdirSync(dir, { recursive: true })
 const sourceFile = `${dir}/source-glowny-r79.json`
 if (!existsSync(sourceFile)) writeFileSync(sourceFile, readFileSync('project-data/zielonki-rear-bath-room/project.json'))

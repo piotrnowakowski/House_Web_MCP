@@ -1,5 +1,17 @@
 # Paulina poprawki — 2026-10-11
 
+## Główny exterior match — 2026-10-12, r5
+
+Current canonical revision is **r5**, prepared for the user-authorized Mikrus release. The user explicitly chose to retain this variant's dimensions and match Główny's windows and exterior appearance. `before-glowny-exterior-r4.json` preserves the previous publication; `initial-r1.json` and `source-architekt-r4.json` stay immutable. Główny r80 is the unchanged source.
+
+Corresponding openings now have Główny's dimensions, sills, glazing, mullions and finishes, including 1.95 × 1.14 m children's windows with 1.00 m sills, a 1.20 × 0.60 m bathroom window at sill 0.75 m, and 1.80 × 2.30 m glazed office/courtyard doors. The missing courtyard door is added in the existing exterior wall. Paired living panes retain a centered 0.40 m pier. To fit the exact children's window specifications below this variant's existing slopes, the west window moves 0.115 m (local x −2.885 to −2.770), and the east moves 0.295 m (x 0.795 to 0.500); both remain at z 5.945. No room boundary moves.
+
+Natural/charred timber, shaped gable glazing, black frames, recessed terrace lining and canopy details match Główny. Upper gable host-wall heights match its cladding transitions, while storey heights and clear room dimensions stay unchanged. The rear roof extends 1 m outward along its ridge to create the recessed terrace; the exterior terrace slab and courtyard canopy/posts fit this variant. Enclosed footprints, walls' endpoints/thickness, rooms, enlarged living void, furniture, stairs, site and landscape remain unchanged.
+
+Final recomputation retains symmetric **40.0696418141° / 39.6686478301°** main slopes, **5.15 m** eaves and the common **8.0856938754 m** ridge. The rear minimum junction remains a recognized valley with no internal gable. These checks do not establish whole-building planning compliance.
+
+`scripts/match-glowny-exteriors.ts` reproduces r5 from the frozen r4 snapshot; older reconstruction scripts refuse to overwrite later revisions. Tests cover schema/geometry, shaped gable panes, unchanged room/void geometry and migration preserving local furniture edits/deletions and deleted windows. Actual-profile provenance is recorded in `../zielonki/README.md`; ignored evidence is in `tmp/exterior-match-20261012-iab/`. The sections below retain the history of r1–r4.
+
 Launcher update: user requested the name **paulinka poprawki**, now canonical **r4**. `before-launcher-name-r3.json` preserves the preceding publication. Only the project name and revision metadata change; all design geometry remains as documented below. It is one of three default launcher entries; older designs and recovery versions remain in the archive. Actual in-app before/after captures and comparisons are in ignored `tmp/three-projects/`.
 
 Independent project `project/paulina-poprawki`, canonical revision **3**, forked from `architekt` r4. The user requested a new version with the enlarged upstairs opening, adjusted partitions on both floors and revised kitchen. They explicitly chose **"Match the screenshot dimensions, including exterior changes"**. The earlier choice to retain the attic roof remains applicable.

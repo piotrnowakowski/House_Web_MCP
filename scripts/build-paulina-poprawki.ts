@@ -16,6 +16,7 @@ const source=parseProject(JSON.parse(readFileSync(`${dir}/source-architekt-r4.js
 const project=structuredClone(source), house=project.buildings.find(b=>b.ref==='house/main')!
 const previous=structuredClone(house)
 const current=parseProject(JSON.parse(readFileSync(`${dir}/project.json`,'utf8')))
+if(current.revision>4)throw Error('Historical r4 reconstruction: refusing to overwrite later exterior/interior edits. Use the current canonical project.')
 project.ref='project/paulina-poprawki'; project.name=current.name; project.revision=current.revision
 project.updatedAt=current.updatedAt
 house.name='Dom · Paulina poprawki'

@@ -54,7 +54,7 @@ it('matches the printed footprint and clear rectangular room dimensions without 
 })
 
 it('recomputes symmetric compliant main slopes and recognizes the perpendicular roof junction', () => {
-  const house = parseProject(data).buildings[0], wings = roofWings(house)
+  const house = parseProject(data).buildings[0], wings = roofWings(house).filter(w => w.type === 'gable')
   expect(wings).toHaveLength(2)
   for (const wing of wings) {
     const b = polygonBounds(wing.footprint)

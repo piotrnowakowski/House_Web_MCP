@@ -3,8 +3,8 @@
   "ref": "project/paulina-poprawki",
   "name": "paulinka poprawki",
   "units": "metric",
-  "revision": 4,
-  "updatedAt": "2026-10-11T20:42:29.812Z",
+  "revision": 5,
+  "updatedAt": "2026-10-11T23:12:34.638Z",
   "site": {
     "boundary": [
       {
@@ -1840,15 +1840,16 @@
           "The first two screenshots are byte-identical. The annotated upper plan is interpreted as removing the former wardrobe floor, adding an open gallery and shifting the bedroom partitions. Handwritten lines are approximate; old printed 13.21 × 10.13 dimensions are superseded by the explicitly selected phone-plan envelope.",
           "Upper gallery: parents wall at p=4.23 m aligned with ground room partition, void guard at p=5.15 m; child-room corner moved back to q=8.67 m. Open slab hole 3.94 × 6.88 m (27.1072 m²), excluding perimeter and guard. No upstairs wardrobe room or furniture remains over the opening.",
           "Kitchen follows the phone plan: wall run against pantry, parallel island, three stools, corner sofa and six-place dining table. Undrawn pantry access is a concealed door at the end of the kitchen run. Opening heights and upper furnishings are inferred; 3D elevations remain provisional.",
-          "Retained 1.40 m attic knee wall, 5.15 m eaves and 8.0856938754 m shared ridge. Pitches recomputed from final 6.98 / 7.08 m spans. Stairs retain the 3.30 m rise, 18 risers, 0.95 m clear flights/landing and 2.20 m tread run; the unlabeled sketch stair is fitted to these retained model dimensions."
+          "Retained 1.40 m attic knee wall, 5.15 m eaves and 8.0856938754 m shared ridge. Pitches recomputed from final 6.98 / 7.08 m spans. Stairs retain the 3.30 m rise, 18 risers, 0.95 m clear flights/landing and 2.20 m tread run; the unlabeled sketch stair is fitted to these retained model dimensions.",
+          "2026-10-12: user requested Główny window specifications and exterior materials/details while retaining this variant’s footprint and room dimensions. Window locations adapt to the existing rooms. Main gable pitches, ridges, partitions, stairs, furniture and site remain unchanged; roof-only east extension creates the 1 m recessed terrace and courtyard canopy."
         ]
       },
       "furniture": [
         {
           "ref": "interior/reference-cabinet-one",
           "catalogId": "wardrobe",
-          "name": "Zabudowa wysoka kuchni",
           "storeyRef": "storey/reference-ground",
+          "name": "Zabudowa wysoka kuchni",
           "position": {
             "x": -2.365,
             "z": -5.395
@@ -1862,8 +1863,8 @@
         {
           "ref": "interior/reference-counter",
           "catalogId": "kitchen-counter",
-          "name": "Blat kuchenny",
           "storeyRef": "storey/reference-ground",
+          "name": "Blat kuchenny",
           "position": {
             "x": -2.365,
             "z": -4.705
@@ -1877,8 +1878,8 @@
         {
           "ref": "interior/architekt/cooker",
           "catalogId": "cooker",
-          "name": "Płyta kuchenna",
           "storeyRef": "storey/reference-ground",
+          "name": "Płyta kuchenna",
           "position": {
             "x": -2.365,
             "z": -4.085
@@ -1892,8 +1893,8 @@
         {
           "ref": "interior/reference-sink",
           "catalogId": "sink",
-          "name": "Zlew kuchenny",
           "storeyRef": "storey/reference-ground",
+          "name": "Zlew kuchenny",
           "position": {
             "x": -2.365,
             "z": -3.375
@@ -1907,8 +1908,8 @@
         {
           "ref": "interior/reference-island",
           "catalogId": "kitchen-counter",
-          "name": "Wyspa kuchenna",
           "storeyRef": "storey/reference-ground",
+          "name": "Wyspa kuchenna",
           "position": {
             "x": -0.805,
             "z": -3.895
@@ -1922,8 +1923,8 @@
         {
           "ref": "interior/reference-stool-one",
           "catalogId": "bar-stool",
-          "name": "Hoker 1",
           "storeyRef": "storey/reference-ground",
+          "name": "Hoker 1",
           "position": {
             "x": 0.235,
             "z": -4.675
@@ -1937,8 +1938,8 @@
         {
           "ref": "interior/reference-stool-two",
           "catalogId": "bar-stool",
-          "name": "Hoker 2",
           "storeyRef": "storey/reference-ground",
+          "name": "Hoker 2",
           "position": {
             "x": 0.235,
             "z": -3.895
@@ -1952,8 +1953,8 @@
         {
           "ref": "interior/paulina/stool-three",
           "catalogId": "bar-stool",
-          "name": "Hoker 3",
           "storeyRef": "storey/reference-ground",
+          "name": "Hoker 3",
           "position": {
             "x": 0.235,
             "z": -3.115
@@ -1967,8 +1968,8 @@
         {
           "ref": "interior/reference-sofa",
           "catalogId": "corner-sofa",
-          "name": "Narożnik",
           "storeyRef": "storey/reference-ground",
+          "name": "Narożnik",
           "position": {
             "x": 2.395,
             "z": -3.675
@@ -1982,8 +1983,8 @@
         {
           "ref": "interior/reference-dining",
           "catalogId": "dining-table",
-          "name": "Stół i sześć krzeseł",
           "storeyRef": "storey/reference-ground",
+          "name": "Stół i sześć krzeseł",
           "position": {
             "x": 2.455,
             "z": -1.015
@@ -1997,8 +1998,8 @@
         {
           "ref": "interior/paulina/entry-left",
           "catalogId": "wardrobe",
-          "name": "Szafa wejściowa · lewa",
           "storeyRef": "storey/reference-ground",
+          "name": "Szafa wejściowa · lewa",
           "position": {
             "x": -4.195,
             "z": 3.155
@@ -2012,8 +2013,8 @@
         {
           "ref": "interior/paulina/entry-right",
           "catalogId": "wardrobe",
-          "name": "Szafa wejściowa · prawa",
           "storeyRef": "storey/reference-ground",
+          "name": "Szafa wejściowa · prawa",
           "position": {
             "x": -2.945,
             "z": 3.155
@@ -2027,8 +2028,8 @@
         {
           "ref": "interior/carport-study/wc",
           "catalogId": "toilet",
-          "name": "WC",
           "storeyRef": "storey/reference-ground",
+          "name": "WC",
           "position": {
             "x": -1.965,
             "z": 2.145
@@ -2042,8 +2043,8 @@
         {
           "ref": "interior/carport-study/shower",
           "catalogId": "shower",
-          "name": "Prysznic",
           "storeyRef": "storey/reference-ground",
+          "name": "Prysznic",
           "position": {
             "x": -0.945,
             "z": 2.575
@@ -2057,8 +2058,8 @@
         {
           "ref": "interior/carport-study/vanity",
           "catalogId": "vanity",
-          "name": "Umywalka",
           "storeyRef": "storey/reference-ground",
+          "name": "Umywalka",
           "position": {
             "x": -0.905,
             "z": 3.815
@@ -2072,8 +2073,8 @@
         {
           "ref": "interior/architekt/utility-washer",
           "catalogId": "washer",
-          "name": "Pralka",
           "storeyRef": "storey/reference-ground",
+          "name": "Pralka",
           "position": {
             "x": -1.995,
             "z": 5.545
@@ -2087,8 +2088,8 @@
         {
           "ref": "interior/architekt/utility-dryer",
           "catalogId": "washer",
-          "name": "Suszarka",
           "storeyRef": "storey/reference-ground",
+          "name": "Suszarka",
           "position": {
             "x": -1.245,
             "z": 5.545
@@ -2102,8 +2103,8 @@
         {
           "ref": "interior/paulina/guest-bed",
           "catalogId": "bed",
-          "name": "Łóżko w pokoju",
           "storeyRef": "storey/reference-ground",
+          "name": "Łóżko w pokoju",
           "position": {
             "x": 0.155,
             "z": 2.815
@@ -2117,8 +2118,8 @@
         {
           "ref": "interior/reference-parents-bed",
           "catalogId": "bed",
-          "name": "Łóżko sypialni",
           "storeyRef": "storey/reference-upper",
+          "name": "Łóżko sypialni",
           "position": {
             "x": -2.195,
             "z": -4.445
@@ -2132,8 +2133,8 @@
         {
           "ref": "interior/architekt/parents-nightstand-1",
           "catalogId": "coffee-table",
-          "name": "Szafka nocna",
           "storeyRef": "storey/reference-upper",
+          "name": "Szafka nocna",
           "position": {
             "x": -3.415,
             "z": -5.285
@@ -2147,8 +2148,8 @@
         {
           "ref": "interior/architekt/parents-nightstand-2",
           "catalogId": "coffee-table",
-          "name": "Szafka nocna",
           "storeyRef": "storey/reference-upper",
+          "name": "Szafka nocna",
           "position": {
             "x": -0.965,
             "z": -5.285
@@ -2162,8 +2163,8 @@
         {
           "ref": "interior/paulina/parents-storage",
           "catalogId": "wardrobe",
-          "name": "Szafa sypialni",
           "storeyRef": "storey/reference-upper",
+          "name": "Szafa sypialni",
           "position": {
             "x": -4.145,
             "z": -3.175
@@ -2177,8 +2178,8 @@
         {
           "ref": "interior/reference-child-one-bed",
           "catalogId": "bed",
-          "name": "Łóżko · pokój 1",
           "storeyRef": "storey/reference-upper",
+          "name": "Łóżko · pokój 1",
           "position": {
             "x": -1.925,
             "z": 4.665
@@ -2192,8 +2193,8 @@
         {
           "ref": "interior/architekt/child-one-desk",
           "catalogId": "desk",
-          "name": "Biurko · pokój 1",
           "storeyRef": "storey/reference-upper",
+          "name": "Biurko · pokój 1",
           "position": {
             "x": -3.715,
             "z": 5.495
@@ -2207,8 +2208,8 @@
         {
           "ref": "interior/architekt/child-one-chair",
           "catalogId": "armchair",
-          "name": "Krzesło · pokój 1",
           "storeyRef": "storey/reference-upper",
+          "name": "Krzesło · pokój 1",
           "position": {
             "x": -3.715,
             "z": 4.755
@@ -2222,8 +2223,8 @@
         {
           "ref": "interior/architekt/child-one-storage",
           "catalogId": "wardrobe",
-          "name": "Szafa · pokój 1",
           "storeyRef": "storey/reference-upper",
+          "name": "Szafa · pokój 1",
           "position": {
             "x": -3.525,
             "z": 3.175
@@ -2237,8 +2238,8 @@
         {
           "ref": "interior/reference-child-two-bed",
           "catalogId": "bed",
-          "name": "Łóżko · pokój 2",
           "storeyRef": "storey/reference-upper",
+          "name": "Łóżko · pokój 2",
           "position": {
             "x": 1.265,
             "z": 4.735
@@ -2252,8 +2253,8 @@
         {
           "ref": "interior/architekt/child-two-desk",
           "catalogId": "desk",
-          "name": "Biurko · pokój 2",
           "storeyRef": "storey/reference-upper",
+          "name": "Biurko · pokój 2",
           "position": {
             "x": -0.135,
             "z": 5.495
@@ -2267,8 +2268,8 @@
         {
           "ref": "interior/architekt/child-two-chair",
           "catalogId": "armchair",
-          "name": "Krzesło · pokój 2",
           "storeyRef": "storey/reference-upper",
+          "name": "Krzesło · pokój 2",
           "position": {
             "x": -0.135,
             "z": 4.755
@@ -2282,8 +2283,8 @@
         {
           "ref": "interior/architekt/child-two-storage",
           "catalogId": "wardrobe",
-          "name": "Szafa · pokój 2",
           "storeyRef": "storey/reference-upper",
+          "name": "Szafa · pokój 2",
           "position": {
             "x": -0.085,
             "z": 3.175
@@ -2297,8 +2298,8 @@
         {
           "ref": "interior/reference-bathtub",
           "catalogId": "bathtub",
-          "name": "Wanna",
           "storeyRef": "storey/reference-upper",
+          "name": "Wanna",
           "position": {
             "x": -4.025,
             "z": 1.495
@@ -2312,8 +2313,8 @@
         {
           "ref": "interior/reference-upper-toilet",
           "catalogId": "toilet",
-          "name": "WC piętro",
           "storeyRef": "storey/reference-upper",
+          "name": "WC piętro",
           "position": {
             "x": -3.115,
             "z": 0.905
@@ -2327,8 +2328,8 @@
         {
           "ref": "interior/reference-upper-vanity",
           "catalogId": "vanity",
-          "name": "Umywalka piętro",
           "storeyRef": "storey/reference-upper",
+          "name": "Umywalka piętro",
           "position": {
             "x": -2.895,
             "z": 2.375
@@ -2562,6 +2563,30 @@
           "thicknessM": 0.5,
           "edgeColorHex": "#2D3435",
           "locked": false
+        },
+        {
+          "ref": "slab/recessed-terrace",
+          "footprint": [
+            {
+              "x": 4.725,
+              "z": -6.045
+            },
+            {
+              "x": 5.725,
+              "z": -6.045
+            },
+            {
+              "x": 5.725,
+              "z": 1.2349999999999997
+            },
+            {
+              "x": 4.725,
+              "z": 1.2349999999999997
+            }
+          ],
+          "topElevationM": 0.43,
+          "thicknessM": 0.18,
+          "locked": false
         }
       ],
       "walls": [
@@ -2579,12 +2604,11 @@
           "baseElevationM": 0.45,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/2",
@@ -2601,23 +2625,23 @@
           "heightM": 2.8,
           "openings": [
             {
+              "hinge": "left",
+              "swing": "in",
               "ref": "opening/paulina/pantry",
-              "wallRef": "wall/paulina/ground/2",
               "kind": "door",
+              "wallRef": "wall/paulina/ground/2",
               "offsetM": 3.5500000000000003,
               "widthM": 0.8,
               "heightM": 2.1,
-              "sillM": 0,
-              "hinge": "left",
-              "swing": "in"
+              "sillM": 0
             }
           ],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/3",
@@ -2633,12 +2657,12 @@
           "baseElevationM": 0.45,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/4",
@@ -2654,12 +2678,11 @@
           "baseElevationM": 0.45,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "natural-timber",
+            "colorHex": "#BD9C73"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/5",
@@ -2676,23 +2699,23 @@
           "heightM": 2.8,
           "openings": [
             {
+              "hinge": "left",
+              "swing": "out",
               "ref": "opening/paulina/entry-wardrobe",
-              "wallRef": "wall/paulina/ground/5",
               "kind": "door",
+              "wallRef": "wall/paulina/ground/5",
               "offsetM": 1.15,
               "widthM": 0.9,
               "heightM": 2.1,
-              "sillM": 0,
-              "hinge": "left",
-              "swing": "out"
+              "sillM": 0
             }
           ],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/6",
@@ -2708,12 +2731,12 @@
           "baseElevationM": 0.45,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/7",
@@ -2730,23 +2753,23 @@
           "heightM": 2.8,
           "openings": [
             {
+              "hinge": "left",
+              "swing": "out",
               "ref": "opening/architekt/utility-external",
-              "wallRef": "wall/paulina/ground/7",
               "kind": "door",
+              "wallRef": "wall/paulina/ground/7",
               "offsetM": 0.96,
               "widthM": 0.9,
               "heightM": 2.1,
-              "sillM": 0,
-              "hinge": "left",
-              "swing": "out"
+              "sillM": 0
             }
           ],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/8",
@@ -2762,12 +2785,11 @@
           "baseElevationM": 0.45,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "natural-timber",
+            "colorHex": "#BD9C73"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/9",
@@ -2784,23 +2806,23 @@
           "heightM": 2.8,
           "openings": [
             {
+              "hinge": "left",
+              "swing": "out",
               "ref": "opening/reference-wc",
-              "wallRef": "wall/paulina/ground/9",
               "kind": "door",
+              "wallRef": "wall/paulina/ground/9",
               "offsetM": 1.2600000000000002,
               "widthM": 0.9,
               "heightM": 2.1,
-              "sillM": 0,
-              "hinge": "left",
-              "swing": "out"
+              "sillM": 0
             }
           ],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/10",
@@ -2816,12 +2838,12 @@
           "baseElevationM": 0.45,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/11",
@@ -2837,12 +2859,12 @@
           "baseElevationM": 0.45,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/12",
@@ -2858,12 +2880,12 @@
           "baseElevationM": 0.45,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/13",
@@ -2879,12 +2901,11 @@
           "baseElevationM": 0.45,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "natural-timber",
+            "colorHex": "#BD9C73"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/14",
@@ -2900,12 +2921,11 @@
           "baseElevationM": 0.45,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "natural-timber",
+            "colorHex": "#BD9C73"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/15",
@@ -2922,23 +2942,23 @@
           "heightM": 2.8,
           "openings": [
             {
+              "hinge": "right",
+              "swing": "in",
               "ref": "opening/reference-office",
-              "wallRef": "wall/paulina/ground/15",
               "kind": "door",
+              "wallRef": "wall/paulina/ground/15",
               "offsetM": 1.42,
               "widthM": 0.9,
               "heightM": 2.1,
-              "sillM": 0,
-              "hinge": "right",
-              "swing": "in"
+              "sillM": 0
             }
           ],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/16",
@@ -2956,20 +2976,20 @@
           "openings": [
             {
               "ref": "opening/reference-office-window",
+              "kind": "door",
               "wallRef": "wall/paulina/ground/16",
-              "kind": "window",
               "offsetM": 1.5,
-              "widthM": 1.5,
-              "heightM": 1.5,
-              "sillM": 0.8
+              "widthM": 1.8,
+              "heightM": 2.3,
+              "sillM": 0,
+              "glazed": true
             }
           ],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "natural-timber",
+            "colorHex": "#BD9C73"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/17",
@@ -2985,12 +3005,11 @@
           "baseElevationM": 0.45,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "natural-timber",
+            "colorHex": "#BD9C73"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/18",
@@ -3007,21 +3026,24 @@
           "heightM": 2.8,
           "openings": [
             {
+              "mullionFractions": [
+                0.5
+              ],
               "ref": "opening/reference-kitchen",
-              "wallRef": "wall/paulina/ground/18",
               "kind": "window",
+              "wallRef": "wall/paulina/ground/18",
               "offsetM": 2.1799999999999997,
-              "widthM": 2.6,
-              "heightM": 1.5,
-              "sillM": 0.85
+              "widthM": 2.4928,
+              "heightM": 2.8,
+              "sillM": 0,
+              "glazed": true
             }
           ],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/19",
@@ -3038,33 +3060,37 @@
           "heightM": 2.8,
           "openings": [
             {
+              "mullionFractions": [
+                0.5
+              ],
               "ref": "opening/architekt/living-left",
+              "kind": "window",
               "wallRef": "wall/paulina/ground/19",
-              "kind": "door",
-              "offsetM": 4.930000000000001,
-              "widthM": 2.2,
-              "heightM": 2.35,
+              "offsetM": 5.18775,
+              "widthM": 2.8955,
+              "heightM": 2.8,
               "sillM": 0,
-              "glazed": true,
-              "hinge": "left",
-              "swing": "in"
+              "glazed": true
             },
             {
+              "mullionFractions": [
+                0.5
+              ],
               "ref": "opening/architekt/living-right",
-              "wallRef": "wall/paulina/ground/19",
               "kind": "window",
-              "offsetM": 2.0100000000000002,
-              "widthM": 2.2,
-              "heightM": 1.5,
-              "sillM": 0.85
+              "wallRef": "wall/paulina/ground/19",
+              "offsetM": 1.8922499999999998,
+              "widthM": 2.8955,
+              "heightM": 2.8,
+              "sillM": 0,
+              "glazed": true
             }
           ],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/20",
@@ -3079,13 +3105,23 @@
           "thicknessM": 0.2,
           "baseElevationM": 0.45,
           "heightM": 2.8,
-          "openings": [],
-          "locked": false,
+          "openings": [
+            {
+              "ref": "opening/architekt/terrace-side",
+              "kind": "door",
+              "wallRef": "wall/paulina/ground/20",
+              "offsetM": 1.135,
+              "widthM": 1.8,
+              "heightM": 2.3,
+              "sillM": 0,
+              "glazed": true
+            }
+          ],
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "natural-timber",
+            "colorHex": "#BD9C73"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/21",
@@ -3101,12 +3137,11 @@
           "baseElevationM": 0.45,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "natural-timber",
+            "colorHex": "#BD9C73"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/22",
@@ -3124,22 +3159,20 @@
           "openings": [
             {
               "ref": "opening/reference-entrance",
-              "wallRef": "wall/paulina/ground/22",
               "kind": "door",
+              "wallRef": "wall/paulina/ground/22",
               "offsetM": 0.73,
-              "widthM": 1,
+              "widthM": 1.1,
               "heightM": 2.1,
               "sillM": 0,
-              "hinge": "left",
-              "swing": "in"
+              "glazed": false
             }
           ],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "natural-timber",
+            "colorHex": "#BD9C73"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/1",
@@ -3153,24 +3186,27 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.75,
-          "heightM": 2.8,
+          "heightM": 1.4,
           "openings": [
             {
+              "mullionFractions": [
+                0.5
+              ],
               "ref": "opening/architekt/parents-window",
-              "wallRef": "wall/paulina/upper/1",
               "kind": "window",
+              "wallRef": "wall/paulina/upper/1",
               "offsetM": 2.36,
-              "widthM": 2,
-              "heightM": 1.5,
-              "sillM": 0.8
+              "widthM": 2.4928,
+              "heightM": 1.3199999999999998,
+              "sillM": 0.08,
+              "glazed": true
             }
           ],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/2",
@@ -3186,12 +3222,12 @@
           "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/3",
@@ -3208,23 +3244,23 @@
           "heightM": 2.8,
           "openings": [
             {
+              "hinge": "left",
+              "swing": "in",
               "ref": "opening/reference-parents",
-              "wallRef": "wall/paulina/upper/3",
               "kind": "door",
+              "wallRef": "wall/paulina/upper/3",
               "offsetM": 0.6699999999999999,
               "widthM": 0.85,
               "heightM": 2.1,
-              "sillM": 0,
-              "hinge": "left",
-              "swing": "in"
+              "sillM": 0
             }
           ],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/4",
@@ -3240,12 +3276,11 @@
           "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/5",
@@ -3261,12 +3296,12 @@
           "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/6",
@@ -3283,23 +3318,23 @@
           "heightM": 2.8,
           "openings": [
             {
+              "hinge": "left",
+              "swing": "in",
               "ref": "opening/reference-bathroom",
-              "wallRef": "wall/paulina/upper/6",
               "kind": "door",
+              "wallRef": "wall/paulina/upper/6",
               "offsetM": 1.3599999999999999,
               "widthM": 0.8,
               "heightM": 2.1,
-              "sillM": 0,
-              "hinge": "left",
-              "swing": "in"
+              "sillM": 0
             }
           ],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/7",
@@ -3315,12 +3350,12 @@
           "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/8",
@@ -3338,20 +3373,20 @@
           "openings": [
             {
               "ref": "opening/architekt/bath-window",
-              "wallRef": "wall/paulina/upper/8",
               "kind": "window",
+              "wallRef": "wall/paulina/upper/8",
               "offsetM": 1.02,
-              "widthM": 0.8,
+              "widthM": 1.2,
               "heightM": 0.6,
-              "sillM": 0.7
+              "sillM": 0.75,
+              "glazed": true
             }
           ],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/9",
@@ -3367,12 +3402,12 @@
           "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/10",
@@ -3389,23 +3424,23 @@
           "heightM": 2.8,
           "openings": [
             {
+              "hinge": "left",
+              "swing": "in",
               "ref": "opening/reference-child-one",
-              "wallRef": "wall/paulina/upper/10",
               "kind": "door",
+              "wallRef": "wall/paulina/upper/10",
               "offsetM": 0.5699999999999998,
               "widthM": 0.85,
               "heightM": 2.1,
-              "sillM": 0,
-              "hinge": "left",
-              "swing": "in"
+              "sillM": 0
             }
           ],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/11",
@@ -3419,24 +3454,24 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.75,
-          "heightM": 2.8,
+          "heightM": 2.2,
           "openings": [
             {
               "ref": "opening/reference-children-west-window",
-              "wallRef": "wall/paulina/upper/11",
               "kind": "window",
-              "offsetM": 1.9899999999999998,
-              "widthM": 1.8,
-              "heightM": 1.2,
-              "sillM": 0.7
+              "wallRef": "wall/paulina/upper/11",
+              "offsetM": 1.875,
+              "widthM": 1.95,
+              "heightM": 1.14,
+              "sillM": 1,
+              "glazed": true
             }
           ],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/12",
@@ -3452,12 +3487,11 @@
           "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/13",
@@ -3473,12 +3507,12 @@
           "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/14",
@@ -3495,23 +3529,23 @@
           "heightM": 2.8,
           "openings": [
             {
+              "hinge": "left",
+              "swing": "in",
               "ref": "opening/reference-child-two",
-              "wallRef": "wall/paulina/upper/14",
               "kind": "door",
+              "wallRef": "wall/paulina/upper/14",
               "offsetM": 0.5800000000000001,
               "widthM": 0.85,
               "heightM": 2.1,
-              "sillM": 0,
-              "hinge": "left",
-              "swing": "in"
+              "sillM": 0
             }
           ],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/15",
@@ -3527,12 +3561,12 @@
           "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/16",
@@ -3548,12 +3582,11 @@
           "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/17",
@@ -3567,24 +3600,24 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.75,
-          "heightM": 2.8,
+          "heightM": 2.2,
           "openings": [
             {
               "ref": "opening/reference-children-east-window",
-              "wallRef": "wall/paulina/upper/17",
               "kind": "window",
-              "offsetM": 1.56,
-              "widthM": 1.5,
-              "heightM": 1.1,
-              "sillM": 0.8
+              "wallRef": "wall/paulina/upper/17",
+              "offsetM": 1.855,
+              "widthM": 1.95,
+              "heightM": 1.14,
+              "sillM": 1,
+              "glazed": true
             }
           ],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/18",
@@ -3598,14 +3631,13 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.75,
-          "heightM": 2.8,
+          "heightM": 1.4,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/19",
@@ -3621,12 +3653,12 @@
           "baseElevationM": 3.75,
           "heightM": 1.05,
           "openings": [],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#353A3A",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/20",
@@ -3642,12 +3674,12 @@
           "baseElevationM": 3.75,
           "heightM": 1.05,
           "openings": [],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#353A3A",
             "textureId": "none"
-          }
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/21",
@@ -3663,12 +3695,11 @@
           "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/22",
@@ -3684,12 +3715,11 @@
           "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/23",
@@ -3703,14 +3733,13 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.75,
-          "heightM": 2.8,
+          "heightM": 1.4,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/24",
@@ -3724,33 +3753,40 @@
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.75,
-          "heightM": 2.8,
+          "heightM": 1.4,
           "openings": [
             {
+              "mullionFractions": [
+                0.5
+              ],
               "ref": "opening/architekt/void-left",
-              "wallRef": "wall/paulina/upper/24",
               "kind": "window",
-              "offsetM": 4.930000000000001,
-              "widthM": 2.2,
-              "heightM": 1.4,
-              "sillM": 0
+              "wallRef": "wall/paulina/upper/24",
+              "offsetM": 5.18775,
+              "widthM": 2.8955,
+              "heightM": 1.3199999999999998,
+              "sillM": 0.08,
+              "glazed": true
             },
             {
+              "mullionFractions": [
+                0.5
+              ],
               "ref": "opening/architekt/void-right",
-              "wallRef": "wall/paulina/upper/24",
               "kind": "window",
-              "offsetM": 2.0100000000000002,
-              "widthM": 2.2,
-              "heightM": 1.4,
-              "sillM": 0
+              "wallRef": "wall/paulina/upper/24",
+              "offsetM": 1.8922499999999998,
+              "widthM": 2.8955,
+              "heightM": 1.3199999999999998,
+              "sillM": 0.08,
+              "glazed": true
             }
           ],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/upper/25",
@@ -3766,12 +3802,11 @@
           "baseElevationM": 3.75,
           "heightM": 2.8,
           "openings": [],
-          "locked": false,
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          }
+            "material": "charred-timber",
+            "colorHex": "#242927"
+          },
+          "locked": false
         },
         {
           "ref": "wall/paulina/ground/bath-return",
@@ -3787,16 +3822,28 @@
           "baseElevationM": 0.45,
           "heightM": 2.1,
           "openings": [],
-          "locked": false,
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
             "textureId": "none"
-          }
+          },
+          "locked": false
         }
       ],
       "spaces": [
         {
+          "floorFinish": {
+            "presetId": "sand-tile",
+            "color": "#D4C6B1",
+            "rotationDegrees": 0,
+            "tileM": 0.6
+          },
+          "ceilingFinish": {
+            "presetId": "warm-white",
+            "color": "#F5F1E8",
+            "rotationDegrees": 0,
+            "tileM": 1
+          },
           "ref": "space/paulina-pantry",
           "name": "Spiżarnia",
           "usage": "storage",
@@ -3820,6 +3867,9 @@
           ],
           "baseSlabRef": "slab/reference-ground",
           "topBoundaryRef": "slab/reference-upper",
+          "locked": false
+        },
+        {
           "floorFinish": {
             "presetId": "sand-tile",
             "color": "#D4C6B1",
@@ -3832,9 +3882,6 @@
             "rotationDegrees": 0,
             "tileM": 1
           },
-          "locked": false
-        },
-        {
           "ref": "space/paulina-entry-wardrobe",
           "name": "Garderoba przy wejściu",
           "usage": "wardrobe",
@@ -3858,6 +3905,9 @@
           ],
           "baseSlabRef": "slab/reference-ground",
           "topBoundaryRef": "slab/reference-upper",
+          "locked": false
+        },
+        {
           "floorFinish": {
             "presetId": "sand-tile",
             "color": "#D4C6B1",
@@ -3870,9 +3920,6 @@
             "rotationDegrees": 0,
             "tileM": 1
           },
-          "locked": false
-        },
-        {
           "ref": "space/reference-wc",
           "name": "Łazienka",
           "usage": "bathroom",
@@ -3896,6 +3943,9 @@
           ],
           "baseSlabRef": "slab/reference-ground",
           "topBoundaryRef": "slab/reference-upper",
+          "locked": false
+        },
+        {
           "floorFinish": {
             "presetId": "sand-tile",
             "color": "#D4C6B1",
@@ -3908,9 +3958,6 @@
             "rotationDegrees": 0,
             "tileM": 1
           },
-          "locked": false
-        },
-        {
           "ref": "space/reference-pantry",
           "name": "Pomieszczenie gospodarcze",
           "usage": "utility",
@@ -3938,6 +3985,9 @@
           ],
           "baseSlabRef": "slab/reference-ground",
           "topBoundaryRef": "slab/reference-upper",
+          "locked": false
+        },
+        {
           "floorFinish": {
             "presetId": "sand-tile",
             "color": "#D4C6B1",
@@ -3950,9 +4000,6 @@
             "rotationDegrees": 0,
             "tileM": 1
           },
-          "locked": false
-        },
-        {
           "ref": "space/reference-office",
           "name": "Pokój",
           "usage": "bedroom",
@@ -3980,6 +4027,9 @@
           ],
           "baseSlabRef": "slab/reference-ground",
           "topBoundaryRef": "slab/reference-upper",
+          "locked": false
+        },
+        {
           "floorFinish": {
             "presetId": "sand-tile",
             "color": "#D4C6B1",
@@ -3992,9 +4042,6 @@
             "rotationDegrees": 0,
             "tileM": 1
           },
-          "locked": false
-        },
-        {
           "ref": "space/reference-living",
           "name": "Salon · jadalnia · kuchnia · hol",
           "usage": "living",
@@ -4042,6 +4089,9 @@
           ],
           "baseSlabRef": "slab/reference-ground",
           "topBoundaryRef": "slab/reference-upper",
+          "locked": false
+        },
+        {
           "floorFinish": {
             "presetId": "sand-tile",
             "color": "#D4C6B1",
@@ -4054,9 +4104,6 @@
             "rotationDegrees": 0,
             "tileM": 1
           },
-          "locked": false
-        },
-        {
           "ref": "space/reference-parents",
           "name": "Sypialnia",
           "usage": "bedroom",
@@ -4080,6 +4127,9 @@
           ],
           "baseSlabRef": "slab/reference-upper",
           "topBoundaryRef": "roof/reference",
+          "locked": false
+        },
+        {
           "floorFinish": {
             "presetId": "sand-tile",
             "color": "#D4C6B1",
@@ -4092,9 +4142,6 @@
             "rotationDegrees": 0,
             "tileM": 1
           },
-          "locked": false
-        },
-        {
           "ref": "space/reference-bathroom",
           "name": "Łazienka piętro",
           "usage": "bathroom",
@@ -4118,6 +4165,9 @@
           ],
           "baseSlabRef": "slab/reference-upper",
           "topBoundaryRef": "roof/reference",
+          "locked": false
+        },
+        {
           "floorFinish": {
             "presetId": "sand-tile",
             "color": "#D4C6B1",
@@ -4130,9 +4180,6 @@
             "rotationDegrees": 0,
             "tileM": 1
           },
-          "locked": false
-        },
-        {
           "ref": "space/reference-child-one",
           "name": "Pokój 1",
           "usage": "bedroom",
@@ -4160,6 +4207,9 @@
           ],
           "baseSlabRef": "slab/reference-upper",
           "topBoundaryRef": "roof/reference",
+          "locked": false
+        },
+        {
           "floorFinish": {
             "presetId": "sand-tile",
             "color": "#D4C6B1",
@@ -4172,9 +4222,6 @@
             "rotationDegrees": 0,
             "tileM": 1
           },
-          "locked": false
-        },
-        {
           "ref": "space/reference-child-two",
           "name": "Pokój 2",
           "usage": "bedroom",
@@ -4206,6 +4253,9 @@
           ],
           "baseSlabRef": "slab/reference-upper",
           "topBoundaryRef": "roof/reference",
+          "locked": false
+        },
+        {
           "floorFinish": {
             "presetId": "sand-tile",
             "color": "#D4C6B1",
@@ -4218,9 +4268,6 @@
             "rotationDegrees": 0,
             "tileM": 1
           },
-          "locked": false
-        },
-        {
           "ref": "space/reference-landing",
           "name": "Komunikacja · galeria nad salonem",
           "usage": "hall",
@@ -4280,18 +4327,6 @@
           ],
           "baseSlabRef": "slab/reference-upper",
           "topBoundaryRef": "roof/reference",
-          "floorFinish": {
-            "presetId": "sand-tile",
-            "color": "#D4C6B1",
-            "rotationDegrees": 0,
-            "tileM": 0.6
-          },
-          "ceilingFinish": {
-            "presetId": "warm-white",
-            "color": "#F5F1E8",
-            "rotationDegrees": 0,
-            "tileM": 1
-          },
           "locked": false
         }
       ],
@@ -4309,11 +4344,11 @@
             "z": -5.945
           },
           {
-            "x": 4.625,
+            "x": 5.625,
             "z": -5.945
           },
           {
-            "x": 4.625,
+            "x": 5.625,
             "z": 1.135
           },
           {
@@ -4369,12 +4404,42 @@
             ],
             "gableWallFinishes": {
               "min": {
-                "material": "light-render",
-                "colorHex": "#E9E5DC"
+                "material": "charred-timber",
+                "colorHex": "#242927"
               },
               "max": {
-                "material": "light-render",
-                "colorHex": "#E9E5DC"
+                "material": "charred-timber",
+                "colorHex": "#242927"
+              }
+            },
+            "gableFrame": {
+              "widthM": 0.4,
+              "depthM": 0.26,
+              "colorHex": "#343a3e"
+            },
+            "gableGlazing": {
+              "min": {
+                "from": 0.09,
+                "to": 0.5,
+                "roofInsetM": 0.28,
+                "continuousWithHost": true,
+                "transomElevationsM": [
+                  5.95,
+                  7.1
+                ],
+                "hostOpeningRefs": [
+                  "opening/architekt/parents-window"
+                ]
+              },
+              "max": {
+                "from": 0.09,
+                "to": 0.91,
+                "roofInsetM": 0.28,
+                "shape": "triangle",
+                "hostOpeningRefs": [
+                  "opening/reference-children-west-window",
+                  "opening/reference-children-east-window"
+                ]
               }
             }
           },
@@ -4386,11 +4451,11 @@
                 "z": -5.945
               },
               {
-                "x": 4.625,
+                "x": 5.625,
                 "z": -5.945
               },
               {
-                "x": 4.625,
+                "x": 5.625,
                 "z": 1.135
               },
               {
@@ -4413,12 +4478,104 @@
             ],
             "gableWallFinishes": {
               "min": {
-                "material": "light-render",
-                "colorHex": "#E9E5DC"
+                "material": "charred-timber",
+                "colorHex": "#242927"
               },
               "max": {
-                "material": "light-render",
-                "colorHex": "#E9E5DC"
+                "material": "charred-timber",
+                "colorHex": "#242927"
+              }
+            },
+            "gableFrame": {
+              "widthM": 0.4,
+              "depthM": 0.26,
+              "colorHex": "#343a3e"
+            },
+            "gableGlazing": {
+              "max": {
+                "from": 0.09,
+                "to": 0.91,
+                "roofInsetM": 0.28,
+                "continuousWithHost": true,
+                "hostOpeningRefs": [
+                  "opening/architekt/void-right",
+                  "opening/architekt/void-left"
+                ]
+              }
+            },
+            "gableRecess": {
+              "max": {
+                "depthM": 1,
+                "baseElevationM": 0.45,
+                "soffitColorHex": "#B78F60",
+                "sideColorHex": "#65432E"
+              }
+            }
+          },
+          {
+            "ref": "roof/reference/courtyard-canopy",
+            "footprint": [
+              {
+                "x": 2.355,
+                "z": 1.135
+              },
+              {
+                "x": 5.625,
+                "z": 1.135
+              },
+              {
+                "x": 5.625,
+                "z": 5.985
+              },
+              {
+                "x": 2.355,
+                "z": 5.985
+              }
+            ],
+            "baseElevationM": 2.86,
+            "type": "flat",
+            "pitchDegrees": 0,
+            "overhangM": 0,
+            "ridgeDirection": "z",
+            "finish": {
+              "material": "membrane",
+              "colorHex": "#777269"
+            },
+            "adjacentSegmentRefs": [],
+            "canopy": {
+              "fasciaHeightM": 0.18,
+              "fasciaEdgeIndices": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "frameColorHex": "#333A38",
+              "soffitColorHex": "#B78F60",
+              "postWidthM": 0.12,
+              "postBaseElevationM": 0.15,
+              "posts": [
+                {
+                  "x": 5.5035428571428575,
+                  "z": 1.2727281947261664
+                },
+                {
+                  "x": 5.5035428571428575,
+                  "z": 4.632312373225152
+                },
+                {
+                  "x": 5.5035428571428575,
+                  "z": 5.8571095334685594
+                },
+                {
+                  "x": 2.476457142857143,
+                  "z": 5.8571095334685594
+                }
+              ],
+              "slats": {
+                "direction": "x",
+                "spacingM": 0.45,
+                "widthM": 0.07
               }
             }
           }

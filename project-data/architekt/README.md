@@ -1,6 +1,18 @@
 # architekt
 
-Independent project `project/architekt`, reconstructed on 2026-10-11 from the three user-supplied architect PDFs and GŁÓWNY. Current canonical revision **r4**; local only, not deployed to Mikrus.
+Independent project `project/architekt`, reconstructed on 2026-10-11 from the three user-supplied architect PDFs and GŁÓWNY. Current canonical revision **r5**, prepared for the user-authorized Mikrus release.
+
+## Główny exterior match — 2026-10-12, r5
+
+The user explicitly chose to retain this variant's dimensions and match Główny's windows and exterior appearance. `before-glowny-exterior-r4.json` preserves the previous publication; `initial-r1.json` remains the immutable migration baseline. The source is Główny r80 (`project/zielonki-rear-bath-room`), which is unchanged.
+
+Window dimensions, sills, glazing, mullions and finishes now match the corresponding Główny openings, including the 1.95 × 1.14 m children's windows with 1.00 m sills, the 1.20 × 0.60 m bathroom window with 0.75 m sill, and 1.80 × 2.30 m glazed office/courtyard doors. Living panes use the source widths and a centered 0.40 m pier. Window positions adapt to the existing rooms. Existing utility/bathroom exterior doors remain usable. The earlier raster-inferred window dimensions below describe r4, not this correction.
+
+The façades now use Główny's natural timber and charred timber, shaped upper gable glass, black frames, recessed terrace lining and courtyard canopy details. Upper gable host-wall heights match the cladding transitions; storey heights and clear room dimensions do not change. The rear roof extends 1 m outward along its ridge to form the recessed terrace; its perpendicular span is unchanged. The exterior terrace slab and canopy/posts adapt to this variant's dimensions. Enclosed slab footprints, wall endpoints/thickness, partitions, furniture, stairs, site and landscape are unchanged.
+
+Final recomputation retains symmetric **38.8097094818° / 39.2352369450°** main slopes, **5.15 m** eaves and the common **8.0856938754 m** ridge. The rear minimum junction remains a recognized valley, with its internal gable omitted. These checks do not establish whole-building planning compliance.
+
+`scripts/match-glowny-exteriors.ts` reproduces this revision from the frozen r4 snapshot and refuses later revisions. The older reconstruction generator now refuses to overwrite post-r4 data. Tests cover schema/geometry, all shaped gable panes, unchanged room geometry and ref-based migration preserving furniture edits/deletions and a deleted window. Actual browser provenance is recorded in `../zielonki/README.md`; evidence is retained in ignored `tmp/exterior-match-20261012-iab/`.
 
 ## Source and recovery
 

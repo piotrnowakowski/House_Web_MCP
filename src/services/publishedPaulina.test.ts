@@ -3,7 +3,7 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/paulina-poprawki/project.json'
 import source from '../../project-data/paulina-poprawki/source-architekt-r4.json'
-import architekt from '../../project-data/architekt/project.json'
+import architekt from '../../project-data/architekt/before-glowny-exterior-r4.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
 import { polygonArea, polygonBounds } from '../domain/geometry'
@@ -49,7 +49,7 @@ it('matches the phone-plan dimensions and replaces the former wardrobe floor wit
 })
 
 it('keeps both roof ridges joined and checks stairs, furniture, openings and attic clearance',()=>{
-  const house=parseProject(data).buildings[0],wings=roofWings(house)
+  const house=parseProject(data).buildings[0],wings=roofWings(house).filter(w=>w.type==='gable')
   expect(house.storeys[1].kneeWallHeightM).toBe(1.4)
   for(const wing of wings){
     const b=polygonBounds(wing.footprint),span=wing.ridgeAxis==='x'?b.maxZ-b.minZ:b.maxX-b.minX
