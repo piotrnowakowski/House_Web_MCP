@@ -1,10 +1,14 @@
+import { create } from 'zustand'
+
+export const useWorkspaceActivity = create(() => ({ busy: false }))
 let reason: string | null = null
 let internal = false
 let activities = 0
 export const runWorkspaceActivity = async <T>(action: () => Promise<T>): Promise<T> => {
   assertWorkspaceEditable()
   activities++
-  try { return await action() } finally { activities-- }
+  useWorkspaceActivity.setState({ busy: true })
+  try { return await action() } finally { activities--; useWorkspaceActivity.setState({ busy: activities > 0 }) }
 }
 export const assertWorkspaceEditable = () => { if (reason && !internal) throw new Error(reason) }
 export const lockWorkspace = (message: string) => {

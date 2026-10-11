@@ -4,10 +4,12 @@ import { useStudioStore } from '../state/store'
 import { recoveryWorkspace, retryAutosave, useSaveStatus } from '../services/autosave'
 import { exportTransfer, importTransfer, transferWorkspace, useSyncStatus } from '../services/mikrusSync'
 import { WorkspaceSaveStatus, useWorkspaceSyncPanel } from './WorkspaceSaveStatus'
+import { useWorkspaceActivity } from '../services/workspaceLock'
 import './workspaceSync.css'
 
 export function WorkspaceSync() {
  const save=useSaveStatus(),sync=useSyncStatus()
+ const workspaceBusy=useWorkspaceActivity(s=>s.busy)
  const state=useStudioStore(useShallow(s=>({hydrated:s.hydrated})))
  const open=useWorkspaceSyncPanel(s=>s.open)
  const setOpen=(open:boolean)=>useWorkspaceSyncPanel.setState({open})
@@ -43,9 +45,9 @@ export function WorkspaceSync() {
      const file=event.target.files?.[0];event.target.value=''
      if(file)void recover(async()=>{await importTransfer(JSON.parse(await file.text()))})
    }}/>
-   <button disabled={!state.hydrated||sync.busy||recovering} onClick={()=>void transferWorkspace('get')}>Pobierz z Mikrusa</button>
+   <button disabled={!state.hydrated||workspaceBusy||sync.busy||recovering} onClick={()=>void transferWorkspace('get')}>Pobierz z Mikrusa</button>
    <p>Wczytaj na to urządzenie wersję projektu z Mikrusa.</p>
-   <button disabled={!state.hydrated||sync.busy||recovering} onClick={()=>void transferWorkspace('push')}>Wyślij do Mikrusa</button>
+   <button disabled={!state.hydrated||workspaceBusy||sync.busy||recovering} onClick={()=>void transferWorkspace('push')}>Wyślij do Mikrusa</button>
    <p>Wyślij wersję projektu z tego urządzenia do Mikrusa.</p>
    {sync.message && <p role="status">{sync.message}</p>}
    {recoveryError&&<p role="alert">{recoveryError}</p>}

@@ -78,9 +78,9 @@ async function commitShared(candidate: PersistedWorkspace, remote: SharedVersion
 }
 export async function syncWorkspace() {
   if (useSyncStatus.getState().busy) return
-  releaseLock = lockWorkspace('Synchronization in progress. Finish or cancel it before editing.')
-  useSyncStatus.setState({ busy: true, message: 'Synchronizing…', conflict: null })
   try {
+    releaseLock = lockWorkspace('Synchronization in progress. Finish or cancel it before editing.')
+    useSyncStatus.setState({ busy: true, message: 'Synchronizing…', conflict: null })
     await flushAutosave()
     let local = structuredClone(currentWorkspace())
     const ref = local.project.ref
@@ -119,9 +119,9 @@ export async function syncWorkspace() {
 /** Explicit one-way transfer; a download never issues a write to Mikrus. */
 export async function transferWorkspace(direction: 'get' | 'push') {
   if (useSyncStatus.getState().busy) return
-  releaseLock = lockWorkspace('Transferring project…')
-  useSyncStatus.setState({ busy: true, conflict: null, message: direction === 'get' ? 'Getting from Mikrus…' : 'Pushing to Mikrus…' })
   try {
+    releaseLock = lockWorkspace('Transferring project…')
+    useSyncStatus.setState({ busy: true, conflict: null, message: direction === 'get' ? 'Getting from Mikrus…' : 'Pushing to Mikrus…' })
     await flushAutosave()
     const local = structuredClone(currentWorkspace())
     const ref = local.project.ref
