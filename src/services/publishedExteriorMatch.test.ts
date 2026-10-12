@@ -6,6 +6,7 @@ import architectData from '../../project-data/architekt/project.json'
 import architectBefore from '../../project-data/architekt/before-glowny-exterior-r4.json'
 import paulinaData from '../../project-data/paulina-poprawki/project.json'
 import paulinaBefore from '../../project-data/paulina-poprawki/before-glowny-exterior-r4.json'
+import paulinaExterior from '../../project-data/paulina-poprawki/before-bedroom-r5.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
 import { gableGlazingProfile } from '../domain/gableGlazing'
@@ -25,9 +26,12 @@ for (const [data, beforeData] of [[architectData, architectBefore], [paulinaData
     expect(spec(openings(b).find(o => o.ref === 'opening/architekt/terrace-side')!)).toEqual(spec(openings(main).find(o => o.ref === 'opening/living-terrace-door')!))
     expect(validateProject(current).filter(i => i.severity === 'error')).toEqual([])
   })
-  it(`${current.name}: preserves the approved rooms, enclosed footprint, site, furniture and wall endpoints`, () => {
-    for (const key of ['position','rotationDegrees','spaces','storeys','stairs','furniture','platforms','ceilingFinishes'] as const) expect(b[key],key).toEqual(old[key])
-    expect(b.walls.map(({ref,start,end,thicknessM,baseElevationM,faceFinishes})=>({ref,start,end,thicknessM,baseElevationM,faceFinishes}))).toEqual(old.walls.map(({ref,start,end,thicknessM,baseElevationM,faceFinishes})=>({ref,start,end,thicknessM,baseElevationM,faceFinishes})))
+  it(`${current.name}: exterior publication preserves the approved rooms, enclosed footprint, site, furniture and wall endpoints`, () => {
+    // Later authorized interior edits are covered by paulinaBedroom.test.ts.
+    // Keep the exterior-only preservation contract against its immutable r5 publication.
+    const exterior = current.ref === 'project/paulina-poprawki' ? parseProject(paulinaExterior).buildings[0] : b
+    for (const key of ['position','rotationDegrees','spaces','storeys','stairs','furniture','platforms','ceilingFinishes'] as const) expect(exterior[key],key).toEqual(old[key])
+    expect(exterior.walls.map(({ref,start,end,thicknessM,baseElevationM,faceFinishes})=>({ref,start,end,thicknessM,baseElevationM,faceFinishes}))).toEqual(old.walls.map(({ref,start,end,thicknessM,baseElevationM,faceFinishes})=>({ref,start,end,thicknessM,baseElevationM,faceFinishes})))
     for (const slab of old.slabs) expect(b.slabs.find(s=>s.ref===slab.ref)?.footprint).toEqual(slab.footprint)
     expect(b.slabs[1].holes).toEqual(old.slabs[1].holes)
     expect(current.landscape).toEqual(before.landscape)

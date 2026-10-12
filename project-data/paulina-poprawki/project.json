@@ -3,8 +3,8 @@
   "ref": "project/paulina-poprawki",
   "name": "paulinka poprawki",
   "units": "metric",
-  "revision": 5,
-  "updatedAt": "2026-10-11T23:12:34.638Z",
+  "revision": 13,
+  "updatedAt": "2026-10-12T21:07:38.495Z",
   "site": {
     "boundary": [
       {
@@ -2121,13 +2121,13 @@
           "storeyRef": "storey/reference-upper",
           "name": "Łóżko sypialni",
           "position": {
-            "x": -2.195,
-            "z": -4.445
+            "x": -3.375,
+            "z": -3.945
           },
           "widthM": 1.8,
           "depthM": 2.1,
           "heightM": 1,
-          "rotationDegrees": 0,
+          "rotationDegrees": 90,
           "color": "#B99A72"
         },
         {
@@ -2136,13 +2136,13 @@
           "storeyRef": "storey/reference-upper",
           "name": "Szafka nocna",
           "position": {
-            "x": -3.415,
-            "z": -5.285
+            "x": -4.175,
+            "z": -5.165
           },
           "widthM": 0.45,
           "depthM": 0.5,
           "heightM": 0.48,
-          "rotationDegrees": 0,
+          "rotationDegrees": 90,
           "color": "#B99A72"
         },
         {
@@ -2151,13 +2151,13 @@
           "storeyRef": "storey/reference-upper",
           "name": "Szafka nocna",
           "position": {
-            "x": -0.965,
-            "z": -5.285
+            "x": -4.175,
+            "z": -2.725
           },
           "widthM": 0.45,
           "depthM": 0.5,
           "heightM": 0.48,
-          "rotationDegrees": 0,
+          "rotationDegrees": 90,
           "color": "#B99A72"
         },
         {
@@ -2166,13 +2166,13 @@
           "storeyRef": "storey/reference-upper",
           "name": "Szafa sypialni",
           "position": {
-            "x": -4.145,
-            "z": -3.175
+            "x": -2.725,
+            "z": -2.235
           },
           "widthM": 0.6,
           "depthM": 1.55,
           "heightM": 1.4,
-          "rotationDegrees": 0,
+          "rotationDegrees": 90,
           "color": "#B99A72"
         },
         {
@@ -2424,7 +2424,6 @@
           "topBoundaryRef": "roof/reference",
           "wallRefs": [
             "wall/paulina/upper/1",
-            "wall/paulina/upper/2",
             "wall/paulina/upper/3",
             "wall/paulina/upper/4",
             "wall/paulina/upper/5",
@@ -2437,7 +2436,6 @@
             "wall/paulina/upper/12",
             "wall/paulina/upper/13",
             "wall/paulina/upper/14",
-            "wall/paulina/upper/15",
             "wall/paulina/upper/16",
             "wall/paulina/upper/17",
             "wall/paulina/upper/18",
@@ -2447,7 +2445,8 @@
             "wall/paulina/upper/22",
             "wall/paulina/upper/23",
             "wall/paulina/upper/24",
-            "wall/paulina/upper/25"
+            "wall/paulina/upper/25",
+            "wall/paulina/upper/19-bedroom"
           ],
           "spaceRefs": [
             "space/reference-parents",
@@ -3209,30 +3208,9 @@
           "locked": false
         },
         {
-          "ref": "wall/paulina/upper/2",
-          "start": {
-            "x": -0.395,
-            "z": -5.945
-          },
-          "end": {
-            "x": -0.395,
-            "z": -1.785
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 3.75,
-          "heightM": 2.8,
-          "openings": [],
-          "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
           "ref": "wall/paulina/upper/3",
           "start": {
-            "x": -0.395,
+            "x": 0.525,
             "z": -1.785
           },
           "end": {
@@ -3249,7 +3227,7 @@
               "ref": "opening/reference-parents",
               "kind": "door",
               "wallRef": "wall/paulina/upper/3",
-              "offsetM": 0.6699999999999999,
+              "offsetM": 1.5899999999999999,
               "widthM": 0.85,
               "heightM": 2.1,
               "sillM": 0
@@ -3522,7 +3500,7 @@
           },
           "end": {
             "x": 0.525,
-            "z": 1.605
+            "z": 1.135
           },
           "thicknessM": 0.2,
           "baseElevationM": 3.75,
@@ -3540,27 +3518,6 @@
               "sillM": 0
             }
           ],
-          "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
-          },
-          "locked": false
-        },
-        {
-          "ref": "wall/paulina/upper/15",
-          "start": {
-            "x": 0.525,
-            "z": 1.605
-          },
-          "end": {
-            "x": 2.355,
-            "z": 1.605
-          },
-          "thicknessM": 0.2,
-          "baseElevationM": 3.75,
-          "heightM": 2.8,
-          "openings": [],
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
@@ -3643,7 +3600,7 @@
           "ref": "wall/paulina/upper/19",
           "start": {
             "x": 0.525,
-            "z": -5.945
+            "z": -1.785
           },
           "end": {
             "x": 0.525,
@@ -3670,13 +3627,13 @@
             "x": 2.355,
             "z": 1.135
           },
-          "thicknessM": 0.12,
+          "thicknessM": 0.2,
           "baseElevationM": 3.75,
-          "heightM": 1.05,
+          "heightM": 2.8,
           "openings": [],
           "finish": {
             "material": "light-render",
-            "colorHex": "#353A3A",
+            "colorHex": "#E9E5DC",
             "textureId": "none"
           },
           "locked": false
@@ -3825,6 +3782,27 @@
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
+            "textureId": "none"
+          },
+          "locked": false
+        },
+        {
+          "ref": "wall/paulina/upper/19-bedroom",
+          "start": {
+            "x": 0.525,
+            "z": -5.945
+          },
+          "end": {
+            "x": 0.525,
+            "z": -1.785
+          },
+          "thicknessM": 0.12,
+          "baseElevationM": 3.75,
+          "heightM": 1.05,
+          "openings": [],
+          "finish": {
+            "material": "light-render",
+            "colorHex": "#353A3A",
             "textureId": "none"
           },
           "locked": false
@@ -4113,7 +4091,11 @@
               "direction": 1
             },
             {
-              "wallRef": "wall/paulina/upper/2",
+              "wallRef": "wall/paulina/upper/18",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/paulina/upper/19-bedroom",
               "direction": 1
             },
             {
@@ -4235,7 +4217,11 @@
               "direction": 1
             },
             {
-              "wallRef": "wall/paulina/upper/15",
+              "wallRef": "wall/paulina/upper/20",
+              "direction": 1
+            },
+            {
+              "wallRef": "wall/paulina/upper/21",
               "direction": 1
             },
             {
@@ -4277,28 +4263,8 @@
               "direction": -1
             },
             {
-              "wallRef": "wall/paulina/upper/2",
-              "direction": -1
-            },
-            {
-              "wallRef": "wall/paulina/upper/18",
-              "direction": 1
-            },
-            {
               "wallRef": "wall/paulina/upper/19",
               "direction": 1
-            },
-            {
-              "wallRef": "wall/paulina/upper/20",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/paulina/upper/21",
-              "direction": 1
-            },
-            {
-              "wallRef": "wall/paulina/upper/15",
-              "direction": -1
             },
             {
               "wallRef": "wall/paulina/upper/14",
@@ -4491,6 +4457,14 @@
               "depthM": 0.26,
               "colorHex": "#343a3e"
             },
+            "gableRecess": {
+              "max": {
+                "depthM": 1,
+                "baseElevationM": 0.45,
+                "soffitColorHex": "#B78F60",
+                "sideColorHex": "#65432E"
+              }
+            },
             "gableGlazing": {
               "max": {
                 "from": 0.09,
@@ -4501,14 +4475,6 @@
                   "opening/architekt/void-right",
                   "opening/architekt/void-left"
                 ]
-              }
-            },
-            "gableRecess": {
-              "max": {
-                "depthM": 1,
-                "baseElevationM": 0.45,
-                "soffitColorHex": "#B78F60",
-                "sideColorHex": "#65432E"
               }
             }
           },

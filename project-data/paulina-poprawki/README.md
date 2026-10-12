@@ -1,5 +1,41 @@
 # Paulina poprawki — 2026-10-11
 
+## Void dimensions on upstairs plan — 2026-10-12
+
+Added dimension lines and measured area for non-stair slab openings in the interior 2D plan when dimensions are enabled. The unchanged living void in `slab/reference-upper` measures 3.94 × 6.88 m, area 27.1072 m². Values come from its actual polygon vertices, rather than the exterior wall envelope. The stair opening keeps its existing stair drawing. Canonical project remains r13; no geometry/data edit or deployment. TypeScript passes; actual in-app localhost upstairs plan displays 3.94 m, 6.88 m and 27.11 m². Screenshot: `output/paulina-bedroom-fix/pietro-wymiary-otworu.jpg`.
+
+User requested commit/push after approving the displayed layout. Before committing, recaptured actual saved r14 at the same in-app origin in ignored `tmp/bedroom-work/before-push-workspace.json`; it matches canonical r13 after metadata exclusion/1e-8 normalization. All 570 tests (107 files) and TypeScript pass. The exterior-only preservation test now checks its immutable r5 publication; later authorized room/furniture changes are checked by the bedroom migration tests. Commit includes canonical data, four recoverable layout snapshots, code, tests, provenance and the current dimensioned screenshot. Public deployment is a separate operation.
+
+## Bedroom entrance closed to gallery guard — 2026-10-12, r13 (local)
+
+The user's next annotation identified the 0.92 m gap between the surviving bedroom entrance-wall stub and the gallery guard. Extended wall `wall/paulina/upper/3` from x=-0.395 to x=0.525 at z=-1.785. Its existing 0.85 m door stays at the same world position and retains its ref, hinge and swing; offset increases by 0.92 m because the wall's start moves. The deleted vertical partition 2 and child-room wall 15 stay deleted. Split the existing 1.05 m guard at this junction, retaining ref 19 for its lower run and adding `wall/paulina/upper/19-bedroom` for the upper run. No guard height/finish changes. Bedroom and gallery again have separate closed boundaries; bedroom measures 4.99 × 3.96 m (19.7604 m²). Furniture, roof, storeys, slabs and other projects are unchanged.
+
+Prior r11 is preserved as `before-entrance-closure-r11.json`; older snapshots and initial baselines remain immutable. Actual Codex in-app origin `http://127.0.0.1:5173/` saved r12 before matched canonical r11; final saved r14 matches canonical r13 after metadata exclusion and 1e-8 normalization. Captures are ignored `tmp/bedroom-work/{before,after}-entrance-workspace.json`. Schema/geometry and furniture checks pass; 13 targeted tests cover all four prior layouts, both deletions, unchanged door world position, independent edits and roof junctions. Code base remains `5be4434` plus local data/tests; no deployment. Current screenshot: `output/paulina-bedroom-fix/pietro-domknieta-sciana-przy-drzwiach.jpg`. Earlier screenshots are historical.
+
+## Both requested walls removed — 2026-10-12, r11 (local)
+
+The user clarified that BOTH deletions are required. Removed the incorrectly restored bedroom partition `wall/paulina/upper/2` again; wall 15 remains deleted and the r9 child-room correction is retained. Preserved entrance wall 3, gallery guard 19, every furniture item and its position, roof, storeys and slabs. The continuous bedroom/gallery space uses the existing parents ref and is named `Sypialnia + komunikacja`, so its combined area is not presented as bedroom-only area.
+
+Canonical r9 is recoverable as `before-both-walls-r9.json`. Actual in-app origin `http://127.0.0.1:5173/` saved r10 matched canonical r9 before editing; captured in ignored `tmp/bedroom-work/before-both-walls-workspace.json`. Final canonical r11 matches saved r12 after metadata exclusion and 1e-8 numeric normalization, read back in `after-both-walls-workspace.json`. Schema, geometry and furniture checks pass; 12 targeted tests pass including migrations from r5, r8 and r9 that preserve both deletions and independent edits. Code base `5be4434` plus local data/test changes; no deployment. Current dimensioned screenshot: `output/paulina-bedroom-fix/pietro-obie-sciany-usuniete.jpg`. All preceding screenshots are superseded.
+
+## Marked double wall corrected — 2026-10-12, r9 (local)
+
+The user's annotated screenshot identified the close horizontal pair beside the right child's room entrance. The earlier r8 interpretation was incorrect: bedroom partition `wall/paulina/upper/2` and the original separate bedroom/gallery boundaries are restored from r5. The requested bed and bedside-table arrangement under the west slope remains.
+
+Deleted the marked lower wall `wall/paulina/upper/15` at z=1.605. Retained `wall/paulina/upper/20` at z=1.135 as the single room partition, with 0.20 m thickness and 2.80 m height. Extended door wall 14 to meet it while preserving the door ref and offset; updated child-room and gallery boundaries by wall refs. Gallery guard 19 remains 1.05 m high. The right child's room is now 11.8027 m², with 3.05 m width and 4.61 m maximum depth (L-shaped). The main bedroom remains 4.03 × 3.96 m, 15.9588 m². Roof, storeys and slab geometry are unchanged.
+
+Recoverable r8 is `before-marked-wall-r8.json`; r5 and initial migration baselines remain immutable. Actual Codex in-app origin `http://127.0.0.1:5173/` was captured before/after in ignored `tmp/bedroom-work/before-marked-wall-workspace.json` and `after-marked-wall-workspace.json`. The saved result matches canonical r9 after metadata exclusion and 1e-8 numeric normalization. Schema/geometry and furniture placement checks pass, as do 11 tests covering migrations from both r5 and r8, deletion persistence, independent edits and roof junctions. Code base remains `5be4434` plus these local data/test changes; no deployment or shared-server write.
+
+Dimensioned 2D screenshot: `output/paulina-bedroom-fix/pietro-po-usunieciu-z-wymiarami.jpg`. For capture only, existing dimension labels were made visible and the save banner hidden; model geometry and label values were not modified. Earlier r8 screenshots below are superseded.
+
+## Sypialnia — 2026-10-12, r8 (superseded interpretation)
+
+User requested removal of the full partition on the high-ceiling side of the main bedroom and moving the bed from the window to the sloped side wall. Removed `wall/paulina/upper/2`; retained the 1.05 m gallery guard and the entrance wall. Bedroom and gallery now form one continuous floor/ceiling region using the existing bedroom ref; the entrance wall remains an internal wall. The bed rotates 90° to local (-3.375, -3.945), with both bedside tables beside its headboard. The wardrobe moves against the entrance wall. All furniture refs remain stable.
+
+`before-bedroom-r5.json` preserves the preceding canonical publication. Actual Codex in-app browser records were captured before editing in ignored `tmp/bedroom-work/browser-before/`. Localhost saved r7 was identical to canonical r5 except revision/date; HTTPS saved r5 and server version 2 also retained the prior layout. No content conflict was resolved by revision ordering. Canonical r8 and actual localhost saved r8 match after numeric normalization to 1e-8; readback is `tmp/bedroom-work/browser-after-workspace.json`. This change is local, with no commit, push, deployment or shared-workspace upload.
+
+Schema/geometry and furniture collision checks passed. Minimum bed/headboard roof clearance is 1.568 m for the 1 m high bed. All roof/storey geometry is unchanged; the existing joined-ridge tests pass. Ten targeted tests passed, including migration from r5, persistence of the removed wall and unrelated furniture edits. Screenshot: `output/paulina-bedroom-fix/sypialnia-po-zmianie.jpg`. Code base remains `5be4434` plus this project-data change.
+
 ## Główny exterior match — 2026-10-12, r5
 
 Current canonical revision is **r5**, prepared for the user-authorized Mikrus release. The user explicitly chose to retain this variant's dimensions and match Główny's windows and exterior appearance. `before-glowny-exterior-r4.json` preserves the previous publication; `initial-r1.json` and `source-architekt-r4.json` stay immutable. Główny r80 is the unchanged source.

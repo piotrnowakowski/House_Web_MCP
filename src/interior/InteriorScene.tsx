@@ -7,7 +7,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { BoxGeometry, DoubleSide, ExtrudeGeometry, Line3, Object3D, OrthographicCamera, Plane, PlaneGeometry, Raycaster, Shape, ShapeGeometry, Vector2, Vector3 } from 'three'
 import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
 import { useDirectManipulation } from './useDirectManipulation'
-import { pointInPolygon, polygonCentroid, spaceFootprint, wallLength } from '../domain/geometry'
+import { pointInPolygon, polygonArea, polygonCentroid, spaceFootprint, wallLength } from '../domain/geometry'
 import { roomDimensions } from '../domain/roomDimensions'
 import { gablePlanGuides } from '../domain/gablePlanGuides'
 import { gableWallsForBuilding, roofWings } from '../domain/roofWings'
@@ -334,6 +334,32 @@ export function InteriorScene(props: Props) {
           if (!edge) return null
           const length = Math.hypot(edge.q.x - edge.p.x, edge.q.z - edge.p.z); const nx = -(edge.q.z - edge.p.z) / length * 0.24; const nz = (edge.q.x - edge.p.x) / length * 0.24
           return <group key={i}><Line points={[[edge.p.x + nx, 0.19, edge.p.z + nz], [edge.q.x + nx, 0.19, edge.q.z + nz]]} color='#7c837b' lineWidth={0.75} />{[edge.p, edge.q].map((p, j) => <Line key={j} points={[[p.x + nx * 0.6, 0.19, p.z + nz * 0.6], [p.x + nx * 1.4, 0.19, p.z + nz * 1.4]]} color='#7c837b' lineWidth={0.75} />)}<Html center position={[(edge.p.x + edge.q.x) / 2 + nx, 0.2, (edge.p.z + edge.q.z) / 2 + nz]} style={{ pointerEvents: 'none' }} zIndexRange={[7, 0]}><span data-plan-label="10" className={`interior-dimension ${i ? 'is-vertical' : ''}`}>{length.toFixed(2)} m</span></Html></group>
+        })}
+      </group>
+    })}
+    {plan && props.dimensions && (slab.holes ?? []).map((hole, index) => {
+      const bounds = polygonBounds(hole)
+      // Stair openings already contain the stair plan; annotate the remaining floor voids.
+      if ((building.stairs ?? []).some(stair => stair.toStoreyRef === storey.ref
+        && stair.start.x >= bounds.minX - .01 && stair.start.x <= bounds.maxX + .01
+        && stair.start.z >= bounds.minZ - .01 && stair.start.z <= bounds.maxZ + .01)) return null
+      const centre = polygonCentroid(hole)
+      const edges = hole.map((p, i) => ({ p, q: hole[(i + 1) % hole.length] }))
+      const horizontal = edges.filter(({p,q}) => Math.abs(q.z-p.z) < .01).sort((a,b) => Math.abs(b.q.x-b.p.x)-Math.abs(a.q.x-a.p.x))[0]
+      const vertical = edges.filter(({p,q}) => Math.abs(q.x-p.x) < .01).sort((a,b) => Math.abs(b.q.z-b.p.z)-Math.abs(a.q.z-a.p.z))[0]
+      return <group key={`void-dimensions-${index}`}>
+        <Html center position={[centre.x, .2, centre.z]} zIndexRange={[8, 0]} style={{pointerEvents:'none'}}><span className='interior-dimension' data-plan-label='30'>Otwór w stropie<br />{polygonArea(hole).toFixed(2)} m²</span></Html>
+        {[horizontal, vertical].map((edge, i) => {
+          if (!edge) return null
+          const length = Math.hypot(edge.q.x-edge.p.x, edge.q.z-edge.p.z)
+          const midpoint = {x:(edge.p.x+edge.q.x)/2,z:(edge.p.z+edge.q.z)/2}
+          const nx = i ? (centre.x > midpoint.x ? .3 : -.3) : 0
+          const nz = i ? 0 : (centre.z > midpoint.z ? .3 : -.3)
+          return <group key={i}>
+            <Line points={[[edge.p.x+nx,.19,edge.p.z+nz],[edge.q.x+nx,.19,edge.q.z+nz]]} color='#7c837b' lineWidth={.75} />
+            {[edge.p,edge.q].map((p,j) => <Line key={j} points={[[p.x+nx*.6,.19,p.z+nz*.6],[p.x+nx*1.4,.19,p.z+nz*1.4]]} color='#7c837b' lineWidth={.75} />)}
+            <Html center position={[midpoint.x+nx,.2,midpoint.z+nz]} zIndexRange={[8, 0]} style={{pointerEvents:'none'}}><span className={`interior-dimension ${i ? 'is-vertical' : ''}`} data-plan-label='25'>{length.toFixed(2)} m</span></Html>
+          </group>
         })}
       </group>
     })}
