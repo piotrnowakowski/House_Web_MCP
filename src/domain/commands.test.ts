@@ -19,7 +19,7 @@ describe('ProjectV2 command bus', () => {
   it('keeps the bundled V2 model valid and measurable', () => {
     expect(ProjectSchema.safeParse(sampleProject).success).toBe(true)
     expect(polygonArea(sampleProject.site.boundary)).toBeGreaterThan(1_000)
-    expect(calculateMetrics(sampleProject)).toMatchObject({ homeAreaM2: 108, spaceCount: 2, plantCount: 4 })
+    expect(calculateMetrics(sampleProject)).toMatchObject({ homeAreaM2: 100.9152, spaceCount: 2, plantCount: 4 })
     expect(validateProject(sampleProject).filter((issue) => issue.severity === 'error')).toEqual([])
   })
 
@@ -47,7 +47,7 @@ describe('ProjectV2 command bus', () => {
     })
     expect(modernBarnProject.buildings[0].storeys).toHaveLength(2)
     expect(modernBarnProject.buildings[0].slabs[0].footprint).toHaveLength(6)
-    expect(calculateMetrics(modernBarnProject).homeAreaM2).toBe(300)
+    expect(calculateMetrics(modernBarnProject).homeAreaM2).toBeCloseTo(281.41045, 5)
     expect(modernBarnProject.buildings[0].roof.segments.map((segment) => segment.ridgeDirection)).toEqual(expect.arrayContaining(['x', 'z']))
     expect(modernBarnProject.buildings[0].roof.segments.every((segment) => segment.storeyRef === 'house/main/storey-upper' && Math.abs(segment.baseElevationM - 6.55) < 0.001)).toBe(true)
     expect(modernBarnProject.buildings[0].walls.filter((wall) => wall.baseElevationM === 3.45).every((wall) => wall.finish?.material === 'charred-timber' && wall.finish?.colorHex === '#242927')).toBe(true)
@@ -59,7 +59,7 @@ describe('ProjectV2 command bus', () => {
   it('repairs the legacy partial barn during hydration', () => {
     const migrated = applyModernBarnPreset(partialUpperModernBarnProject)
     expect(isModernBarnPreset(migrated)).toBe(true)
-    expect(calculateMetrics(migrated).homeAreaM2).toBe(300)
+    expect(calculateMetrics(migrated).homeAreaM2).toBeCloseTo(281.41045, 5)
     expect(migrated.buildings[0].walls.filter((wall) => wall.ref.startsWith('house/main/storey-upper/space-wing/wall-')).every((wall) => wall.finish?.material === 'charred-timber')).toBe(true)
     const missingValley = structuredClone(migrated)
     missingValley.buildings[0].roof.junctions = []
@@ -78,7 +78,7 @@ describe('ProjectV2 command bus', () => {
     expect(partialUpperModernBarnProject.buildings[0].storeys).toHaveLength(2)
     expect(building.storeys).toHaveLength(2)
     expect(polygonArea(slab.footprint)).toBe(150)
-    expect(calculateMetrics(result).homeAreaM2).toBe(300)
+    expect(calculateMetrics(result).homeAreaM2).toBeCloseTo(281.41045, 5)
     expect(building.roof.footprint).toEqual(slab.footprint)
     expect(upper.spaceRefs).toContain('house/main/storey-upper/space-wing')
     expect(building.walls.find((wall) => wall.ref === 'wall/upper-east')?.openings).toHaveLength(2)

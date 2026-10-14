@@ -34,11 +34,11 @@ test.beforeEach(async ({ page }) => {
 
 test('interior snaps to furniture, drags either endpoint, cancels a drag and keeps the camera fixed while moving furniture', async ({ page }) => {
   const errors: string[] = []; page.on('pageerror', (error) => errors.push(error.message))
-  await page.getByRole('button', { name: 'House interior', exact: true }).click()
-  await page.getByRole('button', { name: '2D Plan', exact: true }).click()
+  await page.getByRole('button', { name: "Wnętrze domu", exact: true }).click()
+  await page.getByRole('button', { name: "Rzut 2D", exact: true }).click()
   await page.getByRole('button', { name: 'Aa Labels' }).click()
   for (const x of [-4, 1]) {
-    await page.getByRole('button', { name: 'Place Linen sofa', exact: true }).click()
+    await page.getByRole('button', { name: "Umieść Lniana sofa", exact: true }).click()
     await clickWorld(page, [x, 0, -2])
     await expect(page.getByRole('heading', { name: 'Linen sofa', exact: true })).toBeVisible()
   }
@@ -65,8 +65,8 @@ test('interior snaps to furniture, drags either endpoint, cancels a drag and kee
   await page.evaluate(() => { const canvas = document.querySelector('canvas')!; canvas.dispatchEvent(new PointerEvent('pointercancel', { pointerId: Number(canvas.dataset.testPointerId), bubbles: true })) })
   await page.mouse.up()
   await expect.poll(async () => (await sceneState(page)).points).toEqual(after.points)
-  await page.getByRole('button', { name: 'Done', exact: true }).click()
-  await page.getByRole('button', { name: '3D Interior', exact: true }).click()
+  await page.getByRole('button', { name: "Zakończ", exact: true }).click()
+  await page.getByRole('button', { name: "Wnętrze 3D", exact: true }).click()
   const sofa = (await sceneState(page, [-4, 0.65, -2])).screen!
   const furnitureCamera = (await sceneState(page)).camera
   await page.mouse.move(sofa.x, sofa.y); await page.mouse.down()
@@ -77,7 +77,7 @@ test('interior snaps to furniture, drags either endpoint, cancels a drag and kee
   expect((await sceneState(page)).camera).toEqual(furnitureCamera)
   expect((await sceneState(page)).enabled).toBe(true)
   await expect(page.getByRole('heading', { name: 'Linen sofa', exact: true })).toBeVisible()
-  await expect(page.getByRole('spinbutton', { name: 'Position X (m)' })).not.toHaveValue('-4')
+  await expect(page.getByRole('spinbutton', { name: "Pozycja X (m)" })).not.toHaveValue('-4')
   await page.screenshot({ path: 'test-results/measurement-interior.png' })
   expect(errors).toEqual([])
 })
@@ -107,7 +107,7 @@ test('plot measurement endpoints can be adjusted and repositioning locks the cam
   await page.mouse.move(corner.x, corner.y); await page.mouse.down(); await page.mouse.move(corner.x - 30, corner.y, { steps: 8 }); await page.mouse.up()
   expect((await sceneState(page)).points[0]).not.toEqual(area.points[0])
   expect((await sceneState(page)).points[1]).toEqual(area.points[1])
-  await page.getByRole('button', { name: 'Edit', exact: true }).click()
+  await page.getByRole('button', { name: "Edytuj", exact: true }).click()
   await page.locator('.model-tree').first().getByRole('button').first().click()
   await page.getByRole('button', { name: 'Move', exact: true }).click()
   await expect.poll(async () => (await sceneState(page)).enabled).toBe(false)

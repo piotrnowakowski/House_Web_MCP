@@ -25,7 +25,7 @@ test('Zielonki zoning stays visible across house versions and a saved reload', a
     old.site.parcels.forEach((parcel) => { delete parcel.landUseZones; if (parcel.landRole === 'mixed') parcel.landRole = 'construction' })
     await saveWorkspace({ version: 1, project: old, proposals: [], draftChangeSets: [] })
   })
-  await page.getByRole('button', { name: 'Projects', exact: true }).click()
+  await page.getByRole('button', { name: "Projekty", exact: true }).click()
   await page.locator('.project-card').filter({ hasText: 'Original house zoning check' }).getByRole('button', { name: /^(Continue|Open)/ }).click()
   await expect(legend).toContainText('699 m²')
   await expect(page.locator('.zoning-map-label')).toHaveCount(0)

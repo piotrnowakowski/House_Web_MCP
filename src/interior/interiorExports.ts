@@ -1,3 +1,4 @@
+import { interiorText } from './interiorLocale'
 import { interiorCorners } from '../domain/interior'
 import { ikeaProduct } from '../domain/ikeaCatalog'
 import { polygonBounds, polygonCentroid, spaceFootprint } from '../domain/geometry'
@@ -27,9 +28,9 @@ export function furnitureList(project: ProjectV2) {
       if (existing) existing.quantity++
       else
         rows.set(key, {
-          name: product ? `${product.family} ${product.name}` : item.name,
+          name: product ? `${product.family} ${interiorText(product.name)}` : item.name,
           article: product?.articleNumber ?? '',
-          finish: product?.finish ?? item.color,
+          finish: interiorText(product?.finish ?? item.color),
           size,
           quantity: 1,
           url: product?.productUrl ?? '',
@@ -44,7 +45,7 @@ export function furnitureCsv(project: ProjectV2) {
       .replace(/^[=+@-]/, "'$&")
       .replaceAll('"', '""')}"`
   return [
-    ['Product', 'Article', 'Finish', 'Width × depth × height (cm)', 'Quantity', 'Product link'],
+    ['Produkt', 'Artykuł', 'Wykończenie', 'Szerokość × głębokość × wysokość (cm)', 'Liczba', 'Link do produktu'],
     ...furnitureList(project).map((row) => [row.name, row.article, row.finish, row.size, row.quantity, row.url]),
   ]
     .map((row) => row.map(escape).join(','))
@@ -101,7 +102,7 @@ export function interiorPlanSvg(building: BuildingModel, storey: StoreyModel) {
 
 export function printInteriorPlan(project: ProjectV2, building: BuildingModel, storey: StoreyModel) {
   const win = window.open('', '_blank')
-  if (!win) throw new Error('Allow the print window, then try again.')
+  if (!win) throw new Error('Zezwól na otwarcie okna druku i spróbuj ponownie.')
   const rows = furnitureList(project)
     .map(
       (row) =>
@@ -109,7 +110,7 @@ export function printInteriorPlan(project: ProjectV2, building: BuildingModel, s
     )
     .join('')
   win.document.write(
-    `<!doctype html><html><head><title>${escapeXml(project.name)} · Interior plan</title><style>body{font:12px Arial;margin:28px;color:#243b30}h1{font-size:22px}table{border-collapse:collapse;width:100%}td,th{padding:7px;text-align:left;border-bottom:1px solid #ddd}button{padding:12px}@media print{button{display:none}@page{size:A4 landscape;margin:12mm}body{margin:0}table{break-before:page}}</style></head><body><button onclick="window.print()">Print / Save as PDF</button><h1>${escapeXml(project.name)} · ${escapeXml(storey.name)}</h1>${interiorPlanSvg(building, storey)}<p>Dimensions in metres. Furniture envelope sizes in centimetres. Concept planning drawing.</p><table><thead><tr><th>Furniture</th><th>Article</th><th>W × D × H (cm)</th><th>Qty</th></tr></thead><tbody>${rows}</tbody></table></body></html>`,
+    `<!doctype html><html lang="pl"><head><title>${escapeXml(project.name)} · Rzut wnętrza</title><style>body{font:12px Arial;margin:28px;color:#243b30}h1{font-size:22px}table{border-collapse:collapse;width:100%}td,th{padding:7px;text-align:left;border-bottom:1px solid #ddd}button{padding:12px}@media print{button{display:none}@page{size:A4 landscape;margin:12mm}body{margin:0}table{break-before:page}}</style></head><body><button onclick="window.print()">Drukuj / Zapisz jako PDF</button><h1>${escapeXml(project.name)} · ${escapeXml(storey.name)}</h1>${interiorPlanSvg(building, storey)}<p>Wymiary w metrach. Gabaryty mebli w centymetrach. Rysunek koncepcyjny.</p><table><thead><tr><th>Mebel</th><th>Artykuł</th><th>Szer. × gł. × wys. (cm)</th><th>Liczba</th></tr></thead><tbody>${rows}</tbody></table></body></html>`,
   )
   win.document.close()
 }

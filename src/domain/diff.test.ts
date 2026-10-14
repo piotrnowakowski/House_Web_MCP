@@ -25,7 +25,7 @@ describe('project diff', () => {
     expect(diff.changes).toContainEqual(expect.objectContaining({ kind: 'roof', ref: 'roof/main', change: 'modified', fields: expect.arrayContaining(['footprint']) }))
     expect(diff.changes).toContainEqual(expect.objectContaining({ kind: 'roof-segment', ref: 'roof/main/segment-rear-wing', change: 'modified', fields: expect.arrayContaining(['baseElevationM']) }))
     expect(diff.changes).toContainEqual(expect.objectContaining({ kind: 'storey', ref: 'house/main/storey-upper', change: 'modified' }))
-    expect(diff.metricDeltas.homeAreaM2).toEqual({ before: 204, after: 300, delta: 96 })
+    expect(diff.metricDeltas.homeAreaM2).toEqual({ before: 190.31, after: 281.41, delta: 91.1 })
     expect(diff.metricDeltas.spaceCount).toEqual({ before: 4, after: 5, delta: 1 })
   })
 

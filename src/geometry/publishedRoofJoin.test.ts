@@ -4,12 +4,14 @@ import front from '../../project-data/zielonki-v2/project.json'
 import rear from '../../project-data/zielonki-rear-carport/project.json'
 import original from '../../project-data/zielonki/project.json'
 import bath from '../../project-data/zielonki-rear-bath-room/project.json'
+import paulina from '../../project-data/paulina-poprawki/project.json'
+import architekt from '../../project-data/architekt/project.json'
 import { parseProject } from '../domain/schema'
 import { polygonBounds } from '../domain/geometry'
 import { gableRoofJunction, gableWallsForBuilding, roofWings } from '../domain/roofWings'
 import { clippedRoofBox, roofJunctionCutouts } from './roofJunction'
 
-for (const data of [original, front, rear, bath]) it(`${data.ref}: joins equal ridges with compliant slopes and no internal roof sheet`, () => {
+for (const data of [original, front, rear, bath, architekt, paulina]) it(`${data.ref}: joins equal ridges with compliant slopes and no internal roof sheet`, () => {
   const house = parseProject(data).buildings[0]
   const wings = roofWings(house)
   const host = wings.find(w => w.ref.endsWith('/front-barn'))!

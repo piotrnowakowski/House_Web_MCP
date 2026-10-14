@@ -115,11 +115,12 @@ let variantWaiter: { resolve: (value: ToolPayload) => void; reject: (reason: unk
 export const resolveVariantConfirmation = (approved: boolean) => {
   const state = useStudioStore.getState(); const variantRef = state.confirmationVariantRef
   if (!variantRef) return
+  const waiter = variantWaiter
+  waiter?.cleanup(); variantWaiter = null
   try {
-    if (approved) { const project = state.applyVariant(variantRef); variantWaiter?.resolve({ status: 'applied', projectRevision: project.revision, variantRef, summary: 'The user approved and applied the variant.', metrics: calculateMetrics(project) }) }
-    else { state.discardVariant(variantRef); variantWaiter?.resolve({ status: 'rejected', projectRevision: state.project.revision, variantRef, summary: 'The user rejected the variant.' }) }
-  } catch (error) { variantWaiter?.reject(error); state.setConfirmationVariantRef(null) }
-  finally { variantWaiter?.cleanup(); variantWaiter = null }
+    if (approved) { const project = state.applyVariant(variantRef); waiter?.resolve({ status: 'applied', projectRevision: project.revision, variantRef, summary: 'The user approved and applied the variant.', metrics: calculateMetrics(project) }) }
+    else { state.discardVariant(variantRef); waiter?.resolve({ status: 'rejected', projectRevision: state.project.revision, variantRef, summary: 'The user rejected the variant.' }) }
+  } catch (error) { waiter?.reject(error); state.setConfirmationVariantRef(null) }
 }
 
 const requestVariantApproval = (variantRef: string, signal: AbortSignal) => new Promise<ToolPayload>((resolve, reject) => {
@@ -128,8 +129,17 @@ const requestVariantApproval = (variantRef: string, signal: AbortSignal) => new 
     try { state.reopenProposal(variantRef) } catch (error) { reject(error); return }
   }
   if (variantWaiter) { reject(new Error('Another variant is awaiting confirmation.')); return }
-  const abort = () => { state.setConfirmationVariantRef(null); variantWaiter = null; reject(new DOMException('Variant confirmation cancelled.', 'AbortError')) }
-  signal.addEventListener('abort', abort, { once: true }); variantWaiter = { resolve, reject, cleanup: () => signal.removeEventListener('abort', abort) }; state.setConfirmationVariantRef(variantRef)
+  const abort = () => { variantWaiter?.cleanup(); variantWaiter = null; state.setConfirmationVariantRef(null); reject(new DOMException('Variant confirmation cancelled.', 'AbortError')) }
+  if (signal.aborted) { reject(new DOMException('Variant confirmation cancelled.', 'AbortError')); return }
+  state.setConfirmationVariantRef(variantRef)
+  const unsubscribe = useStudioStore.subscribe(next => {
+    if (next.confirmationVariantRef !== variantRef || !next.variants.some(item => item.ref === variantRef)) {
+      variantWaiter?.cleanup(); variantWaiter = null
+      reject(new Error('The project or active proposal changed. Review a new proposal before applying it.'))
+    }
+  })
+  signal.addEventListener('abort', abort, { once: true })
+  variantWaiter = { resolve, reject, cleanup: () => { unsubscribe(); signal.removeEventListener('abort', abort) } }
 })
 
 /** Agents self-correct better from "field: problem" lines than from a serialized issue array. */
@@ -185,7 +195,7 @@ export const webMcpTools: WebMcpTool[] = [
       const variant = state.variants.find((item) => item.ref === variantRef) ?? state.proposals.find((item) => item.ref === variantRef) ?? (() => { throw new Error(`Variant not found: ${variantRef}`) })()
       const base = baseVariantRef ? projectForVariant(state.project, state.variants, baseVariantRef) : state.project
       const diff = diffProjects(base, variant.project, { maxChanges: 40 })
-      const area = diff.metricDeltas.homeAreaM2 ? `; home area ${diff.metricDeltas.homeAreaM2.delta > 0 ? '+' : ''}${diff.metricDeltas.homeAreaM2.delta} m²` : ''
+      const area = diff.metricDeltas.homeAreaM2 ? `; floor area ${diff.metricDeltas.homeAreaM2.delta > 0 ? '+' : ''}${diff.metricDeltas.homeAreaM2.delta} m²` : ''
       return { status: 'ok', projectRevision: state.project.revision, variantRef, baseVariantRef, summary: `${variant.label}: ${diff.counts.added} added, ${diff.counts.removed} removed, ${diff.counts.modified} modified${area}.`, diff }
     }
     if (action === 'compare') {

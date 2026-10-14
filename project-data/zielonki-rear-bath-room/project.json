@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
   "ref": "project/zielonki-rear-bath-room",
-  "name": "GŁÓWNY Garaż za domem — łazienka w pokoju",
+  "name": "Główny",
   "units": "metric",
-  "revision": 82,
-  "updatedAt": "2026-09-27T20:49:11.215Z",
+  "revision": 83,
+  "updatedAt": "2026-10-14T09:10:05.748Z",
   "site": {
     "boundary": [
       {
@@ -2441,97 +2441,97 @@
         },
         {
           "ref": "interior/67a1c941-8a58-4ec8-95fe-35ee2ad47308",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
           "name": "PAX / FORSAND Wardrobe",
-          "color": "#eeeae3",
-          "depthM": 0.6,
-          "widthM": 1,
-          "heightM": 2.012,
           "position": {
             "x": -4.445,
             "z": -0.1299999999999999
           },
-          "catalogId": "wardrobe",
+          "widthM": 1,
+          "depthM": 0.6,
+          "heightM": 2.012,
+          "rotationDegrees": 0,
+          "color": "#eeeae3",
           "productId": "pax",
-          "storeyRef": "storey/reference-ground",
           "variantId": "49500652",
-          "elevationM": 0,
-          "rotationDegrees": 0
+          "elevationM": 0
         },
         {
           "ref": "interior/9ed3a95d-bcee-41dc-959a-9f1e83d54b37",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
           "name": "PAX / FORSAND Wardrobe",
-          "color": "#eeeae3",
-          "depthM": 0.6,
-          "locked": false,
-          "widthM": 1,
-          "heightM": 2.012,
           "position": {
             "x": -3.5,
             "z": -0.1299999999999999
           },
-          "catalogId": "wardrobe",
+          "widthM": 1,
+          "depthM": 0.6,
+          "heightM": 2.012,
+          "rotationDegrees": 0,
+          "color": "#eeeae3",
           "productId": "pax",
-          "storeyRef": "storey/reference-ground",
           "variantId": "49500652",
           "elevationM": 0,
-          "rotationDegrees": 0
+          "locked": false
         },
         {
           "ref": "interior/cc6337f1-0399-4f49-8000-07c9b01df9c7",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
           "name": "PAX / FORSAND Wardrobe",
-          "color": "#eeeae3",
-          "depthM": 0.6,
-          "locked": false,
-          "widthM": 1,
-          "heightM": 2.012,
           "position": {
             "x": -2.644660857829475,
             "z": -0.1299999999999999
           },
-          "catalogId": "wardrobe",
+          "widthM": 1,
+          "depthM": 0.6,
+          "heightM": 2.012,
+          "rotationDegrees": 0,
+          "color": "#eeeae3",
           "productId": "pax",
-          "storeyRef": "storey/reference-ground",
           "variantId": "49500652",
           "elevationM": 0,
-          "rotationDegrees": 0
+          "locked": false
         },
         {
           "ref": "interior/2dc02eae-aa33-4993-9264-b83b20cbb0fb",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
           "name": "PAX / FORSAND Wardrobe",
-          "color": "#eeeae3",
-          "depthM": 0.6,
-          "locked": false,
-          "widthM": 1,
-          "heightM": 2.012,
           "position": {
             "x": 0.5,
             "z": 1.2100000000000002
           },
-          "catalogId": "wardrobe",
+          "widthM": 1,
+          "depthM": 0.6,
+          "heightM": 2.012,
+          "rotationDegrees": 0,
+          "color": "#eeeae3",
           "productId": "pax",
-          "storeyRef": "storey/reference-ground",
           "variantId": "49500652",
           "elevationM": 0,
-          "rotationDegrees": 0
+          "locked": false
         },
         {
           "ref": "interior/8f4f11c8-390e-450d-ad85-2bb71ad9d5c5",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
           "name": "PAX / FORSAND Wardrobe",
-          "color": "#eeeae3",
-          "depthM": 0.6,
-          "locked": false,
-          "widthM": 1,
-          "heightM": 2.012,
           "position": {
             "x": 1.5000000000000007,
             "z": 1.21
           },
-          "catalogId": "wardrobe",
+          "widthM": 1,
+          "depthM": 0.6,
+          "heightM": 2.012,
+          "rotationDegrees": 0,
+          "color": "#eeeae3",
           "productId": "pax",
-          "storeyRef": "storey/reference-ground",
           "variantId": "49500652",
           "elevationM": 0,
-          "rotationDegrees": 0
+          "locked": false
         }
       ],
       "stairs": [
@@ -3016,6 +3016,14 @@
           "locked": false
         },
         {
+          "faceFinishes": {
+            "left": {
+              "presetId": "sand-tile",
+              "color": "#DCCDB7",
+              "rotationDegrees": 0,
+              "tileM": 0.6
+            }
+          },
           "ref": "wall/reference-upper/13",
           "start": {
             "x": -2.655,
@@ -3046,14 +3054,6 @@
             "colorHex": "#E5E9E8",
             "textureId": "none"
           },
-          "faceFinishes": {
-            "left": {
-              "presetId": "sand-tile",
-              "color": "#DCCDB7",
-              "rotationDegrees": 0,
-              "tileM": 0.6
-            }
-          },
           "locked": false
         },
         {
@@ -3077,6 +3077,14 @@
           "locked": false
         },
         {
+          "faceFinishes": {
+            "left": {
+              "presetId": "sand-tile",
+              "color": "#DCCDB7",
+              "rotationDegrees": 0,
+              "tileM": 0.6
+            }
+          },
           "ref": "wall/reference-upper/16",
           "start": {
             "x": -2.655,
@@ -3095,6 +3103,9 @@
             "colorHex": "#E5E9E8",
             "textureId": "none"
           },
+          "locked": false
+        },
+        {
           "faceFinishes": {
             "left": {
               "presetId": "sand-tile",
@@ -3103,9 +3114,6 @@
               "tileM": 0.6
             }
           },
-          "locked": false
-        },
-        {
           "ref": "wall/reference-upper/19",
           "start": {
             "x": -4.995,
@@ -3123,14 +3131,6 @@
             "material": "light-render",
             "colorHex": "#E5E9E8",
             "textureId": "none"
-          },
-          "faceFinishes": {
-            "left": {
-              "presetId": "sand-tile",
-              "color": "#DCCDB7",
-              "rotationDegrees": 0,
-              "tileM": 0.6
-            }
           },
           "locked": false
         },
@@ -3355,12 +3355,12 @@
             {
               "ref": "opening/living-terrace-door",
               "kind": "door",
-              "glazed": true,
               "wallRef": "wall/carport-layout/ground/3",
               "offsetM": 1.205,
               "widthM": 1.8,
               "heightM": 2.3,
-              "sillM": 0
+              "sillM": 0,
+              "glazed": true
             }
           ],
           "finish": {
@@ -3964,6 +3964,14 @@
           "locked": false
         },
         {
+          "faceFinishes": {
+            "left": {
+              "presetId": "sand-tile",
+              "color": "#DCCDB7",
+              "rotationDegrees": 0,
+              "tileM": 0.6
+            }
+          },
           "ref": "wall/reference-upper/bath-west",
           "start": {
             "x": -4.995,
@@ -3980,25 +3988,17 @@
             {
               "ref": "opening/upper-bathroom-window",
               "kind": "window",
-              "glazed": true,
               "wallRef": "wall/reference-upper/bath-west",
               "offsetM": 1.45,
               "widthM": 1.2,
               "heightM": 0.6,
-              "sillM": 0.75
+              "sillM": 0.75,
+              "glazed": true
             }
           ],
           "finish": {
             "material": "charred-timber",
             "colorHex": "#242927"
-          },
-          "faceFinishes": {
-            "left": {
-              "presetId": "sand-tile",
-              "color": "#DCCDB7",
-              "rotationDegrees": 0,
-              "tileM": 0.6
-            }
           },
           "locked": false
         }
@@ -5857,11 +5857,11 @@
           },
           {
             "x": 9.1,
-            "z": -7.0
+            "z": -7
           },
           {
             "x": -0.8,
-            "z": -7.0
+            "z": -7
           }
         ],
         "locked": false,
@@ -5898,7 +5898,7 @@
         "kind": "path",
         "footprint": [
           {
-            "x": 13.0,
+            "x": 13,
             "z": 3.6
           },
           {
@@ -5906,11 +5906,11 @@
             "z": 3.6
           },
           {
-            "x": 15.0,
+            "x": 15,
             "z": 17.95
           },
           {
-            "x": 15.0,
+            "x": 15,
             "z": 25.5
           },
           {
@@ -6514,7 +6514,7 @@
         "name": "Larch raised bed",
         "position": {
           "x": 11.15,
-          "z": -3.0
+          "z": -3
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6525,7 +6525,7 @@
         "name": "Planting",
         "position": {
           "x": 11.15,
-          "z": -3.0
+          "z": -3
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6536,7 +6536,7 @@
         "name": "Larch raised bed",
         "position": {
           "x": 16.05,
-          "z": -3.0
+          "z": -3
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6547,7 +6547,7 @@
         "name": "Planting",
         "position": {
           "x": 16.05,
-          "z": -3.0
+          "z": -3
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6602,7 +6602,7 @@
         "name": "Larch raised bed",
         "position": {
           "x": 11.15,
-          "z": 2.0
+          "z": 2
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6613,7 +6613,7 @@
         "name": "Planting",
         "position": {
           "x": 11.15,
-          "z": 2.0
+          "z": 2
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6624,7 +6624,7 @@
         "name": "Larch raised bed",
         "position": {
           "x": 16.05,
-          "z": 2.0
+          "z": 2
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6635,7 +6635,7 @@
         "name": "Planting",
         "position": {
           "x": 16.05,
-          "z": 2.0
+          "z": 2
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6678,7 +6678,7 @@
         "catalogId": "hydrangea",
         "name": "Hydrangea",
         "position": {
-          "x": 17.0,
+          "x": 17,
           "z": -4.6
         },
         "rotationDegrees": 0,
@@ -6844,7 +6844,7 @@
         "name": "Rain butt",
         "position": {
           "x": 16.15,
-          "z": -7.0
+          "z": -7
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6854,8 +6854,8 @@
         "catalogId": "outdoor-dining-set",
         "name": "Dining under the trees",
         "position": {
-          "x": 8.0,
-          "z": -10.0
+          "x": 8,
+          "z": -10
         },
         "rotationDegrees": 0,
         "locked": false
@@ -6886,45 +6886,45 @@
         "ref": "fixture/kitchen-garden/fence-extension-22",
         "catalogId": "timber-fence",
         "name": "Larch garden enclosure",
-        "locked": false,
         "position": {
           "x": 10.3,
           "z": -8.4
         },
-        "rotationDegrees": 0
+        "rotationDegrees": 0,
+        "locked": false
       },
       {
         "ref": "fixture/kitchen-garden/fence-extension-23",
         "catalogId": "timber-fence",
         "name": "Larch garden enclosure",
-        "locked": false,
         "position": {
           "x": 16.9,
           "z": -8.4
         },
-        "rotationDegrees": 0
+        "rotationDegrees": 0,
+        "locked": false
       },
       {
         "ref": "fixture/kitchen-garden/fence-extension-24",
         "catalogId": "timber-fence",
         "name": "Larch garden enclosure",
-        "locked": false,
         "position": {
           "x": 10.3,
           "z": 3.6
         },
-        "rotationDegrees": 0
+        "rotationDegrees": 0,
+        "locked": false
       },
       {
         "ref": "fixture/kitchen-garden/fence-extension-25",
         "catalogId": "timber-fence",
         "name": "Larch garden enclosure",
-        "locked": false,
         "position": {
           "x": 16.9,
           "z": 3.6
         },
-        "rotationDegrees": 0
+        "rotationDegrees": 0,
+        "locked": false
       },
       {
         "ref": "fixture/fire-lounge/sunken-court",

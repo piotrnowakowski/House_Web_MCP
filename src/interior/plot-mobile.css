@@ -35,6 +35,8 @@
  .compact-plot .precision-strip input { min-width:0; width:100%; }
  .compact-plot .interior-field { display:flex; flex-direction:column; gap:6px; }
  .compact-plot .plot-history { display:flex; gap:8px; }
+ .compact-plot .proposal-filters { grid-template-columns:repeat(auto-fit,minmax(110px,1fr)); }
+ .compact-plot .proposal-filters button { min-width:0; gap:8px; padding:10px; }
  .plot-restore { position:absolute; top:max(8px,env(safe-area-inset-top)); left:max(8px,env(safe-area-inset-left)); z-index:22; display:flex; align-items:center; gap:7px; }
  .compact-plot .toast { bottom:calc(68px + env(safe-area-inset-bottom)); max-width:calc(100% - 16px); }
  .compact-plot .report-panel { inset:60px 8px 66px; width:auto; height:auto; max-height:none; }

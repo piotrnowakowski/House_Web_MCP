@@ -6,6 +6,6 @@ import './house-studies.css'
 export function HouseStudyControl({ onOpen }: { onOpen?: () => void }) {
   const openLauncher = useStudioStore((state) => state.openLauncher)
   const launcherOpen = useStudioStore((state) => state.launcherOpen)
-  return <button className="house-study-toggle" aria-label="Projects" title="Projects" aria-haspopup="dialog" aria-expanded={launcherOpen}
+  return <button className="house-study-toggle" aria-label="Projekty" title="Projekty" aria-haspopup="dialog" aria-expanded={launcherOpen}
     onClick={onOpen ?? (() => { void openLauncher() })}><House size={20} /></button>
 }

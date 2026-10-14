@@ -3,10 +3,11 @@
 For the new runtime API, persistent server `.env`, database backups and manual synchronization, see [workspace-sync.md](workspace-sync.md). API-enabled releases use `--sync-api`; a static-only redeployment is rejected once sync is present.
 
 The working house branch is `codex/deploy-furnished-zielonki`, previewed locally at `http://127.0.0.1:5173/`.
+The current launcher features **Główny** (`project/zielonki-rear-bath-room`, r80), **architekt** (`project/architekt`, r5) and **paulinka poprawki** (`project/paulina-poprawki`, r5). The two r5 variants match Główny's window specifications and exterior appearance while preserving their independent room dimensions and enclosed footprints. They are three independent canonical projects; the older original/front/rear-carport designs remain in saved history. Deploy their tracked data and check both fresh initialization and migration of existing workspaces. Shared Mikrus workspace versions are separate from bundled project revisions.
 It includes the merged `codex/ikea-interior-mobile` editor and all 64 catalogue configurations.
 Interior IDs use cryptographic UUID v4 generation on both HTTP and HTTPS. The browser regression fixture also exercises the HTTP case where `crypto.randomUUID` is absent.
 The plot now includes [precise editing and measurement controls](precision-editing.md). Run `node scripts/audit-precision-editor.mjs --url <preview-or-public-url>` to verify the desktop/mobile editing and reload flows in isolated profiles.
-House interior also supports immediate mouse/touch dragging of partitions, openings and furniture. Before release, run the direct-manipulation and interior browser tests documented in that guide; the scene uses native pointer capture to suspend camera gestures during object edits.
+House interior supports immediate mouse dragging of partitions, openings and furniture. On touch, select an object and choose **Przesuń (Move)** before dragging; ordinary swipes navigate the scene. Before release, run the direct-manipulation and interior browser tests documented in that guide; the scene uses native pointer capture to suspend camera gestures during object edits.
 The deployed house is [Mikrus over HTTPS](https://natan203-20203.mikrus.cloud/).
 The original [HTTP address on port 20203](http://natan203.mikrus.xyz:20203/) remains available for existing browser workspaces.
 GitHub Pages/main remains the separately restored competition submission; deploying this branch does not change it.

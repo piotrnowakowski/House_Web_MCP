@@ -15,7 +15,7 @@ const beds = current.landscape.fixtures.filter(f => f.catalogId === 'larch-bed-l
 const removed = previous.landscape.fixtures.filter(old => !current.landscape.fixtures.some(f => f.ref === old.ref)).map(f => f.ref)
 
 it('fits exactly six existing beds in a compact block with aligned crops and clear aisles', () => {
-  expect(current.revision).toBe(82)
+  expect(current.revision).toBe(83)
   expect(validateProject(current).filter(i => i.severity === 'error')).toEqual([])
   expect(beds).toHaveLength(6)
   expect(new Set(beds.map(f => f.position.x)).size).toBe(2)

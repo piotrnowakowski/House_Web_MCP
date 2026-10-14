@@ -198,11 +198,11 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(useStudioStore.getState().project.revision).toBe(1)
   })
 
-  it('previews a 96 m² upper-storey wing extension with the same numbers the dedicated tool used to report', async () => {
+  it('previews the net floor area added by an upper-storey wing extension', async () => {
     useStudioStore.setState({ project: structuredClone(partialUpperModernBarnProject), variants: [] })
     const parsed = await propose([extension])
     const state = useStudioStore.getState(); const building = state.variants[0].project.buildings[0]
-    expect(parsed).toMatchObject({ status: 'variant_created', areaAddedM2: 96, buildingHeightM: 9.4, levelCount: 2, metrics: { homeAreaM2: 300 } })
+    expect(parsed).toMatchObject({ status: 'variant_created', areaAddedM2: 91.1, buildingHeightM: 9.4, levelCount: 2, metrics: { homeAreaM2: 281.41044999999997 } })
     expect(parsed.affectedRefs).toEqual(expect.arrayContaining(['house/main', 'house/main/storey-upper']))
     expect(parsed.operations).toEqual([{ index: 1, type: 'storey.update', refs: expect.arrayContaining(['house/main', 'house/main/storey-upper']) }])
     expect(state.project.buildings[0].slabs.find((slab) => slab.ref === 'slab/upper')?.footprint).toHaveLength(4)
@@ -402,6 +402,22 @@ describe('ProjectV2 WebMCP surface', () => {
     expect(useStudioStore.getState().project.buildings[0].ceilingFinishes[0]).toMatchObject({ spaceRef: 'space/living', elevationM: 3.1 })
   })
 
+  it('settles invalidated review requests and allows a fresh approval', async () => {
+    await propose([{ type: 'site.update', northDegrees: 15 }])
+    const variantRef = useStudioStore.getState().variants[0].ref
+    const waiting = tool('manage_variant').execute({ action: 'request-apply', variantRef }, { signal: new AbortController().signal })
+    await Promise.resolve()
+    useStudioStore.getState().commitCommand({ type: 'site.update', northDegrees: 20 })
+    expect(payload(await waiting).summary).toContain('project or active proposal changed')
+    expect(useStudioStore.getState().confirmationVariantRef).toBeNull()
+    await propose([{ type: 'site.update', northDegrees: 25 }])
+    const nextRef = useStudioStore.getState().variants[0].ref
+    const next = tool('manage_variant').execute({ action: 'request-apply', variantRef: nextRef }, { signal: new AbortController().signal })
+    await Promise.resolve()
+    resolveVariantConfirmation(false)
+    expect(payload(await next).status).toBe('rejected')
+  })
+
   it('covers the remaining command operations: site, terrain, building, slab, wall, platform and climate', async () => {
     const site = await propose([{ type: 'site.update', northDegrees: -50 }])
     expect(useStudioStore.getState().variants.at(-1)!.project.site.northDegrees).toBe(-50)
@@ -489,7 +505,7 @@ describe('variant explanation and viewer tools', () => {
     useStudioStore.setState({ project: structuredClone(partialUpperModernBarnProject), variants: [] })
     const proposal = await propose([extension])
     const result = await tool('get_proposals').execute({ action: 'diff', proposalRef: proposal.variantRef }); const parsed = payload(result)
-    expect(parsed).toMatchObject({ status: 'ok', variantRef: proposal.variantRef, diff: { metricDeltas: { homeAreaM2: { before: 204, after: 300, delta: 96 } } } })
+    expect(parsed).toMatchObject({ status: 'ok', variantRef: proposal.variantRef, diff: { metricDeltas: { homeAreaM2: { before: 190.31, after: 281.41, delta: 91.1 } } } })
     expect(parsed.diff.changes).toContainEqual({ kind: 'slab', ref: 'slab/upper', change: 'modified', fields: ['footprint'] })
     expect(result.content[0].text.length).toBeLessThan(1500)
     expect(payload(await tool('get_proposals').execute({ action: 'diff', proposalRef: 'variant/missing' })).status).toBe('error')
@@ -497,7 +513,7 @@ describe('variant explanation and viewer tools', () => {
     const other = await propose([{ type: 'plant.update', action: 'add', plantRef: 'plant/new-box', species: 'Buxus sempervirens', kind: 'shrub', position: { x: 10, z: 12 } }])
     const compared = payload(await tool('get_proposals').execute({ action: 'compare', variantRefs: [proposal.variantRef, other.variantRef] }))
     expect(compared.data).toHaveLength(2)
-    expect(compared.data[0]).toMatchObject({ variantRef: proposal.variantRef, metrics: { homeAreaM2: 300 } })
+    expect(compared.data[0]).toMatchObject({ variantRef: proposal.variantRef, metrics: { homeAreaM2: 281.41044999999997 } })
   })
 
   it('drives the viewer, moves the sun, and never touches the project', async () => {

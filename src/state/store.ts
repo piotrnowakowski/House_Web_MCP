@@ -13,11 +13,14 @@ import { upgradeZielonkiPlacement } from '../domain/zielonkiPlacement'
 import { REFERENCE_YEAR, type SunTime } from '../domain/solar'
 import type { SunlightAnalysis } from '../domain/sunlight'
 import { createTerrainProject, isZielonkiProject, type TerrainInput } from '../domain/terrain'
-import { listWorkspaces, loadWorkspace, normalizeWorkspaceName, renameWorkspace, saveWorkspace, synchronizePublishedProject, type WorkspaceSummary } from '../services/persistence'
+import { listWorkspaces, loadWorkspace, loadEditHistory, normalizeWorkspaceName, renameWorkspace, saveWorkspace, synchronizePublishedProject, type WorkspaceSummary, type LocalEditHistory } from '../services/persistence'
+import { stableJson } from '../domain/workspaceSync'
 import { legacyProjectBase, publishedProject } from '../services/publishedProject'
 import { V2_STUDY_REF, synchronizePublishedV2 } from '../services/publishedV2'
 import { REAR_CARPORT_STUDY_REF, synchronizePublishedRearCarport } from '../services/publishedRearCarport'
 import { BATH_ROOM_STUDY_REF, synchronizePublishedBathRoom } from '../services/publishedBathRoom'
+import { ARCHITEKT_REF, synchronizePublishedArchitekt } from '../services/publishedArchitekt'
+import { PAULINA_REF, synchronizePublishedPaulina } from '../services/publishedPaulina'
 import type { DraftChangeSetModel, HeightMeasureKind, PersistedWorkspace, ProjectCommand, ProjectV2, ProposalRecord, StructureReport, TransformMode, VariantModel, ViewerMode } from '../domain/types'
 
 interface StudioState {
@@ -88,7 +91,7 @@ interface StudioState {
   focusGardenFixtures: (fixtureRef?: string) => void
   useModernBarnPreset: () => ProjectV2
   replaceProject: (project: ProjectV2) => void
-  restoreWorkspace: (workspace: PersistedWorkspace) => void
+  restoreWorkspace: (workspace: PersistedWorkspace, editHistory?: LocalEditHistory) => void
   openLauncher: () => Promise<void>
   closeLauncher: () => void
   startTerrain: (input: TerrainInput) => ProjectV2
@@ -136,6 +139,8 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
     const next = typeof update === 'function' ? update(get()) : update
     if ('project' in next || 'proposals' in next || 'draftChangeSets' in next || 'launcherOpen' in next) assertWorkspaceEditable()
     if (next.project && next.project.ref !== get().project.ref) assertLocalSaveComplete()
+    // A discarded/staled preview must never leave the inspector pointing at nothing.
+    if (next.variants && !next.variants.some(item => item.ref === (next.confirmationVariantRef ?? get().confirmationVariantRef))) next.confirmationVariantRef = null
     rawSet(next)
   }
   return ({
@@ -206,7 +211,8 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
     return next
   },
   replaceProject: (project) => { revokeReport(get().structureReport); set((state) => ({ project, transparencyMode: false, transparentRefs: [], variants: [], proposals: [], draftChangeSets: [], history: [], future: [], structureReport: null, sunOverlay: { ...state.sunOverlay, result: null }, toast: `Loaded ${project.name}.` })) },
-  restoreWorkspace: (workspace) => {
+  restoreWorkspace: (workspace, editHistory) => {
+    const savedProject = stableJson(workspace.project)
     get().resetTransparency()
     // Includes saved copies with different project refs; only mapped survey inventories need correction.
     if (workspace.project.landscape.plants.some((plant) => plant.surveyHandle)) {
@@ -217,7 +223,8 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
     const proposals = staleRecords(workspace.proposals, workspace.project.revision).map((proposal) =>
       proposal.status === 'pending' ? { ...proposal, issues: validateProject(proposal.project) } : proposal)
     const variants = proposals.filter((proposal) => proposal.status === 'pending')
-    set({ project: workspace.project, proposals, variants, draftChangeSets: staleDrafts(workspace.draftChangeSets, workspace.project.revision), history: [], future: [], structureReport: null, sunOverlay: { enabled: false, targetRef: null, result: null }, toast: `Loaded ${workspace.project.name} with ${proposals.length} proposal record${proposals.length === 1 ? '' : 's'}.` })
+    const history = savedProject === stableJson(workspace.project) ? editHistory : undefined
+    set({ project: workspace.project, proposals, variants, draftChangeSets: staleDrafts(workspace.draftChangeSets, workspace.project.revision), history: history?.history ?? [], future: history?.future ?? [], confirmationVariantRef: null, structureReport: null, sunOverlay: { enabled: false, targetRef: null, result: null }, toast: `Loaded ${workspace.project.name} with ${proposals.length} proposal record${proposals.length === 1 ? '' : 's'}.` })
   },
   openLauncher: async () => {
     assertWorkspaceEditable()
@@ -233,6 +240,10 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
       if (rearCarportConflicts.length) set((state) => ({ projectSyncConflicts: [...state.projectSyncConflicts, ...rearCarportConflicts] }))
       const bathRoomConflicts = await synchronizePublishedBathRoom()
       if (bathRoomConflicts.length) set((state) => ({ projectSyncConflicts: [...state.projectSyncConflicts, ...bathRoomConflicts] }))
+      const architektConflicts = await synchronizePublishedArchitekt()
+      if (architektConflicts.length) set((state) => ({ projectSyncConflicts: [...state.projectSyncConflicts, ...architektConflicts] }))
+      const paulinaConflicts = await synchronizePublishedPaulina()
+      if (paulinaConflicts.length) set((state) => ({ projectSyncConflicts: [...state.projectSyncConflicts, ...paulinaConflicts] }))
       set({ savedWorkspaces: await listWorkspaces() })
     }
     catch (error) { set({ savedWorkspaces: [], toast: `Saved projects could not be read: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
@@ -257,7 +268,7 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
     await flushAutosave()
     try {
       const saved = await loadWorkspace(REFERENCE_HOUSE_REF)
-      if (saved) get().restoreWorkspace(saved)
+      if (saved) get().restoreWorkspace(saved, await loadEditHistory(saved.project))
       else get().replaceProject(createReferenceHouse())
       set((state) => ({ launcherOpen: false, hydrated: true, selectedRef: null, viewerMode: 'edit', activePlanStoreyRef: null, explodeStoreys: false, cameraRefocusRequest: state.cameraRefocusRequest + 1, toast: 'Reference house loaded. Open House interior to explore both floors.' }))
     } catch (error) { set({ toast: `Could not open reference house: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
@@ -282,7 +293,10 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
     const activeTarget = isZielonkiProject(state.project)
     const target = activeTarget ? { version: 1 as const, project: state.project, proposals: state.proposals, draftChangeSets: state.draftChangeSets }
       : await loadWorkspace(modernBarnProject.ref) ?? { version: 1 as const, project: ensureStarterOrchard(ensureStarterGarden(structuredClone(modernBarnProject))), proposals: [], draftChangeSets: [] }
-    if (hasZielonkiInterior(target.project)) { get().restoreWorkspace(target); return }
+    if (hasZielonkiInterior(target.project)) {
+      get().restoreWorkspace(target, state.project.ref === target.project.ref ? { history: state.history, future: state.future } : await loadEditHistory(target.project))
+      return
+    }
     const reference = state.project.ref === REFERENCE_HOUSE_REF ? state.project : (await loadWorkspace(REFERENCE_HOUSE_REF))?.project ?? createReferenceHouse()
     const project = upgradeZielonkiPlacement(fitZielonkiInterior(target.project, reference))
     const blocking = validateProject(project).filter((issue) => issue.severity === 'error')
@@ -306,10 +320,12 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
       if (ref === V2_STUDY_REF) set({ projectSyncConflicts: await synchronizePublishedV2() })
       if (ref === REAR_CARPORT_STUDY_REF) set({ projectSyncConflicts: await synchronizePublishedRearCarport() })
       if (ref === BATH_ROOM_STUDY_REF) set({ projectSyncConflicts: await synchronizePublishedBathRoom() })
+      if (ref === ARCHITEKT_REF) set({ projectSyncConflicts: await synchronizePublishedArchitekt() })
+      if (ref === PAULINA_REF) set({ projectSyncConflicts: await synchronizePublishedPaulina() })
       const saved = await loadWorkspace(ref)
       if (!saved) { set({ toast: `Saved project not found: ${ref}.` }); return }
       const project = isZielonkiProject(saved.project) ? ensureStarterOrchard(ensureStarterGarden(applyModernBarnPreset(saved.project))) : saved.project
-      get().restoreWorkspace({ ...saved, project })
+      get().restoreWorkspace({ ...saved, project }, await loadEditHistory(project))
       set((state) => ({ launcherOpen: false, hydrated: true, cameraRefocusRequest: state.cameraRefocusRequest + 1 }))
     } catch (error) { set({ toast: `Saved project could not be opened: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
   },
@@ -321,7 +337,7 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
       const project = { ...state.project, name }
       set({ project })
       try {
-        await saveWorkspace({ version: 1, project, proposals: state.proposals, draftChangeSets: state.draftChangeSets })
+        await saveWorkspace({ version: 1, project, proposals: state.proposals, draftChangeSets: state.draftChangeSets }, { editHistory: { history: state.history, future: state.future } })
       } catch (error) {
         if (get().project.ref === ref && get().project.name === name) set({ project: { ...get().project, name: previousName } })
         throw error

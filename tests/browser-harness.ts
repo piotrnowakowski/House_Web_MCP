@@ -26,6 +26,8 @@ export function state() {
     history: value.history.length,
     future: value.future.length,
     selectedRef: value.selectedRef,
+    confirmation: value.confirmationVariantRef,
+    proposals: value.proposals,
   }
 }
 export function camera() {

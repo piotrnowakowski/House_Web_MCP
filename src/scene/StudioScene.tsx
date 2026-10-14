@@ -722,14 +722,18 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
   const junction = useMemo(() => gableRoofJunction(building, wing), [building, wing])
   const junctionPlanes = useMemo(() => roofJunctionPlanes(junction), [junction])
   const junctionCutouts = useMemo(() => roofJunctionCutouts(building, wing), [building, wing])
-  const gable = useMemo(() => {
+  const gables = useMemo(() => {
     const value = new BufferGeometry()
     const positions = alongZ ? [bounds.minX, base, 0, bounds.maxX, base, 0, cx, ridge, 0] : [0, base, bounds.minZ, 0, base, bounds.maxZ, 0, ridge, cz]
     value.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3))
     value.setAttribute('uv', new BufferAttribute(new Float32Array([0, 0, span, 0, span / 2, ridge - base]), 2))
-    value.setIndex([0, 1, 2]); value.computeVertexNormals(); return value
+    value.setIndex([0, 1, 2]); value.computeVertexNormals()
+    const reversed = value.clone()
+    reversed.setIndex([0, 2, 1]); reversed.computeVertexNormals()
+    // Each end needs an outward normal, including for shadow-map normal bias.
+    return alongZ ? [reversed, value] : [value, reversed]
   }, [alongZ, base, bounds.maxX, bounds.maxZ, bounds.minX, bounds.minZ, cx, cz, ridge, span])
-  useEffect(() => () => gable.dispose(), [gable])
+  useEffect(() => () => gables.forEach(geometry => geometry.dispose()), [gables])
   const ends = alongZ ? [bounds.minZ, bounds.maxZ] : [bounds.minX, bounds.maxX]
   const seamSpacing = alongZ ? 0.72 : 0.78
   const seams = segment.finish.material === 'standing-seam-metal' ? Array.from({ length: Math.max(2, Math.floor((alongZ ? depth : width) / seamSpacing)) }, (_, index) => (alongZ ? bounds.minZ : bounds.minX) + seamSpacing / 2 + index * seamSpacing) : []
@@ -765,7 +769,7 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
         return { acrossOffset, height, battenIndex }
       }) : []
       return <group key={index} userData={{ semanticRef: gableWall.ref, buildingRef: building.ref }} onPointerDown={(event) => { if (ghost) return; event.stopPropagation(); setSelectedRef(gableWall.ref) }}>
-        <mesh geometry={gable} position={alongZ ? [0, 0, offset] : [offset, 0, 0]} castShadow receiveShadow>{glass
+        <mesh geometry={gables[index]} position={alongZ ? [0, 0, offset] : [offset, 0, 0]} castShadow receiveShadow>{glass
           ? <meshStandardMaterial color="#7e999c" transparent opacity={ghost ? 0.2 : 0.43} roughness={0.08} side={DoubleSide} depthWrite={false} />
           : texture
             ? <TexturedMaterial asset={texture.id} rotation={texture.rotation} color={wallSelected ? '#b9e84d' : tintForTexturedFinish(finish.colorHex)} fallbackColor={wallSelected ? '#b9e84d' : finish.colorHex} emissive={wallSelected ? '#6c812f' : '#000000'} emissiveIntensity={wallSelected ? 0.35 : 0} transparent={Boolean(ghost)} opacity={ghost ? 0.33 : 1} depthWrite={!ghost} side={DoubleSide} roughness={surface.roughness} metalness={surface.metalness} />

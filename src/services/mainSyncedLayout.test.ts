@@ -1,6 +1,6 @@
 import { expect, it } from 'vitest'
-// r79 is the release this test covers; the r80 kitchen garden changed only landscape.
-import currentData from '../../project-data/zielonki-rear-bath-room/before-kitchen-garden-r79.json'
+import currentData from '../../project-data/zielonki-rear-bath-room/before-launcher-name-r79.json'
+import publishedData from '../../project-data/zielonki-rear-bath-room/project.json'
 import previousData from '../../project-data/zielonki-rear-bath-room/before-mikrus-sync-r42.json'
 import { validateProject } from '../domain/commands'
 import { parseProject } from '../domain/schema'
@@ -9,6 +9,13 @@ const current = parseProject(currentData)
 const previous = parseProject(previousData)
 const house = (project: typeof current) => project.buildings.find((building) => building.ref === 'house/main')!
 const content = (project: typeof current) => ({ ...project, revision: 0, updatedAt: '', buildings: project.buildings.map(({ furniture, walls, ...rest }) => rest) })
+
+it('publishes the concise launcher name while retaining the independently approved garden', () => {
+  const published = parseProject(publishedData)
+  expect(published.name).toBe('Główny')
+  expect(published.revision).toBe(83)
+  expect({ ...published, landscape: current.landscape, name: current.name, revision: current.revision, updatedAt: current.updatedAt }).toEqual(current)
+})
 
 it('publishes the Mikrus-synced GŁÓWNY r78 layout with the study door inside its wall', () => {
   const furniture = house(current).furniture ?? []

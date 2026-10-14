@@ -3,9 +3,9 @@ import {createTerrainProject} from '../domain/terrain'
 const mocks=vi.hoisted(()=>({state:{} as any,save:vi.fn(),recovery:vi.fn()}))
 vi.mock('../state/store',()=>({useStudioStore:{getState:()=>mocks.state,setState:(v:any)=>Object.assign(mocks.state,v)}}))
 vi.mock('./autosave',()=>({flushAutosave:async()=>{}}))
-vi.mock('./workspaceLock',()=>({lockWorkspace:()=>()=>{},applyLockedWorkspace:(f:Function)=>f(),runWorkspaceActivity:(f:Function)=>f()}))
 vi.mock('./persistence',()=>({loadWorkspace:vi.fn(),readSyncRecord:async()=>undefined,saveRecovery:mocks.recovery,saveWorkspace:mocks.save,writeSyncRecord:vi.fn()}))
-import {transferWorkspace,useSyncStatus} from './mikrusSync'
+import {transferWorkspace,syncWorkspace,useSyncStatus} from './mikrusSync'
+import {runWorkspaceActivity,useWorkspaceActivity} from './workspaceLock'
 let local:any,remote:any,calls:string[]
 beforeEach(()=>{
  vi.clearAllMocks();calls=[]
@@ -21,3 +21,20 @@ beforeEach(()=>{
 it('Get downloads without issuing a remote write and backs up the local version',async()=>{await transferWorkspace('get');expect(calls).toEqual(['GET']);expect(mocks.state.project.name).toBe('Remote');expect(mocks.recovery).toHaveBeenCalledWith(local)})
 it('Push sends the local version without merging remote content',async()=>{await transferWorkspace('push');expect(calls).toEqual(['GET','PUT']);expect(mocks.state.project.name).toBe('Local');const request=vi.mocked(fetch).mock.calls[1][1]!;expect(JSON.parse(request.body as string).workspace.project.name).toBe('Local')})
 it('cancelled Get preserves local work and never uploads',async()=>{vi.stubGlobal('window',{confirm:()=>false});await transferWorkspace('get');expect(calls).toEqual(['GET']);expect(mocks.save).not.toHaveBeenCalled();expect(mocks.state.project.name).toBe('Local')})
+
+it.each(['get','push','sync'] as const)('%s reports an in-flight project switch without network or data changes',async(direction)=>{
+ let complete!:()=>void
+ const activity=runWorkspaceActivity(()=>new Promise<void>(resolve=>{complete=resolve}))
+ expect(useWorkspaceActivity.getState().busy).toBe(true)
+ try {
+  await expect(direction==='sync'?syncWorkspace():transferWorkspace(direction)).resolves.toBeUndefined()
+  expect(calls).toEqual([])
+  expect(mocks.save).not.toHaveBeenCalled()
+  expect(mocks.state.project.name).toBe('Local')
+  expect(useSyncStatus.getState()).toMatchObject({busy:false,message:'Wait for the current project operation to finish before synchronizing.'})
+ } finally { complete();await activity }
+ expect(useWorkspaceActivity.getState().busy).toBe(false)
+ await transferWorkspace('get')
+ expect(calls).toEqual(['GET'])
+ expect(mocks.state.project.name).toBe('Remote')
+})

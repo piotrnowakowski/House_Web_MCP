@@ -1,6 +1,9 @@
+import { interiorText } from './interiorLocale'
 import { staticAssetUrl } from '../services/staticAssets'
+import { useStudioStore } from '../state/store'
+import { stableJson } from '../domain/workspaceSync'
 import { randomId } from '../domain/randomId'
-import { createContext, useContext, useEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Heart, Pencil, SlidersHorizontal, X } from 'lucide-react'
 import { interiorCatalog, interiorOriginalSize } from '../domain/interior'
 import { ikeaCatalog, ikeaProduct, ikeaHeightVariants, withIkeaHeightVariant } from '../domain/ikeaCatalog'
@@ -8,7 +11,7 @@ import { finishFromPreset, interiorFinishes } from '../domain/interiorFinishes'
 import { polygonBounds, spaceFootprint, wallLength } from '../domain/geometry'
 import { roomDimensions } from '../domain/roomDimensions'
 import { isEnvelopeWall } from '../domain/interiorLayout'
-import { wallWithLength } from '../domain/precisionEdits'
+import { wallLengthAnchors, wallWithLength } from '../domain/precisionEdits'
 import type {
   BuildingModel,
   InteriorFinish,
@@ -20,13 +23,15 @@ import type {
   WallModel,
 } from '../domain/types'
 
-const PrecisionContext = createContext<{ active: string | null; setActive: (id: string | null) => void }>({
+type ItemDraft = { base: InteriorItem; value: InteriorItem }
+const PrecisionContext = createContext<{ active: string | null; setActive: (id: string | null) => void; drafts?: Map<string, ItemDraft> }>({
   active: null,
   setActive: () => {},
 })
 export function PrecisionControls({ children }: { children: ReactNode }) {
   const [active, setActive] = useState<string | null>(null)
-  return <PrecisionContext.Provider value={{ active, setActive }}>{children}</PrecisionContext.Provider>
+  const drafts = useRef(new Map<string, ItemDraft>())
+  return <PrecisionContext.Provider value={{ active, setActive, drafts: drafts.current }}>{children}</PrecisionContext.Provider>
 }
 
 export function PrecisionField({
@@ -59,7 +64,8 @@ export function PrecisionField({
           <input
             aria-label={label}
             type="number"
-            value={Number.isNaN(value) ? '' : value}
+            inputMode="decimal"
+            value={Number.isNaN(value) ? '' : Number(value.toPrecision(12))}
             min={min}
             max={max}
             step="any"
@@ -69,7 +75,7 @@ export function PrecisionField({
           />
           <button
             type="button"
-            aria-label={`Adjust ${label}`}
+            aria-label={`Dostosuj: ${label}`}
             aria-expanded={adjusting}
             disabled={disabled}
             onClick={() => setAdjusting(!adjusting)}
@@ -80,11 +86,11 @@ export function PrecisionField({
       </label>
       {adjusting && (
         <div className="precision-strip">
-          <button type="button" aria-label={`Decrease ${label}`} onClick={() => stepBy(-1)}>
+          <button type="button" aria-label={`Zmniejsz: ${label}`} onClick={() => stepBy(-1)}>
             −
           </button>
           <input
-            aria-label={`${label} slider`}
+            aria-label={`Suwak: ${label}`}
             type="range"
             min={min}
             max={max}
@@ -92,7 +98,7 @@ export function PrecisionField({
             value={value}
             onChange={(e) => onChange(e.target.valueAsNumber)}
           />
-          <button type="button" aria-label={`Increase ${label}`} onClick={() => stepBy(1)}>
+          <button type="button" aria-label={`Zwiększ: ${label}`} onClick={() => stepBy(1)}>
             +
           </button>
         </div>
@@ -124,7 +130,7 @@ export function FurnitureCatalog({ onChoose }: { onChoose: (id: string, generic:
         ...p,
         family: '',
         thumbnail: '',
-        finish: 'Original catalogue size',
+        finish: "Oryginalny rozmiar katalogowy",
         assemblyNote: '',
       }))
     : ikeaCatalog
@@ -132,7 +138,7 @@ export function FurnitureCatalog({ onChoose }: { onChoose: (id: string, generic:
   const filtered = entries.filter(
     (p) =>
       (category === 'All' || (category === 'Favorites' ? favorites.includes(p.id) : p.category === category)) &&
-      searchText(`${p.family} ${p.name}`).includes(searchText(query)),
+      searchText(`${p.family} ${p.name} ${interiorText(p.name)}`).includes(searchText(query)),
   )
   const favorite = (id: string) => {
     const next = favorites.includes(id) ? favorites.filter((v) => v !== id) : [...favorites, id]
@@ -140,7 +146,7 @@ export function FurnitureCatalog({ onChoose }: { onChoose: (id: string, generic:
     localStorage.setItem('interior.favorites', JSON.stringify(next))
   }
   return (
-    <section className="interior-catalog" aria-label="Furniture catalog">
+    <section className="interior-catalog" aria-label="Katalog mebli">
       <div className="interior-segment">
         <button
           aria-pressed={!generic}
@@ -158,20 +164,20 @@ export function FurnitureCatalog({ onChoose }: { onChoose: (id: string, generic:
             setCategory('All')
           }}
         >
-          Generic fittings
+          Wyposażenie ogólne
         </button>
       </div>
       <input
         type="search"
-        aria-label="Search furniture"
-        placeholder="Search furniture…"
+        aria-label="Szukaj mebli"
+        placeholder="Szukaj mebli…"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
       />
       <div className="interior-categories">
         {categories.map((c) => (
-          <button key={c} aria-pressed={c === category} onClick={() => setCategory(c)}>
-            {c}
+          <button key={interiorText(c)} aria-pressed={c === category} onClick={() => setCategory(c)}>
+            {interiorText(c)}
           </button>
         ))}
       </div>
@@ -180,7 +186,7 @@ export function FurnitureCatalog({ onChoose }: { onChoose: (id: string, generic:
           <article key={p.id}>
             <button
               className="catalog-product"
-              aria-label={`Place ${p.family ? `${p.family} ` : ''}${p.name}`}
+              aria-label={`Umieść ${p.family ? `${p.family} ` : ''}${interiorText(p.name)}`}
               onClick={() => onChoose(p.id, generic)}
             >
               {p.thumbnail ? (
@@ -190,15 +196,15 @@ export function FurnitureCatalog({ onChoose }: { onChoose: (id: string, generic:
                   {p.name.slice(0, 1)}
                 </span>
               )}
-              <strong>{p.family || p.name}</strong>
-              {p.family && <span>{p.name}</span>}
+              <strong>{p.family || interiorText(p.name)}</strong>
+              {p.family && <span>{interiorText(p.name)}</span>}
               <small>{p.size.map((n) => +(n * 100).toFixed(1)).join(' × ')} cm</small>
-              <small>{p.finish}</small>
-              {p.assemblyNote && <small className="assembly-note">{p.assemblyNote}</small>}
+              <small>{interiorText(p.finish)}</small>
+              {p.assemblyNote && <small className="assembly-note">{interiorText(p.assemblyNote)}</small>}
             </button>
             <button
               className="favorite-button"
-              aria-label={`${favorites.includes(p.id) ? 'Unfavorite' : 'Favorite'} ${p.family || p.name}`}
+              aria-label={`${favorites.includes(p.id) ? "Usuń z ulubionych" : "Dodaj do ulubionych"} ${p.family || interiorText(p.name)}`}
               aria-pressed={favorites.includes(p.id)}
               onClick={() => favorite(p.id)}
             >
@@ -207,28 +213,45 @@ export function FurnitureCatalog({ onChoose }: { onChoose: (id: string, generic:
           </article>
         ))}
       </div>
-      {!filtered.length && <p>No matching furniture.</p>}
+      {!filtered.length && <p>Brak pasujących mebli.</p>}
       <p className="interior-note">
-        Objects start at their original catalogue size. Use the pencil beside Dimensions to enlarge a placed object.
+        Obiekty mają początkowo rozmiar katalogowy. Użyj ołówka obok wymiarów, aby powiększyć ustawiony obiekt.
       </p>
     </section>
   )
 }
 
 type Commit = (command: ProjectCommand) => boolean
-type Context = { building: BuildingModel; storey: StoreyModel; commit: Commit }
+type Context = { building: BuildingModel; storey: StoreyModel; commit: Commit; formId?: string; mobile?: boolean }
 
 const sizeLabel = (size: number[]) => `${size.map((value) => +(value * 100).toFixed(1)).join(' × ')} cm`
 
-export function ItemInspector({ item, onSave, availableHeight, interactionHint }: {
+export function ItemInspector({ item, onSave, availableHeight, interactionHint, formId }: {
   item: InteriorItem
   onSave: (item: InteriorItem) => boolean
   availableHeight: number
   interactionHint?: string
+  formId?: string
 }) {
-  const [draft, setDraft] = useState(item)
+  const projectRef = useStudioStore(state => state.project.ref)
+  const { drafts } = useContext(PrecisionContext)
+  const draftKey = `${projectRef}/${item.ref}`
+  const readDraft = () => {
+    const saved = drafts?.get(draftKey)
+    return saved && stableJson(saved.base) === stableJson(item) ? saved.value : item
+  }
+  const [draft, setDraftValue] = useState(readDraft)
+  const setDraft = (value: InteriorItem) => {
+    drafts?.set(draftKey, { base: item, value })
+    setDraftValue(value)
+  }
   const [dimensionsOpen, setDimensionsOpen] = useState(false)
-  useEffect(() => setDraft(item), [item])
+  useEffect(() => {
+    const saved = drafts?.get(draftKey)
+    const value = saved && stableJson(saved.base) === stableJson(item) ? saved.value : item
+    if (value === item) drafts?.delete(draftKey)
+    setDraftValue(value)
+  }, [item, draftKey, drafts])
   const product = ikeaProduct(item.productId)
   const heightVariants = ikeaHeightVariants(item.productId)
   const originalSize = interiorOriginalSize(item)
@@ -237,6 +260,8 @@ export function ItemInspector({ item, onSave, availableHeight, interactionHint }
   return (
     <>
       <form
+        id={formId}
+        onReset={(event) => { event.preventDefault(); drafts?.delete(draftKey); setDraftValue(item) }}
         className="interior-inspector-form"
         onSubmit={(e) => {
           e.preventDefault()
@@ -244,16 +269,17 @@ export function ItemInspector({ item, onSave, availableHeight, interactionHint }
         }}
       >
         <h3>{item.name}</h3>
+        {stableJson(draft) !== stableJson(item) && <p role="status" className="interior-note">Niezastosowane zmiany — szkic zostanie zachowany po zamknięciu panelu.<button type="button" onClick={() => { drafts?.delete(draftKey); setDraftValue(item) }}>Odrzuć szkic</button></p>}
         <div className="interior-size-summary">
           <div>
-            <span>Dimensions · W × D × H</span>
+            <span>Wymiary · szer. × gł. × wys.</span>
             <strong>{sizeLabel(currentSize)}</strong>
-            <small>{isOriginal ? 'Original catalogue size' : `Catalogue: ${sizeLabel(originalSize)}`}</small>
+            <small>{isOriginal ? "Oryginalny rozmiar katalogowy" : `Katalogowo: ${sizeLabel(originalSize)}`}</small>
           </div>
           <button
             type="button"
-            title="Edit dimensions"
-            aria-label="Edit dimensions"
+            title="Edytuj wymiary"
+            aria-label="Edytuj wymiary"
             disabled={item.locked}
             onClick={() => setDimensionsOpen(true)}
           >
@@ -264,38 +290,44 @@ export function ItemInspector({ item, onSave, availableHeight, interactionHint }
           <>
             {heightVariants.length > 1 && (
               <label className="interior-field">
-                <span>IKEA height configuration</span>
+                <span>Wariant wysokości IKEA</span>
                 <select
-                  aria-label="IKEA height configuration"
+                  aria-label="Wariant wysokości IKEA"
                   value={item.productId}
                   disabled={item.locked}
-                  onChange={(event) => onSave(withIkeaHeightVariant(draft, event.target.value))}
+                  onChange={(event) => {
+                    const next = withIkeaHeightVariant(draft, event.target.value)
+                    const nextProduct = ikeaProduct(next.productId)!
+                    if (draft.name === `${product.family} ${interiorText(product.name)}`)
+                      next.name = `${nextProduct.family} ${interiorText(nextProduct.name)}`
+                    onSave(next)
+                  }}
                 >
                   {heightVariants.map((variant) => {
                     const fits = Math.max(variant.size[2], variant.minimumCeilingM ?? 0) + (draft.elevationM ?? 0) <= availableHeight
                     return (
                       <option key={variant.id} value={variant.id} disabled={!fits}>
-                        {variant.heightVariant === 'tall' ? 'Tall' : 'Standard'} · {+(variant.size[2] * 100).toFixed(1)} cm
-                        {!fits ? ' · Too tall for this room' : ''}
+                        {variant.heightVariant === 'tall' ? "Wysoki" : "Standardowy"} · {+(variant.size[2] * 100).toFixed(1)} cm
+                        {!fits ? " · Za wysoki do tego pomieszczenia" : ''}
                       </option>
                     )
                   })}
                 </select>
-                <small>Gap to ceiling: {+((availableHeight - item.heightM - (item.elevationM ?? 0)) * 100).toFixed(1)} cm. Each option uses its original IKEA dimensions.</small>
+                <small>Odstęp od sufitu: {+((availableHeight - item.heightM - (item.elevationM ?? 0)) * 100).toFixed(1)} cm. Każdy wariant zachowuje katalogowe wymiary IKEA.</small>
               </label>
             )}
             <a href={product.productUrl} target="_blank" rel="noreferrer">
-              IKEA Poland · {product.articleNumber}
+              IKEA Polska · {product.articleNumber}
             </a>
             <p className="interior-note">
-              {product.finish} · {product.assemblyNote || 'Assembled dimensions'}
-              {product.availabilityNote && ` · ${product.availabilityNote}`}
-              {product.minimumCeilingM && ` · Minimum ceiling for assembly: ${product.minimumCeilingM * 100} cm`}
+              {interiorText(product.finish)} · {interiorText(product.assemblyNote || "Wymiary po złożeniu")}
+              {product.availabilityNote && ` · ${interiorText(product.availabilityNote)}`}
+              {product.minimumCeilingM && ` · Minimalna wysokość do montażu: ${product.minimumCeilingM * 100} cm`}
             </p>
           </>
         )}
         <label className="interior-field">
-          <span>Object name</span>
+          <span>Nazwa obiektu</span>
           <input
             value={draft.name}
             maxLength={100}
@@ -306,21 +338,21 @@ export function ItemInspector({ item, onSave, availableHeight, interactionHint }
         </label>
         <fieldset disabled={item.locked} className="interior-fields">
           <PrecisionField
-            label="Position X (m)"
+            label="Pozycja X (m)"
             min={-100}
             max={100}
             value={draft.position.x}
             onChange={(x) => setDraft({ ...draft, position: { ...draft.position, x } })}
           />
           <PrecisionField
-            label="Position Z (m)"
+            label="Pozycja Z (m)"
             min={-100}
             max={100}
             value={draft.position.z}
             onChange={(z) => setDraft({ ...draft, position: { ...draft.position, z } })}
           />
           <PrecisionField
-            label="Rotation (°)"
+            label="Obrót (°)"
             min={-360}
             max={360}
             step={1}
@@ -328,25 +360,25 @@ export function ItemInspector({ item, onSave, availableHeight, interactionHint }
             onChange={(rotationDegrees) => setDraft({ ...draft, rotationDegrees })}
           />
           <PrecisionField
-            label="Elevation (m)"
+            label="Wysokość nad podłogą (m)"
             max={8}
             value={draft.elevationM ?? 0}
             onChange={(elevationM) => setDraft({ ...draft, elevationM })}
           />
           {!product && (
             <label className="interior-field">
-              Finish color
+              Kolor wykończenia
               <input type="color" value={draft.color} onChange={(e) => setDraft({ ...draft, color: e.target.value })} />
             </label>
           )}
         </fieldset>
-        <button className="interior-primary" disabled={item.locked}>
-          Apply changes
+        <button className="interior-primary interior-inline-submit" disabled={item.locked}>
+          Zastosuj zmiany
         </button>
         <p className="interior-note">
           {item.locked
-            ? 'Unlock to edit this object.'
-            : interactionHint ?? 'Touch or click and drag to move. R rotates; arrow keys move; Shift selects more.'}
+            ? "Odblokuj obiekt, aby go edytować."
+            : interactionHint ?? "Przeciągnij, aby przesunąć. R obraca; strzałki przesuwają; Shift dodaje do zaznaczenia."}
         </p>
       </form>
       {dimensionsOpen && (
@@ -406,8 +438,8 @@ function ItemDimensionsDialog({
       }}
     >
       <header>
-        <h2 id={heading}>Dimensions</h2>
-        <button type="button" aria-label="Close dimensions" onClick={onClose}>
+        <h2 id={heading}>Wymiary</h2>
+        <button type="button" aria-label="Zamknij wymiary" onClick={onClose}>
           <X size={18} />
         </button>
       </header>
@@ -420,14 +452,14 @@ function ItemDimensionsDialog({
             return
           }
           if (onSave({ ...item, widthM: size[0], depthM: size[1], heightM: size[2] })) onClose()
-          else setError('Cannot apply these dimensions. Check available floor space, room height and object locks.')
+          else setError("Nie można zastosować wymiarów. Sprawdź miejsce na podłodze, wysokość pomieszczenia i blokadę obiektu.")
         }}
       >
         <p className="interior-note" id={description}>
-          Original: {sizeLabel(original)}. You can enlarge each dimension; the catalogue size is the minimum.
+          Katalogowo: {sizeLabel(original)}. Możesz powiększyć każdy wymiar; rozmiar katalogowy jest minimum.
         </p>
         <fieldset disabled={item.locked} className="dimension-dialog-fields">
-          {['Width (m)', 'Depth (m)', 'Height (m)'].map((label, index) => (
+          {["Szerokość (m)", "Głębokość (m)", "Wysokość (m)"].map((label, index) => (
             <PrecisionField
               key={label}
               label={label}
@@ -454,14 +486,14 @@ function ItemDimensionsDialog({
             setError('')
           }}
         >
-          Original size
+          Rozmiar katalogowy
         </button>
         <div className="interior-button-row">
           <button type="button" onClick={onClose}>
-            Cancel
+            Anuluj
           </button>
           <button className="interior-primary" disabled={item.locked}>
-            Save dimensions
+            Zapisz wymiary
           </button>
         </div>
       </form>
@@ -498,21 +530,21 @@ function FinishPicker({
         })
       }}
     >
-      <h3>Surface finish</h3>
+      <h3>Wykończenie powierzchni</h3>
       <label className="interior-field">
-        Surface
+        Powierzchnia
         <select
-          aria-label="Finish surface"
+          aria-label="Powierzchnia do wykończenia"
           value={surface}
           onChange={(e) => setSurface(e.target.value as typeof surface)}
         >
           {surfaces.map((s) => (
             <option key={s} value={s}>
               {s === 'left'
-                ? 'Left face · looking start → end'
+                ? "Lewa strona · patrząc od początku do końca"
                 : s === 'right'
-                  ? 'Right face · looking start → end'
-                  : s}
+                  ? "Prawa strona · patrząc od początku do końca"
+                  : interiorText(s)}
             </option>
           ))}
         </select>
@@ -522,18 +554,18 @@ function FinishPicker({
           <button
             type="button"
             key={preset.id}
-            aria-label={`Finish ${preset.name}`}
+            aria-label={`Wykończenie: ${interiorText(preset.name)}`}
             aria-pressed={finish.presetId === preset.id}
             onClick={() => setFinish(finishFromPreset(preset.id))}
           >
             <i style={{ background: preset.color }} />
-            {preset.name}
+            {interiorText(preset.name)}
           </button>
         ))}
       </div>
       <div className="interior-fields">
         <PrecisionField
-          label="Texture rotation (°)"
+          label="Obrót tekstury (°)"
           min={0}
           max={360}
           step={1}
@@ -541,14 +573,14 @@ function FinishPicker({
           onChange={(rotationDegrees) => setFinish({ ...finish, rotationDegrees })}
         />
         <PrecisionField
-          label="Texture repeat (m)"
+          label="Powtarzanie tekstury (m)"
           min={0.05}
           max={20}
           value={finish.tileM}
           onChange={(tileM) => setFinish({ ...finish, tileM })}
         />
       </div>
-      <button className="interior-primary">Apply finish</button>
+      <button className="interior-primary">Zastosuj wykończenie</button>
     </form>
   )
 }
@@ -574,6 +606,8 @@ export function RoomInspector({
   return (
     <>
       <form
+        id={context.formId}
+        onReset={(event) => { event.preventDefault(); setName(room.name); setUsage(room.usage); setWidth(+measured.width.toFixed(3)); setDepth(+measured.depth.toFixed(3)) }}
         className="interior-inspector-form"
         onSubmit={(e) => {
           e.preventDefault()
@@ -595,27 +629,26 @@ export function RoomInspector({
         }}
       >
         <h3>{room.name}</h3>
+        <div className="interior-fields">
+          <PrecisionField label="Szerokość pomieszczenia (m)" min={1} value={width} onChange={setWidth} />
+          <PrecisionField label="Głębokość pomieszczenia (m)" min={1} value={depth} onChange={setDepth} />
+        </div>
         <label className="interior-field">
-          Room name
+          Nazwa pomieszczenia
           <input value={name} required maxLength={100} onChange={(e) => setName(e.target.value)} />
         </label>
         <label className="interior-field">
-          Room usage
+          Funkcja pomieszczenia
           <input value={usage} required maxLength={100} onChange={(e) => setUsage(e.target.value)} />
         </label>
-        <div className="interior-fields">
-          <PrecisionField label="Room width (m)" min={1} value={width} onChange={setWidth} />
-          <PrecisionField label="Room depth (m)" min={1} value={depth} onChange={setDepth} />
-        </div>
         <p className="interior-note">
-          {measured.area.toFixed(2)} m² · Inside wall dimensions. Resizing moves internal walls and adjoining rooms; the
-          exterior envelope stays fixed.
+          {measured.area.toFixed(2)} m² · Wymiary wewnątrz ścian. Zmiana rozmiaru przesuwa ściany działowe i sąsiednie pomieszczenia; obrys zewnętrzny pozostaje stały.
         </p>
-        <button className="interior-primary" disabled={room.locked}>
-          Save room
+        <button className="interior-primary interior-inline-submit" disabled={room.locked}>
+          Zapisz pomieszczenie
         </button>
         <button type="button" disabled={room.locked} onClick={onPartition}>
-          Draw partition in this room
+          Dodaj ścianę w tym pomieszczeniu
         </button>
       </form>
       <FinishPicker
@@ -639,38 +672,40 @@ export function OpeningInspector({ wall, opening, ...context }: Context & { wall
   }
   return (
     <form
+      id={context.formId}
+      onReset={(event) => { event.preventDefault(); setDraft(opening) }}
       className="interior-inspector-form"
       onSubmit={(e) => {
         e.preventDefault()
         context.commit({ ...command, action: 'opening', opening: draft })
       }}
     >
-      <h3>{opening.kind === 'door' ? 'Door' : 'Window'}</h3>
-      <p className="interior-note">Centre measured along the wall. Clearances: {(draft.offsetM - draft.widthM / 2).toFixed(3)} m from start · {(wallLength(wall) - draft.offsetM - draft.widthM / 2).toFixed(3)} m from end.</p>
+      <h3>{opening.kind === 'door' ? "Drzwi" : "Okno"}</h3>
+      <p className="interior-note">Środek otworu mierzony wzdłuż ściany. Odstępy: {(draft.offsetM - draft.widthM / 2).toFixed(3)} m od początku · {(wallLength(wall) - draft.offsetM - draft.widthM / 2).toFixed(3)} m od końca.</p>
       <div className="interior-button-row"><button type="button" disabled={wall.locked} onClick={() => setDraft({ ...draft, offsetM: +(draft.offsetM - 0.01).toFixed(4) })}>← 1 cm</button><button type="button" disabled={wall.locked} onClick={() => setDraft({ ...draft, offsetM: +(draft.offsetM + 0.01).toFixed(4) })}>1 cm →</button></div>
       <div className="interior-fields">
         <PrecisionField
-          label="Distance from wall start (m)"
+          label="Odległość od początku ściany (m)"
           value={draft.offsetM}
           max={wallLength(wall)}
           onChange={(offsetM) => setDraft({ ...draft, offsetM })}
         />
         <PrecisionField
-          label="Opening width (m)"
+          label="Szerokość otworu (m)"
           min={0.2}
           max={wallLength(wall)}
           value={draft.widthM}
           onChange={(widthM) => setDraft({ ...draft, widthM })}
         />
         <PrecisionField
-          label="Opening height (m)"
+          label="Wysokość otworu (m)"
           min={0.2}
           max={wall.heightM}
           value={draft.heightM}
           onChange={(heightM) => setDraft({ ...draft, heightM })}
         />
         <PrecisionField
-          label="Sill height (m)"
+          label="Wysokość parapetu (m)"
           max={wall.heightM}
           value={draft.sillM}
           onChange={(sillM) => setDraft({ ...draft, sillM })}
@@ -679,31 +714,31 @@ export function OpeningInspector({ wall, opening, ...context }: Context & { wall
       {opening.kind === 'door' && (
         <div className="interior-fields">
           <label className="interior-field">
-            Hinge
+            Zawiasy
             <select
-              aria-label="Door hinge"
+              aria-label="Strona zawiasów"
               value={draft.hinge ?? 'left'}
               onChange={(e) => setDraft({ ...draft, hinge: e.target.value as 'left' | 'right' })}
             >
-              <option>left</option>
-              <option>right</option>
+              <option value="left">Lewa</option>
+              <option value="right">Prawa</option>
             </select>
           </label>
           <label className="interior-field">
-            Swing
+            Kierunek otwierania
             <select
-              aria-label="Door swing"
+              aria-label="Kierunek otwierania drzwi"
               value={draft.swing ?? 'in'}
               onChange={(e) => setDraft({ ...draft, swing: e.target.value as 'in' | 'out' })}
             >
-              <option>in</option>
-              <option>out</option>
+              <option value="in">Do środka</option>
+              <option value="out">Na zewnątrz</option>
             </select>
           </label>
         </div>
       )}
-      <button className="interior-primary" disabled={wall.locked}>
-        Save opening
+      <button className="interior-primary interior-inline-submit" disabled={wall.locked}>
+        Zapisz otwór
       </button>
       <button
         type="button"
@@ -711,7 +746,7 @@ export function OpeningInspector({ wall, opening, ...context }: Context & { wall
         disabled={wall.locked}
         onClick={() => context.commit({ ...command, action: 'opening-remove', openingRef: opening.ref })}
       >
-        Remove opening
+        Usuń otwór
       </button>
     </form>
   )
@@ -720,12 +755,16 @@ export function OpeningInspector({ wall, opening, ...context }: Context & { wall
 export function WallInspector({
   wall,
   onSelect,
+  onPreview,
   ...context
-}: Context & { wall: WallModel; onSelect: (ref: string) => void }) {
+}: Context & { wall: WallModel; onSelect: (ref: string) => void; onPreview?: (wall: WallModel | null) => void }) {
   const [draft, setDraft] = useState(wall)
-  const [anchor, setAnchor] = useState<'start' | 'center' | 'end'>('start')
+  const anchors = useMemo(() => wallLengthAnchors(context.building, context.storey, wall), [context.building, context.storey, wall])
+  const [anchor, setAnchor] = useState<'start' | 'center' | 'end'>(anchors[0] ?? 'start')
   const [length, setLength] = useState(wallLength(wall))
   useEffect(() => { setDraft(wall); setLength(wallLength(wall)) }, [wall])
+  useEffect(() => { setAnchor(current => anchors.includes(current) ? current : anchors[0] ?? 'start') }, [anchors])
+  useEffect(() => { onPreview?.(draft); return () => onPreview?.(null) }, [draft, onPreview])
   const exterior = isEnvelopeWall(context.building, context.storey, wall)
   const command = {
     type: 'interior.update' as const,
@@ -750,6 +789,8 @@ export function WallInspector({
   return (
     <>
       <form
+        id={context.formId}
+        onReset={(event) => { event.preventDefault(); setDraft(wall); setLength(wallLength(wall)) }}
         className="interior-inspector-form"
         onSubmit={(e) => {
           e.preventDefault()
@@ -763,22 +804,20 @@ export function WallInspector({
           })
         }}
       >
-        <h3>{exterior ? 'Exterior wall' : 'Partition wall'}</h3>
-        <p className="interior-note">
-          {wallLength(wall).toFixed(2)} m ·{' '}
-          {exterior
-            ? 'Exterior outline is fixed here. Select a partition or move the whole building.'
-              : 'Drag to move this wall. Connected walls keep their right angles; room boundaries and openings adjust together.'}
-        </p>
+        <h3>{exterior ? "Ściana zewnętrzna" : "Ściana działowa"}</h3>
         <fieldset disabled={exterior || wall.locked} className="interior-fields">
-          <label className="interior-field">Keep fixed<select aria-label="Wall length anchor" value={anchor} onChange={e => setAnchor(e.target.value as typeof anchor)}><option value="start">Start</option><option value="center">Centre</option><option value="end">End</option></select></label>
-          <PrecisionField label="Wall length (m)" min={0.11} value={length} onChange={value => { setLength(value); if (Number.isFinite(value) && value >= 0.11) setDraft(wallWithLength(draft, value, anchor)) }} />
-          <PrecisionField label="Wall height (m)" min={0.2} max={context.storey.clearHeightM} value={draft.heightM} onChange={heightM => setDraft({ ...draft, heightM })} />
+          <label className="interior-field">Punkt stały<select aria-label="Punkt stały ściany" value={anchor} disabled={!anchors.length} onChange={e => {
+            const next = e.target.value as typeof anchor
+            setAnchor(next)
+            if (Number.isFinite(length) && length >= .11) setDraft({ ...draft, ...wallWithLength({ ...draft, start: wall.start, end: wall.end }, length, next) })
+          }}>{(['start', 'center', 'end'] as const).map((value, index) => <option key={value} value={value} disabled={!anchors.includes(value)}>{['A · Początek', 'Środek', 'B · Koniec'][index]}{!anchors.includes(value) ? ' · ograniczony' : ''}</option>)}</select></label>
+          <PrecisionField label="Długość ściany (m)" disabled={!anchors.length} min={0.11} value={length} onChange={value => { setLength(value); if (Number.isFinite(value) && value >= 0.11) setDraft(wallWithLength({ ...draft, start: wall.start, end: wall.end }, value, anchor)) }} />
+          <PrecisionField label="Wysokość ściany (m)" min={0.2} max={context.storey.clearHeightM} value={draft.heightM} onChange={heightM => setDraft({ ...draft, heightM })} />
           {(['start', 'end'] as const).flatMap((end) =>
             (['x', 'z'] as const).map((axis) => (
               <PrecisionField
                 key={`${end}-${axis}`}
-                label={`${end === 'start' ? 'Start' : 'End'} ${axis.toUpperCase()} (m)`}
+                label={`${end === 'start' ? "Początek" : "Koniec"} ${axis.toUpperCase()} (m)`}
                 min={-100}
                 max={100}
                 value={draft[end][axis]}
@@ -787,15 +826,22 @@ export function WallInspector({
             )),
           )}
           <PrecisionField
-            label="Wall thickness (m)"
+            label="Grubość ściany (m)"
             min={0.06}
             max={0.5}
             value={draft.thicknessM}
             onChange={(thicknessM) => setDraft({ ...draft, thicknessM })}
           />
         </fieldset>
-        <button className="interior-primary" disabled={exterior || wall.locked}>
-          Move connected wall
+          {anchors.length < 3 && <p className="interior-note">{anchors.length ? 'Punkt stały dobrano do połączeń ścian. Niedostępne warianty naruszyłyby obrys zewnętrzny lub zablokowane połączenie.' : 'Połączenia blokują zmianę długości tej ściany. Możesz zmienić jej grubość i wysokość.'}</p>}
+        <p className="interior-note">
+          {wallLength(wall).toFixed(2)} m ·{' '}
+          {exterior
+            ? "Obrys zewnętrzny jest tutaj stały. Wybierz ścianę działową lub przesuń cały budynek."
+              : `${context.mobile ? "Zamknij panel i wybierz Przesuń. Przeciągnij zaznaczoną ścianę." : "Przeciągnij ścianę."} Połączone ściany zachowają kąty proste, a granice pomieszczeń i otwory przesuną się razem.`}
+        </p>
+        <button className="interior-primary interior-inline-submit" disabled={exterior || wall.locked}>
+          Zapisz zmianę ściany
         </button>
         <button
           type="button"
@@ -803,20 +849,20 @@ export function WallInspector({
           disabled={exterior || wall.locked}
           onClick={() => context.commit({ ...command, action: 'merge' })}
         >
-          Remove partition & merge rooms
+          Usuń ścianę i połącz pomieszczenia
         </button>
       </form>
       <div className="interior-button-row">
         <button disabled={wall.locked} onClick={() => addOpening('door')}>
-          Add door
+          Dodaj drzwi
         </button>
         <button disabled={wall.locked} onClick={() => addOpening('window')}>
-          Add window
+          Dodaj okno
         </button>
       </div>
       {wall.openings.map((opening) => (
         <button className="interior-list-item" key={opening.ref} onClick={() => onSelect(opening.ref)}>
-          {opening.kind} · {opening.widthM.toFixed(2)} × {opening.heightM.toFixed(2)} m
+          {interiorText(opening.kind)} · {opening.widthM.toFixed(2)} × {opening.heightM.toFixed(2)} m
         </button>
       ))}
       <FinishPicker {...context} targetRef={wall.ref} surfaces={['left', 'right']} current={wall.faceFinishes ?? {}} />

@@ -1,5 +1,21 @@
 import { wallLength } from './geometry'
-import type { BuildingModel, InteriorItem, ProjectCommand, Vec2, WallModel } from './types'
+import { moveConnectedWall } from './interiorLayout'
+import type { BuildingModel, InteriorItem, ProjectCommand, StoreyModel, Vec2, WallModel } from './types'
+
+/** Probe the same connected-wall constraints as a real edit, without changing project data. */
+export function wallLengthAnchors(building: BuildingModel, storey: StoreyModel, wall: WallModel) {
+  return (['start', 'center', 'end'] as const).filter(anchor => [.01, -.01].some(delta => {
+    try {
+      const copy = structuredClone(building)
+      const next = wallWithLength(wall, wallLength(wall) + delta, anchor)
+      moveConnectedWall(copy, copy.storeys.find(s => s.ref === storey.ref)!, {
+        type: 'interior.update', action: 'wall', buildingRef: building.ref, storeyRef: storey.ref,
+        wallRef: wall.ref, start: next.start, end: next.end,
+      })
+      return true
+    } catch { return false }
+  }))
+}
 
 /** Resize along the existing direction, preserving the requested anchor. */
 export function wallWithLength(wall: WallModel, length: number, anchor: 'start' | 'center' | 'end'): WallModel {

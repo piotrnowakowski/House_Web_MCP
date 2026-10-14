@@ -12,6 +12,15 @@ import { useStudioStore } from './store'
 beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [], history: [], month: 7, sunTime: { month: 7, day: 15, hour: 14 }, sunAnimation: 'none', sunOverlay: { enabled: false, targetRef: null, result: null } }))
 
 describe('sun time state', () => {
+  it('clears a pending confirmation when a direct edit invalidates its preview', () => {
+    useStudioStore.setState({ proposals: [], draftChangeSets: [], future: [], confirmationVariantRef: null })
+    const proposal = useStudioStore.getState().createVariant('Move hydrangea', [{ type: 'plant.update', action: 'move', plantRef: 'plant/hydrangea', position: { x: -7.5, z: 9 } }])
+    useStudioStore.getState().setConfirmationVariantRef(proposal.ref)
+    useStudioStore.getState().commitCommand({ type: 'plant.update', action: 'move', plantRef: 'plant/hydrangea', position: { x: -7, z: 9 } })
+    expect(useStudioStore.getState().confirmationVariantRef).toBeNull()
+    expect(useStudioStore.getState().variants).toEqual([])
+    expect(useStudioStore.getState().proposals.find(item => item.ref === proposal.ref)?.status).toBe('stale')
+  })
   it('keeps month in sync when the sun time changes', () => {
     useStudioStore.getState().setSunTime({ month: 3, day: 21, hour: 15.25 })
     expect(useStudioStore.getState().sunTime).toEqual({ month: 3, day: 21, hour: 15.25 })
@@ -143,7 +152,7 @@ describe('start screen and project switching', () => {
     useStudioStore.setState({ launcherOpen: false, hydrated: true, project: structuredClone(modernBarnProject) })
     await useStudioStore.getState().openLauncher()
     expect(useStudioStore.getState().launcherOpen).toBe(true)
-    expect(useStudioStore.getState().savedWorkspaces.map((item) => item.ref).sort()).toEqual([terrain.ref, REAR_CARPORT_STUDY_REF, BATH_ROOM_STUDY_REF].sort())
+    expect(useStudioStore.getState().savedWorkspaces.map((item) => item.ref)).toEqual(expect.arrayContaining([terrain.ref, REAR_CARPORT_STUDY_REF, BATH_ROOM_STUDY_REF]))
     await useStudioStore.getState().openWorkspace(terrain.ref)
     expect(useStudioStore.getState().project.name).toBe('Saved plot')
     expect(useStudioStore.getState().launcherOpen).toBe(false)

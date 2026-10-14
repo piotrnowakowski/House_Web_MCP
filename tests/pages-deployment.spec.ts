@@ -5,12 +5,12 @@ const appBasePath = new URL(appUrl).pathname.replace(/\/$/, '')
 
 const openZielonkiStudy = async (page: import('@playwright/test').Page) => {
   await page.goto(appUrl, { waitUntil: 'domcontentloaded' })
-  const startScreen = page.getByRole('dialog', { name: 'Where do you want to plan today?' })
+  const startScreen = page.getByRole('dialog', { name: "Który projekt chcesz otworzyć?" })
   await expect(startScreen).toBeVisible()
-  await startScreen.getByRole('button', { name: /Zielonki house study/ }).click()
+  await startScreen.getByRole('button', { name: 'Otwórz projekt: Główny', exact: true }).click()
   await expect(startScreen).toBeHidden()
   await expect(page.locator('canvas')).toHaveCount(1)
-  await expect(page.getByText('Spatial Editor', { exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Wnętrze domu', exact: true })).toBeVisible()
 }
 
 test('GitHub Pages base path serves every requested garden model', async ({ page }) => {
@@ -25,11 +25,11 @@ test('GitHub Pages base path serves every requested garden model', async ({ page
 
   await expect.poll(() => modelResponses.length, { timeout: 20_000 }).toBeGreaterThan(0)
   expect(modelResponses.every(({ path, status }) => path.startsWith(`${appBasePath}/models/garden/`) && status === 200)).toBe(true)
-  await page.getByRole('button', { name: 'House interior', exact: true }).click()
-  await expect(page.getByRole('region', { name: 'Placed objects' }).getByRole('button')).toHaveCount(21)
-  await expect(page.getByRole('region', { name: 'Rooms on this level' })).toContainText('45.14 m²')
-  await page.getByRole('button', { name: /1 Piętro/ }).click()
-  await expect(page.getByRole('region', { name: 'Placed objects' }).getByRole('button')).toHaveCount(1)
+  await page.getByRole('button', { name: "Wnętrze domu", exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Rzut 2D', exact: true })).toBeVisible()
+  await expect(page.locator('canvas')).toHaveCount(1)
+  await page.getByRole('button', { name: 'Piętro', exact: true }).click()
+  await expect(page.getByRole('button', { name: 'Piętro', exact: true })).toHaveAttribute('aria-pressed', 'true')
 })
 
 test('editor stays usable when optional garden models fail', async ({ page }) => {

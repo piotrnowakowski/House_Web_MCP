@@ -34,6 +34,10 @@ Kitchen-garden gravel paths and the lounge approach use the unmodified [Poly Hav
 
 Validation: TypeScript and production build passed. `scripts/capture-garden-paving.mjs` inspected the actual local renderer in isolated Chromium from four viewpoints, with zero browser errors and an assertion that rendering did not mutate project data. Final images and the report are in `output/garden-paving/`. Preview: `http://127.0.0.1:5173/`. Changes are local, uncommitted and not deployed to Mikrus.
 
+## 2026-10-11 — shortened launcher name
+
+User requested a three-project launcher: Główny, architekt and paulinka poprawki. Canonical r80 changes this project's name to **Główny** only, with revision metadata; all geometry, furnishing, landscape and stable refs remain unchanged. `before-launcher-name-r79.json` preserves the previous canonical publication. The existing browser r80 matched canonical r79 before the rename; ordinary publication merging preserves its workspace and historical versions. Actual in-app origin `http://127.0.0.1:5173/` captures and comparisons are in ignored `tmp/three-projects/`. No new deployment.
+
 ## 2026-09-15 — timber-board treatment on the recessed side panel (r42 renderer, local)
 
 The circled rear-gable return keeps the established dark-walnut brown `#65432E`, but now receives centred vertical timber boards at the same 0.34 m rhythm as the rest of the timber façade instead of reading as one flat panel. The adjoining left wall remains black charred-timber cladding `#242927` with its existing vertical battens. The brown deck and soffit remain `#B78F60`; wall, opening, frame, roof and recess geometry are unchanged.
@@ -197,3 +201,7 @@ The ground investigation in the project records moist silty clay and shallow gro
 Visuals now use physically scaled timber/soil textures, bed fasteners and drip lines, individually curved leaf rosettes, petalled flowers and hydrangea florets, finer greenhouse frames with an open sliding door and potting benches, slatted dining furniture and instanced wood logs. Detailed mode adds sky fill and higher-resolution shadows. Opening the existing MPZP legend turns its coloured overlay on; closing it returns to material colours. This affects viewing only, not zoning data or validation.
 
 Buildings, interiors, storeys, main roof footprints/pitches/ridges and site data are byte-equivalent in parsed content to r80. No house-roof geometry changed. Historical r80 tests now read the preserved r80 snapshot. Focused tests cover residential greenhouse placement, geometry holes including a rotated cut across a parcel edge, preserved refs, migration conflicts, independent room edits, and deletion across save/reload. Browser evidence and the exact latest audit result are in `output/integrated-garden/`; these are isolated browser contexts, not the user's profile.
+
+## 2026-10-14 — main r83 integration
+
+Merged the current launcher name with the independently approved r82 garden using the common r79 baseline and stable refs, without field conflicts. The previous main r82 snapshot is preserved as before-main-publication-r82.json; immutable first-publication baselines remain unchanged. Roof/building/room geometry is unchanged. Main r83 remains independent of Mikrus Główny r80. See ../zielonki/README.md for actual-profile capture provenance, merge decisions and release validation.

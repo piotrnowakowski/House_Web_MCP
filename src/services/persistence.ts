@@ -124,7 +124,9 @@ const deletedRefs = new Set<string>()
 const versionKey = (ref: string) => `local-version/${ref}`
 export class LocalWriteConflict extends Error { constructor() { super('This workspace changed in another tab. Export your recovery copy, then reload before editing.') } }
 
-interface SaveOptions { activate?: boolean; sync?: unknown; restoreDeleted?: boolean }
+export interface LocalEditHistory { history: ProjectV2[]; future: ProjectV2[] }
+const historyKey = (ref: string) => `edit-history/${ref}`
+interface SaveOptions { activate?: boolean; sync?: unknown; restoreDeleted?: boolean; editHistory?: LocalEditHistory }
 const saveWorkspaceImpl = async (workspace: PersistedWorkspace, options: SaveOptions = {}) => {
   const ref = workspace.project.ref
   if (deletedRefs.has(ref) && !options.restoreDeleted) throw new Error('This workspace was removed. Export it before restoring it explicitly.')
@@ -151,6 +153,9 @@ const saveWorkspaceImpl = async (workspace: PersistedWorkspace, options: SaveOpt
         nextVersion = current + (unchanged ? 0 : 1)
         store.put(workspace, workspaceKey(ref))
         store.put(nextVersion, versionKey(ref))
+        // Same transaction and CAS as the model: a stale tab cannot overwrite its undo trail.
+        if (options.editHistory) store.put({ project: workspace.project, history: options.editHistory.history.slice(-40), future: options.editHistory.future.slice(-40) }, historyKey(ref))
+        else if (!unchanged) store.delete(historyKey(ref))
         if (options.activate !== false) store.put(ref, ACTIVE_POINTER_KEY)
         if (options.sync !== undefined) store.put(options.sync, `shared-base/${ref}`)
         if (options.restoreDeleted) store.delete(`deleted/${ref}`)
@@ -188,6 +193,12 @@ const renameWorkspaceImpl = async (ref: string, value: string) => {
         }
         const workspace = request.result as PersistedWorkspace
         store.put({ ...workspace, project: { ...workspace.project, name } }, workspaceKey(ref))
+        const history = store.get(historyKey(ref))
+        history.onsuccess = () => {
+          if (history.result && stableJson(history.result.project) === stableJson(workspace.project)) {
+            store.put({ ...history.result, project: { ...workspace.project, name } }, historyKey(ref))
+          }
+        }
         const version = store.get(versionKey(ref))
         version.onsuccess = () => store.put(Number(version.result ?? 0) + 1, versionKey(ref))
       }
@@ -243,7 +254,7 @@ const deleteWorkspaceImpl = async (ref: string) => {
     version.onsuccess = () => store.put(Number(version.result ?? 0) + 1, versionKey(ref))
     const active = store.get(ACTIVE_POINTER_KEY)
     active.onsuccess = () => { if (active.result === ref) store.delete(ACTIVE_POINTER_KEY) }
-    return [store.delete(workspaceKey(ref)) as IDBRequest<unknown>, store.put(true, `deleted/${ref}`) as IDBRequest<unknown>]
+    return [store.delete(workspaceKey(ref)) as IDBRequest<unknown>, store.delete(historyKey(ref)) as IDBRequest<unknown>, store.put(true, `deleted/${ref}`) as IDBRequest<unknown>]
   })
   deletedRefs.add(ref)
 }
@@ -332,6 +343,19 @@ export const saveWorkspace = (workspace: PersistedWorkspace, options?: SaveOptio
   return enqueue(() => saveWorkspaceImpl(snapshot, capturedOptions))
 }
 export const loadWorkspace = (ref?: string) => enqueue(() => loadWorkspaceImpl(ref))
+/** History is device-local and valid only for the exact model it was saved with. */
+export const loadEditHistory = (project: ProjectV2): Promise<LocalEditHistory | undefined> => enqueue(async () => {
+  const value = await getRecord(historyKey(project.ref)) as (LocalEditHistory & { project: ProjectV2 }) | undefined
+  if (!value || stableJson(value.project) !== stableJson(project)) return undefined
+  try {
+    const parse = (items: ProjectV2[]) => items.slice(-40).map(item => {
+      const parsed = parseProject(item)
+      if (parsed.ref !== project.ref || validateProject(parsed).some(issue => issue.severity === 'error')) throw new Error('Invalid undo snapshot')
+      return parsed
+    })
+    return { history: parse(value.history), future: parse(value.future) }
+  } catch { return undefined }
+})
 export const listWorkspaces = () => enqueue(listWorkspacesImpl)
 export const renameWorkspace = (ref: string, name: string) => enqueue(() => renameWorkspaceImpl(ref, name))
 export const deleteWorkspace = (ref: string) => enqueue(() => deleteWorkspaceImpl(ref))

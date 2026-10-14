@@ -4,7 +4,7 @@ import { RenderingControls } from '../scene/RenderingControls'
 import { isEnvelopeWall } from '../domain/interiorLayout'
 import { randomId } from '../domain/randomId'
 import { Canvas } from '@react-three/fiber'
-import { Suspense, useEffect, useRef, useState, type ReactNode } from 'react'
+import { Suspense, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import {
   ArrowLeft,
   Box,
@@ -15,6 +15,7 @@ import {
   Focus,
   LockKeyhole,
   MoreHorizontal,
+  Move,
   MousePointer2,
   Plus,
   Redo2,
@@ -26,14 +27,14 @@ import {
   X,
 } from 'lucide-react'
 import { ACESFilmicToneMapping, PCFSoftShadowMap } from 'three'
-import { polygonCentroid, spaceFootprint } from '../domain/geometry'
-import { interiorCatalog, availableInteriorHeight } from '../domain/interior'
-import { createIkeaItem } from '../domain/ikeaCatalog'
+import { polygonBounds, polygonCentroid, spaceFootprint } from '../domain/geometry'
+import { interiorCatalog, interiorCorners, availableInteriorHeight } from '../domain/interior'
+import { createIkeaItem, ikeaProduct } from '../domain/ikeaCatalog'
 import { placementWarnings, snapFurniture, type SnapSettings } from '../domain/interiorPlacement'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
 import { isZielonkiProject } from '../domain/terrain'
-import type { InteriorItem, ProjectCommand, Vec2 } from '../domain/types'
+import type { InteriorItem, ProjectCommand, Vec2, WallModel } from '../domain/types'
 import { useStudioStore } from '../state/store'
 import { saveWorkspace } from '../services/persistence'
 import { flushAutosave } from '../services/autosave'
@@ -52,8 +53,10 @@ import { InteriorScene } from './InteriorScene'
 import type { InteriorView } from './InteriorCamera'
 import { downloadInteriorFile, furnitureCsv, furnitureList, printInteriorPlan } from './interiorExports'
 import './interior.css'
+import { stableJson } from '../domain/workspaceSync'
+import { interiorMessage, interiorText } from './interiorLocale'
 
-type Panel = 'catalog' | 'edit' | 'more' | 'review' | null
+type Panel = 'catalog' | 'wall' | 'edit' | 'more' | 'review' | null
 
 export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack: () => void; approval: ReactNode; initialStoreyRef?: string }) {
   const quality = useRenderQuality()
@@ -67,6 +70,9 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
   const proposals = useStudioStore((s) => s.proposals)
   const preview = variants.find((v) => v.ref === confirmationRef)?.project
   const compact = useCompactLayout()
+  const formId = useId()
+  const [wallPreview, setWallPreview] = useState<WallModel | null>(null)
+  const [sheetInsets, setSheetInsets] = useState({ bottom: 0, right: 0 })
   const root = useRef<HTMLElement>(null)
   const importInput = useRef<HTMLInputElement>(null)
   const [buildingRef, setBuildingRef] = useState(project.buildings.find((b) => b.kind === 'house')?.ref)
@@ -81,6 +87,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
   const [hidden, setHidden] = useState(false)
   const [selectedRefs, setSelectedRefs] = useState<string[]>([])
   const [multi, setMulti] = useState(false)
+  const [moveMode, setMoveMode] = useState(false)
   const [ghost, setGhost] = useState<InteriorItem | null>(null)
   const [replacing, setReplacing] = useState<string | null>(null)
   const [mode, setMode] = useState<'select' | 'measure' | 'partition'>('select')
@@ -108,6 +115,26 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
   const wallsGrouped = !!wallGroup && selectedWalls.every(w => w.groupRef === wallGroup)
   const canGroupWalls = selectedWalls.length >= 2 && selectedWalls.every(w => !w.locked && !isEnvelopeWall(building, storey, w))
   const selectedItems = items.filter((i) => selectedRefs.includes(i.ref))
+  const frameSelection = compact && panel === 'edit' && !multi && !!selected && view !== 'room'
+  useLayoutEffect(() => {
+    if (!frameSelection) return
+    const element = root.current?.querySelector<HTMLElement>('.adaptive-sheet')
+    if (!element) return
+    const update = () => {
+      const rect = element.getBoundingClientRect()
+      const next = window.innerHeight > window.innerWidth
+        ? { bottom: Math.round(window.innerHeight - rect.top), right: 0 }
+        : { bottom: 68, right: Math.round(window.innerWidth - rect.left) }
+      setSheetInsets(current => current.bottom === next.bottom && current.right === next.right ? current : next)
+    }
+    const observer = new ResizeObserver(update)
+    observer.observe(element)
+    window.addEventListener('resize', update)
+    update()
+    return () => { observer.disconnect(); window.removeEventListener('resize', update) }
+  }, [frameSelection, expanded, selected])
+  const movable = !!(item && !selectedItems.some(i => i.locked) || wall && !wall.locked && !isEnvelopeWall(building, storey, wall) || opening && !openingWall?.locked)
+  useEffect(() => { setMoveMode(false) }, [selected, view, building?.ref, storey?.ref, confirmationRef])
   useEffect(() => {
     if (confirmationRef) {
       setPanel('review')
@@ -116,7 +143,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
       setGhost(null)
     } else setPanel((value) => (value === 'review' ? null : value))
   }, [confirmationRef])
-  const tell = (text: string, error = false) => setNotice({ text, error })
+  const tell = (text: string, error = false) => setNotice({ text: interiorMessage(text), error })
   useEffect(() => {
     if (!notice || notice.error) return
     const timer = setTimeout(() => setNotice(null), 3500)
@@ -131,26 +158,41 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
   }, [building?.ref, storey?.ref])
   const commit = (commands: ProjectCommand | ProjectCommand[]) => {
     if (confirmationRef) {
-      tell('Apply or reject the pending proposal before editing.', true)
+      tell("Zastosuj lub odrzuć oczekującą propozycję przed edycją.", true)
       return false
     }
     try {
       useStudioStore.getState().commitCommands(Array.isArray(commands) ? commands : [commands])
-      tell('Saved to this project.')
+      tell("Zapisano w tym projekcie.")
       return true
     } catch (error) {
-      tell(error instanceof Error ? error.message : 'Could not apply this edit.', true)
+      tell(error instanceof Error ? error.message : "Nie udało się zastosować zmiany.", true)
       return false
     }
   }
   const base = { type: 'interior.update' as const, buildingRef: building?.ref, storeyRef: storey?.ref }
   const put = (value: InteriorItem): ProjectCommand => ({ ...base, action: 'put', item: value })
   const clearTool = () => {
+    setMoveMode(false)
     setGhost(null)
     setReplacing(null)
     setMode('select')
     setPoints([])
     setNotice(null)
+  }
+  const startPartition = (ref: string) => {
+    clearTool()
+    setMulti(false)
+    setSelectedRefs([ref])
+    setView('plan')
+    setLabels(true)
+    setMode('partition')
+    setPanel(null)
+  }
+  const addWall = () => {
+    clearTool()
+    if (room && !room.locked) startPartition(room.ref)
+    else { setPanel('wall'); setExpanded(false) }
   }
   const select = (ref: string | null, additive = false) => {
     if (!ref) {
@@ -268,7 +310,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
             ref: `interior/${randomId()}`,
             catalogId: product.id,
             storeyRef: storey.ref,
-            name: product.name,
+            name: interiorText(product.name),
             position,
             widthM: product.size[0],
             depthM: product.size[1],
@@ -277,6 +319,8 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
             color: product.color,
           }
         : createIkeaItem(id, storey.ref, position)
+    const catalogProduct = ikeaProduct(value.productId)
+    if (catalogProduct) value.name = `${catalogProduct.family} ${interiorText(catalogProduct.name)}`
     if (replacing) {
       const original = items.find((i) => i.ref === replacing)
       if (
@@ -352,6 +396,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
       }
       if ((event.ctrlKey || event.metaKey) && ['z', 'y'].includes(event.key.toLowerCase())) {
         event.preventDefault()
+        if (mode !== 'select' || ghost || confirmationRef) return
         const state = useStudioStore.getState()
         if ((event.shiftKey || event.key === 'y') && state.future.length) state.redo()
         else if (event.key === 'z' && state.history.length) state.undo()
@@ -380,14 +425,28 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
   if (!building || !storey)
     return (
       <main className="interior-editor">
-        <button onClick={onBack}>Back to plot</button>
-        <p>Add a house on the plot to edit its interior.</p>
+        <button onClick={onBack}>Wróć do działki</button>
+        <p>Dodaj dom na działce, aby edytować wnętrze.</p>
       </main>
     )
   const rooms = building.spaces.filter((r) => storey.spaceRefs.includes(r.ref))
   const warnings = item ? placementWarnings(item, building, storey) : []
   const context = { building, storey, commit }
+  const inspector = { ...context, formId, mobile: compact }
+  const lastItem = item && history.at(-1)?.buildings.find(b => b.ref === building.ref)?.furniture?.find(i => i.ref === item.ref)
+  const canUndoPlacement = !!(item && history.length && stableJson(lastItem) !== stableJson(item))
+  const focusPoints = room ? spaceFootprint(building, room) : item ? interiorCorners(item) : wall ? [wall.start, wall.end] : openingWall ? [openingWall.start, openingWall.end] : undefined
+  const focusBounds = focusPoints && polygonBounds(focusPoints)
+  const focus = focusBounds && (() => {
+    const cx = (focusBounds.minX + focusBounds.maxX) / 2, cz = (focusBounds.minZ + focusBounds.maxZ) / 2
+    const dx = Math.max(1.2, (focusBounds.maxX - focusBounds.minX) / 2 + .3)
+    const dz = Math.max(1.2, (focusBounds.maxZ - focusBounds.minZ) / 2 + .3)
+    return [{ x: cx-dx, z: cz-dz }, { x: cx+dx, z: cz-dz }, { x: cx+dx, z: cz+dz }, { x: cx-dx, z: cz+dz }]
+  })()
+  const saveLabel = item ? 'Zastosuj zmiany' : room ? 'Zapisz pomieszczenie' : wall ? 'Zapisz zmianę ściany' : 'Zapisz otwór'
+  const saveDisabled = !!(confirmationRef || item?.locked || room?.locked || wall && (wall.locked || isEnvelopeWall(building, storey, wall)) || openingWall?.locked)
   const openPanel = (value: Panel) => {
+    setMoveMode(false)
     setPanel(panel === value ? null : value)
     setExpanded(false)
     if (value !== 'catalog') setReplacing(null)
@@ -405,12 +464,12 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
       })
       const copy = structuredClone(project)
       copy.ref = `project/${randomId()}`
-      copy.name = `${project.name} — alternative`
+      copy.name = `${project.name} — kopia`
       copy.revision = 1
       copy.updatedAt = new Date().toISOString()
       await saveWorkspace({ version: 1, project: copy, proposals: [], draftChangeSets: [] })
       state.replaceProject(copy)
-      tell('Working on a separate project alternative.')
+      tell("Utworzono osobną kopię. Znajdziesz ją w archiwum projektów.")
       })
     } catch (error) {
       tell(String(error), true)
@@ -420,10 +479,11 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
     <PrecisionControls>
       <main
         ref={root}
+        lang="pl"
         className={`interior-editor ${hidden ? 'controls-hidden' : ''}`}
-        aria-label="House interior editor"
+        aria-label="Edytor wnętrza domu"
       >
-        <section className={`interior-stage ${ghost ? 'is-placing' : ''}`} aria-label="Interior floor view">
+        <section className={`interior-stage ${ghost ? 'is-placing' : ''}`} aria-label="Widok kondygnacji">
           <ViewportBoundary><Canvas
             frameloop="demand"
             shadows={quality !== 'fast'}
@@ -439,7 +499,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
               gl.toneMapping = ACESFilmicToneMapping
               gl.toneMappingExposure = 1
               gl.shadowMap.type = PCFSoftShadowMap
-              gl.domElement.setAttribute('aria-label', 'Interactive interior floor')
+              gl.domElement.setAttribute('aria-label', "Interaktywny rzut wnętrza")
               gl.domElement.setAttribute('role', 'application')
               gl.domElement.tabIndex = 0
             }}
@@ -468,10 +528,15 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                 onPick={pick}
                 onSelect={select}
                 project={project}
-                onCommit={commit}
+                onCommit={(commands) => {
+                  const saved = commit(commands)
+                  if (saved) setMoveMode(false)
+                  return saved
+                }}
                 onNotice={tell}
                 interactionDisabled={!!confirmationRef}
                 selectOnly={multi}
+                touchMoveEnabled={!compact || moveMode}
                 onHover={(point) => {
                   if (ghost && !compact)
                     setGhost({
@@ -479,14 +544,17 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                       position: snapFurniture({ ...ghost, position: point }, building, storey, snap),
                     })
                 }}
-                focusFootprint={fitRoom && room ? spaceFootprint(building, room) : undefined}
+                focusFootprint={frameSelection ? focus : fitRoom && room ? spaceFootprint(building, room) : undefined}
+                framingKey={frameSelection ? selected : undefined}
+                topInset={frameSelection ? 116 : 0}
+                wallPreview={panel === 'edit' && wallPreview?.ref === selected ? wallPreview : undefined}
                 bottomInset={
-                  panel && compact && window.innerHeight > window.innerWidth
+                  frameSelection ? sheetInsets.bottom : panel && compact && window.innerHeight > window.innerWidth
                     ? window.innerHeight * (expanded ? 0.75 : 0.4)
                     : 0
                 }
                 rightInset={
-                  panel && (!compact || window.innerWidth > window.innerHeight)
+                  frameSelection ? sheetInsets.right : panel && (!compact || window.innerWidth > window.innerHeight)
                     ? Math.min(340, window.innerWidth * 0.44)
                     : 0
                 }
@@ -496,25 +564,25 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
         </section>
         {hidden ? (
           <button className="interior-restore" onClick={() => setHidden(false)}>
-            <Eye size={18} /> Show controls
+            <Eye size={18} /> Pokaż narzędzia
           </button>
         ) : (
           <>
             <header className="interior-header">
-              <button aria-label="Back to plot" onClick={onBack}>
+              <button aria-label="Wróć do działki" onClick={onBack}>
                 <ArrowLeft size={19} />
-                <span className="desktop-label">Plot</span>
+                <span className="desktop-label">Działka</span>
               </button>
               <div className="interior-title">
-                <strong>House interior</strong>
+                <strong>Wnętrze domu</strong>
                 <small>{storey.name}</small>
               </div>
-              <div className="interior-segment" aria-label="Interior view mode">
+              <div className="interior-segment" aria-label="Tryb widoku wnętrza">
                 {(['plan', 'cutaway', 'room'] as const).map((value) => (
                   <button
                     key={value}
                     aria-label={
-                      value === 'plan' ? '2D Plan' : value === 'cutaway' ? '3D Interior' : 'Perspective room view'
+                      value === 'plan' ? "Rzut 2D" : value === 'cutaway' ? "Wnętrze 3D" : "Widok z pomieszczenia"
                     }
                     aria-pressed={view === value}
                     onClick={() => {
@@ -527,7 +595,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                 ))}
               </div>
               <button
-                aria-label="Fit floor in view"
+                aria-label="Dopasuj widok kondygnacji"
                 onClick={() => {
                   setFitRoom(false)
                   setReset((r) => r + 1)
@@ -537,23 +605,23 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
               </button>
               <button
                 className="desktop-only"
-                aria-label="Undo"
-                disabled={!history.length}
+                aria-label="Cofnij"
+                disabled={!history.length || mode !== 'select' || !!ghost || !!confirmationRef}
                 onClick={() => useStudioStore.getState().undo()}
               >
                 <Undo2 size={18} />
               </button>
               <button
                 className="desktop-only"
-                aria-label="Redo"
-                disabled={!future.length}
+                aria-label="Ponów"
+                disabled={!future.length || mode !== 'select' || !!ghost || !!confirmationRef}
                 onClick={() => useStudioStore.getState().redo()}
               >
                 <Redo2 size={18} />
               </button>
             </header>
-            <nav className="interior-floor-switcher" aria-label="House levels">
-              <span>Floor</span>
+            <nav className="interior-floor-switcher" aria-label="Kondygnacje domu">
+              <span>Kondygnacja</span>
               {building.storeys.map((floor) => (
                 <button
                   key={floor.ref}
@@ -564,59 +632,70 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                 </button>
               ))}
             </nav>
-            <nav className="interior-action-bar" aria-label="Interior actions">
+            {compact && <nav className="interior-mobile-history" aria-label="Historia zmian">
+              <button aria-label="Cofnij" title="Cofnij (Ctrl+Z)" disabled={!history.length || mode !== 'select' || !!ghost || !!confirmationRef} onClick={() => useStudioStore.getState().undo()}><Undo2 size={18} /><span>Cofnij</span></button>
+              <button aria-label="Ponów" title="Ponów (Ctrl+Shift+Z)" disabled={!future.length || mode !== 'select' || !!ghost || !!confirmationRef} onClick={() => useStudioStore.getState().redo()}><Redo2 size={18} /></button>
+            </nav>}
+            <nav className="interior-action-bar" aria-label="Narzędzia wnętrza">
               {ghost ? (
                 <>
                   <button onClick={rotate}>
                     <RotateCw size={19} />
-                    Rotate
+                    Obróć
                   </button>
                   <button className="interior-primary" onClick={() => place(ghost.position)}>
                     <Check size={19} />
-                    Place here
+                    Umieść tutaj
                   </button>
                   <button onClick={clearTool}>
                     <X size={19} />
-                    Cancel
+                    Anuluj
                   </button>
+                </>
+              ) : moveMode ? (
+                <>
+                  <span>Przeciągnij zaznaczenie. Puść, aby zapisać.</span>
+                  <button onClick={() => setMoveMode(false)}><X size={19} />Anuluj przesuwanie</button>
                 </>
               ) : mode !== 'select' ? (
                 <>
                   <button onClick={() => setPoints([])}>
                     <RotateCw size={19} />
-                    Restart
+                    Od początku
                   </button>
                   <span>
-                    {mode === 'partition' ? 'Draw partition' : 'Measure'}
+                    {mode === 'partition' ? "Rysuj ścianę" : "Zmierz"}
                     {points.length === 2 &&
                       ` · ${Math.hypot(points[1].x - points[0].x, points[1].z - points[0].z).toFixed(2)} m`}
                   </span>
                   <button onClick={clearTool}>
-                    <Check size={19} />
-                    Done
+                    {mode === 'partition' ? <X size={19} /> : <Check size={19} />}
+                    {mode === 'partition' ? 'Anuluj' : 'Zakończ'}
                   </button>
                 </>
               ) : item ? (
                 <>
+                  {compact && <button disabled={!movable} onClick={() => { setPanel(null); setMoveMode(true) }}><Move size={19} />Przesuń</button>}
                   <button onClick={() => openPanel('edit')}>
                     <Settings2 size={19} />
-                    Edit{selectedItems.length > 1 ? ` (${selectedItems.length})` : ''}
+                    Edytuj{selectedItems.length > 1 ? ` (${selectedItems.length})` : ''}
                   </button>
                   <button disabled={selectedItems.some((i) => i.locked)} onClick={rotate}>
                     <RotateCw size={19} />
-                    Rotate
+                    Obróć
                   </button>
                   <button onClick={duplicate}>
                     <Copy size={19} />
-                    Duplicate
+                    Duplikuj
                   </button>
                   <button onClick={() => openPanel('more')}>
                     <MoreHorizontal size={19} />
-                    More
+                    Więcej
                   </button>
                 </>
               ) : (
                 <>
+                  {compact && movable && <button onClick={() => { setPanel(null); setMoveMode(true) }}><Move size={19} />Przesuń</button>}
                   <button
                     onClick={() => {
                       clearTool()
@@ -624,11 +703,14 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                     }}
                   >
                     <Plus size={20} />
-                    Add
+                    Dodaj mebel
+                  </button>
+                  <button onClick={addWall} disabled={!!confirmationRef}>
+                    <Plus size={19} />Dodaj ścianę
                   </button>
                   <button onClick={() => openPanel('edit')}>
                     <Settings2 size={19} />
-                    Edit
+                    Edytuj
                   </button>
                   <button
                     onClick={() => {
@@ -639,11 +721,11 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                     }}
                   >
                     <Ruler size={19} />
-                    Measure
+                    Zmierz
                   </button>
                   <button onClick={() => openPanel('more')}>
                     <MoreHorizontal size={19} />
-                    More
+                    Więcej
                   </button>
                 </>
               )}
@@ -651,28 +733,35 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
             {(ghost || mode !== 'select') && (
               <div className="interior-tool-prompt" role="status">
                 {ghost
-                  ? `Tap the floor to place ${ghost.name}`
+                  ? `Wskaż podłogę, aby umieścić: ${ghost.name}`
                   : mode === 'partition'
-                    ? `Tap ${points.length ? 'the opposite' : 'a'} room wall to ${points.length ? 'finish' : 'start'}`
+                    ? `${points.length ? '2/2 · Wskaż koniec na drugiej ścianie' : '1/2 · Wskaż początek na ścianie'} · ${room?.name ?? ''}`
                     : points.length < 2
-                      ? 'Tap two points. Drag endpoints to adjust.'
-                      : 'Drag either endpoint to adjust.'}
+                      ? "Wskaż dwa punkty. Przeciągnij końce, aby poprawić pomiar."
+                      : "Przeciągnij dowolny koniec, aby poprawić pomiar."}
               </div>
             )}
             <AdaptiveSheet
               open={!!panel}
+              revealKey={panel === 'edit' && !multi ? selected : undefined}
+              footer={compact && panel === 'edit' && !multi && (item || room || wall || opening) ? <>
+                <button type="reset" form={formId}>Odrzuć zmiany</button>
+                <button type="submit" form={formId} className="interior-primary" disabled={saveDisabled}>{saveLabel}</button>
+              </> : undefined}
               title={
                 panel === 'review'
-                  ? 'Review proposed changes'
+                  ? "Sprawdź proponowane zmiany"
+                  : panel === 'wall'
+                    ? 'Dodaj ścianę'
                   : panel === 'catalog'
                     ? replacing
-                      ? 'Replace furniture'
-                      : 'Furniture & fittings'
+                      ? "Zamień mebel"
+                      : "Meble i wyposażenie"
                     : panel === 'edit'
                       ? selectedItems.length > 1
-                        ? `${selectedItems.length} selected`
-                        : 'Selection & rooms'
-                      : 'View & project'
+                        ? `Zaznaczono: ${selectedItems.length}`
+                        : "Zaznaczenie i pomieszczenia"
+                      : "Widok i projekt"
               }
               expanded={expanded}
               onExpanded={setExpanded}
@@ -682,16 +771,39 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
               }}
             >
               {panel === 'review' && approval}
-              {panel === 'catalog' && <FurnitureCatalog onChoose={choose} />}
+              {panel === 'wall' && <section className="interior-room-list" aria-label="Wybierz pomieszczenie do podziału">
+                <p className="interior-note">Wybierz pomieszczenie. Następnie wskaż na rzucie początek i koniec nowej ściany na dwóch ścianach pomieszczenia.</p>
+                {rooms.map(r => <button key={r.ref} disabled={r.locked} onClick={() => startPartition(r.ref)}>{r.name}{r.locked && <LockKeyhole size={15} />}</button>)}
+              </section>}
+              {panel === 'catalog' && <>
+                {!replacing && <button className="interior-add-wall" onClick={addWall}><Plus size={19} />Dodaj ścianę działową</button>}
+                <FurnitureCatalog onChoose={choose} />
+              </>}
               {panel === 'edit' && (
                 <>
-                  <section className="interior-menu" aria-label="Wall groups">
-                    <h3>Wall groups{selectedWalls.length ? ` · ${selectedWalls.length} selected` : ''}</h3>
-                    <button aria-pressed={multi} onClick={() => setMulti(!multi)}>{multi ? 'Finish selecting walls' : 'Select walls'}</button>
+                  <div data-selection-inspector tabIndex={-1} role="group" aria-label="Edytuj zaznaczenie">
+                  {!!warnings.length && <details className="interior-warnings" aria-label="Uwagi do ustawienia">
+                    <summary>Sprawdź ustawienie · {warnings.length}</summary>
+                    {warnings.map((warning, i) => <p key={`${warning.ref}/${i}`}>{interiorMessage(warning.message)}</p>)}
+                  </details>}
+                  {item && <ItemInspector formId={formId} interactionHint={compact ? "Zamknij panel, wybierz Przesuń i przeciągnij zaznaczenie. Obróć zmienia kąt; Cofnij przywraca ostatnią zmianę." : undefined} item={item} onSave={saveItem} availableHeight={availableInteriorHeight(item, building, storey)} />}
+                  {room && (
+                    <RoomInspector
+                      {...inspector}
+                      room={room}
+                      onPartition={() => startPartition(room.ref)}
+                    />
+                  )}
+                  {wall && <WallInspector {...inspector} onPreview={setWallPreview} wall={wall} onSelect={select} />}
+                  {opening && openingWall && <OpeningInspector {...inspector} opening={opening} wall={openingWall} />}
+                  </div>
+                  <section className="interior-menu" aria-label="Grupy ścian">
+                    <h3>Grupy ścian{selectedWalls.length ? ` · zaznaczono: ${selectedWalls.length}` : ''}</h3>
+                    <button aria-pressed={multi} onClick={() => setMulti(!multi)}>{multi ? "Zakończ wybieranie ścian" : "Wybierz ściany"}</button>
                     {multi && <>
-                      <p className="interior-hint">Tap walls in the plan or choose them below. Finish selecting to drag the selection.</p>
-                      {floorWalls.filter(w => !isEnvelopeWall(building, storey, w)).map((w, index) => <button key={w.ref} disabled={w.locked} aria-pressed={selectedRefs.includes(w.ref)} onClick={() => select(w.ref)} aria-label={`Select wall ${w.ref}`}>
-                        Wall {index + 1} · {Math.hypot(w.end.x-w.start.x, w.end.z-w.start.z).toFixed(2)} m{w.groupRef ? ' · Grouped' : ''}
+                      <p className="interior-hint">Wskaż ściany na rzucie lub wybierz je poniżej. Zakończ wybieranie, aby przesunąć zaznaczenie.</p>
+                      {floorWalls.filter(w => !isEnvelopeWall(building, storey, w)).map((w, index) => <button key={w.ref} disabled={w.locked} aria-pressed={selectedRefs.includes(w.ref)} onClick={() => select(w.ref)} aria-label={`Wybierz ścianę ${w.ref}`}>
+                        Ściana {index + 1} · {Math.hypot(w.end.x-w.start.x, w.end.z-w.start.z).toFixed(2)} m{w.groupRef ? " · W grupie" : ''}
                       </button>)}
                     </>}
                     {selectedWalls.length > 0 && <>
@@ -700,41 +812,18 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                           setMulti(false)
                           if (compact) setPanel(null)
                         }
-                      }}>{wallsGrouped ? 'Ungroup walls' : 'Group walls'}</button>
+                      }}>{wallsGrouped ? "Rozgrupuj ściany" : "Grupuj ściany"}</button>
                       {(wallsGrouped || selectedWalls.length > 1) && <>
-                        <p className="interior-hint">Drag any selected wall to move the whole set. Connected corners and openings follow. Or move 10 cm:</p>
-                        <div className="interior-actions">{([{ x: -.1, z: 0 }, { x: .1, z: 0 }, { x: 0, z: -.1 }, { x: 0, z: .1 }]).map((delta, index) => <button key={index} aria-label={['Move walls left', 'Move walls right', 'Move walls up', 'Move walls down'][index]} onClick={() => commit({ ...base, action: 'walls-move', wallRefs: selectedWalls.map(w => w.ref), delta })}>{['Left', 'Right', 'Up', 'Down'][index]}</button>)}</div>
+                        <p className="interior-hint">Wybierz Przesuń i przeciągnij zaznaczoną ścianę, aby przesunąć całą grupę wraz z narożnikami i otworami. Lub przesuń o 10 cm:</p>
+                        <div className="interior-actions">{([{ x: -.1, z: 0 }, { x: .1, z: 0 }, { x: 0, z: -.1 }, { x: 0, z: .1 }]).map((delta, index) => <button key={index} aria-label={["Przesuń ściany w lewo", "Przesuń ściany w prawo", "Przesuń ściany w górę", "Przesuń ściany w dół"][index]} onClick={() => commit({ ...base, action: 'walls-move', wallRefs: selectedWalls.map(w => w.ref), delta })}>{["W lewo", "W prawo", "W górę", "W dół"][index]}</button>)}</div>
                       </>}
                     </>}
                   </section>
-                  {item && <ItemInspector item={item} onSave={saveItem} availableHeight={availableInteriorHeight(item, building, storey)} />}
-                  {!!warnings.length && (
-                    <div className="interior-warnings" aria-label="Placement warnings">
-                      <strong>Check this placement</strong>
-                      {warnings.map((warning, i) => (
-                        <p key={`${warning.ref}/${i}`}>{warning.message}</p>
-                      ))}
-                    </div>
-                  )}
-                  {room && (
-                    <RoomInspector
-                      {...context}
-                      room={room}
-                      onPartition={() => {
-                        setView('plan')
-                        setMode('partition')
-                        setPoints([])
-                        setPanel(null)
-                      }}
-                    />
-                  )}
-                  {wall && <WallInspector {...context} wall={wall} onSelect={select} />}
-                  {opening && openingWall && <OpeningInspector {...context} opening={opening} wall={openingWall} />}
                   {!item && !room && !wall && !opening && (
-                    <p className="interior-note">Select furniture, a wall or a room to edit it.</p>
+                    <p className="interior-note">Wybierz mebel, ścianę lub pomieszczenie do edycji.</p>
                   )}
-                  <section className="interior-room-list" aria-label="Rooms on this level">
-                    <h3>Rooms on this level</h3>
+                  <section className="interior-room-list" aria-label="Pomieszczenia na kondygnacji">
+                    <h3>Pomieszczenia na kondygnacji</h3>
                     {rooms.map((r) => (
                       <button
                         key={r.ref}
@@ -748,10 +837,10 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                       </button>
                     ))}
                   </section>
-                  <section className="interior-room-list" aria-label="Placed objects">
-                    <h3>Placed objects · {items.length}</h3>
+                  <section className="interior-room-list" aria-label="Ustawione obiekty">
+                    <h3>Ustawione obiekty · {items.length}</h3>
                     <button aria-pressed={multi} onClick={() => setMulti(!multi)}>
-                      <MousePointer2 size={17} /> {multi ? 'Finish selecting' : 'Select multiple objects'}
+                      <MousePointer2 size={17} /> {multi ? "Zakończ wybieranie" : "Zaznacz kilka obiektów"}
                     </button>
                     {items.map((i) => (
                       <button key={i.ref} aria-pressed={selectedRefs.includes(i.ref)} onClick={() => select(i.ref)}>
@@ -766,7 +855,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                 <>
                   {item && (
                     <section className="interior-menu">
-                      <h3>Selection</h3>
+                      <h3>Zaznaczenie</h3>
                       <button
                         onClick={() => {
                           setReplacing(item.ref)
@@ -774,7 +863,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                         }}
                         disabled={item.locked}
                       >
-                        Replace furniture
+                        Zamień mebel
                       </button>
                       <button
                         onClick={() =>
@@ -786,15 +875,15 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                           })
                         }
                       >
-                        {selectedItems.every((i) => i.locked) ? 'Unlock selection' : 'Lock selection'}
+                        {selectedItems.every((i) => i.locked) ? "Odblokuj zaznaczenie" : "Zablokuj zaznaczenie"}
                       </button>
                       <button
                         disabled={selectedItems.length < 2 || selectedItems.some((i) => i.locked)}
                         onClick={group}
                       >
                         {selectedItems.every((i) => i.groupRef && i.groupRef === item.groupRef)
-                          ? 'Ungroup selection'
-                          : 'Group selection'}
+                          ? "Rozgrupuj zaznaczenie"
+                          : "Grupuj zaznaczenie"}
                       </button>
                       <button
                         aria-pressed={multi}
@@ -803,7 +892,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                           setPanel('edit')
                         }}
                       >
-                        Select multiple objects
+                        Zaznacz kilka obiektów
                       </button>
                       <button
                         className="interior-danger"
@@ -811,7 +900,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                         onClick={remove}
                       >
                         <Trash2 size={17} />
-                        Delete selection
+                        Usuń zaznaczenie
                       </button>
                       <button
                         onClick={() => {
@@ -819,16 +908,16 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                           setPanel(null)
                         }}
                       >
-                        Clear selection
+                        Wyczyść zaznaczenie
                       </button>
                     </section>
                   )}
                   <section className="interior-menu">
-                    <h3>View</h3>
+                    <h3>Widok</h3>
                     <label className="interior-field">
-                      Building
+                      Budynek
                       <select
-                        aria-label="Interior building"
+                        aria-label="Budynek do edycji"
                         value={building.ref}
                         onChange={(e) => {
                           setBuildingRef(e.target.value)
@@ -843,9 +932,9 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                       </select>
                     </label>
                     <label className="interior-field">
-                      Floor
+                      Kondygnacja
                       <select
-                        aria-label="Interior floor"
+                        aria-label="Kondygnacja do edycji"
                         value={storey.ref}
                         onChange={(e) => setStoreyRef(e.target.value)}
                       >
@@ -863,7 +952,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                       }}
                     >
                       <Focus size={17} />
-                      Fit house
+                      Dopasuj widok domu
                     </button>
                     <button
                       disabled={!room}
@@ -872,10 +961,10 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                         setReset((r) => r + 1)
                       }}
                     >
-                      Fit selected room
+                      Dopasuj widok pomieszczenia
                     </button>
                     <button aria-pressed={labels} onClick={() => setLabels(!labels)}>
-                      Room labels
+                      Nazwy pomieszczeń
                     </button>
                     <button
                       aria-pressed={dimensions}
@@ -884,7 +973,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                         setView('plan')
                       }}
                     >
-                      Plan dimensions
+                      Wymiary na rzucie
                     </button>
                     <button
                       onClick={() => {
@@ -893,22 +982,22 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                       }}
                     >
                       <EyeOff size={17} />
-                      Hide controls
+                      Ukryj narzędzia
                     </button>
                   </section>
                   <section className="interior-menu">
-                    <h3>Precision</h3>
+                    <h3>Precyzja</h3>
                     <button aria-pressed={snap.enabled} onClick={() => setSnap({ ...snap, enabled: !snap.enabled })}>
-                      Grid snapping {snap.enabled ? 'on' : 'off'}
+                      Przyciąganie do siatki: {snap.enabled ? 'włączone' : 'wyłączone'}
                     </button>
                     <button
                       aria-pressed={snap.alignment}
                       onClick={() => setSnap({ ...snap, alignment: !snap.alignment })}
                     >
-                      Wall & object alignment {snap.alignment ? 'on' : 'off'}
+                      Wyrównywanie do ścian i obiektów: {snap.alignment ? 'włączone' : 'wyłączone'}
                     </button>
                     <PrecisionField
-                      label="Grid step (m)"
+                      label="Krok siatki (m)"
                       min={0.01}
                       max={1}
                       value={snap.gridM}
@@ -919,7 +1008,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                   </section>
                   {!!proposals.length && (
                     <section className="interior-menu">
-                      <h3>Proposals</h3>
+                      <h3>Propozycje</h3>
                       {proposals.map((proposal) => (
                         <button
                           key={proposal.ref}
@@ -929,46 +1018,36 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                             setPanel('review')
                           }}
                         >
-                          {proposal.label} · {proposal.status}
+                          {proposal.label} · {interiorText(proposal.status)}
                         </button>
                       ))}
                     </section>
                   )}
                   <section className="interior-menu">
-                    <h3>Project · {project.name}</h3>
-                    <div className="interior-button-row">
-                      <button disabled={!history.length} onClick={() => useStudioStore.getState().undo()}>
-                        <Undo2 size={17} />
-                        Undo
-                      </button>
-                      <button disabled={!future.length} onClick={() => useStudioStore.getState().redo()}>
-                        <Redo2 size={17} />
-                        Redo
-                      </button>
-                    </div>
+                    <h3>Projekt · {project.name}</h3>
                     <button onClick={duplicateProject}>
                       <Copy size={17} />
-                      Duplicate project for an alternative
+                      Utwórz kopię projektu
                     </button>
                     <button
                       onClick={() =>
                         downloadInteriorFile('house-project.json', JSON.stringify(project, null, 2), 'application/json')
                       }
                     >
-                      Export project JSON
+                      Eksportuj projekt JSON
                     </button>
                     <RenderingControls />
-                    <button onClick={() => importInput.current?.click()}>Import project JSON</button>
+                    <button onClick={() => importInput.current?.click()}>Importuj projekt JSON</button>
                     <button
                       onClick={async () => {
                         try {
                           const blob = await captureScene.current?.()
-                          if (!blob) throw new Error('The 3D view is not ready. Retry the view before exporting.')
+                          if (!blob) throw new Error("Widok 3D nie jest gotowy. Otwórz go ponownie przed eksportem.")
                           downloadInteriorFile('interior-scene.png', blob, 'image/png')
                         } catch (error) { tell(String(error), true) }
                       }}
                     >
-                      Export scene PNG
+                      Eksportuj widok PNG
                     </button>
                     <button
                       onClick={() => {
@@ -979,18 +1058,18 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                         }
                       }}
                     >
-                      Print dimensioned plan / PDF
+                      Drukuj rzut z wymiarami / PDF
                     </button>
                     <button
                       onClick={() =>
                         downloadInteriorFile('furniture-list.csv', furnitureCsv(project), 'text/csv;charset=utf-8')
                       }
                     >
-                      Export furniture list
+                      Eksportuj listę mebli
                     </button>
                   </section>
                   <details className="interior-reference-notes">
-                    <summary>Furniture list · {furnitureList(project).length} configurations</summary>
+                    <summary>Lista mebli · {furnitureList(project).length} konfiguracji</summary>
                     {furnitureList(project).map((r, i) => (
                       <p key={i}>
                         {r.quantity} ×{' '}
@@ -1007,7 +1086,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                   </details>
                   {(building.interiorSource || project.site.knowledgeBase.datasetVersion === 'reference-house-v1') && (
                     <details className="interior-reference-notes">
-                      <summary>Plan dimensions & source notes</summary>
+                      <summary>Wymiary i źródła projektu</summary>
                       {(building.interiorSource?.notes ?? project.site.knowledgeBase.caveats).map((note, i) => (
                         <p key={i}>{note}</p>
                       ))}
@@ -1024,7 +1103,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                             await useStudioStore.getState().fitReferenceToZielonki()
                             setSelectedRefs([])
                             setReset((r) => r + 1)
-                            tell('Reference interior fitted to Zielonki.')
+                            tell("Dopasowano wnętrze wzorcowe do Zielonek.")
                           } catch (error) {
                             tell(String(error), true)
                           } finally {
@@ -1032,7 +1111,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                           }
                         }}
                       >
-                        {fitting ? 'Fitting Zielonki…' : 'Fit reference interior to Zielonki'}
+                        {fitting ? "Dopasowywanie…" : "Dopasuj wnętrze wzorcowe do Zielonek"}
                       </button>
                     )}
                 </>
@@ -1040,10 +1119,16 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
             </AdaptiveSheet>
           </>
         )}
-        {notice && (
+        {!!warnings.length && !panel && !hidden && !moveMode && !ghost && <aside className="interior-placement-warning" aria-label="Ostrzeżenie ustawienia" role="status">
+          <strong>{canUndoPlacement ? 'Zapisano z ostrzeżeniem' : 'Sprawdź ustawienie'}</strong>
+          <span>{interiorMessage(warnings[0].message)}{warnings.length > 1 ? ` (+${warnings.length - 1})` : ''}</span>
+          <div><button onClick={() => { setPanel('edit'); setExpanded(false) }}>Popraw ustawienie</button>
+          {canUndoPlacement && <button onClick={() => { useStudioStore.getState().undo(); setNotice(null) }}>Cofnij ruch</button>}</div>
+        </aside>}
+        {notice && (notice.error || !warnings.length) && (
           <div className={`interior-toast ${notice.error ? 'has-error' : ''}`} role={notice.error ? 'alert' : 'status'}>
             <span>{notice.text}</span>
-            <button aria-label="Dismiss message" onClick={() => setNotice(null)}>
+            <button aria-label="Zamknij komunikat" onClick={() => setNotice(null)}>
               <X size={16} />
             </button>
           </div>
@@ -1053,7 +1138,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
           type="file"
           accept=".json,application/json"
           ref={importInput}
-          aria-label="Import interior project file"
+          aria-label="Importuj plik projektu wnętrza"
           onChange={async (e) => {
             const file = e.target.files?.[0]
             e.target.value = ''
@@ -1065,7 +1150,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
               const error = validateProject(imported).find((i) => i.severity === 'error')
               if (error) throw new Error(error.message)
               imported.ref = `project/${randomId()}`
-              imported.name += ' — imported'
+              imported.name += " — import"
               const state = useStudioStore.getState()
               await saveWorkspace({
                 version: 1,
@@ -1074,7 +1159,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                 draftChangeSets: state.draftChangeSets,
               })
               state.replaceProject(imported)
-              tell('Imported as a separate project.')
+              tell("Zaimportowano jako osobny projekt.")
               })
             } catch (error) {
               tell(String(error), true)
