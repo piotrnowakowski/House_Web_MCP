@@ -9,7 +9,8 @@ const openZielonkiStudy = async (page: import('@playwright/test').Page) => {
   await expect(startScreen).toBeVisible()
   await startScreen.getByRole('button', { name: 'Otwórz projekt: Główny', exact: true }).click()
   await expect(startScreen).toBeHidden()
-  await expect(page.locator('canvas')).toHaveCount(1)
+  // A cold CI Vite server compiles the lazy 3D scene after the launcher closes.
+  await expect(page.locator('canvas')).toHaveCount(1, { timeout: 45_000 })
   await expect(page.getByRole('button', { name: 'Wnętrze domu', exact: true })).toBeVisible()
 }
 
@@ -27,7 +28,7 @@ test('GitHub Pages base path serves every requested garden model', async ({ page
   expect(modelResponses.every(({ path, status }) => path.startsWith(`${appBasePath}/models/garden/`) && status === 200)).toBe(true)
   await page.getByRole('button', { name: "Wnętrze domu", exact: true }).click()
   await expect(page.getByRole('button', { name: 'Rzut 2D', exact: true })).toBeVisible()
-  await expect(page.locator('canvas')).toHaveCount(1)
+  await expect(page.locator('canvas')).toHaveCount(1, { timeout: 45_000 })
   await page.getByRole('button', { name: 'Piętro', exact: true }).click()
   await expect(page.getByRole('button', { name: 'Piętro', exact: true })).toHaveAttribute('aria-pressed', 'true')
 })
