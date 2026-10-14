@@ -3,8 +3,8 @@
   "ref": "project/paulina-poprawki",
   "name": "paulinka poprawki",
   "units": "metric",
-  "revision": 14,
-  "updatedAt": "2026-10-14T09:41:43.919Z",
+  "revision": 15,
+  "updatedAt": "2026-10-14T10:52:21.411Z",
   "site": {
     "boundary": [
       {
@@ -2076,14 +2076,16 @@
           "storeyRef": "storey/reference-ground",
           "name": "Pralka",
           "position": {
-            "x": -1.995,
-            "z": 5.545
+            "x": -1.6500000000000004,
+            "z": 5.505
           },
           "widthM": 0.6,
           "depthM": 0.6,
           "heightM": 0.85,
-          "rotationDegrees": 0,
-          "color": "#B99A72"
+          "rotationDegrees": 180,
+          "color": "#EEEAE2",
+          "groupRef": "group/paulina/utility/laundry",
+          "elevationM": 0.055
         },
         {
           "ref": "interior/architekt/utility-dryer",
@@ -2091,14 +2093,16 @@
           "storeyRef": "storey/reference-ground",
           "name": "Suszarka",
           "position": {
-            "x": -1.245,
-            "z": 5.545
+            "x": -1.6500000000000004,
+            "z": 5.505
           },
           "widthM": 0.6,
           "depthM": 0.6,
           "heightM": 0.85,
-          "rotationDegrees": 0,
-          "color": "#B99A72"
+          "rotationDegrees": 180,
+          "color": "#EEEAE2",
+          "groupRef": "group/paulina/utility/laundry",
+          "elevationM": 0.925
         },
         {
           "ref": "interior/paulina/guest-bed",
@@ -2339,6 +2343,634 @@
           "heightM": 0.85,
           "rotationDegrees": 0,
           "color": "#B99A72"
+        },
+        {
+          "ref": "interior/paulina/utility/underfloor/left",
+          "name": "Podłogówka · szafka serwisowa · lewy bok",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -4.476,
+            "z": 5.721
+          },
+          "widthM": 0.018,
+          "depthM": 0.19199999999999998,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#C2A47E",
+          "groupRef": "group/paulina/utility/underfloor"
+        },
+        {
+          "ref": "interior/paulina/utility/underfloor/right",
+          "name": "Podłogówka · szafka serwisowa · prawy bok",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -3.5840000000000005,
+            "z": 5.721
+          },
+          "widthM": 0.018,
+          "depthM": 0.19199999999999998,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#C2A47E",
+          "groupRef": "group/paulina/utility/underfloor"
+        },
+        {
+          "ref": "interior/paulina/utility/underfloor/back",
+          "name": "Podłogówka · szafka serwisowa · plecy",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -4.03,
+            "z": 5.827999999999999
+          },
+          "widthM": 0.8699999999999999,
+          "depthM": 0.018,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/underfloor"
+        },
+        {
+          "ref": "interior/paulina/utility/underfloor/top",
+          "name": "Podłogówka · szafka serwisowa · górny panel",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -4.03,
+            "z": 5.721
+          },
+          "widthM": 0.8699999999999999,
+          "depthM": 0.19199999999999998,
+          "heightM": 0.018,
+          "elevationM": 2.6620000000000004,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/underfloor"
+        },
+        {
+          "ref": "interior/paulina/utility/underfloor/base",
+          "name": "Podłogówka · szafka serwisowa · cokół",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -4.03,
+            "z": 5.721
+          },
+          "widthM": 0.8699999999999999,
+          "depthM": 0.19199999999999998,
+          "heightM": 0.018,
+          "elevationM": 0.025,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/underfloor"
+        },
+        {
+          "ref": "interior/paulina/utility/underfloor/front",
+          "name": "Podłogówka · szafka serwisowa · demontowalny front serwisowy",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -4.03,
+            "z": 5.614
+          },
+          "widthM": 0.8699999999999999,
+          "depthM": 0.018,
+          "heightM": 2.6300000000000003,
+          "elevationM": 0.025,
+          "rotationDegrees": 180,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/underfloor"
+        },
+        {
+          "ref": "interior/paulina/utility/water/left",
+          "name": "Zawory wodne · filtr · wodomierz · lewy bok",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -3.5560000000000005,
+            "z": 5.721
+          },
+          "widthM": 0.018,
+          "depthM": 0.19199999999999998,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#C2A47E",
+          "groupRef": "group/paulina/utility/water"
+        },
+        {
+          "ref": "interior/paulina/utility/water/right",
+          "name": "Zawory wodne · filtr · wodomierz · prawy bok",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -2.9240000000000004,
+            "z": 5.721
+          },
+          "widthM": 0.018,
+          "depthM": 0.19199999999999998,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#C2A47E",
+          "groupRef": "group/paulina/utility/water"
+        },
+        {
+          "ref": "interior/paulina/utility/water/back",
+          "name": "Zawory wodne · filtr · wodomierz · plecy",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -3.24,
+            "z": 5.827999999999999
+          },
+          "widthM": 0.6100000000000001,
+          "depthM": 0.018,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/water"
+        },
+        {
+          "ref": "interior/paulina/utility/water/top",
+          "name": "Zawory wodne · filtr · wodomierz · górny panel",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -3.24,
+            "z": 5.721
+          },
+          "widthM": 0.6100000000000001,
+          "depthM": 0.19199999999999998,
+          "heightM": 0.018,
+          "elevationM": 2.6620000000000004,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/water"
+        },
+        {
+          "ref": "interior/paulina/utility/water/base",
+          "name": "Zawory wodne · filtr · wodomierz · cokół",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -3.24,
+            "z": 5.721
+          },
+          "widthM": 0.6100000000000001,
+          "depthM": 0.19199999999999998,
+          "heightM": 0.018,
+          "elevationM": 0.025,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/water"
+        },
+        {
+          "ref": "interior/paulina/utility/water/front",
+          "name": "Zawory wodne · filtr · wodomierz · demontowalny front serwisowy",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -3.24,
+            "z": 5.614
+          },
+          "widthM": 0.6100000000000001,
+          "depthM": 0.018,
+          "heightM": 2.6300000000000003,
+          "elevationM": 0.025,
+          "rotationDegrees": 180,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/water"
+        },
+        {
+          "ref": "interior/paulina/utility/service/left",
+          "name": "Płytka szafka gospodarcza · lewy bok",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -2.8960000000000004,
+            "z": 5.721
+          },
+          "widthM": 0.018,
+          "depthM": 0.19199999999999998,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#C2A47E",
+          "groupRef": "group/paulina/utility/service"
+        },
+        {
+          "ref": "interior/paulina/utility/service/right",
+          "name": "Płytka szafka gospodarcza · prawy bok",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -2.044,
+            "z": 5.721
+          },
+          "widthM": 0.018,
+          "depthM": 0.19199999999999998,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#C2A47E",
+          "groupRef": "group/paulina/utility/service"
+        },
+        {
+          "ref": "interior/paulina/utility/service/back",
+          "name": "Płytka szafka gospodarcza · plecy",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -2.47,
+            "z": 5.827999999999999
+          },
+          "widthM": 0.8300000000000001,
+          "depthM": 0.018,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/service"
+        },
+        {
+          "ref": "interior/paulina/utility/service/top",
+          "name": "Płytka szafka gospodarcza · górny panel",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -2.47,
+            "z": 5.721
+          },
+          "widthM": 0.8300000000000001,
+          "depthM": 0.19199999999999998,
+          "heightM": 0.018,
+          "elevationM": 2.6620000000000004,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/service"
+        },
+        {
+          "ref": "interior/paulina/utility/service/base",
+          "name": "Płytka szafka gospodarcza · cokół",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -2.47,
+            "z": 5.721
+          },
+          "widthM": 0.8300000000000001,
+          "depthM": 0.19199999999999998,
+          "heightM": 0.018,
+          "elevationM": 0.025,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/service"
+        },
+        {
+          "ref": "interior/paulina/utility/service/front",
+          "name": "Płytka szafka gospodarcza · demontowalny front serwisowy",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -2.47,
+            "z": 5.614
+          },
+          "widthM": 0.8300000000000001,
+          "depthM": 0.018,
+          "heightM": 2.6300000000000003,
+          "elevationM": 0.025,
+          "rotationDegrees": 180,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/service"
+        },
+        {
+          "ref": "interior/paulina/utility/laundry/left",
+          "name": "Pralka + suszarka · słupek w zabudowie · lewy bok",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -1.9660000000000006,
+            "z": 5.491
+          },
+          "widthM": 0.018,
+          "depthM": 0.6519999999999999,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#C2A47E",
+          "groupRef": "group/paulina/utility/laundry"
+        },
+        {
+          "ref": "interior/paulina/utility/laundry/right",
+          "name": "Pralka + suszarka · słupek w zabudowie · prawy bok",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -1.334,
+            "z": 5.491
+          },
+          "widthM": 0.018,
+          "depthM": 0.6519999999999999,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#C2A47E",
+          "groupRef": "group/paulina/utility/laundry"
+        },
+        {
+          "ref": "interior/paulina/utility/laundry/back",
+          "name": "Pralka + suszarka · słupek w zabudowie · plecy",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -1.6500000000000004,
+            "z": 5.827999999999999
+          },
+          "widthM": 0.6100000000000003,
+          "depthM": 0.018,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/laundry"
+        },
+        {
+          "ref": "interior/paulina/utility/laundry/top",
+          "name": "Pralka + suszarka · słupek w zabudowie · górny panel",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -1.6500000000000004,
+            "z": 5.491
+          },
+          "widthM": 0.6100000000000003,
+          "depthM": 0.6519999999999999,
+          "heightM": 0.018,
+          "elevationM": 2.6620000000000004,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/laundry"
+        },
+        {
+          "ref": "interior/paulina/utility/laundry/base",
+          "name": "Pralka + suszarka · słupek w zabudowie · cokół",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -1.6500000000000004,
+            "z": 5.491
+          },
+          "widthM": 0.6100000000000003,
+          "depthM": 0.6519999999999999,
+          "heightM": 0.018,
+          "elevationM": 0.025,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/laundry"
+        },
+        {
+          "ref": "interior/paulina/utility/laundry/front",
+          "name": "Pralka + suszarka · słupek w zabudowie · demontowalny front serwisowy",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -1.6500000000000004,
+            "z": 5.154
+          },
+          "widthM": 0.6100000000000003,
+          "depthM": 0.018,
+          "heightM": 2.6300000000000003,
+          "elevationM": 0.025,
+          "rotationDegrees": 180,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/laundry"
+        },
+        {
+          "ref": "interior/paulina/utility/rack/left",
+          "name": "Rack smart home · szafa wentylowana · lewy bok",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -2.9560000000000004,
+            "z": 4.679
+          },
+          "widthM": 0.018,
+          "depthM": 0.452,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#C2A47E",
+          "groupRef": "group/paulina/utility/rack"
+        },
+        {
+          "ref": "interior/paulina/utility/rack/right",
+          "name": "Rack smart home · szafa wentylowana · prawy bok",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -2.354,
+            "z": 4.679
+          },
+          "widthM": 0.018,
+          "depthM": 0.452,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#C2A47E",
+          "groupRef": "group/paulina/utility/rack"
+        },
+        {
+          "ref": "interior/paulina/utility/rack/back",
+          "name": "Rack smart home · szafa wentylowana · plecy",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -2.6550000000000002,
+            "z": 4.442
+          },
+          "widthM": 0.5800000000000001,
+          "depthM": 0.018,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/rack"
+        },
+        {
+          "ref": "interior/paulina/utility/rack/top",
+          "name": "Rack smart home · szafa wentylowana · górny panel",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -2.6550000000000002,
+            "z": 4.679
+          },
+          "widthM": 0.5800000000000001,
+          "depthM": 0.452,
+          "heightM": 0.018,
+          "elevationM": 2.6620000000000004,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/rack"
+        },
+        {
+          "ref": "interior/paulina/utility/rack/base",
+          "name": "Rack smart home · szafa wentylowana · cokół",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -2.6550000000000002,
+            "z": 4.679
+          },
+          "widthM": 0.5800000000000001,
+          "depthM": 0.452,
+          "heightM": 0.018,
+          "elevationM": 0.025,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/rack"
+        },
+        {
+          "ref": "interior/paulina/utility/rack/front",
+          "name": "Rack smart home · szafa wentylowana · demontowalny front serwisowy",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -2.6550000000000002,
+            "z": 4.9159999999999995
+          },
+          "widthM": 0.5800000000000001,
+          "depthM": 0.018,
+          "heightM": 2.6300000000000003,
+          "elevationM": 0.025,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/rack"
+        },
+        {
+          "ref": "interior/paulina/utility/electrical/left",
+          "name": "Wąska rozdzielnica · automatyka · lewy bok",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -4.511,
+            "z": 4.539
+          },
+          "widthM": 0.018,
+          "depthM": 0.172,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#C2A47E",
+          "groupRef": "group/paulina/utility/electrical"
+        },
+        {
+          "ref": "interior/paulina/utility/electrical/right",
+          "name": "Wąska rozdzielnica · automatyka · prawy bok",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -3.9390000000000005,
+            "z": 4.539
+          },
+          "widthM": 0.018,
+          "depthM": 0.172,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#C2A47E",
+          "groupRef": "group/paulina/utility/electrical"
+        },
+        {
+          "ref": "interior/paulina/utility/electrical/back",
+          "name": "Wąska rozdzielnica · automatyka · plecy",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -4.2250000000000005,
+            "z": 4.442
+          },
+          "widthM": 0.5499999999999999,
+          "depthM": 0.018,
+          "heightM": 2.68,
+          "elevationM": 0,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/electrical"
+        },
+        {
+          "ref": "interior/paulina/utility/electrical/top",
+          "name": "Wąska rozdzielnica · automatyka · górny panel",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -4.2250000000000005,
+            "z": 4.539
+          },
+          "widthM": 0.5499999999999999,
+          "depthM": 0.172,
+          "heightM": 0.018,
+          "elevationM": 2.6620000000000004,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/electrical"
+        },
+        {
+          "ref": "interior/paulina/utility/electrical/base",
+          "name": "Wąska rozdzielnica · automatyka · cokół",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -4.2250000000000005,
+            "z": 4.539
+          },
+          "widthM": 0.5499999999999999,
+          "depthM": 0.172,
+          "heightM": 0.018,
+          "elevationM": 0.025,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/electrical"
+        },
+        {
+          "ref": "interior/paulina/utility/electrical/front",
+          "name": "Wąska rozdzielnica · automatyka · demontowalny front serwisowy",
+          "catalogId": "wardrobe",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -4.2250000000000005,
+            "z": 4.636
+          },
+          "widthM": 0.5499999999999999,
+          "depthM": 0.018,
+          "heightM": 2.6300000000000003,
+          "elevationM": 0.025,
+          "rotationDegrees": 0,
+          "color": "#E8E3D8",
+          "groupRef": "group/paulina/utility/electrical"
+        },
+        {
+          "ref": "interior/paulina/utility/combined-tank",
+          "name": "CWU 235 l + CO 60 l · bufor odsłonięty",
+          "catalogId": "thermal-buffer",
+          "storeyRef": "storey/reference-ground",
+          "position": {
+            "x": -0.9250000000000003,
+            "z": 5.3975
+          },
+          "widthM": 0.695,
+          "depthM": 0.695,
+          "heightM": 1.61,
+          "elevationM": 0,
+          "rotationDegrees": 180,
+          "color": "#D9DEE0"
         }
       ],
       "stairs": [
