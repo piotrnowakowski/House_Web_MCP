@@ -3,8 +3,8 @@
   "ref": "project/paulina-poprawki",
   "name": "paulinka poprawki",
   "units": "metric",
-  "revision": 13,
-  "updatedAt": "2026-10-12T21:07:38.495Z",
+  "revision": 14,
+  "updatedAt": "2026-10-14T09:41:43.919Z",
   "site": {
     "boundary": [
       {
@@ -3379,7 +3379,19 @@
           "thicknessM": 0.2,
           "baseElevationM": 3.75,
           "heightM": 2.8,
-          "openings": [],
+          "openings": [
+            {
+              "hinge": "right",
+              "swing": "in",
+              "ref": "opening/reference-child-one",
+              "kind": "door",
+              "wallRef": "wall/paulina/upper/9",
+              "offsetM": 0.63,
+              "widthM": 0.85,
+              "heightM": 2.1,
+              "sillM": 0
+            }
+          ],
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
@@ -3400,19 +3412,7 @@
           "thicknessM": 0.2,
           "baseElevationM": 3.75,
           "heightM": 2.8,
-          "openings": [
-            {
-              "hinge": "left",
-              "swing": "in",
-              "ref": "opening/reference-child-one",
-              "kind": "door",
-              "wallRef": "wall/paulina/upper/10",
-              "offsetM": 0.5699999999999998,
-              "widthM": 0.85,
-              "heightM": 2.1,
-              "sillM": 0
-            }
-          ],
+          "openings": [],
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
