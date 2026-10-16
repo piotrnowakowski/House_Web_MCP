@@ -1,6 +1,45 @@
 # architekt
 
-Independent project `project/architekt`, reconstructed on 2026-10-11 from the three user-supplied architect PDFs and GŁÓWNY. Current canonical revision **r5**, prepared for the user-authorized Mikrus release.
+Independent project `project/architekt`, reconstructed on 2026-10-11 from the three user-supplied architect PDFs and GŁÓWNY. Current canonical revision **r7**, corrected locally on 2026-10-16. Earlier revision notes below remain historical evidence.
+
+## Corner frames temporarily removed — 2026-10-16, r7
+
+The user subsequently authorized Mikrus deployment. Release recovery captures and merge/readback evidence live in ignored `tmp/architekt-release-20261016/`. The actual local IAB r10 matches canonical r7; IAB HTTPS and Chrome HTTP/HTTPS r5 merge from their own published r5 baselines without conflicts or independent design differences. Shared architekt server version 2/r5 also merges from preserved r5 to canonical r7 without conflicts. Publication uses its expected server version and retains proposals/drafts. Other shared projects are not written. All 574 unit tests, TypeScript and the root-path production build pass; the main/Pages freeze remains in force.
+
+The user requested removing the timber corner elements shown in the r6 screenshot for now. All six frames (24 posts and 72 rails) are removed by their stable `wall/architekt/eaves-frame/` refs. The complete framed r6 is recoverable in `before-remove-eaves-frames-r6.json`; no immutable baseline is replaced. Roof geometry, 0.60 m eaves, floor plans and all other design data are unchanged. The r6 generator refuses to overwrite this later revision.
+
+Before/after actual IAB project-store captures are in ignored `tmp/architect-correction-20261016/{before-remove-frames,after-remove-frames}/`. Source 127.0.0.1:5173 saved r9 merges from canonical r6 without conflicts; saved result r10 matches canonical r7. Other project records/origins remain unchanged. Twelve focused geometry and migration checks pass, including migration from both r5 and framed r6, retention of unrelated edits/deletions and no frame resurrection on save/reload. Live exterior inspected and saved as `output/architekt-correction-20261016/bryla-bez-rusztow.png`. Local only; no server update or deployment, and no new construction-detail validation.
+
+## Corrected floor plans and full-height eaves frames — 2026-10-16, r6
+
+Source: `C:/Users/WBW/Downloads/RZUT PARTERU I PIĘTRA PO KOREKCIE.pdf`, one raster sheet, received in the architect's 2026-10-16 message. Its SHA-256 is retained in `buildings[house/main].interiorSource.notes`. The quoted message about the site/eaves dates to 7 October; no newer site, elevation, section or attachment-1 drawing was supplied. Document content is reference evidence, never authorization to send a reply or perform unrelated actions. The user explicitly selected timber frames extending **to the ground**.
+
+`before-correction-r5.json` preserves the complete previous publication, including the custom terrace/canopy. `initial-r1.json` remains immutable. `scripts/correct-architekt-20261016.ts` applies this correction from r5, preserving stable room, opening and furniture refs and matching walls by geometry/room adjacency. It validates the actual-profile three-way merges and refuses a later canonical revision. Its source/profile inputs and validation output live in ignored `tmp/architect-correction-20261016/`.
+
+The corrected sheet is portrait-oriented: `(a,b)` starts at its top-left outside corner, right/down; model `(x,z)=(a-5.065,b-6.605)`. The 10.13 × 13.21 m outer footprint and 2.38 × 5.57 m recess are unchanged.
+
+| Corrected element | Model interpretation |
+| --- | --- |
+| Ground bathroom | 2.21 × 2.55 m, central position with shower along the utility wall |
+| Ground study | 2.40 × 4.37 m, to the right of the bathroom |
+| Utility access/storage | 2.00 × 2.55 m, separate passage into the boiler room |
+| Boiler room | 4.33 × 1.70 m across the bottom-left of the sheet |
+| Kitchen | 1.60 m side area, open passage beside the stair, 0.90 × 2.00 m island and corrected fittings |
+| Upper living void | 4.01 × 6.74 m, geometric opening 27.0274 m²; former wardrobe enclosure/furniture deleted |
+| Upper bedroom 2 | L-shaped plan and direct door from the corridor nook |
+| Other upper rooms | Parents 5.10 × 3.95 m; bedroom 1 3.62 × 3.45 m; bathroom 2.30 × 2.55 m |
+
+The PDF schedule and several room labels were not revised with the drawing: B/2 still lists a wardrobe without its former enclosure, old areas persist, and the boiler-room printed 1.80 m conflicts with the closed outside/interior chain. The model follows drawn partitions and the closed chain (1.70 m there), not the stale schedule. Door/window dimensions absent from the drawing, furniture sizes, vertical dimensions and finishes remain visual assumptions. Geometric app areas are not statutory usable-area calculations.
+
+The previous 1 m terrace-roof extension, recess detail and flat courtyard canopy are removed to follow the corrected outline. Main eaves project **0.60 m beyond the outer wall face**: `overhangM=0.825` accounts for 0.225 m between wall axis and outside face. The sheet's right extremity is 0.07 m wider; this undetailed discrepancy is recorded rather than interpreted as an asymmetric roof. Six open timber frames follow the drawn support locations and reach the ground, with provisional 0.12 m posts and rails, adjusted to the roof underside. This is a visualization of the requested height, not a structural detail or a reconstruction of the missing attachment 1. Dark metal/timber finishes and shaped gable glazing are retained pending elevations.
+
+Final recomputation from the actual wall-axis spans gives symmetric **38.8097094818°** (front, 7.30 m) and **39.2352369450°** (rear, 7.19 m), eaves **5.15 m**, common ridge **8.0856938754 m** in the existing model datum. The ridge intersection remains **(-1.19, -2.985)** locally; the rear minimum junction is recognized as a valley, with the hidden internal gable omitted. Junction clipping tests pass and the exterior shows the continuous roof intersection. Interior plans, cutaway floors and an attic room view were inspected. The report's two generated section views did not expose a useful interior cut and are not treated as section proof. All main slopes satisfy the cached 37–45° requirement; this does not establish whole-building compliance.
+
+The complete projected roof outlines, including eaves and the house transform, were checked against the saved agricultural polygons: **no interior overlap**. The existing parking areas and paved side/access strips from the 7 October site sheet remain; there is no new site geometry to infer. Other buildings, landscape, cadastral/terrain data and all other canonical projects are unchanged.
+
+Verification: **19 targeted tests passed**, including schema/furniture geometry, roof junctions and migration of actual prior r5 preserving independent edits and deletions through save/reload. `npm run build` passed with existing dependency/chunk warnings. Actual IAB `http://127.0.0.1:5173` saved r9 after reload equals canonical r6 after metadata/1e-7 numeric normalization, including its evidence bank; the revision difference comes from local migration history. Fresh production-preview origin `http://127.0.0.1:5193` opens canonical r6 and its interior. Actual-profile comparison preserves every other project/origin and previous recovery record; only architekt's workspace, baseline, local version, recovery/edit history and the active pointer change. Chrome's captured copies are read-only inputs and were not opened or changed.
+
+Screenshots/rendered views: `output/architekt-correction-20261016/` (parter, pietro, both 3D floors, bryla, elevations and attic view). Local code base **1cafd11**, canonical data **r6**, existing local saved data **r9**. No commit, push, server workspace update or deployment performed. Preview remains on port 5173. See `../zielonki/README.md` for actual-profile provenance.
 
 ## Główny exterior match — 2026-10-12, r5
 

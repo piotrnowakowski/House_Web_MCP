@@ -2,6 +2,8 @@ import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/architekt/project.json'
+import beforeCorrection from '../../project-data/architekt/before-correction-r5.json'
+import beforeFrameRemoval from '../../project-data/architekt/before-remove-eaves-frames-r6.json'
 import source from '../../project-data/architekt/source-glowny-r79.json'
 import main from '../../project-data/zielonki-rear-bath-room/project.json'
 import { parseProject } from '../domain/schema'
@@ -12,8 +14,9 @@ import { roofWings, gableRoofJunction, gableWallsForBuilding } from '../domain/r
 import { uStairHeadroom } from '../domain/stairs'
 import { placementWarnings } from '../domain/interiorPlacement'
 import { availableInteriorHeight, itemFitsFloor } from '../domain/interior'
+import { interiorsOverlap, landUseAreas } from '../domain/zoning'
 import { ARCHITEKT_REF, synchronizePublishedArchitekt } from './publishedArchitekt'
-import { loadWorkspace, saveWorkspace, deleteWorkspace } from './persistence'
+import { loadWorkspace, saveWorkspace, deleteWorkspace, synchronizePublishedProject, listWorkspaces } from './persistence'
 
 beforeEach(() => { globalThis.indexedDB = new IDBFactory() })
 
@@ -29,15 +32,17 @@ it('matches the printed footprint and clear rectangular room dimensions without 
   expect(bounds.maxZ - bounds.minZ).toBeCloseTo(13.21, 6)
   expect(polygonArea(house.slabs[0].footprint)).toBeCloseTo(13.21 * 10.13 - 5.57 * 2.38, 6)
   for (const [ref, width, depth] of [
-    ['pantry', 3.73, 1.80], ['wc', 3.73, 2.05], ['office', 3, 3.97],
-    ['child-one', 3.62, 3.45], ['child-two', 3.11, 4.80],
-    ['parents', 5.10, 3.95], ['wardrobe', 1.63, 3.95], ['bathroom', 2.3, 2.55],
+    ['pantry', 4.33, 1.70], ['wc', 2.21, 2.55], ['office', 2.4, 4.37],
+    ['child-one', 3.62, 3.45],
+    ['parents', 5.10, 3.95], ['bathroom', 2.3, 2.55],
   ] as const) {
     const dimensions = roomDimensions(house, house.spaces.find(s => s.ref === `space/reference-${ref}`)!)
     expect(dimensions.width, ref).toBeCloseTo(width, 5)
     expect(dimensions.depth, ref).toBeCloseTo(depth, 5)
   }
   expect(house.slabs[1].holes).toHaveLength(2)
+  expect(polygonArea(house.slabs[1].holes![1])).toBeCloseTo(4.01 * 6.74, 6)
+  expect(house.spaces.some(s => s.ref === 'space/reference-wardrobe')).toBe(false)
   expect(house.spaces.some(s => s.usage === 'void')).toBe(false)
   expect(uStairHeadroom(house, house.stairs![0])).toBeGreaterThan(2)
   expect(house.storeys[1].kneeWallHeightM).toBe(1.4)
@@ -83,4 +88,36 @@ it('adds an independent saved project and preserves existing source edits and de
   await synchronizePublishedArchitekt()
   expect(await loadWorkspace(ARCHITEKT_REF)).toBeNull()
   expect(await loadWorkspace(original.project.ref)).toEqual(original)
+})
+
+it('keeps the complete 60 cm eaves outside agricultural land after removing the corner frames', () => {
+  const project=parseProject(data),house=project.buildings[0],angle=house.rotationDegrees*Math.PI/180
+  const world=(p:{x:number;z:number})=>({x:house.position.x+p.x*Math.cos(angle)+p.z*Math.sin(angle),z:house.position.z-p.x*Math.sin(angle)+p.z*Math.cos(angle)})
+  for(const roof of roofWings(house)){
+    expect(roof.overhangM-.225).toBeCloseTo(.6,8)
+    const b=polygonBounds(roof.footprint),o=roof.overhangM
+    const outline=[{x:b.minX-o,z:b.minZ-o},{x:b.maxX+o,z:b.minZ-o},{x:b.maxX+o,z:b.maxZ+o},{x:b.minX-o,z:b.maxZ+o}].map(world)
+    expect(landUseAreas(project).filter(z=>z.landRole==='agricultural'&&interiorsOverlap(outline,z.boundary))).toEqual([])
+  }
+  expect(house.walls.filter(w=>w.ref.includes('/eaves-frame/'))).toEqual([])
+  expect(house.roof).toEqual(parseProject(beforeFrameRemoval).buildings[0].roof)
+})
+
+it.each([beforeCorrection,beforeFrameRemoval])('migrates architect r$revision, retaining unrelated edits and deletions through reload',async(previous)=>{
+  const before=parseProject(previous)
+  await synchronizePublishedProject(before,before)
+  const local=(await loadWorkspace(ARCHITEKT_REF))!
+  local.project.buildings[0].spaces.find(s=>s.ref==='space/reference-office')!.floorFinish!.color='#123456'
+  const deleted=local.project.buildings[1].furniture!.pop()!.ref
+  await saveWorkspace(local)
+  expect(await synchronizePublishedArchitekt()).toEqual([])
+  const migrated=(await loadWorkspace(ARCHITEKT_REF))!
+  expect(migrated.project.buildings[0].spaces.some(s=>s.ref==='space/reference-wardrobe')).toBe(false)
+  expect(migrated.project.buildings[0].walls.some(w=>w.ref.includes('/eaves-frame/'))).toBe(false)
+  expect(migrated.project.buildings[0].spaces.find(s=>s.ref==='space/reference-office')!.floorFinish!.color).toBe('#123456')
+  expect(migrated.project.buildings[1].furniture!.some(f=>f.ref===deleted)).toBe(false)
+  await saveWorkspace(migrated)
+  expect(await synchronizePublishedArchitekt()).toEqual([])
+  expect((await loadWorkspace(ARCHITEKT_REF))!.project).toEqual(migrated.project)
+  expect((await listWorkspaces()).some(w=>w.ref.includes('/before-published-'))).toBe(true)
 })
