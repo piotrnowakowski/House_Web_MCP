@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp",
   "name": "nowe mpzp",
   "units": "metric",
-  "revision": 9,
-  "updatedAt": "2026-10-19T22:40:32.479Z",
+  "revision": 10,
+  "updatedAt": "2026-10-19T22:51:57.768Z",
   "site": {
     "boundary": [
       {
@@ -1889,7 +1889,8 @@
         "WARIANT r8: na wyraźne życzenie użytkownika garaż z warsztatem ustawiony hipotetycznie po 1,50 m od obu sąsiednich granic, pełnymi ścianami bez okien i drzwi, równolegle do domu. Projekt MPZP §7 pkt 3 lit. a przewiduje taką możliwość, ale nie obowiązuje. Rozwiązania przeciwpożarowe i ostateczne odległości wymagają projektu budowlanego.",
         "DOJAZD r8: brama drogowa przesunięta naprzeciwko wiaty. Jeden prosty podjazd o szerokości około 6,40 m kończy się przy dwóch stanowiskach pod wiatą. Usunięto utwardzony przejazd i plac do garażu gospodarczego; obszar wraca do zieleni. Wariant nie zapewnia utwardzonego dojazdu kampera do garażu. Zmiana lokalizacji zjazdu z drogi pozostaje koncepcją do uzgodnienia. Wiata 6,60 × 6,40 m pozostaje przy domu, z prześwitem 3,54 m.",
         "BILANS r8: część MU 888,81 m²; PBC 569,82 m² (64,11%, zapas 125,42 m² do progu 50%), zabudowa z wiatą 230,12 m² (25,89%), intensywność nadziemna do 0,395. Wyłożony plan nie obowiązuje; to wariant hipotetyczny, nie potwierdzenie pełnej zgodności.",
-        "ARCHITEKTURA r9: dom i garaż w spójnym stylu współczesnej stodoły bez wysuniętych okapów. Dach w ciemnym graficie, elewacje w drewnie naturalnym i czernionym, drewno przy wejściach i na szczycie wjazdowym garażu, smukłe ramy przeszkleń. Brak szarego pasa stropu; wymiary wnętrz zgodne z architekt r10. Połacie domu 38,8097° / 39,2352°, garażu 37°; wspólna kalenica domu zachowana. Detal ukrytego odwodnienia, obróbek i zgodność materiałów z ostatecznym planem wymagają opracowania wykonawczego."
+        "ARCHITEKTURA r9: dom i garaż w spójnym stylu współczesnej stodoły bez wysuniętych okapów. Dach w ciemnym graficie, elewacje w drewnie naturalnym i czernionym, drewno przy wejściach i na szczycie wjazdowym garażu, smukłe ramy przeszkleń. Brak szarego pasa stropu; wymiary wnętrz zgodne z architekt r10. Połacie domu 38,8097° / 39,2352°, garażu 37°; wspólna kalenica domu zachowana. Detal ukrytego odwodnienia, obróbek i zgodność materiałów z ostatecznym planem wymagają opracowania wykonawczego.",
+        "DRZEWA r10 — kontrola oryginalnej mapy z maila geodety (03.07.2026), PDF i współrzędnych CAD: 17 oznaczeń przy działkach /3. W modelu 11 drzew: 9 na działkach i 2 u sąsiada. Przywrócono liściaste 503A w oryginalnym miejscu, 2,14 m od domu; do zachowania warunkowo po ocenie korzeni i korony. Sześć pominiętych pni (5015, 501B, 501E, 5021, 5024, 50F5) leży w obrysie domu; nie przesuwano ich ani nie oznaczano jako zgodnych. Drzewa 5012/5018 są ok. 0,62/0,70 m od domu, 50D1 ok. 1,40 m od garażu. Mapa nie podaje średnic pni, zasięgu korzeni ani kondycji. To audyt kolizji koncepcji, nie zgoda na wycinkę ani potwierdzenie możliwości zachowania w terenie."
       ]
     }
   },
@@ -5785,6 +5786,35 @@
         "crownShape": "rounded",
         "placementRole": "context",
         "surveyHandle": "50CA"
+      },
+      {
+        "ref": "plant/survey-503a",
+        "name": "Mapped deciduous tree 503A",
+        "species": "Unidentified deciduous",
+        "kind": "tree",
+        "position": {
+          "x": 1.19335044016006,
+          "z": -0.5710452924112609
+        },
+        "matureHeightM": 15,
+        "canopyM": 7,
+        "sunNeed": "sun",
+        "waterNeed": 1,
+        "hardinessMinC": -25,
+        "leafMonths": [
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "bloomMonths": [],
+        "locked": true,
+        "crownShape": "rounded",
+        "placementRole": "site",
+        "surveyHandle": "503A"
       }
     ],
     "fixtures": [

@@ -3,7 +3,7 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import initial from '../../project-data/nowe-mpzp/initial-r1.json'
-import previous from '../../project-data/nowe-mpzp/before-eaveless-barns-r8.json'
+import previous from '../../project-data/nowe-mpzp/before-tree-review-r9.json'
 import architect from '../../project-data/architekt/project.json'
 import source from '../../project-data/nowe-mpzp/source-architekt-r7.json'
 import { parseProject } from '../domain/schema'
@@ -11,6 +11,7 @@ import { validateProject } from '../domain/commands'
 import { polygonArea, polygonBounds, buildingFootprintsWorld, distanceToSegment, pointInPolygon } from '../domain/geometry'
 import { roofWings, gableRoofJunction, gableWallsForBuilding } from '../domain/roofWings'
 import { roomDimensions } from '../domain/roomDimensions'
+import { zielonkiSurveyTrees, surveyTreePosition, surveyTreeRef } from '../../knowledge-bank/zielonki/trees'
 import { landUseAreas } from '../domain/zoning'
 import { DRAFT_PLAN_VERSION, draftZoningBoundary, draftZoningLine } from '../../knowledge-bank/zielonki/draftPlan'
 import { loadWorkspace, saveWorkspace, deleteWorkspace, listWorkspaces, synchronizePublishedProject } from './persistence'
@@ -108,7 +109,7 @@ it('fits the camper, working room and entrance below the six metre conceptual he
 it('removes nominal eaves beyond the wall faces without changing slopes, ridge junctions or the site layout', () => {
   const p=parseProject(data),old=parseProject(previous)
   expect(p.site.entrances).toEqual(old.site.entrances)
-  expect(p.landscape).toEqual(old.landscape)
+  expect({...p.landscape,plants:p.landscape.plants.filter(t=>t.ref!=='plant/survey-503a')}).toEqual(old.landscape)
   expect(p.buildings[1]).toEqual(old.buildings[1])
   for(const index of [0,2]){
     const b=p.buildings[index],before=old.buildings[index],halfWall=index===0?.225:.15
@@ -163,4 +164,22 @@ it('keeps draft zoning and user deletions through list, reload and a later publi
   expect(await loadWorkspace(original.project.ref)).toEqual(original)
   await deleteWorkspace(NOWE_MPZP_REF); await synchronizePublishedNoweMpzp()
   expect(await loadWorkspace(NOWE_MPZP_REF)).toBeNull()
+})
+
+it('restores the sole omitted tree outside the current buildings and paving, preserving original coordinates and later deletion', async () => {
+  const p=parseProject(data),old=parseProject(previous),footprints=p.buildings.flatMap(buildingFootprintsWorld)
+  const candidates=zielonkiSurveyTrees.filter(t=>!old.landscape.plants.some(v=>v.ref===surveyTreeRef(t.handle))).filter(t=>{
+    const point=surveyTreePosition(t.handle)
+    return !footprints.some(poly=>pointInPolygon(point,poly))&&!p.landscape.zones.some(z=>pointInPolygon(point,z.footprint))
+  })
+  expect(candidates.map(t=>t.handle)).toEqual(['503A'])
+  expect(p.buildings).toEqual(old.buildings)
+  expect(p.landscape.plants).toHaveLength(11)
+  for(const tree of p.landscape.plants)expect(tree.position).toEqual(surveyTreePosition(tree.surveyHandle!))
+  await synchronizePublishedProject(old,parseProject(initial));await synchronizePublishedNoweMpzp()
+  const saved=(await loadWorkspace(NOWE_MPZP_REF))!
+  expect(saved.project.landscape.plants.some(t=>t.ref==='plant/survey-503a')).toBe(true)
+  saved.project.landscape.plants=saved.project.landscape.plants.filter(t=>t.ref!=='plant/survey-503a');saved.project.revision++
+  await saveWorkspace(saved);await synchronizePublishedNoweMpzp()
+  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.landscape.plants.some(t=>t.ref==='plant/survey-503a')).toBe(false)
 })
