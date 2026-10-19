@@ -3,8 +3,8 @@
   "ref": "project/architekt",
   "name": "architekt",
   "units": "metric",
-  "revision": 7,
-  "updatedAt": "2026-10-16T16:28:49.306Z",
+  "revision": 8,
+  "updatedAt": "2026-10-19T19:26:41.404Z",
   "site": {
     "boundary": [
       {
@@ -2808,8 +2808,8 @@
               "wallRef": "wall/architekt/ground/9",
               "offsetM": 1.6799999999999997,
               "widthM": 1.5,
-              "heightM": 1.5,
-              "sillM": 0.8,
+              "heightM": 2.3,
+              "sillM": 0,
               "glazed": true
             }
           ],
@@ -2887,9 +2887,8 @@
           "heightM": 2.8,
           "openings": [],
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
+            "material": "natural-timber",
+            "colorHex": "#BD9C73"
           },
           "locked": false
         },
@@ -2908,9 +2907,8 @@
           "heightM": 2.8,
           "openings": [],
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
+            "material": "charred-timber",
+            "colorHex": "#242927"
           },
           "locked": false
         },
@@ -3159,8 +3157,8 @@
               "wallRef": "wall/architekt/ground/18",
               "offsetM": 1.6600000000000001,
               "widthM": 2,
-              "heightM": 1.45,
-              "sillM": 0.9,
+              "heightM": 2.35,
+              "sillM": 0,
               "glazed": true
             }
           ],
@@ -3241,7 +3239,7 @@
               "ref": "opening/architekt/terrace-side",
               "kind": "door",
               "wallRef": "wall/architekt/ground/20",
-              "offsetM": 1.4899999999999998,
+              "offsetM": 1.265,
               "widthM": 1.78,
               "heightM": 2.35,
               "sillM": 0,
@@ -3813,12 +3811,11 @@
           },
           "thicknessM": 0.45,
           "baseElevationM": 3.75,
-          "heightM": 2.8,
+          "heightM": 1.4,
           "openings": [],
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
-            "textureId": "none"
+            "material": "charred-timber",
+            "colorHex": "#242927"
           },
           "locked": false
         },
@@ -5507,6 +5504,174 @@
         ],
         "junctions": []
       }
+    },
+    {
+      "furniture": [
+        {
+          "ref": "interior/carport/camper",
+          "catalogId": "camper",
+          "storeyRef": "storey/carport",
+          "name": "Kamper · obrys 7,50 × 2,50 × 3,20 m",
+          "position": {
+            "x": -7.905,
+            "z": -4.995
+          },
+          "widthM": 2.5,
+          "depthM": 7.5,
+          "heightM": 3.2,
+          "rotationDegrees": 180,
+          "color": "#deddd4"
+        }
+      ],
+      "ref": "building/south-carport",
+      "name": "Wiata z tyłu · kamper · 4,20 × 8,60 m",
+      "kind": "garage",
+      "architecturalStyle": "barn",
+      "position": {
+        "x": -7.449665212966417,
+        "z": -2.677856481718643
+      },
+      "rotationDegrees": 273.06927082481445,
+      "storeys": [
+        {
+          "ref": "storey/carport",
+          "name": "Parking",
+          "level": 0,
+          "elevationM": 0.45,
+          "clearHeightM": 3.56,
+          "baseSlabRef": "slab/carport",
+          "topBoundaryRef": "roof/carport",
+          "wallRefs": [],
+          "spaceRefs": [],
+          "platformRefs": [],
+          "ceilingFinishRefs": []
+        }
+      ],
+      "slabs": [
+        {
+          "ref": "slab/carport",
+          "footprint": [
+            {
+              "x": -10.005,
+              "z": -9.295
+            },
+            {
+              "x": -5.805000000000001,
+              "z": -9.295
+            },
+            {
+              "x": -5.805000000000001,
+              "z": -0.6950000000000003
+            },
+            {
+              "x": -10.005,
+              "z": -0.6950000000000003
+            }
+          ],
+          "topElevationM": 0.45,
+          "thicknessM": 0.18,
+          "locked": false
+        }
+      ],
+      "walls": [],
+      "spaces": [],
+      "platforms": [],
+      "ceilingFinishes": [],
+      "roof": {
+        "ref": "roof/carport",
+        "type": "flat",
+        "baseElevationM": 4.01,
+        "pitchDegrees": 0,
+        "overhangM": 0,
+        "footprint": [
+          {
+            "x": -10.005,
+            "z": -9.295
+          },
+          {
+            "x": -5.805000000000001,
+            "z": -9.295
+          },
+          {
+            "x": -5.805000000000001,
+            "z": -0.6950000000000003
+          },
+          {
+            "x": -10.005,
+            "z": -0.6950000000000003
+          }
+        ],
+        "finish": {
+          "material": "membrane",
+          "colorHex": "#303536"
+        },
+        "segments": [
+          {
+            "ref": "roof/carport/south",
+            "footprint": [
+              {
+                "x": -10.005,
+                "z": -9.295
+              },
+              {
+                "x": -5.805000000000001,
+                "z": -9.295
+              },
+              {
+                "x": -5.805000000000001,
+                "z": -0.6950000000000003
+              },
+              {
+                "x": -10.005,
+                "z": -0.6950000000000003
+              }
+            ],
+            "storeyRef": "storey/carport",
+            "baseElevationM": 4.01,
+            "type": "flat",
+            "pitchDegrees": 0,
+            "overhangM": 0,
+            "ridgeDirection": "z",
+            "finish": {
+              "material": "membrane",
+              "colorHex": "#303536"
+            },
+            "adjacentSegmentRefs": [],
+            "canopy": {
+              "fasciaHeightM": 0.3,
+              "fasciaEdgeIndices": [
+                0,
+                1,
+                2,
+                3
+              ],
+              "frameColorHex": "#303536",
+              "soffitColorHex": "#D0AB7C",
+              "postWidthM": 0.16,
+              "postBaseElevationM": 0.45,
+              "posts": [
+                {
+                  "x": -9.845,
+                  "z": -9.135
+                },
+                {
+                  "x": -9.845,
+                  "z": -0.855
+                },
+                {
+                  "x": -5.965,
+                  "z": -9.135
+                },
+                {
+                  "x": -5.965,
+                  "z": -0.855
+                }
+              ]
+            }
+          }
+        ],
+        "junctions": []
+      }
     }
   ],
   "landscape": {
@@ -5739,6 +5904,31 @@
           {
             "x": -7.026858805295881,
             "z": -7.772803462957284
+          }
+        ],
+        "locked": false,
+        "textureId": "concrete-tiles"
+      },
+      {
+        "ref": "zone/architekt/carport-apron",
+        "name": "Nawierzchnia pod wiatą na kamper",
+        "kind": "driveway",
+        "footprint": [
+          {
+            "x": 1.2963010294495243,
+            "z": -13.1661892608843
+          },
+          {
+            "x": 1.5211827414835097,
+            "z": -8.972214032584462
+          },
+          {
+            "x": -7.066480821225678,
+            "z": -8.511741955562494
+          },
+          {
+            "x": -7.291362533259663,
+            "z": -12.705717183862332
           }
         ],
         "locked": false,

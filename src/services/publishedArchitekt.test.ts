@@ -4,6 +4,7 @@ import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/architekt/project.json'
 import beforeCorrection from '../../project-data/architekt/before-correction-r5.json'
 import beforeFrameRemoval from '../../project-data/architekt/before-remove-eaves-frames-r6.json'
+import beforeFacadeFix from '../../project-data/architekt/before-facade-carport-r7.json'
 import source from '../../project-data/architekt/source-glowny-r79.json'
 import main from '../../project-data/zielonki-rear-bath-room/project.json'
 import { parseProject } from '../domain/schema'
@@ -11,6 +12,8 @@ import { validateProject } from '../domain/commands'
 import { polygonArea, polygonBounds } from '../domain/geometry'
 import { roomDimensions } from '../domain/roomDimensions'
 import { roofWings, gableRoofJunction, gableWallsForBuilding } from '../domain/roofWings'
+import { gableGlazingProfile } from '../domain/gableGlazing'
+import { isExteriorWall } from '../domain/zielonkiInterior'
 import { uStairHeadroom } from '../domain/stairs'
 import { placementWarnings } from '../domain/interiorPlacement'
 import { availableInteriorHeight, itemFitsFloor } from '../domain/interior'
@@ -54,7 +57,7 @@ it('matches the printed footprint and clear rectangular room dimensions without 
     expect(availableInteriorHeight(item, house, storey), item.ref).toBeGreaterThanOrEqual(item.heightM)
     expect(placementWarnings(item, house, storey).filter(w => w.kind !== 'circulation'), item.ref).toEqual([])
   }
-  expect(project.buildings.some(b => b.ref === 'building/south-carport')).toBe(false)
+  expect(project.buildings.some(b => b.ref === 'building/south-carport')).toBe(true)
   expect(project.buildings.find(b => b.ref === 'building/garden-outbuilding')).toEqual(source.buildings.find(b => b.ref === 'building/garden-outbuilding'))
 })
 
@@ -103,12 +106,14 @@ it('keeps the complete 60 cm eaves outside agricultural land after removing the 
   expect(house.roof).toEqual(parseProject(beforeFrameRemoval).buildings[0].roof)
 })
 
-it.each([beforeCorrection,beforeFrameRemoval])('migrates architect r$revision, retaining unrelated edits and deletions through reload',async(previous)=>{
+it.each([beforeCorrection,beforeFrameRemoval,beforeFacadeFix])('migrates architect r$revision, retaining unrelated edits and deletions through reload',async(previous)=>{
   const before=parseProject(previous)
   await synchronizePublishedProject(before,before)
   const local=(await loadWorkspace(ARCHITEKT_REF))!
   local.project.buildings[0].spaces.find(s=>s.ref==='space/reference-office')!.floorFinish!.color='#123456'
   const deleted=local.project.buildings[1].furniture!.pop()!.ref
+  const windowWall=local.project.buildings[1].walls.find(w=>w.openings.some(o=>o.ref==='opening/outbuilding/workshop-window'))!
+  windowWall.openings=windowWall.openings.filter(o=>o.ref!=='opening/outbuilding/workshop-window')
   await saveWorkspace(local)
   expect(await synchronizePublishedArchitekt()).toEqual([])
   const migrated=(await loadWorkspace(ARCHITEKT_REF))!
@@ -116,8 +121,59 @@ it.each([beforeCorrection,beforeFrameRemoval])('migrates architect r$revision, r
   expect(migrated.project.buildings[0].walls.some(w=>w.ref.includes('/eaves-frame/'))).toBe(false)
   expect(migrated.project.buildings[0].spaces.find(s=>s.ref==='space/reference-office')!.floorFinish!.color).toBe('#123456')
   expect(migrated.project.buildings[1].furniture!.some(f=>f.ref===deleted)).toBe(false)
+  expect(migrated.project.buildings[1].walls.flatMap(w=>w.openings).some(o=>o.ref==='opening/outbuilding/workshop-window')).toBe(false)
   await saveWorkspace(migrated)
   expect(await synchronizePublishedArchitekt()).toEqual([])
   expect((await loadWorkspace(ARCHITEKT_REF))!.project).toEqual(migrated.project)
   expect((await listWorkspaces()).some(w=>w.ref.includes('/before-published-'))).toBe(true)
+})
+
+it('preserves a locally deleted office window and both complete versions when publication edits that window',async()=>{
+  const previous=parseProject(beforeFacadeFix)
+  await synchronizePublishedProject(previous,previous)
+  const local=(await loadWorkspace(ARCHITEKT_REF))!
+  const wall=local.project.buildings[0].walls.find(w=>w.openings.some(o=>o.ref==='opening/reference-office-window'))!
+  wall.openings=[]
+  await saveWorkspace(local)
+  expect(await synchronizePublishedArchitekt()).toEqual(['/buildings/house/main/walls/wall/architekt/ground/9/openings/opening/reference-office-window'])
+  expect((await loadWorkspace(ARCHITEKT_REF))!.project).toEqual(local.project)
+  expect((await listWorkspaces()).some(w=>w.ref.includes('/published-8-'))).toBe(true)
+})
+
+it('repairs the photographed facade, continuous gable and corner opening without changing the rooms or roof',()=>{
+  const house=parseProject(data).buildings[0],before=parseProject(beforeFacadeFix).buildings[0]
+  expect(house.spaces).toEqual(before.spaces)
+  expect(house.roof).toEqual(before.roof)
+  expect(house.walls.filter(w=>isExteriorWall(house,w)).every(w=>w.finish?.material!=='light-render')).toBe(true)
+  for(const ref of ['opening/reference-office-window','opening/reference-kitchen']){
+    const current=house.walls.flatMap(w=>w.openings).find(o=>o.ref===ref)!
+    const old=before.walls.flatMap(w=>w.openings).find(o=>o.ref===ref)!
+    expect(current.sillM).toBe(0)
+    expect(current.heightM).toBeCloseTo(old.sillM+old.heightM,8)
+  }
+  const profile=gableGlazingProfile(house.roof.segments[0],'min',house)!
+  expect(profile.panels).toHaveLength(1)
+  expect(profile.panels[0].connected).toBe(true)
+  expect(profile.outline[0].z).toBeCloseTo(house.roof.baseElevationM,8)
+  const corner=house.walls.find(w=>w.ref==='wall/architekt/ground/20')!,opening=corner.openings[0]
+  const length=Math.hypot(corner.end.x-corner.start.x,corner.end.z-corner.start.z)
+  expect(length-opening.offsetM-opening.widthM/2).toBeCloseTo(.225,8)
+})
+
+it('fits the camper beneath the rear canopy with clear fascia, posts and site boundaries',()=>{
+  const project=parseProject(data),carport=project.buildings.find(b=>b.ref==='building/south-carport')!
+  const roof=carport.roof.segments[0],canopy=roof.canopy!,camper=carport.furniture![0]
+  const bounds=polygonBounds(roof.footprint),floor=carport.slabs[0].topElevationM
+  expect(bounds.maxX-bounds.minX).toBeCloseTo(4.2,8)
+  expect(bounds.maxZ-bounds.minZ).toBeCloseTo(8.6,8)
+  const clearance=Math.min(roof.baseElevationM-.025,roof.baseElevationM+.24-canopy.fasciaHeightM)-floor
+  expect(clearance).toBeCloseTo(3.5,8)
+  expect(clearance-camper.heightM).toBeGreaterThanOrEqual(.299)
+  expect(itemFitsFloor(camper,carport.slabs[0].footprint)).toBe(true)
+  for(const post of canopy.posts){
+    expect(Math.abs(post.x-camper.position.x)-canopy.postWidthM/2).toBeGreaterThan(camper.widthM/2)
+  }
+  const angle=carport.rotationDegrees*Math.PI/180
+  const world=roof.footprint.map(p=>({x:carport.position.x+p.x*Math.cos(angle)+p.z*Math.sin(angle),z:carport.position.z-p.x*Math.sin(angle)+p.z*Math.cos(angle)}))
+  expect(landUseAreas(project).filter(z=>z.landRole==='agricultural'&&interiorsOverlap(world,z.boundary))).toEqual([])
 })
