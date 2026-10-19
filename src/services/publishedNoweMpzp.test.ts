@@ -32,7 +32,7 @@ it('moves only the independent house, preserves cadastral parcels and contains r
   for (const b of p.buildings) for (const polygon of buildingFootprintsWorld(b)) for (const point of polygon) expect(point.z-slope*point.x-intercept).toBeLessThan(0)
   const carport=p.buildings.find(b=>b.ref==='building/south-carport')!
   expect(polygonArea(carport.slabs[0].footprint)).toBeCloseTo(35.84)
-  expect(carport.furniture.filter(f=>f.catalogId==='car')).toHaveLength(2)
+  expect(carport.furniture?.filter(f=>f.catalogId==='car')).toHaveLength(2)
   const posts=carport.roof.segments[0].canopy!, postBounds=polygonBounds(posts.posts)
   expect(postBounds.maxX-postBounds.minX-posts.postWidthM).toBeGreaterThanOrEqual(5)
   expect(p.landscape.zones.filter(z=>z.kind==='driveway')).toHaveLength(1)
