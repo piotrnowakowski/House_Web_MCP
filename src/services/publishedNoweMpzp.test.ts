@@ -3,7 +3,7 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import initial from '../../project-data/nowe-mpzp/initial-r1.json'
-import previous from '../../project-data/nowe-mpzp/before-house-lane-r4.json'
+import previous from '../../project-data/nowe-mpzp/before-connected-carport-r5.json'
 import architect from '../../project-data/architekt/project.json'
 import source from '../../project-data/nowe-mpzp/source-architekt-r7.json'
 import { parseProject } from '../domain/schema'
@@ -31,19 +31,22 @@ it('moves only the independent house, preserves cadastral parcels and contains r
   expect(draftZoningBoundary.every(p=>Math.abs(p.z-slope*p.x-intercept)<1e-8)).toBe(true)
   for (const b of p.buildings) for (const polygon of buildingFootprintsWorld(b)) for (const point of polygon) expect(point.z-slope*point.x-intercept).toBeLessThan(0)
   const carport=p.buildings.find(b=>b.ref==='building/south-carport')!
-  expect(polygonArea(carport.slabs[0].footprint)).toBeCloseTo(35.84)
+  expect(polygonArea(carport.slabs[0].footprint)).toBeCloseTo(42.24)
   expect(carport.furniture?.filter(f=>f.catalogId==='car')).toHaveLength(2)
   const posts=carport.roof.segments[0].canopy!, postBounds=polygonBounds(posts.posts)
-  expect(postBounds.maxX-postBounds.minX-posts.postWidthM).toBeGreaterThanOrEqual(5)
+  expect(postBounds.maxX-postBounds.minX-posts.postWidthM).toBeGreaterThanOrEqual(6)
+  const canopyRoof=carport.roof.segments[0]
+  expect(canopyRoof.baseElevationM+.24-posts.fasciaHeightM-carport.slabs[0].topElevationM).toBeCloseTo(3.54)
   expect(p.landscape.zones.filter(z=>z.kind==='driveway')).toHaveLength(1)
   expect(p.landscape.zones.some(z=>['zone/path','zone/nowe-mpzp/carport-access','zone/outbuilding/apron'].includes(z.ref))).toBe(false)
   const angle=house.rotationDegrees*Math.PI/180
   const local=(v:{x:number,z:number})=>({x:(v.x-house.position.x)*Math.cos(angle)-(v.z-house.position.z)*Math.sin(angle),z:(v.x-house.position.x)*Math.sin(angle)+(v.z-house.position.z)*Math.cos(angle)})
   const canopy=polygonBounds(buildingFootprintsWorld(carport)[0].map(local)), home=polygonBounds(buildingFootprintsWorld(house)[0].map(local))
-  expect(home.minX-canopy.maxX).toBeCloseTo(3.83)
+  expect(home.minX-canopy.maxX).toBeCloseTo(0,8)
   const access=p.landscape.zones.find(z=>z.ref==='zone/driveway')!.footprint.map(local)
-  // Check both sides of the 3.50 m house-side lane, including its approach and rear connection.
-  for(const x of [-8.764,-5.266])for(const z of [-2,0,4,8,9.3])expect(pointInPolygon({x,z},access)).toBe(true)
+  // The house-side parking bay is the single through route; its front and rear remain connected.
+  for(const x of [-8.864,-5.366])for(const z of [-2,0,4,8,9.3])expect(pointInPolygon({x,z},access)).toBe(true)
+  for(const x of [-8.864,-5.366])for(const z of [-2,0,4])expect(pointInPolygon({x,z},buildingFootprintsWorld(carport)[0].map(local))).toBe(true)
   const wings=roofWings(house)
   for (const wing of wings) {
     const b=polygonBounds(wing.footprint), span=wing.ridgeAxis==='z'?b.maxX-b.minX:b.maxZ-b.minZ

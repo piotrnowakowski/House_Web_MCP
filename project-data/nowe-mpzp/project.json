@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp",
   "name": "nowe mpzp",
   "units": "metric",
-  "revision": 5,
-  "updatedAt": "2026-10-19T20:47:58.691Z",
+  "revision": 6,
+  "updatedAt": "2026-10-19T20:57:05.676Z",
   "site": {
     "boundary": [
       {
@@ -1886,9 +1886,9 @@
         "The app provides conceptual design guidance only and does not establish zoning, building-law, foundation, drainage or planting compliance.",
         "Drzewa kolidujące z koncepcją, wyłączone wyłącznie z tego wariantu: plant/survey-5015. Oryginały w source-architekt-r7.json; to nie zezwolenie na wycinkę.",
         "Po obrocie garażu o 90° układ podjazdu jest orientacyjny; trzeba sprawdzić tor jazdy i cofania konkretnego kampera względem wiaty i drogi.",
-        "USYTUOWANIE r5: jedyny główny pas dojazdu ma 3,50 m i biegnie przy domu, pomiędzy domem a wiatą na dwa auta. Wiata odsunięta od domu i przesunięta o 4,50 m w stronę wjazdu, aby uzyskać około 8 m placu przed garażem. Garaż bez tylnego okna, równoległy do domu i po 3 m od obu granic. Kamper nie przejeżdża pod niskim dachem wiaty; rzeczywisty tor jazdy wymaga sprawdzenia.",
-        "BILANS r5: dla części MU 888,81 m²: PBC 493,62 m² (55,54%, zapas 49,21 m² do progu 50%), zabudowa z wiatą 223,72 m² (25,17%), intensywność nadziemna do 0,387. To obliczenia koncepcyjne dla wyłożonego planu, nie potwierdzenie pełnej zgodności.",
-        "POSTÓJ r5: przy założeniu stanowisk 2,50 × 5,00 m odległość bliższego stanowiska pod wiatą od modelowanego okna pokoju dzieci wynosi około 5,91 m, poniżej 7 m z §19 WT dla zadaszonych stanowisk osobowych. Wyjątek dla 1–2 miejsc dotyczy niezadaszonych. Układ wymaga korekty lub formalnego rozwiązania przed realizacją; zakres stosowania WT w okresie przejściowym omówiono w bilansie."
+        "USYTUOWANIE r6: wiata jest połączona z elewacją domu, bez przerwy. Dwa stanowiska, w tym szersze stanowisko przejazdowe przy domu: wspólny pas 3,50 m prowadzi pod wiatą do garażu kampera. Przed przejazdem kampera stanowisko przy domu musi być wolne. Nie ma trzeciego miejsca ani dodatkowego pasa obok wiaty. Dach wiaty podniesiono dla kampera 3,10 m; minimalny modelowy prześwit co najmniej 3,50 m, konstrukcja wymaga weryfikacji. Garaż pozostaje bez tylnego okna, równoległy do domu, po 3 m od obu granic.",
+        "BILANS r6: część MU 888,81 m²; PBC 524,54 m² (59,02%, zapas 80,14 m² do progu 50%), zabudowa z wiatą 230,12 m² (25,89%), intensywność nadziemna do 0,395. Wyłożony plan nie obowiązuje; wyniki koncepcyjne nie potwierdzają pełnej zgodności.",
+        "POSTÓJ r6: stanowisko zadaszone przy domu znajduje się około 3,42 m od modelowanego okna pokoju dzieci, poniżej 7 m z §19 WT. Wiata połączona z domem zgodnie z żądaniem użytkownika; zgodność odległości od okien, dopuszczalność płaskiego dachu, konstrukcja i rzeczywiste manewry pozostają do rozwiązania przed realizacją."
       ]
     }
   },
@@ -4729,9 +4729,9 @@
           "ref": "interior/carport/car-1",
           "catalogId": "car",
           "storeyRef": "storey/carport",
-          "name": "Car 1 · 1.90 × 4.70 m",
+          "name": "Auto 1 · stanowisko zewnętrzne",
           "position": {
-            "x": -10.895,
+            "x": -11.775,
             "z": -3.355
           },
           "widthM": 1.9,
@@ -4744,9 +4744,9 @@
           "ref": "interior/carport/car-2",
           "catalogId": "car",
           "storeyRef": "storey/carport",
-          "name": "Car 2 · 1.90 × 4.70 m",
+          "name": "Auto 2 · stanowisko przejazdowe przy domu",
           "position": {
-            "x": -8.094999999999999,
+            "x": -8.745,
             "z": -3.355
           },
           "widthM": 1.9,
@@ -4757,12 +4757,12 @@
         }
       ],
       "ref": "building/south-carport",
-      "name": "Wiata z tyłu · 2 samochody · jak Główny",
+      "name": "Wiata połączona z domem · 2 auta · stanowisko przejazdowe",
       "kind": "garage",
       "architecturalStyle": "barn",
       "position": {
-        "x": -12.06100528292452,
-        "z": -0.3053426763377209
+        "x": -11.855934578855432,
+        "z": 3.5191633056595104
       },
       "rotationDegrees": 273.06927082481445,
       "storeys": [
@@ -4771,7 +4771,7 @@
           "name": "Parking",
           "level": 0,
           "elevationM": 0.45,
-          "clearHeightM": 2.5,
+          "clearHeightM": 3.6,
           "baseSlabRef": "slab/carport",
           "topBoundaryRef": "roof/carport",
           "wallRefs": [],
@@ -4785,7 +4785,7 @@
           "ref": "slab/carport",
           "footprint": [
             {
-              "x": -12.295,
+              "x": -13.295,
               "z": -6.555
             },
             {
@@ -4797,7 +4797,7 @@
               "z": -0.155
             },
             {
-              "x": -12.295,
+              "x": -13.295,
               "z": -0.155
             }
           ],
@@ -4813,12 +4813,12 @@
       "roof": {
         "ref": "roof/carport",
         "type": "flat",
-        "baseElevationM": 2.95,
+        "baseElevationM": 4.05,
         "pitchDegrees": 0,
         "overhangM": 0,
         "footprint": [
           {
-            "x": -12.295,
+            "x": -13.295,
             "z": -6.555
           },
           {
@@ -4830,7 +4830,7 @@
             "z": -0.155
           },
           {
-            "x": -12.295,
+            "x": -13.295,
             "z": -0.155
           }
         ],
@@ -4843,7 +4843,7 @@
             "ref": "roof/carport/south",
             "footprint": [
               {
-                "x": -12.295,
+                "x": -13.295,
                 "z": -6.555
               },
               {
@@ -4855,12 +4855,12 @@
                 "z": -0.155
               },
               {
-                "x": -12.295,
+                "x": -13.295,
                 "z": -0.155
               }
             ],
             "storeyRef": "storey/carport",
-            "baseElevationM": 2.95,
+            "baseElevationM": 4.05,
             "type": "flat",
             "pitchDegrees": 0,
             "overhangM": 0,
@@ -4884,7 +4884,7 @@
               "postBaseElevationM": 0.45,
               "posts": [
                 {
-                  "x": -12.135,
+                  "x": -13.135,
                   "z": -6.395
                 },
                 {
@@ -4896,7 +4896,7 @@
                   "z": -0.315
                 },
                 {
-                  "x": -12.135,
+                  "x": -13.135,
                   "z": -0.315
                 }
               ]
@@ -5395,7 +5395,7 @@
       },
       {
         "ref": "zone/driveway",
-        "name": "Główny pas przy domu · do wiaty i garażu kampera",
+        "name": "Wspólny dojazd przez wiatę przy domu do garażu kampera",
         "kind": "driveway",
         "footprint": [
           {
@@ -5411,16 +5411,12 @@
             "z": -3.7999999970197678
           },
           {
-            "x": -5.683972984552383,
+            "x": -5.997790016233921,
             "z": -3.7999999970197678
           },
           {
-            "x": -5.679518334567547,
-            "z": -3.716922126710415
-          },
-          {
-            "x": -17.06316538155079,
-            "z": -3.1065289080142975
+            "x": -17.068519711494446,
+            "z": -3.206385463476181
           },
           {
             "x": -19.287829339504242,
@@ -5431,31 +5427,31 @@
             "z": -12.35421508550644
           },
           {
-            "x": -17.25056681036949,
-            "z": -6.601508267223835
+            "x": -17.25592114031315,
+            "z": -6.7013648226857185
           },
           {
-            "x": -17.25056680291891,
-            "z": -6.601508267223835
+            "x": -17.255921132862568,
+            "z": -6.7013648226857185
           },
           {
-            "x": -17.557369716465473,
-            "z": -12.32328875362873
+            "x": -17.405842281877995,
+            "z": -9.497348308563232
           },
           {
-            "x": -12.564542062580585,
-            "z": -12.591005079448223
+            "x": -12.413014627993107,
+            "z": -9.765064626932144
           },
           {
-            "x": -12.257739156484604,
-            "z": -6.869224585592747
+            "x": -12.26309347897768,
+            "z": -6.96908114105463
           },
           {
-            "x": -6.079518333077431,
-            "z": -7.200501911342144
+            "x": -6.084872663021088,
+            "z": -7.300358466804028
           },
           {
-            "x": -6.079518333077431,
+            "x": -6.084872663021088,
             "z": -13.399999998509884
           },
           {
