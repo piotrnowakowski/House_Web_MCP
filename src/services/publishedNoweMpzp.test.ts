@@ -3,7 +3,7 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import initial from '../../project-data/nowe-mpzp/initial-r1.json'
-import previous from '../../project-data/nowe-mpzp/before-straight-access-r7.json'
+import previous from '../../project-data/nowe-mpzp/before-eaveless-barns-r8.json'
 import architect from '../../project-data/architekt/project.json'
 import source from '../../project-data/nowe-mpzp/source-architekt-r7.json'
 import { parseProject } from '../domain/schema'
@@ -24,7 +24,11 @@ it('moves only the independent house, preserves cadastral parcels and contains r
   expect(p.site.boundary).toEqual(base.site.boundary)
   expect(p.site.parcels.map(({ref,boundary,officialAreaM2})=>({ref,boundary,officialAreaM2}))).toEqual(base.site.parcels.map(({ref,boundary,officialAreaM2})=>({ref,boundary,officialAreaM2})))
   expect(house.position.z-base.buildings[0].position.z).toBeCloseTo(4.3284132811)
-  for (const key of ['walls','slabs','spaces','storeys','furniture','roof'] as const) expect(house[key]).toEqual(base.buildings[0][key])
+  for (const key of ['spaces','storeys','furniture'] as const) expect(house[key]).toEqual(base.buildings[0][key])
+  expect(house.slabs.map(({edgeColorHex,...slab})=>slab)).toEqual(base.buildings[0].slabs.map(({edgeColorHex,...slab})=>slab))
+  expect(house.walls.map(({finish,heightM,...wall})=>wall)).toEqual(base.buildings[0].walls.map(({finish,heightM,...wall})=>wall))
+  expect(house.roof.footprint).toEqual(base.buildings[0].roof.footprint)
+  expect(house.roof.junctions).toEqual(base.buildings[0].roof.junctions)
   expect(validateProject(p).filter(i=>i.severity==='error'||i.code==='building.zoning')).toEqual([])
   expect(landUseAreas(p).filter(z=>z.landRole==='construction').reduce((sum,z)=>sum+polygonArea(z.boundary),0)).toBeCloseTo(888.806452)
   const {slope,intercept}=draftZoningLine
@@ -99,6 +103,41 @@ it('fits the camper, working room and entrance below the six metre conceptual he
   expect(Math.atan2(garageWing.ridgeElevationM-garageWing.baseElevationM,(bounds.maxX-bounds.minX)/2)*180/Math.PI).toBeCloseTo(37,8)
   expect(roofWings(garage)[0].ridgeElevationM).toBeLessThan(6)
   expect(validateProject(p).filter(i=>i.subjectRef?.includes('outbuilding'))).toEqual([])
+})
+
+it('removes nominal eaves beyond the wall faces without changing slopes, ridge junctions or the site layout', () => {
+  const p=parseProject(data),old=parseProject(previous)
+  expect(p.site.entrances).toEqual(old.site.entrances)
+  expect(p.landscape).toEqual(old.landscape)
+  expect(p.buildings[1]).toEqual(old.buildings[1])
+  for(const index of [0,2]){
+    const b=p.buildings[index],before=old.buildings[index],halfWall=index===0?.225:.15
+    expect(b.position).toEqual(before.position)
+    expect(b.rotationDegrees).toBe(before.rotationDegrees)
+    expect(b.roof.overhangM-halfWall).toBeCloseTo(0,10)
+    expect(b.walls.map(({finish,heightM,...wall})=>wall)).toEqual(before.walls.map(({finish,heightM,...wall})=>wall))
+    const oldWings=roofWings(before)
+    for(const wing of roofWings(b)){
+      const prior=oldWings.find(w=>w.ref===wing.ref)!
+      expect(wing.footprint).toEqual(prior.footprint)
+      expect(wing.ridgeElevationM).toBeCloseTo(prior.ridgeElevationM,10)
+      expect(wing.baseElevationM).toBe(prior.baseElevationM)
+      expect(wing.overhangM-halfWall).toBeCloseTo(0,10)
+      const bounds=polygonBounds(wing.footprint),span=wing.ridgeAxis==='z'?bounds.maxX-bounds.minX:bounds.maxZ-bounds.minZ
+      const slope=Math.atan2(wing.ridgeElevationM-wing.baseElevationM,span/2)*180/Math.PI
+      expect(slope).toBeGreaterThanOrEqual(37);expect(slope).toBeLessThanOrEqual(45)
+    }
+    expect(b.roof.finish).toEqual({material:'standing-seam-metal',colorHex:'#303638'})
+  }
+})
+
+it('matches current architect clear room dimensions and wall heights and removes the grey floor band', () => {
+  const house=parseProject(data).buildings[0],reference=parseProject(architect).buildings[0]
+  expect(house.walls.map(({finish,openings,...wall})=>wall)).toEqual(reference.walls.map(({finish,openings,...wall})=>wall))
+  expect(house.storeys).toEqual(reference.storeys)
+  for(const room of house.spaces)expect(roomDimensions(house,room)).toEqual(roomDimensions(reference,reference.spaces.find(r=>r.ref===room.ref)!))
+  expect(house.slabs.find(s=>s.ref==='slab/reference-upper')!.edgeColorHex).toBe('#303638')
+  for(const wall of house.walls.filter(w=>w.thicknessM>=.4))expect(['natural-timber','charred-timber']).toContain(wall.finish?.material)
 })
 
 it('keeps draft zoning and user deletions through list, reload and a later published merge without changing architekt', async () => {

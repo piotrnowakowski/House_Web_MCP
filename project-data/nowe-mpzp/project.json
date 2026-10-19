@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp",
   "name": "nowe mpzp",
   "units": "metric",
-  "revision": 8,
-  "updatedAt": "2026-10-19T22:21:37.347Z",
+  "revision": 9,
+  "updatedAt": "2026-10-19T22:40:32.479Z",
   "site": {
     "boundary": [
       {
@@ -1888,7 +1888,8 @@
         "POSTÓJ r7: najbliższe modelowane stanowisko pod wiatą jest około 3,60 m od okna pomieszczenia mieszkalnego (opening/reference-kitchen), poniżej 7 m z §19 WT. Wymaga rozwiązania przed realizacją; pozostałe ograniczenia w raporcie.",
         "WARIANT r8: na wyraźne życzenie użytkownika garaż z warsztatem ustawiony hipotetycznie po 1,50 m od obu sąsiednich granic, pełnymi ścianami bez okien i drzwi, równolegle do domu. Projekt MPZP §7 pkt 3 lit. a przewiduje taką możliwość, ale nie obowiązuje. Rozwiązania przeciwpożarowe i ostateczne odległości wymagają projektu budowlanego.",
         "DOJAZD r8: brama drogowa przesunięta naprzeciwko wiaty. Jeden prosty podjazd o szerokości około 6,40 m kończy się przy dwóch stanowiskach pod wiatą. Usunięto utwardzony przejazd i plac do garażu gospodarczego; obszar wraca do zieleni. Wariant nie zapewnia utwardzonego dojazdu kampera do garażu. Zmiana lokalizacji zjazdu z drogi pozostaje koncepcją do uzgodnienia. Wiata 6,60 × 6,40 m pozostaje przy domu, z prześwitem 3,54 m.",
-        "BILANS r8: część MU 888,81 m²; PBC 569,82 m² (64,11%, zapas 125,42 m² do progu 50%), zabudowa z wiatą 230,12 m² (25,89%), intensywność nadziemna do 0,395. Wyłożony plan nie obowiązuje; to wariant hipotetyczny, nie potwierdzenie pełnej zgodności."
+        "BILANS r8: część MU 888,81 m²; PBC 569,82 m² (64,11%, zapas 125,42 m² do progu 50%), zabudowa z wiatą 230,12 m² (25,89%), intensywność nadziemna do 0,395. Wyłożony plan nie obowiązuje; to wariant hipotetyczny, nie potwierdzenie pełnej zgodności.",
+        "ARCHITEKTURA r9: dom i garaż w spójnym stylu współczesnej stodoły bez wysuniętych okapów. Dach w ciemnym graficie, elewacje w drewnie naturalnym i czernionym, drewno przy wejściach i na szczycie wjazdowym garażu, smukłe ramy przeszkleń. Brak szarego pasa stropu; wymiary wnętrz zgodne z architekt r10. Połacie domu 38,8097° / 39,2352°, garażu 37°; wspólna kalenica domu zachowana. Detal ukrytego odwodnienia, obróbek i zgodność materiałów z ostatecznym planem wymagają opracowania wykonawczego."
       ]
     }
   },
@@ -1906,7 +1907,9 @@
           "Prior custom projecting terrace roof and courtyard canopy removed to follow the corrected roof outline; r5 preserved as the immutable pre-correction snapshot. Existing dark metal/timber finishes and shaped gable glazing retained pending elevations.",
           "Source SHA-256: 0846e1ca5c545aa343a5cb4c471114e6086ae091eb23504d66504fa68fd79dce",
           "2026-10-16 follow-up: user requested temporarily removing all timber corner frames. All six frames are removed; 0.60 m eaves, roof geometry and corrected floor plans remain unchanged. Complete framed r6 is preserved in before-remove-eaves-frames-r6.json.",
-          "Kopia architekt r7; przesunięcie w stronę ogrodu +4.328 m w osi z, bez zmiany wnętrza i dachów."
+          "Kopia architekt r7; przesunięcie w stronę ogrodu +4.328 m w osi z, bez zmiany wnętrza i dachów.",
+          "20.10.2026 — wariant nowe mpzp r9: na życzenie użytkownika usunięty wysięg okapów poza lico ścian. Parametr od osi ściany wynosi 0.225 m i wyłącznie pokrywa połowę jej grubości. Ciemna blacha dachu i czernione drewno elewacji, drewno przy wejściach, smukłe ramy szczytów. Gabaryty, wnętrza, otwory i kąty połaci zachowane. Ukryte odwodnienie i obróbki są założeniem do projektu wykonawczego, bez modelowanych rynien.",
+          "20.10.2026 — doprecyzowanie użytkownika: wszystkie wymiary wewnętrzne i wysokości kondygnacji porównane z architekt r10; zgodne. Przeniesiona korekta wysokości ściany przy pustce salonu z 2,80 do 1,40 m, zgodnie z architektem. Drewno naturalne i czernione; krawędź stropu w kolorze czarnych ścian, bez szarego pasa."
         ]
       },
       "furniture": [
@@ -2646,7 +2649,7 @@
           ],
           "topElevationM": 3.75,
           "thicknessM": 0.5,
-          "edgeColorHex": "#2D3435",
+          "edgeColorHex": "#303638",
           "locked": false
         }
       ],
@@ -2742,7 +2745,7 @@
           "openings": [],
           "finish": {
             "material": "natural-timber",
-            "colorHex": "#BD9C73"
+            "colorHex": "#AD845B"
           },
           "locked": false
         },
@@ -2762,7 +2765,7 @@
           "openings": [],
           "finish": {
             "material": "natural-timber",
-            "colorHex": "#BD9C73"
+            "colorHex": "#AD845B"
           },
           "locked": false
         },
@@ -2903,7 +2906,7 @@
           ],
           "finish": {
             "material": "natural-timber",
-            "colorHex": "#BD9C73"
+            "colorHex": "#AD845B"
           },
           "locked": false
         },
@@ -2923,7 +2926,7 @@
           "openings": [],
           "finish": {
             "material": "natural-timber",
-            "colorHex": "#BD9C73"
+            "colorHex": "#AD845B"
           },
           "locked": false
         },
@@ -2975,8 +2978,8 @@
           "heightM": 2.8,
           "openings": [],
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
+            "material": "charred-timber",
+            "colorHex": "#303638",
             "textureId": "none"
           },
           "locked": false
@@ -2996,8 +2999,8 @@
           "heightM": 2.8,
           "openings": [],
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
+            "material": "charred-timber",
+            "colorHex": "#303638",
             "textureId": "none"
           },
           "locked": false
@@ -3102,7 +3105,7 @@
           "openings": [],
           "finish": {
             "material": "natural-timber",
-            "colorHex": "#BD9C73"
+            "colorHex": "#AD845B"
           },
           "locked": false
         },
@@ -3218,7 +3221,7 @@
           "openings": [],
           "finish": {
             "material": "natural-timber",
-            "colorHex": "#BD9C73"
+            "colorHex": "#AD845B"
           },
           "locked": false
         },
@@ -3254,7 +3257,8 @@
           ],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -3305,7 +3309,8 @@
           ],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -3338,7 +3343,7 @@
           ],
           "finish": {
             "material": "natural-timber",
-            "colorHex": "#BD9C73"
+            "colorHex": "#AD845B"
           },
           "locked": false
         },
@@ -3358,7 +3363,7 @@
           "openings": [],
           "finish": {
             "material": "natural-timber",
-            "colorHex": "#BD9C73"
+            "colorHex": "#AD845B"
           },
           "locked": false
         },
@@ -3391,7 +3396,7 @@
           ],
           "finish": {
             "material": "natural-timber",
-            "colorHex": "#BD9C73"
+            "colorHex": "#AD845B"
           },
           "locked": false
         },
@@ -3411,7 +3416,8 @@
           "openings": [],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -3519,7 +3525,8 @@
           ],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -3552,7 +3559,8 @@
           ],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -3626,7 +3634,8 @@
           "openings": [],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -3662,7 +3671,8 @@
           ],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -3811,7 +3821,8 @@
           "openings": [],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -3844,7 +3855,8 @@
           ],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -3885,7 +3897,8 @@
           "openings": [],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -3901,11 +3914,11 @@
           },
           "thicknessM": 0.45,
           "baseElevationM": 3.75,
-          "heightM": 2.8,
+          "heightM": 1.4,
           "openings": [],
           "finish": {
-            "material": "light-render",
-            "colorHex": "#E9E5DC",
+            "material": "charred-timber",
+            "colorHex": "#303638",
             "textureId": "none"
           },
           "locked": false
@@ -3957,7 +3970,8 @@
           ],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -3977,7 +3991,8 @@
           "openings": [],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         }
@@ -4543,7 +4558,7 @@
         "type": "gable",
         "baseElevationM": 5.1499999999999995,
         "pitchDegrees": 38.80970948175883,
-        "overhangM": 0.825,
+        "overhangM": 0.225,
         "footprint": [
           {
             "x": -4.84,
@@ -4572,7 +4587,7 @@
         ],
         "finish": {
           "material": "standing-seam-metal",
-          "colorHex": "#2D3435"
+          "colorHex": "#303638"
         },
         "segments": [
           {
@@ -4599,11 +4614,11 @@
             "baseElevationM": 5.1499999999999995,
             "type": "gable",
             "pitchDegrees": 38.80970948175883,
-            "overhangM": 0.825,
+            "overhangM": 0.225,
             "ridgeDirection": "z",
             "finish": {
               "material": "standing-seam-metal",
-              "colorHex": "#2D3435"
+              "colorHex": "#303638"
             },
             "adjacentSegmentRefs": [
               "roof/reference/rear-barn"
@@ -4611,17 +4626,17 @@
             "gableWallFinishes": {
               "min": {
                 "material": "charred-timber",
-                "colorHex": "#242927"
+                "colorHex": "#303638"
               },
               "max": {
                 "material": "charred-timber",
-                "colorHex": "#242927"
+                "colorHex": "#303638"
               }
             },
             "gableFrame": {
-              "widthM": 0.4,
-              "depthM": 0.26,
-              "colorHex": "#343a3e"
+              "widthM": 0.16,
+              "depthM": 0.12,
+              "colorHex": "#252C2D"
             },
             "gableGlazing": {
               "min": {
@@ -4673,11 +4688,11 @@
             "baseElevationM": 5.1499999999999995,
             "type": "gable",
             "pitchDegrees": 39.2352369450212,
-            "overhangM": 0.825,
+            "overhangM": 0.225,
             "ridgeDirection": "x",
             "finish": {
               "material": "standing-seam-metal",
-              "colorHex": "#2D3435"
+              "colorHex": "#303638"
             },
             "adjacentSegmentRefs": [
               "roof/reference/front-barn"
@@ -4685,17 +4700,17 @@
             "gableWallFinishes": {
               "min": {
                 "material": "charred-timber",
-                "colorHex": "#242927"
+                "colorHex": "#303638"
               },
               "max": {
                 "material": "charred-timber",
-                "colorHex": "#242927"
+                "colorHex": "#303638"
               }
             },
             "gableFrame": {
-              "widthM": 0.4,
-              "depthM": 0.26,
-              "colorHex": "#343a3e"
+              "widthM": 0.16,
+              "depthM": 0.12,
+              "colorHex": "#252C2D"
             },
             "gableGlazing": {
               "max": {
@@ -4913,7 +4928,8 @@
         "notes": [
           "Zastępuje wcześniejszy budynek koncepcyjny w polu tylko w tym podprojekcie.",
           "Światło stanowiska 4,50 × 9,00 m; brama 3,50 × 3,50 m; warsztat 4,50 × 3,30 m. Kamper referencyjny 7,40 × 2,35 × 3,10 m.",
-          "Korekta użytkownika: obrót 90°, długi bok wzdłuż czerwonego zaznaczenia. Brama od strony domu/podjazdu; obrys manewrowania rzeczywistym kamperem wymaga sprawdzenia."
+          "Korekta użytkownika: obrót 90°, długi bok wzdłuż czerwonego zaznaczenia. Brama od strony domu/podjazdu; obrys manewrowania rzeczywistym kamperem wymaga sprawdzenia.",
+          "20.10.2026 — wariant nowe mpzp r9: na życzenie użytkownika usunięty wysięg okapów poza lico ścian. Parametr od osi ściany wynosi 0.15 m i wyłącznie pokrywa połowę jej grubości. Ciemna blacha dachu i czernione drewno elewacji, drewno przy wejściach, smukłe ramy szczytów. Gabaryty, wnętrza, otwory i kąty połaci zachowane. Ukryte odwodnienie i obróbki są założeniem do projektu wykonawczego, bez modelowanych rynien."
         ]
       },
       "furniture": [
@@ -5067,8 +5083,8 @@
             }
           ],
           "finish": {
-            "material": "charred-timber",
-            "colorHex": "#242927"
+            "material": "natural-timber",
+            "colorHex": "#AD845B"
           },
           "locked": false
         },
@@ -5088,7 +5104,8 @@
           "openings": [],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -5138,7 +5155,8 @@
           "openings": [],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -5158,7 +5176,8 @@
           "openings": [],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -5178,7 +5197,8 @@
           "openings": [],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         },
@@ -5209,7 +5229,8 @@
           ],
           "finish": {
             "material": "charred-timber",
-            "colorHex": "#242927"
+            "colorHex": "#303638",
+            "textureId": "none"
           },
           "locked": false
         }
@@ -5287,7 +5308,7 @@
         "type": "gable",
         "baseElevationM": 3.95,
         "pitchDegrees": 37,
-        "overhangM": 0.6,
+        "overhangM": 0.15,
         "footprint": [
           {
             "x": -2.4,
@@ -5308,7 +5329,7 @@
         ],
         "finish": {
           "material": "standing-seam-metal",
-          "colorHex": "#2D3435"
+          "colorHex": "#303638"
         },
         "segments": [
           {
@@ -5335,21 +5356,21 @@
             "baseElevationM": 3.95,
             "type": "gable",
             "pitchDegrees": 37,
-            "overhangM": 0.6,
+            "overhangM": 0.15,
             "ridgeDirection": "z",
             "finish": {
               "material": "standing-seam-metal",
-              "colorHex": "#2D3435"
+              "colorHex": "#303638"
             },
             "adjacentSegmentRefs": [],
             "gableWallFinishes": {
               "min": {
-                "material": "charred-timber",
-                "colorHex": "#242927"
+                "material": "natural-timber",
+                "colorHex": "#AD845B"
               },
               "max": {
                 "material": "charred-timber",
-                "colorHex": "#242927"
+                "colorHex": "#303638"
               }
             }
           }
