@@ -493,3 +493,8 @@ Po korekcie użytkownika wycofano nieopublikowane odsunięcie wiaty r5 (deploy p
 ## 2026-10-19 — architekt r9, two-car canopy
 
 User replaces the camper canopy with two side-by-side cars in project/architekt. Previous canonical r8 is preserved in ../architekt/before-two-cars-r8.json; immutable baselines remain intact. Current Chrome/IAB captures in tmp/architekt-two-cars-20261019 confirm no independent architekt edits after per-origin, reference-based comparison. Shared version 4/r9 merges from canonical r8 to r9 with proposal/draft retention and optimistic concurrency. The 6 x 6 m canopy has 2.50 m minimum clearance and moves 5.31 m farther behind the house to preserve the saved boundary margin and avoid house overlap. Main roof geometry is unchanged and recomputed; details, conceptual access/approval limitations and tests are in ../architekt/README.md. Existing Główny, Paulina and nowe-mpzp identities and data remain independent; main/Pages are frozen.
+
+
+## nowe mpzp r7 — przesunięcie wiaty do końca domu
+
+Źródłem jest kanoniczny r6 (zachowany w before-canopy-shift-r6.json), odpowiadający shared serverVersion 2/r6, oraz ostatnie doprecyzowanie użytkownika. Wiatę 6,60 × 6,40 m przesunięto 4,55 m do końca ściany domu; nie wydłużono ani nie poszerzono jej. Zachowano dwa auta, połączenie z domem i wspólny przejazd, dopasowując jedną strefę dojazdu. PBC 62,09%, zabudowa 25,89%, intensywność do 0,395. Dachy, ograniczenia i wyniki w ../nowe-mpzp/BILANS-r7.md oraz README. Kopie rzeczywistych Chrome/IAB w tmp/nowe-mpzp-r7-20261020; publiczne kopie scalają się bez konfliktów, lokalny konflikt caveats r1 zachowany bez nadpisania. Osobny architekt r9 oraz pozostałe projekty pozostają bez zmian. Main/Pages bez zmian.

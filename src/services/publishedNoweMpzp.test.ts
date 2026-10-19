@@ -3,7 +3,7 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import initial from '../../project-data/nowe-mpzp/initial-r1.json'
-import previous from '../../project-data/nowe-mpzp/before-connected-carport-r5.json'
+import previous from '../../project-data/nowe-mpzp/before-canopy-shift-r6.json'
 import architect from '../../project-data/architekt/project.json'
 import source from '../../project-data/nowe-mpzp/source-architekt-r7.json'
 import { parseProject } from '../domain/schema'
@@ -43,10 +43,17 @@ it('moves only the independent house, preserves cadastral parcels and contains r
   const local=(v:{x:number,z:number})=>({x:(v.x-house.position.x)*Math.cos(angle)-(v.z-house.position.z)*Math.sin(angle),z:(v.x-house.position.x)*Math.sin(angle)+(v.z-house.position.z)*Math.cos(angle)})
   const canopy=polygonBounds(buildingFootprintsWorld(carport)[0].map(local)), home=polygonBounds(buildingFootprintsWorld(house)[0].map(local))
   expect(home.minX-canopy.maxX).toBeCloseTo(0,8)
+  expect(canopy.minZ).toBeCloseTo(home.minZ,8)
+  expect(canopy.maxZ-canopy.minZ).toBeCloseTo(6.4)
+  expect(carport.slabs).toEqual(previous.buildings[1].slabs)
+  expect(carport.roof).toEqual(previous.buildings[1].roof)
+  expect(carport.furniture).toEqual(previous.buildings[1].furniture)
+  expect(carport.roof.footprint).toEqual(carport.slabs[0].footprint)
+  expect(carport.roof.segments[0].footprint).toEqual(carport.slabs[0].footprint)
   const access=p.landscape.zones.find(z=>z.ref==='zone/driveway')!.footprint.map(local)
   // The house-side parking bay is the single through route; its front and rear remain connected.
   for(const x of [-8.864,-5.366])for(const z of [-2,0,4,8,9.3])expect(pointInPolygon({x,z},access)).toBe(true)
-  for(const x of [-8.864,-5.366])for(const z of [-2,0,4])expect(pointInPolygon({x,z},buildingFootprintsWorld(carport)[0].map(local))).toBe(true)
+  for(const x of [-8.864,-5.366])for(const z of [-6.6,-2,-.21])expect(pointInPolygon({x,z},buildingFootprintsWorld(carport)[0].map(local))).toBe(true)
   const wings=roofWings(house)
   for (const wing of wings) {
     const b=polygonBounds(wing.footprint), span=wing.ridgeAxis==='z'?b.maxX-b.minX:b.maxZ-b.minZ
