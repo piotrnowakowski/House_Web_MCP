@@ -3,12 +3,12 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import initial from '../../project-data/nowe-mpzp/initial-r1.json'
-import previous from '../../project-data/nowe-mpzp/before-shared-access-r3.json'
+import previous from '../../project-data/nowe-mpzp/before-house-lane-r4.json'
 import architect from '../../project-data/architekt/project.json'
 import source from '../../project-data/nowe-mpzp/source-architekt-r7.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
-import { polygonArea, polygonBounds, buildingFootprintsWorld, distanceToSegment } from '../domain/geometry'
+import { polygonArea, polygonBounds, buildingFootprintsWorld, distanceToSegment, pointInPolygon } from '../domain/geometry'
 import { roofWings, gableRoofJunction, gableWallsForBuilding } from '../domain/roofWings'
 import { roomDimensions } from '../domain/roomDimensions'
 import { landUseAreas } from '../domain/zoning'
@@ -37,6 +37,13 @@ it('moves only the independent house, preserves cadastral parcels and contains r
   expect(postBounds.maxX-postBounds.minX-posts.postWidthM).toBeGreaterThanOrEqual(5)
   expect(p.landscape.zones.filter(z=>z.kind==='driveway')).toHaveLength(1)
   expect(p.landscape.zones.some(z=>['zone/path','zone/nowe-mpzp/carport-access','zone/outbuilding/apron'].includes(z.ref))).toBe(false)
+  const angle=house.rotationDegrees*Math.PI/180
+  const local=(v:{x:number,z:number})=>({x:(v.x-house.position.x)*Math.cos(angle)-(v.z-house.position.z)*Math.sin(angle),z:(v.x-house.position.x)*Math.sin(angle)+(v.z-house.position.z)*Math.cos(angle)})
+  const canopy=polygonBounds(buildingFootprintsWorld(carport)[0].map(local)), home=polygonBounds(buildingFootprintsWorld(house)[0].map(local))
+  expect(home.minX-canopy.maxX).toBeCloseTo(3.83)
+  const access=p.landscape.zones.find(z=>z.ref==='zone/driveway')!.footprint.map(local)
+  // Check both sides of the 3.50 m house-side lane, including its approach and rear connection.
+  for(const x of [-8.764,-5.266])for(const z of [-2,0,4,8,9.3])expect(pointInPolygon({x,z},access)).toBe(true)
   const wings=roofWings(house)
   for (const wing of wings) {
     const b=polygonBounds(wing.footprint), span=wing.ridgeAxis==='z'?b.maxX-b.minX:b.maxZ-b.minZ
@@ -83,6 +90,8 @@ it('keeps draft zoning and user deletions through list, reload and a later publi
   expect(await synchronizePublishedNoweMpzp()).toEqual([])
   expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[2].position).toEqual(data.buildings[2].position)
   expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[2].rotationDegrees).toBe(data.buildings[2].rotationDegrees)
+  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[1].position).toEqual(data.buildings[1].position)
+  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.landscape.zones).toEqual(data.landscape.zones)
   const next=parseProject(data); next.revision++; next.buildings[2].name='Garaż i warsztat — opis'
   expect(await synchronizePublishedProject(next,parseProject(data))).toEqual([])
   const saved=(await loadWorkspace(NOWE_MPZP_REF))!

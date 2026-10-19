@@ -477,3 +477,10 @@ Na prośbę użytkownika osobny project/nowe-mpzp ustawiono równolegle do domu,
 Po doprecyzowaniu i potwierdzeniu użytkownika usunięto tylne okno garażu, dosunięto go do 3 m od obu granic i zastąpiono dodatkowe pasy przejazdu jedną wspólną strefą dojazdu do wiaty oraz garażu kampera. Wiata 5,60 × 6,40 m ma dwa auta i 5,12 m światła między słupami. PBC części MU wzrasta do 58,31%, zabudowa z wiatą 25,17%, intensywność do 0,387. Źródła i nadal otwarte wymagania: ../nowe-mpzp/BILANS-r4.md.
 
 Kanoniczny r3 i jego poprzedni raport zachowano; źródło nowego układu to r3 i jawna korekta użytkownika. Ponowne kopie rzeczywistych Chrome/IAB: tmp/nowe-mpzp-r4-20261019. Ten sam lokalny konflikt listy ostrzeżeń r1 zachowano w kopii; brak zapisu do tego originu. Shared Mikrus sprawdzany ponownie przed CAS, z zachowaniem pełnej historii i bez zmiany projektów źródłowych.
+
+
+## 2026-10-19 — nowe mpzp r5: pas przy domu
+
+Ostatnie doprecyzowanie użytkownika zastępuje układ r4 jednym pasem 3,50 m między domem a wiatą na dwa auta, dalej do wspólnego placu i garażu. Wiata przesunięta w stronę wjazdu, aby pozostawić około 7,76 m przed garażem; kamper omija jej niski dach. Kanoniczny r4 zachowany jako ../nowe-mpzp/before-house-lane-r4.json. PBC r5 wynosi 55,54%, zabudowa 25,17%, intensywność do 0,387. Wykryto nierozstrzygniętą odległość stanowiska pod wiatą od okna pokoju dzieci: około 5,91 m wobec 7 m z §19 WT. Pełne źródła i ograniczenia w ../nowe-mpzp/BILANS-r5.md.
+
+Źródło to kanoniczny r4 i ostatnia korekta użytkownika; kopie rzeczywistych Chrome/IAB oraz porównania ref/base są w tmp/nowe-mpzp-r5-20261019. Lokalny konflikt caveats zachowany. Nie resetowano IndexedDB. W międzyczasie opublikowany niezależnie architekt r8 (a4eace6) pozostaje w wydaniu. Wspólny nowe-mpzp aktualizowany warunkowo po odczycie świeżej wersji serwera; źródła i historie pozostają zachowane. Main/Pages bez zmian.
