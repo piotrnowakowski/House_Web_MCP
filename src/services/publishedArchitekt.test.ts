@@ -5,11 +5,12 @@ import data from '../../project-data/architekt/project.json'
 import beforeCorrection from '../../project-data/architekt/before-correction-r5.json'
 import beforeFrameRemoval from '../../project-data/architekt/before-remove-eaves-frames-r6.json'
 import beforeFacadeFix from '../../project-data/architekt/before-facade-carport-r7.json'
+import beforeTwoCars from '../../project-data/architekt/before-two-cars-r8.json'
 import source from '../../project-data/architekt/source-glowny-r79.json'
 import main from '../../project-data/zielonki-rear-bath-room/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
-import { polygonArea, polygonBounds } from '../domain/geometry'
+import { buildingFootprintsWorld, distanceToSegment, pointInPolygon, pointOnPolygonBoundary, polygonArea, polygonBounds } from '../domain/geometry'
 import { roomDimensions } from '../domain/roomDimensions'
 import { roofWings, gableRoofJunction, gableWallsForBuilding } from '../domain/roofWings'
 import { gableGlazingProfile } from '../domain/gableGlazing'
@@ -106,7 +107,7 @@ it('keeps the complete 60 cm eaves outside agricultural land after removing the 
   expect(house.roof).toEqual(parseProject(beforeFrameRemoval).buildings[0].roof)
 })
 
-it.each([beforeCorrection,beforeFrameRemoval,beforeFacadeFix])('migrates architect r$revision, retaining unrelated edits and deletions through reload',async(previous)=>{
+it.each([beforeCorrection,beforeFrameRemoval,beforeFacadeFix,beforeTwoCars])('migrates architect r$revision, retaining unrelated edits and deletions through reload',async(previous)=>{
   const before=parseProject(previous)
   await synchronizePublishedProject(before,before)
   const local=(await loadWorkspace(ARCHITEKT_REF))!
@@ -122,6 +123,8 @@ it.each([beforeCorrection,beforeFrameRemoval,beforeFacadeFix])('migrates archite
   expect(migrated.project.buildings[0].spaces.find(s=>s.ref==='space/reference-office')!.floorFinish!.color).toBe('#123456')
   expect(migrated.project.buildings[1].furniture!.some(f=>f.ref===deleted)).toBe(false)
   expect(migrated.project.buildings[1].walls.flatMap(w=>w.openings).some(o=>o.ref==='opening/outbuilding/workshop-window')).toBe(false)
+  const carport=migrated.project.buildings.find(b=>b.ref==='building/south-carport')!
+  expect(carport.furniture!.map(f=>f.catalogId)).toEqual(['car','car'])
   await saveWorkspace(migrated)
   expect(await synchronizePublishedArchitekt()).toEqual([])
   expect((await loadWorkspace(ARCHITEKT_REF))!.project).toEqual(migrated.project)
@@ -137,7 +140,7 @@ it('preserves a locally deleted office window and both complete versions when pu
   await saveWorkspace(local)
   expect(await synchronizePublishedArchitekt()).toEqual(['/buildings/house/main/walls/wall/architekt/ground/9/openings/opening/reference-office-window'])
   expect((await loadWorkspace(ARCHITEKT_REF))!.project).toEqual(local.project)
-  expect((await listWorkspaces()).some(w=>w.ref.includes('/published-8-'))).toBe(true)
+  expect((await listWorkspaces()).some(w=>w.ref.includes(`/published-${data.revision}-`))).toBe(true)
 })
 
 it('repairs the photographed facade, continuous gable and corner opening without changing the rooms or roof',()=>{
@@ -160,20 +163,31 @@ it('repairs the photographed facade, continuous gable and corner opening without
   expect(length-opening.offsetM-opening.widthM/2).toBeCloseTo(.225,8)
 })
 
-it('fits the camper beneath the rear canopy with clear fascia, posts and site boundaries',()=>{
+it('fits two cars side by side beneath the rear canopy, clear of posts, house and site boundaries',()=>{
   const project=parseProject(data),carport=project.buildings.find(b=>b.ref==='building/south-carport')!
-  const roof=carport.roof.segments[0],canopy=roof.canopy!,camper=carport.furniture![0]
+  const roof=carport.roof.segments[0],canopy=roof.canopy!,cars=carport.furniture!
   const bounds=polygonBounds(roof.footprint),floor=carport.slabs[0].topElevationM
-  expect(bounds.maxX-bounds.minX).toBeCloseTo(4.2,8)
-  expect(bounds.maxZ-bounds.minZ).toBeCloseTo(8.6,8)
+  expect(bounds.maxX-bounds.minX).toBeCloseTo(6,8)
+  expect(bounds.maxZ-bounds.minZ).toBeCloseTo(6,8)
   const clearance=Math.min(roof.baseElevationM-.025,roof.baseElevationM+.24-canopy.fasciaHeightM)-floor
-  expect(clearance).toBeCloseTo(3.5,8)
-  expect(clearance-camper.heightM).toBeGreaterThanOrEqual(.299)
-  expect(itemFitsFloor(camper,carport.slabs[0].footprint)).toBe(true)
-  for(const post of canopy.posts){
-    expect(Math.abs(post.x-camper.position.x)-canopy.postWidthM/2).toBeGreaterThan(camper.widthM/2)
+  expect(clearance).toBeCloseTo(2.5,8)
+  expect(cars.map(c=>c.catalogId)).toEqual(['car','car'])
+  expect(cars[0].position.z).toBe(cars[1].position.z)
+  expect(cars[1].position.x-cars[0].position.x).toBeCloseTo(2.76,8)
+  for(const car of cars){
+    expect(clearance-car.heightM).toBeGreaterThanOrEqual(1)
+    expect(itemFitsFloor(car,carport.slabs[0].footprint)).toBe(true)
+    for(const post of canopy.posts){
+      expect(Math.abs(post.x-car.position.x)-canopy.postWidthM/2).toBeGreaterThan(car.widthM/2)
+    }
   }
   const angle=carport.rotationDegrees*Math.PI/180
   const world=roof.footprint.map(p=>({x:carport.position.x+p.x*Math.cos(angle)+p.z*Math.sin(angle),z:carport.position.z-p.x*Math.sin(angle)+p.z*Math.cos(angle)}))
+  expect(world.every(p=>pointInPolygon(p,project.site.boundary))).toBe(true)
+  expect(Math.min(...world.flatMap(p=>project.site.boundary.map((q,i)=>distanceToSegment(p,q,project.site.boundary[(i+1)%project.site.boundary.length]))))).toBeGreaterThan(3)
+  expect(buildingFootprintsWorld(project.buildings[0]).some(f=>interiorsOverlap(f,world))).toBe(false)
   expect(landUseAreas(project).filter(z=>z.landRole==='agricultural'&&interiorsOverlap(world,z.boundary))).toEqual([])
+  expect(project.buildings.filter(b=>b.ref!==carport.ref)).toEqual(parseProject(beforeTwoCars).buildings.filter(b=>b.ref!==carport.ref))
+  const apron=project.landscape.zones.find(z=>z.ref==='zone/architekt/carport-apron')!
+  expect(world.every(p=>pointInPolygon(p,apron.footprint)||pointOnPolygonBoundary(p,apron.footprint))).toBe(true)
 })

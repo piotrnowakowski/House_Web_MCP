@@ -3,8 +3,8 @@
   "ref": "project/architekt",
   "name": "architekt",
   "units": "metric",
-  "revision": 8,
-  "updatedAt": "2026-10-19T19:26:41.404Z",
+  "revision": 9,
+  "updatedAt": "2026-10-19T21:48:42.274Z",
   "site": {
     "boundary": [
       {
@@ -5508,23 +5508,38 @@
     {
       "furniture": [
         {
-          "ref": "interior/carport/camper",
-          "catalogId": "camper",
+          "ref": "interior/carport/car-1",
+          "catalogId": "car",
           "storeyRef": "storey/carport",
-          "name": "Kamper · obrys 7,50 × 2,50 × 3,20 m",
+          "name": "Auto 1 · 1,90 × 4,70 m",
           "position": {
-            "x": -7.905,
-            "z": -4.995
+            "x": -8.385000000000002,
+            "z": -10.305
           },
-          "widthM": 2.5,
-          "depthM": 7.5,
-          "heightM": 3.2,
-          "rotationDegrees": 180,
-          "color": "#deddd4"
+          "widthM": 1.9,
+          "depthM": 4.7,
+          "heightM": 1.5,
+          "rotationDegrees": 0,
+          "color": "#89969e"
+        },
+        {
+          "ref": "interior/carport/car-2",
+          "catalogId": "car",
+          "storeyRef": "storey/carport",
+          "name": "Auto 2 · 1,90 × 4,70 m",
+          "position": {
+            "x": -5.625000000000001,
+            "z": -10.305
+          },
+          "widthM": 1.9,
+          "depthM": 4.7,
+          "heightM": 1.5,
+          "rotationDegrees": 0,
+          "color": "#d1cfc6"
         }
       ],
       "ref": "building/south-carport",
-      "name": "Wiata z tyłu · kamper · 4,20 × 8,60 m",
+      "name": "Wiata z tyłu · 2 auta · 6,00 × 6,00 m",
       "kind": "garage",
       "architecturalStyle": "barn",
       "position": {
@@ -5538,7 +5553,7 @@
           "name": "Parking",
           "level": 0,
           "elevationM": 0.45,
-          "clearHeightM": 3.56,
+          "clearHeightM": 2.56,
           "baseSlabRef": "slab/carport",
           "topBoundaryRef": "roof/carport",
           "wallRefs": [],
@@ -5553,19 +5568,19 @@
           "footprint": [
             {
               "x": -10.005,
-              "z": -9.295
+              "z": -13.305
             },
             {
-              "x": -5.805000000000001,
-              "z": -9.295
+              "x": -4.005000000000001,
+              "z": -13.305
             },
             {
-              "x": -5.805000000000001,
-              "z": -0.6950000000000003
+              "x": -4.005000000000001,
+              "z": -7.305
             },
             {
               "x": -10.005,
-              "z": -0.6950000000000003
+              "z": -7.305
             }
           ],
           "topElevationM": 0.45,
@@ -5580,25 +5595,25 @@
       "roof": {
         "ref": "roof/carport",
         "type": "flat",
-        "baseElevationM": 4.01,
+        "baseElevationM": 3.01,
         "pitchDegrees": 0,
         "overhangM": 0,
         "footprint": [
           {
             "x": -10.005,
-            "z": -9.295
+            "z": -13.305
           },
           {
-            "x": -5.805000000000001,
-            "z": -9.295
+            "x": -4.005000000000001,
+            "z": -13.305
           },
           {
-            "x": -5.805000000000001,
-            "z": -0.6950000000000003
+            "x": -4.005000000000001,
+            "z": -7.305
           },
           {
             "x": -10.005,
-            "z": -0.6950000000000003
+            "z": -7.305
           }
         ],
         "finish": {
@@ -5611,23 +5626,23 @@
             "footprint": [
               {
                 "x": -10.005,
-                "z": -9.295
+                "z": -13.305
               },
               {
-                "x": -5.805000000000001,
-                "z": -9.295
+                "x": -4.005000000000001,
+                "z": -13.305
               },
               {
-                "x": -5.805000000000001,
-                "z": -0.6950000000000003
+                "x": -4.005000000000001,
+                "z": -7.305
               },
               {
                 "x": -10.005,
-                "z": -0.6950000000000003
+                "z": -7.305
               }
             ],
             "storeyRef": "storey/carport",
-            "baseElevationM": 4.01,
+            "baseElevationM": 3.01,
             "type": "flat",
             "pitchDegrees": 0,
             "overhangM": 0,
@@ -5652,19 +5667,19 @@
               "posts": [
                 {
                   "x": -9.845,
-                  "z": -9.135
+                  "z": -13.145
                 },
                 {
                   "x": -9.845,
-                  "z": -0.855
+                  "z": -7.465
                 },
                 {
-                  "x": -5.965,
-                  "z": -9.135
+                  "x": -4.165000000000001,
+                  "z": -13.145
                 },
                 {
-                  "x": -5.965,
-                  "z": -0.855
+                  "x": -4.165000000000001,
+                  "z": -7.465
                 }
               ]
             }
@@ -5911,23 +5926,31 @@
       },
       {
         "ref": "zone/architekt/carport-apron",
-        "name": "Nawierzchnia pod wiatą na kamper",
+        "name": "Dojazd i wiata na dwa auta",
         "kind": "driveway",
         "footprint": [
           {
-            "x": 1.2963010294495243,
-            "z": -13.1661892608843
+            "x": 5.3005488069453195,
+            "z": -13.380897752611986
           },
           {
-            "x": 1.5211827414835097,
-            "z": -8.972214032584462
+            "x": 5.621808395565298,
+            "z": -7.389504569326506
           },
           {
-            "x": -7.066480821225678,
+            "x": -0.3695847877201812,
+            "z": -7.068244980706527
+          },
+          {
+            "x": -0.4659626643061747,
+            "z": -8.86566293569217
+          },
+          {
+            "x": -7.066480821225679,
             "z": -8.511741955562494
           },
           {
-            "x": -7.291362533259663,
+            "x": -7.291362533259664,
             "z": -12.705717183862332
           }
         ],

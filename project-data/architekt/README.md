@@ -1,6 +1,16 @@
 # architekt
 
-Independent project `project/architekt`, reconstructed on 2026-10-11 from the three user-supplied architect PDFs and GŁÓWNY. Current canonical revision **r8**, corrected and published on Mikrus on 2026-10-19. Earlier revision notes below remain historical evidence.
+Independent project `project/architekt`, reconstructed on 2026-10-11 from the three user-supplied architect PDFs and GŁÓWNY. Current canonical revision **r9**, replacing the camper canopy with a two-car canopy on 2026-10-19. Earlier revision notes below remain historical evidence.
+
+## Two cars instead of the camper — 2026-10-19, r9
+
+The user requested a canopy for two cars in this existing project. The two cars stand side by side beneath a **6.00 × 6.00 m** canopy, with **5.52 × 5.52 m** inside the corner posts and **2.50 m** minimum fascia clearance. Each existing `car` catalogue envelope is 1.90 × 4.70 × 1.50 m; the 2.76 m centre spacing leaves 0.86 m between the body envelopes. The camper is removed; building, slab, roof and apron refs are retained. `before-two-cars-r8.json` preserves the complete previous camper design; immutable `initial-r1.json` remains unchanged.
+
+To fit the wider canopy without intersecting the house or reducing the approximately 3.06 m saved external boundary margin, its centre shifts **5.31 m farther behind the house** and 0.90 m toward the house axis. Local roof bounds are x=-10.005..-4.005, z=-13.305..-7.305, with 0.70 m to the house's end in plan. The existing apron is retained and extended to the new roof footprint. Floor datum remains 0.45 m, roof base is 3.01 m and flat roof top 3.25 m. The roof, posts, two vehicle envelopes and paving do not overlap the house or saved agricultural areas. House, windows, rooms, main roofs and the separate garden building are unchanged. The parking arrangement and swept turning paths remain conceptual; nearby windows and construction sizing still require professional review as documented below.
+
+Final recomputation retains symmetric main slopes **38.8097094818° / 39.2352369450°**, 7.30/7.19 m spans, eaves **5.15 m** and common model ridge **8.0856938754 m**. The perpendicular valley remains recognized at (-1.19,-2.985), with its hidden gable omitted. The flat canopy is separate from the main roof geometry and does not establish whole-building planning compliance.
+
+Actual Chrome Default and Codex IAB captures are in ignored `tmp/architekt-two-cars-20261019/{chrome-before,iab-before}/`. Chrome HTTP/HTTPS r5/base5 and IAB local r11/base8, HTTP r8/base8, HTTPS r9/base8 merge by refs to r9 without independent design changes or conflicts. Shared architekt version 4/r9 contains canonical r8 and merges from the preserved r8 baseline while retaining proposals/drafts. The conditional publication refuses concurrent server changes. All **582 tests**, TypeScript/lint and root-path production build pass, including r8 migration, camper removal, independent edits/deletions, reload, two-car clearance, boundary and house-overlap checks. Fresh local production preview seeds r9; public readback, deployment SHA, backups and screenshots are recorded in the release evidence directory. Other project data and main/Pages are untouched.
 
 ## Photographed facade repairs and rear camper canopy — 2026-10-19, r8
 
