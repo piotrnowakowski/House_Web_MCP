@@ -5,6 +5,7 @@ import { mergeProjects, sameProject } from '../domain/projectMerge'
 import { stableJson } from '../domain/workspaceSync'
 import type { PersistedWorkspace, Polygon2, ProjectV2, ProposalRecord } from '../domain/types'
 import { zielonkiKnowledgeBase, zielonkiPlot } from '../../knowledge-bank/zielonki/data'
+import { usesDraftPlan } from '../../knowledge-bank/zielonki/draftPlan'
 
 const DB_NAME = 'house-web-mcp'
 const STORE_NAME = 'projects'
@@ -49,6 +50,8 @@ const allEntries = async () => {
 }
 
 const refreshZielonkiKnowledge = (project: ProjectV2) => {
+  // This independent planning study must not migrate back to the adopted 2007 map.
+  if (usesDraftPlan(project)) return project
   const usesZielonkiLand = isZielonkiProject(project) || (project.site.knowledgeBase.cadastralDistrict === '120617_2.0018 Zielonki' && ['54/3', '55/3', '58/3'].every((number) => project.site.parcels.some((parcel) => parcel.cadastralNumber === number)))
   if (usesZielonkiLand && project.site.knowledgeBase.datasetVersion !== zielonkiKnowledgeBase.datasetVersion) {
     if (project.site.knowledgeBase.datasetVersion !== 'zielonki-knowledge-bank-2026-09-03-outline-v4') {

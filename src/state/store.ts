@@ -21,6 +21,7 @@ import { REAR_CARPORT_STUDY_REF, synchronizePublishedRearCarport } from '../serv
 import { BATH_ROOM_STUDY_REF, synchronizePublishedBathRoom } from '../services/publishedBathRoom'
 import { ARCHITEKT_REF, synchronizePublishedArchitekt } from '../services/publishedArchitekt'
 import { PAULINA_REF, synchronizePublishedPaulina } from '../services/publishedPaulina'
+import { NOWE_MPZP_REF, synchronizePublishedNoweMpzp } from '../services/publishedNoweMpzp'
 import type { DraftChangeSetModel, HeightMeasureKind, PersistedWorkspace, ProjectCommand, ProjectV2, ProposalRecord, StructureReport, TransformMode, VariantModel, ViewerMode } from '../domain/types'
 
 interface StudioState {
@@ -240,6 +241,8 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
       if (architektConflicts.length) set((state) => ({ projectSyncConflicts: [...state.projectSyncConflicts, ...architektConflicts] }))
       const paulinaConflicts = await synchronizePublishedPaulina()
       if (paulinaConflicts.length) set((state) => ({ projectSyncConflicts: [...state.projectSyncConflicts, ...paulinaConflicts] }))
+      const noweMpzpConflicts = await synchronizePublishedNoweMpzp()
+      if (noweMpzpConflicts.length) set((state) => ({ projectSyncConflicts: [...state.projectSyncConflicts, ...noweMpzpConflicts] }))
       set({ savedWorkspaces: await listWorkspaces() })
     }
     catch (error) { set({ savedWorkspaces: [], toast: `Saved projects could not be read: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
@@ -318,6 +321,7 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
       if (ref === BATH_ROOM_STUDY_REF) set({ projectSyncConflicts: await synchronizePublishedBathRoom() })
       if (ref === ARCHITEKT_REF) set({ projectSyncConflicts: await synchronizePublishedArchitekt() })
       if (ref === PAULINA_REF) set({ projectSyncConflicts: await synchronizePublishedPaulina() })
+      if (ref === NOWE_MPZP_REF) set({ projectSyncConflicts: await synchronizePublishedNoweMpzp() })
       const saved = await loadWorkspace(ref)
       if (!saved) { set({ toast: `Saved project not found: ${ref}.` }); return }
       const project = isZielonkiProject(saved.project) ? ensureStarterOrchard(ensureStarterGarden(applyModernBarnPreset(saved.project))) : saved.project

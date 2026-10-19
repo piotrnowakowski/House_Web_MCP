@@ -36,6 +36,7 @@ import { TexturedMaterial, TexturePreloader, waitForTextures } from './materials
 import { useStudioStore } from '../state/store'
 import { landUseAreas } from '../domain/zoning'
 import { zielonkiZoningBoundary } from '../../knowledge-bank/zielonki/zoning'
+import { draftZoningBoundary, usesDraftPlan } from '../../knowledge-bank/zielonki/draftPlan'
 import { measurementScreenPoint, siteMeasurementEdges, snapMeasurementPoint, type MeasurementEdge } from './measurementSnapping'
 import { MeasurementPoint } from './MeasurementPoint'
 import { GlazedGable } from './GlazedGable'
@@ -1046,8 +1047,8 @@ function TerrainAndSite({ project }: { project: ProjectV2 }) {
     {neighbouringGround && <mesh geometry={neighbouringGround} position={[0, TERRAIN_SURFACE_Y - 0.01, 0]} receiveShadow userData={{ contextOnly: true }}><TexturedMaterial asset={terrainTexture.asset} color="#727b60" fallbackColor="#727b60" roughness={1} side={DoubleSide} normalScale={0.4} /></mesh>}
     <mesh geometry={boundaryGeometry} position={[0, TERRAIN_SURFACE_Y, 0]} receiveShadow userData={{ semanticRef: 'site/terrain' }}><TexturedMaterial asset={terrainTexture.asset} color={terrainTexture.tint} fallbackColor={REAL.soil} roughness={1} side={DoubleSide} normalScale={0.4} /></mesh>
     {landUseAreas(project).map((zone) => <ParcelSurface key={zone.ref} boundary={zone.boundary} landRole={zone.landRole} planning={Boolean(zone.code)} />)}
-    {project.site.parcels.some((parcel) => parcel.landUseZones?.some((zone) => zone.sourceRef === 'source/mpzp-boundary-v2')) && <group userData={{ semanticRef: 'site/zoning' }}>
-      <DreiLine points={zielonkiZoningBoundary.map((point) => [point.x, 0.12, point.z] as [number, number, number])} color="#ffc15a" lineWidth={3} dashed dashSize={0.65} gapSize={0.3} depthTest={false} renderOrder={12} />
+    {(usesDraftPlan(project) || project.site.parcels.some((parcel) => parcel.landUseZones?.some((zone) => zone.sourceRef === 'source/mpzp-boundary-v2'))) && <group userData={{ semanticRef: 'site/zoning' }}>
+      <DreiLine points={(usesDraftPlan(project) ? draftZoningBoundary : zielonkiZoningBoundary).map((point) => [point.x, 0.12, point.z] as [number, number, number])} color="#ffc15a" lineWidth={3} dashed dashSize={0.65} gapSize={0.3} depthTest={false} renderOrder={12} />
     </group>}
     {project.site.entrances.map((entrance) => <RoadEntranceMarker key={entrance.ref} entrance={entrance} />)}
   </group>
