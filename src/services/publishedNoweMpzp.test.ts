@@ -4,6 +4,7 @@ import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import initial from '../../project-data/nowe-mpzp/initial-r1.json'
 import previous from '../../project-data/nowe-mpzp/before-front-frame-r10.json'
+import beforeWindows from '../../project-data/nowe-mpzp/before-full-height-windows-r11.json'
 import beforeTrees from '../../project-data/nowe-mpzp/before-tree-review-r9.json'
 import architect from '../../project-data/architekt/project.json'
 import source from '../../project-data/nowe-mpzp/source-architekt-r7.json'
@@ -29,7 +30,7 @@ it('moves only the independent house, preserves cadastral parcels and contains r
   expect(house.position.z-base.buildings[0].position.z).toBeCloseTo(4.3284132811)
   for (const key of ['spaces','storeys','furniture'] as const) expect(house[key]).toEqual(base.buildings[0][key])
   expect(house.slabs.map(({edgeColorHex,...slab})=>slab)).toEqual(base.buildings[0].slabs.map(({edgeColorHex,...slab})=>slab))
-  expect(house.walls.map(({finish,heightM,...wall})=>wall)).toEqual(base.buildings[0].walls.map(({finish,heightM,...wall})=>wall))
+  expect(house.walls.map(({finish,heightM,openings,...wall})=>wall)).toEqual(base.buildings[0].walls.map(({finish,heightM,openings,...wall})=>wall))
   expect(house.roof.junctions).toEqual(base.buildings[0].roof.junctions)
   expect(validateProject(p).filter(i=>i.severity==='error'||i.code==='building.zoning')).toEqual([])
   expect(landUseAreas(p).filter(z=>z.landRole==='construction').reduce((sum,z)=>sum+polygonArea(z.boundary),0)).toBeCloseTo(888.806452)
@@ -117,7 +118,7 @@ it('preserves flush side eaves, slopes, ridge junctions and building placement a
     expect(b.position).toEqual(before.position)
     expect(b.rotationDegrees).toBe(before.rotationDegrees)
     expect(b.roof.overhangM-halfWall).toBeCloseTo(0,10)
-    expect(b.walls.map(({finish,heightM,...wall})=>wall)).toEqual(before.walls.map(({finish,heightM,...wall})=>wall))
+    expect(b.walls.map(({finish,heightM,openings,...wall})=>wall)).toEqual(before.walls.map(({finish,heightM,openings,...wall})=>wall))
     const oldWings=roofWings(before)
     for(const wing of roofWings(b)){
       const prior=oldWings.find(w=>w.ref===wing.ref)!
@@ -135,7 +136,8 @@ it('preserves flush side eaves, slopes, ridge junctions and building placement a
 
 it('projects the living-room portal outward without moving glazing or changing any room', () => {
   const p=parseProject(data),old=parseProject(previous),house=p.buildings[0],before=old.buildings[0]
-  const {roof,...unchanged}=house, {roof:oldRoof,...original}=before
+  const {roof,walls,...unchanged}=house, {roof:oldRoof,walls:oldWalls,...original}=before
+  expect(walls.map(({openings,...wall})=>wall)).toEqual(oldWalls.map(({openings,...wall})=>wall))
   expect(unchanged).toEqual(original)
   expect(roof.footprint).toEqual(oldRoof.footprint?.map(v=>v.x===4.84?{...v,x:v.x+1}:v))
   expect(roof.segments[0]).toEqual(oldRoof.segments[0])
@@ -155,6 +157,11 @@ it('matches current architect clear room dimensions and wall heights and removes
   const house=parseProject(data).buildings[0],reference=parseProject(architect).buildings[0]
   expect(house.walls.map(({finish,openings,...wall})=>wall)).toEqual(reference.walls.map(({finish,openings,...wall})=>wall))
   expect(house.storeys).toEqual(reference.storeys)
+  const expected=parseProject(beforeWindows).buildings[0]
+  for (const opening of expected.walls.flatMap(w=>w.openings)) if (['opening/reference-office-window','opening/reference-kitchen'].includes(opening.ref)) {
+    opening.sillM=0; opening.heightM=2.35
+  }
+  expect(house).toEqual(expected)
   for(const room of house.spaces)expect(roomDimensions(house,room)).toEqual(roomDimensions(reference,reference.spaces.find(r=>r.ref===room.ref)!))
   expect(house.slabs.find(s=>s.ref==='slab/reference-upper')!.edgeColorHex).toBe('#303638')
   for(const wall of house.walls.filter(w=>w.thicknessM>=.4))expect(['natural-timber','charred-timber']).toContain(wall.finish?.material)
@@ -164,7 +171,7 @@ it('keeps draft zoning and user deletions through list, reload and a later publi
   const original={version:1 as const,project:parseProject(architect),proposals:[],draftChangeSets:[]}
   original.project.name='Mój architekt'; original.project.landscape.plants.pop()
   await saveWorkspace(original)
-  expect(await synchronizePublishedProject(parseProject(previous),parseProject(initial))).toEqual([])
+  expect(await synchronizePublishedProject(parseProject(beforeWindows),parseProject(initial))).toEqual([])
   const w=(await loadWorkspace(NOWE_MPZP_REF))!, removed=w.project.landscape.plants.pop()!.ref
   w.project.name='Moje nowe mpzp'; await saveWorkspace(w); await listWorkspaces()
   expect(await synchronizePublishedNoweMpzp()).toEqual([])
@@ -173,7 +180,7 @@ it('keeps draft zoning and user deletions through list, reload and a later publi
   expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[1].position).toEqual(data.buildings[1].position)
   expect((await loadWorkspace(NOWE_MPZP_REF))!.project.landscape.zones).toEqual(data.landscape.zones)
   expect((await loadWorkspace(NOWE_MPZP_REF))!.project.site.entrances).toEqual(data.site.entrances)
-  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[0].roof).toEqual(data.buildings[0].roof)
+  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[0]).toEqual(data.buildings[0])
   const next=parseProject(data); next.revision++; next.buildings[2].name='Garaż i warsztat — opis'
   expect(await synchronizePublishedProject(next,parseProject(data))).toEqual([])
   const saved=(await loadWorkspace(NOWE_MPZP_REF))!
