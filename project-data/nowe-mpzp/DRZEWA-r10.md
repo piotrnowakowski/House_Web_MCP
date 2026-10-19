@@ -8,7 +8,7 @@ Oryginalna mapa do celów projektowych `Zielonki_dz54_55_58-akt-v2.pdf`, skala 1
 
 Sprawdzono wszystkie **17 symboli przy działkach /3**: 11 iglastych, 3 liściaste i 3 owocowe. Zachowane pozycje INSERT z DXF są zgodne z wykazem `knowledge-bank/zielonki/trees.ts`. Nałożenie 17 punktów na nowo pobrany PDF potwierdza centra symboli: krzyż siatki E=7421600/N=5556050, PDF (844,8;831,0), 283,38 punktu na 50 m. Wspólny sztywny transform PL-2000/model pozostał bez zmiany. Drzew nie przesuwano razem z budynkami ani nie dopasowywano do nowego MPZP.
 
-Dwa owocowe symbole, 50C3 i 50CA, znajdują się poza własnymi działkami i są kontekstem sąsiednim. Odległe drzewa przy ulicy oraz symbol owocowego drzewa w legendzie nie należą do tego wykazu. Na własnych działkach /3 mapa pokazuje 15 drzew.
+Dwa owocowe symbole, 50C3 i 50CA, znajdują się poza własnymi działkami i są kontekstem sąsiednim. Odległe drzewa przy ulicy oraz symbol owocowego drzewa w legendzie nie należą do tego wykazu. Sprawdzono także wszystkie 34 bloki symboli drzew w całym DXF względem wszystkich sześciu własnych działek, łącznie z rolnymi /4: wewnątrz jest 15 drzew, wszystkie w omówionym wykazie przy działkach /3. Nie znaleziono dodatkowych pominiętych drzew na rolnej części projektu. Dowód: tmp/nowe-mpzp-trees-20261020/full-parcel-check.json.
 
 ## Wynik porównania
 
