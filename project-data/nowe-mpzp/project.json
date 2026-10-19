@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp",
   "name": "nowe mpzp",
   "units": "metric",
-  "revision": 2,
-  "updatedAt": "2026-10-19T19:34:58.708Z",
+  "revision": 3,
+  "updatedAt": "2026-10-19T20:20:56.694Z",
   "site": {
     "boundary": [
       {
@@ -1885,7 +1885,9 @@
         "Climate values and planting recommendations are conceptual inputs rather than a site weather station record or horticultural survey.",
         "The app provides conceptual design guidance only and does not establish zoning, building-law, foundation, drainage or planting compliance.",
         "Drzewa kolidujące z koncepcją, wyłączone wyłącznie z tego wariantu: plant/survey-5015. Oryginały w source-architekt-r7.json; to nie zezwolenie na wycinkę.",
-        "Po obrocie garażu o 90° układ podjazdu jest orientacyjny; trzeba sprawdzić tor jazdy i cofania konkretnego kampera względem wiaty i drogi."
+        "Po obrocie garażu o 90° układ podjazdu jest orientacyjny; trzeba sprawdzić tor jazdy i cofania konkretnego kampera względem wiaty i drogi.",
+        "BILANS r3: na roboczej części MU 888,81 m² zieleń wynosi około 420,74 m² (47,34%), poniżej wymaganego w projekcie planu minimum 50%. Potrzeba co najmniej 23,66 m² dodatkowej zieleni; do korekty zaleca się 30 m² utwardzeń. Nie doliczono pól rolnych ani podwyższonych grządek.",
+        "USYTUOWANIE r3: garaż równoległy do domu, 3 m od granicy przy pełnej ścianie i 4 m przy ścianie z oknem. To kontrola geometryczna, nie potwierdzenie ochrony pożarowej, linii zabudowy, wysokości nad terenem ani całej zgodności."
       ]
     }
   },
@@ -4980,10 +4982,10 @@
       "kind": "garage",
       "architecturalStyle": "barn",
       "position": {
-        "x": 8,
-        "z": -9
+        "x": 7.80673645339404,
+        "z": -9.863734400993879
       },
-      "rotationDegrees": 90,
+      "rotationDegrees": 93.06927082481445,
       "storeys": [
         {
           "ref": "storey/outbuilding",
@@ -5512,6 +5514,14 @@
           {
             "x": 1.4,
             "z": -15.3
+          },
+          {
+            "x": 1.0796686266165203,
+            "z": -12.056690956408229
+          },
+          {
+            "x": 1.3527392769435043,
+            "z": -6.964006750615571
           },
           {
             "x": 1.4,

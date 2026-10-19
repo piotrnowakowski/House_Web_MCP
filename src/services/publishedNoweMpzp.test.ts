@@ -3,12 +3,13 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import initial from '../../project-data/nowe-mpzp/initial-r1.json'
+import previous from '../../project-data/nowe-mpzp/before-boundary-alignment-r2.json'
 import architect from '../../project-data/architekt/project.json'
 import source from '../../project-data/nowe-mpzp/source-architekt-r7.json'
 import main from '../../project-data/zielonki-rear-bath-room/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
-import { polygonArea, polygonBounds, buildingFootprintsWorld } from '../domain/geometry'
+import { polygonArea, polygonBounds, buildingFootprintsWorld, distanceToSegment } from '../domain/geometry'
 import { roofWings, gableRoofJunction, gableWallsForBuilding } from '../domain/roofWings'
 import { roomDimensions } from '../domain/roomDimensions'
 import { landUseAreas } from '../domain/zoning'
@@ -45,7 +46,14 @@ it('moves only the independent house, preserves cadastral parcels and contains r
 
 it('fits the camper, working room and entrance below the six metre conceptual height limit', () => {
   const p=parseProject(data), garage=p.buildings.find(b=>b.ref==='building/garden-outbuilding')!
-  expect(garage.rotationDegrees).toBe(90)
+  expect(garage.rotationDegrees+180).toBeCloseTo(p.buildings[0].rotationDegrees,10)
+  expect(polygonArea(garage.slabs[0].footprint)).toBeCloseTo(67.32)
+  const footprint=buildingFootprintsWorld(garage)[0]
+  const setbacks=[
+    {minimum:4,line:[{x:18.21,z:-15.861},{x:18.591,z:-6.318},{x:19.477,z:15.883}]},
+    {minimum:3,line:[{x:-19.778,z:-15.1},{x:8.7,z:-16.628},{x:8.77,z:-15.63},{x:18.21,z:-15.861}]},
+  ]
+  for (const {minimum,line} of setbacks) expect(Math.min(...footprint.flatMap(point=>line.slice(1).map((end,i)=>distanceToSegment(point,line[i],end))))).toBeCloseTo(minimum,8)
   const gate=garage.walls.flatMap(w=>w.openings).find(o=>o.ref==='opening/outbuilding/camper-gate')!
   expect([gate.widthM,gate.heightM]).toEqual([3.5,3.5])
   const camperRoom=roomDimensions(garage,garage.spaces.find(s=>s.usage==='garage')!)
@@ -54,6 +62,8 @@ it('fits the camper, working room and entrance below the six metre conceptual he
   const workshop=roomDimensions(garage,garage.spaces.find(s=>s.usage==='workshop')!)
   expect(workshop.width*workshop.depth).toBeCloseTo(14.85)
   expect(roofWings(garage)[0].ridgeElevationM).toBeCloseTo(5.75852972)
+  const garageWing=roofWings(garage)[0], bounds=polygonBounds(garageWing.footprint)
+  expect(Math.atan2(garageWing.ridgeElevationM-garageWing.baseElevationM,(bounds.maxX-bounds.minX)/2)*180/Math.PI).toBeCloseTo(37,8)
   expect(roofWings(garage)[0].ridgeElevationM).toBeLessThan(6)
   expect(validateProject(p).filter(i=>i.subjectRef?.includes('outbuilding'))).toEqual([])
 })
@@ -62,11 +72,12 @@ it('keeps draft zoning and user deletions through list, reload and a later publi
   const original={version:1 as const,project:parseProject(architect),proposals:[],draftChangeSets:[]}
   original.project.name='Mój architekt'; original.project.landscape.plants.pop()
   await saveWorkspace(original)
-  expect(await synchronizePublishedProject(parseProject(initial),parseProject(initial))).toEqual([])
+  expect(await synchronizePublishedProject(parseProject(previous),parseProject(initial))).toEqual([])
   const w=(await loadWorkspace(NOWE_MPZP_REF))!, removed=w.project.landscape.plants.pop()!.ref
   w.project.name='Moje nowe mpzp'; await saveWorkspace(w); await listWorkspaces()
   expect(await synchronizePublishedNoweMpzp()).toEqual([])
-  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[2].rotationDegrees).toBe(90)
+  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[2].position).toEqual(data.buildings[2].position)
+  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[2].rotationDegrees).toBe(data.buildings[2].rotationDegrees)
   const next=parseProject(data); next.revision++; next.buildings[2].name='Garaż i warsztat — opis'
   expect(await synchronizePublishedProject(next,parseProject(data))).toEqual([])
   const saved=(await loadWorkspace(NOWE_MPZP_REF))!
