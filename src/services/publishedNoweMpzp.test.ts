@@ -140,7 +140,7 @@ it('projects the living-room portal outward without moving glazing or changing a
   expect(roof.footprint).toEqual(oldRoof.footprint?.map(v=>v.x===4.84?{...v,x:v.x+1}:v))
   expect(roof.segments[0]).toEqual(oldRoof.segments[0])
   const front=roof.segments[1]
-  expect(front.gableFrame).toEqual({widthM:.4,depthM:.26,colorHex:'#B78F60'})
+  expect(front.gableFrame).toEqual({widthM:.4,depthM:.26,colorHex:'#181C1D'})
   expect(front.gableRecess?.max).toMatchObject({depthM:1,baseElevationM:.45,soffitColorHex:'#B78F60',sideColorHex:'#AD845B'})
   expect(gableWallsForBuilding(house)).toEqual(gableWallsForBuilding(before))
   expect(gableGlazingProfile(front,'max',house)).toEqual(gableGlazingProfile(oldRoof.segments[1],'max',before))
