@@ -3,10 +3,9 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import initial from '../../project-data/nowe-mpzp/initial-r1.json'
-import previous from '../../project-data/nowe-mpzp/before-boundary-alignment-r2.json'
+import previous from '../../project-data/nowe-mpzp/before-shared-access-r3.json'
 import architect from '../../project-data/architekt/project.json'
 import source from '../../project-data/nowe-mpzp/source-architekt-r7.json'
-import main from '../../project-data/zielonki-rear-bath-room/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
 import { polygonArea, polygonBounds, buildingFootprintsWorld, distanceToSegment } from '../domain/geometry'
@@ -32,7 +31,12 @@ it('moves only the independent house, preserves cadastral parcels and contains r
   expect(draftZoningBoundary.every(p=>Math.abs(p.z-slope*p.x-intercept)<1e-8)).toBe(true)
   for (const b of p.buildings) for (const polygon of buildingFootprintsWorld(b)) for (const point of polygon) expect(point.z-slope*point.x-intercept).toBeLessThan(0)
   const carport=p.buildings.find(b=>b.ref==='building/south-carport')!
-  expect(carport.roof).toEqual(parseProject(main).buildings.find(b=>b.ref===carport.ref)!.roof)
+  expect(polygonArea(carport.slabs[0].footprint)).toBeCloseTo(35.84)
+  expect(carport.furniture.filter(f=>f.catalogId==='car')).toHaveLength(2)
+  const posts=carport.roof.segments[0].canopy!, postBounds=polygonBounds(posts.posts)
+  expect(postBounds.maxX-postBounds.minX-posts.postWidthM).toBeGreaterThanOrEqual(5)
+  expect(p.landscape.zones.filter(z=>z.kind==='driveway')).toHaveLength(1)
+  expect(p.landscape.zones.some(z=>['zone/path','zone/nowe-mpzp/carport-access','zone/outbuilding/apron'].includes(z.ref))).toBe(false)
   const wings=roofWings(house)
   for (const wing of wings) {
     const b=polygonBounds(wing.footprint), span=wing.ridgeAxis==='z'?b.maxX-b.minX:b.maxZ-b.minZ
@@ -50,10 +54,11 @@ it('fits the camper, working room and entrance below the six metre conceptual he
   expect(polygonArea(garage.slabs[0].footprint)).toBeCloseTo(67.32)
   const footprint=buildingFootprintsWorld(garage)[0]
   const setbacks=[
-    {minimum:4,line:[{x:18.21,z:-15.861},{x:18.591,z:-6.318},{x:19.477,z:15.883}]},
+    {minimum:3,line:[{x:18.21,z:-15.861},{x:18.591,z:-6.318},{x:19.477,z:15.883}]},
     {minimum:3,line:[{x:-19.778,z:-15.1},{x:8.7,z:-16.628},{x:8.77,z:-15.63},{x:18.21,z:-15.861}]},
   ]
   for (const {minimum,line} of setbacks) expect(Math.min(...footprint.flatMap(point=>line.slice(1).map((end,i)=>distanceToSegment(point,line[i],end))))).toBeCloseTo(minimum,8)
+  expect(garage.walls.find(w=>w.ref==='wall/outbuilding/back')!.openings).toEqual([])
   const gate=garage.walls.flatMap(w=>w.openings).find(o=>o.ref==='opening/outbuilding/camper-gate')!
   expect([gate.widthM,gate.heightM]).toEqual([3.5,3.5])
   const camperRoom=roomDimensions(garage,garage.spaces.find(s=>s.usage==='garage')!)

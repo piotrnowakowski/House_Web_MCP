@@ -470,3 +470,10 @@ Actual Chrome Default and Codex IAB profile captures, before and immediately bef
 Na prośbę użytkownika osobny project/nowe-mpzp ustawiono równolegle do domu, z geometrycznymi odstępami 3 m przy pełnej ścianie i 4 m przy oknie. Zachowano poprzedni r2 jako before-boundary-alignment-r2.json oraz niezmienny initial-r1. Bilans części MU: PBC 47,34% (niedobór 23,66 m²), zabudowa z wiatą 24,84%, intensywność do 0,384. Pełna analiza ograniczeń i źródła: ../nowe-mpzp/BILANS-r3.md.
 
 Źródło: kanoniczny r2 i zgodny z nim shared Mikrus serverVersion 1; kopie rzeczywistych Chrome/IAB oraz historia w tmp/nowe-mpzp-balance-20261019. Lokalny IAB 127.0.0.1:5173 ma konflikt listy caveats r1; obie wersje zachowano, tego originu nie nadpisano. Osobne poprawki architekt r8 pozostają poza tym wydaniem. Aktualizacja shared nowe-mpzp używa CAS względem serverVersion 1 i zachowuje propozycje/historię.
+
+
+## 2026-10-19 — nowe mpzp r4: jeden dojazd i dwie pełne ściany garażu
+
+Po doprecyzowaniu i potwierdzeniu użytkownika usunięto tylne okno garażu, dosunięto go do 3 m od obu granic i zastąpiono dodatkowe pasy przejazdu jedną wspólną strefą dojazdu do wiaty oraz garażu kampera. Wiata 5,60 × 6,40 m ma dwa auta i 5,12 m światła między słupami. PBC części MU wzrasta do 58,31%, zabudowa z wiatą 25,17%, intensywność do 0,387. Źródła i nadal otwarte wymagania: ../nowe-mpzp/BILANS-r4.md.
+
+Kanoniczny r3 i jego poprzedni raport zachowano; źródło nowego układu to r3 i jawna korekta użytkownika. Ponowne kopie rzeczywistych Chrome/IAB: tmp/nowe-mpzp-r4-20261019. Ten sam lokalny konflikt listy ostrzeżeń r1 zachowano w kopii; brak zapisu do tego originu. Shared Mikrus sprawdzany ponownie przed CAS, z zachowaniem pełnej historii i bez zmiany projektów źródłowych.

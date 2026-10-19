@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp",
   "name": "nowe mpzp",
   "units": "metric",
-  "revision": 3,
-  "updatedAt": "2026-10-19T20:20:56.694Z",
+  "revision": 4,
+  "updatedAt": "2026-10-19T20:31:56.247Z",
   "site": {
     "boundary": [
       {
@@ -1886,8 +1886,8 @@
         "The app provides conceptual design guidance only and does not establish zoning, building-law, foundation, drainage or planting compliance.",
         "Drzewa kolidujące z koncepcją, wyłączone wyłącznie z tego wariantu: plant/survey-5015. Oryginały w source-architekt-r7.json; to nie zezwolenie na wycinkę.",
         "Po obrocie garażu o 90° układ podjazdu jest orientacyjny; trzeba sprawdzić tor jazdy i cofania konkretnego kampera względem wiaty i drogi.",
-        "BILANS r3: na roboczej części MU 888,81 m² zieleń wynosi około 420,74 m² (47,34%), poniżej wymaganego w projekcie planu minimum 50%. Potrzeba co najmniej 23,66 m² dodatkowej zieleni; do korekty zaleca się 30 m² utwardzeń. Nie doliczono pól rolnych ani podwyższonych grządek.",
-        "USYTUOWANIE r3: garaż równoległy do domu, 3 m od granicy przy pełnej ścianie i 4 m przy ścianie z oknem. To kontrola geometryczna, nie potwierdzenie ochrony pożarowej, linii zabudowy, wysokości nad terenem ani całej zgodności."
+        "USYTUOWANIE r4: tylne okno garażu usunięte; garaż równoległy do domu, po 3 m od obu granic przy pełnych ścianach. Wiata 5,60 × 6,40 m na dokładnie dwa auta. Jeden wspólny dojazd do wiaty i garażu, bez dodatkowych przejazdów przy granicy. Tor jazdy kampera i ochrona pożarowa pozostają do sprawdzenia.",
+        "BILANS r4: po usunięciu dodatkowych przejazdów PBC na części MU wynosi 518.25 m² (58.31%), przy minimum 50%. Zabudowa z wiatą 25.17%, intensywność do 0.387. Spełnienie tych trzech wskaźników nie rozstrzyga pozostałych ograniczeń opisanych w BILANS-r4.md."
       ]
     }
   },
@@ -4730,7 +4730,7 @@
           "storeyRef": "storey/carport",
           "name": "Car 1 · 1.90 × 4.70 m",
           "position": {
-            "x": -10.54925,
+            "x": -10.895,
             "z": -3.355
           },
           "widthM": 1.9,
@@ -4745,7 +4745,7 @@
           "storeyRef": "storey/carport",
           "name": "Car 2 · 1.90 × 4.70 m",
           "position": {
-            "x": -7.97975,
+            "x": -8.094999999999999,
             "z": -3.355
           },
           "widthM": 1.9,
@@ -4784,7 +4784,7 @@
           "ref": "slab/carport",
           "footprint": [
             {
-              "x": -11.834,
+              "x": -12.295,
               "z": -6.555
             },
             {
@@ -4796,7 +4796,7 @@
               "z": -0.155
             },
             {
-              "x": -11.834,
+              "x": -12.295,
               "z": -0.155
             }
           ],
@@ -4817,7 +4817,7 @@
         "overhangM": 0,
         "footprint": [
           {
-            "x": -11.834,
+            "x": -12.295,
             "z": -6.555
           },
           {
@@ -4829,7 +4829,7 @@
             "z": -0.155
           },
           {
-            "x": -11.834,
+            "x": -12.295,
             "z": -0.155
           }
         ],
@@ -4842,7 +4842,7 @@
             "ref": "roof/carport/south",
             "footprint": [
               {
-                "x": -11.834,
+                "x": -12.295,
                 "z": -6.555
               },
               {
@@ -4854,7 +4854,7 @@
                 "z": -0.155
               },
               {
-                "x": -11.834,
+                "x": -12.295,
                 "z": -0.155
               }
             ],
@@ -4883,19 +4883,19 @@
               "postBaseElevationM": 0.45,
               "posts": [
                 {
-                  "x": -11.674,
+                  "x": -12.135,
                   "z": -6.395
                 },
                 {
-                  "x": -11.674,
+                  "x": -6.855,
+                  "z": -6.395
+                },
+                {
+                  "x": -6.855,
                   "z": -0.315
                 },
                 {
-                  "x": -6.855,
-                  "z": -6.395
-                },
-                {
-                  "x": -6.855,
+                  "x": -12.135,
                   "z": -0.315
                 }
               ]
@@ -4982,8 +4982,8 @@
       "kind": "garage",
       "architecturalStyle": "barn",
       "position": {
-        "x": 7.80673645339404,
-        "z": -9.863734400993879
+        "x": 8.806556329634887,
+        "z": -9.888200332287484
       },
       "rotationDegrees": 93.06927082481445,
       "storeys": [
@@ -5174,17 +5174,7 @@
           "thicknessM": 0.3,
           "baseElevationM": 0.2,
           "heightM": 3.75,
-          "openings": [
-            {
-              "ref": "opening/outbuilding/workshop-window",
-              "kind": "window",
-              "wallRef": "wall/outbuilding/back",
-              "offsetM": 2.4,
-              "widthM": 2.4,
-              "heightM": 1.2,
-              "sillM": 1.2
-            }
-          ],
+          "openings": [],
           "finish": {
             "material": "charred-timber",
             "colorHex": "#242927"
@@ -5404,49 +5394,76 @@
       },
       {
         "ref": "zone/driveway",
-        "name": "Dojazd od drogi · architekt",
+        "name": "Jeden wspólny dojazd · wiata 2 auta + garaż kampera",
         "kind": "driveway",
         "footprint": [
           {
-            "x": -19.72752540758682,
-            "z": -15.091153597418389
+            "x": -8.112180173397064,
+            "z": -13.600000001490116
           },
           {
-            "x": -14.74419786380549,
-            "z": -15.360476219211472
+            "x": -1,
+            "z": -13.600000001490116
           },
           {
-            "x": -13.695285306961257,
-            "z": 8.529835805336234
+            "x": 2.0794885009527206,
+            "z": -13.600000001490116
           },
           {
-            "x": -18.445856307557438,
-            "z": 8.799158427129317
-          }
-        ],
-        "locked": false,
-        "textureId": "concrete-tiles"
-      },
-      {
-        "ref": "zone/path",
-        "name": "Pas dojazdowy 3 m · architekt",
-        "kind": "driveway",
-        "footprint": [
-          {
-            "x": -14.74419786380549,
-            "z": -15.360476219211472
+            "x": 2.0794885009527206,
+            "z": -12.081156887114048
           },
           {
-            "x": -1.4632763075226736,
-            "z": -16.072601640652426
+            "x": 2.35255915671587,
+            "z": -6.988472685217857
           },
           {
-            "x": -1.3031819458603833,
-            "z": -13.086890704315163
+            "x": -1,
+            "z": -6.988472685217857
           },
           {
-            "x": -14.584103502143197,
-            "z": -12.37476528287421
+            "x": -1,
+            "z": -9.600000001490116
+          },
+          {
+            "x": -7.897699445486069,
+            "z": -9.600000001490116
+          },
+          {
+            "x": -7.573044814169407,
+            "z": -3.5452903360128403
+          },
+          {
+            "x": -13.065155237913132,
+            "z": -3.250802382826805
+          },
+          {
+            "x": -13.405600361526012,
+            "z": -9.600000001490116
+          },
+          {
+            "x": -16,
+            "z": -9.600000001490116
+          },
+          {
+            "x": -19.287829338183403,
+            "z": -5.963405229151249
+          },
+          {
+            "x": -19.630683942308426,
+            "z": -12.35421508550644
+          },
+          {
+            "x": -16,
+            "z": -13.600000001490116
+          },
+          {
+            "x": -8.781665787100792,
+            "z": -13.600000001490116
+          },
+          {
+            "x": -8.114099510014057,
+            "z": -13.635795027017593
           }
         ],
         "locked": false,
@@ -5454,90 +5471,24 @@
       },
       {
         "ref": "zone/architekt/entry-apron",
-        "name": "Plac przed wejściem · architekt",
+        "name": "Dojście piesze do wejścia",
         "kind": "path",
         "footprint": [
           {
-            "x": -14.584103502143197,
-            "z": -8.046352001753595
+            "x": -9.5,
+            "z": -4
           },
           {
-            "x": -7.294575129145864,
-            "z": -8.43721783457457
+            "x": -8,
+            "z": -4
           },
           {
-            "x": -7.026858805295881,
-            "z": -3.4443901818366696
+            "x": -8,
+            "z": -3
           },
           {
-            "x": -14.316387178293215,
-            "z": -3.053524349015696
-          }
-        ],
-        "locked": false,
-        "textureId": "concrete-tiles"
-      },
-      {
-        "ref": "zone/nowe-mpzp/carport-access",
-        "name": "Dojazd do tylnej wiaty",
-        "kind": "driveway",
-        "footprint": [
-          {
-            "x": -7.848203653864686,
-            "z": -15
-          },
-          {
-            "x": -1.1822254207071623,
-            "z": -15
-          },
-          {
-            "x": -1.1822254207071623,
-            "z": -3.887967232360034
-          },
-          {
-            "x": -7.573044816211675,
-            "z": -3.5452903378320566
-          }
-        ],
-        "locked": false,
-        "textureId": "concrete-tiles"
-      },
-      {
-        "ref": "zone/outbuilding/apron",
-        "name": "Plac przed garażem · manewrowanie do sprawdzenia",
-        "kind": "driveway",
-        "footprint": [
-          {
-            "x": -6.5,
-            "z": -15.3
-          },
-          {
-            "x": 1.4,
-            "z": -15.3
-          },
-          {
-            "x": 1.0796686266165203,
-            "z": -12.056690956408229
-          },
-          {
-            "x": 1.3527392769435043,
-            "z": -6.964006750615571
-          },
-          {
-            "x": 1.4,
-            "z": -6.45
-          },
-          {
-            "x": -0.8,
-            "z": -6.45
-          },
-          {
-            "x": -0.8,
-            "z": -9.5
-          },
-          {
-            "x": -6.5,
-            "z": -9.5
+            "x": -9.5,
+            "z": -3
           }
         ],
         "locked": false,

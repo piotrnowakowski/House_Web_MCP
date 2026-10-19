@@ -1,6 +1,6 @@
 # nowe mpzp — niezależny podprojekt architekt
 
-Projekt z 19.10.2026: `project/nowe-mpzp`, obecnie **r3**, z garażem ustawionym równolegle do domu i dosuniętym do przyjętych odległości 3/4 m od granic. **Bilans zieleni części MU nie osiąga 50%** — szczegóły i pozostałe ograniczenia: [BILANS-r3.md](BILANS-r3.md). Karta jest umieszczona po `architekt` w głównej liście projektów. Dane kanoniczne: `project.json`; niezmienny punkt odniesienia przyszłych migracji: `initial-r1.json`. Pierwszy pokazany układ zachowano jako `before-rotation-r1.json`, a poprzedni obrót 90° jako `before-boundary-alignment-r2.json`. `source-architekt-r7.json` zachowuje całą wersję źródłową. Kolejne zmiany należy kontynuować pod tym samym ref.
+Projekt z 19.10.2026: `project/nowe-mpzp`, obecnie **r4**, z garażem równoległym do domu, bez tylnego okna, po 3 m od obu granic, wiatą na dwa auta oraz jednym wspólnym dojazdem. **PBC części MU wynosi 58,31%**, zabudowa z wiatą 25,17%, intensywność do 0,387 — szczegóły i nadal nierozstrzygnięte ograniczenia: [BILANS-r4.md](BILANS-r4.md). Karta jest umieszczona po `architekt`. Dane kanoniczne: `project.json`; niezmienna baza migracji: `initial-r1.json`. Poprzednie r1, r2 i r3 są zachowane w snapshotach `before-rotation-r1.json`, `before-boundary-alignment-r2.json`, `before-shared-access-r3.json`. `source-architekt-r7.json` zachowuje całą wersję źródłową. Kolejne zmiany należy kontynuować pod tym samym ref.
 
 ## Źródła i zachowanie danych
 
@@ -38,10 +38,18 @@ Walidacja schematu/geometrii bez błędów; brak ostrzeżeń strefowych i dotycz
 
 Przed realizacją architekt powinien sprawdzić ostateczny/uchwalony plan, pełne wskaźniki terenu inwestycji, linie zabudowy i odległości, wjazd i manewrowanie rzeczywistym kamperem, bezpieczeństwo pożarowe, hałas warsztatu, konstrukcję oraz rzeczywiste rzędne wysokościowe. Ta koncepcja nie potwierdza pełnej zgodności budowlanej.
 
-## Aktualizacja r3 — bilans i ustawienie równoległe
+## Historyczna aktualizacja r3 — bilans i ustawienie równoległe
 
 Na prośbę użytkownika z 19.10.2026: pozycja garażu `x=7.80673645339404,z=-9.863734400993879`, obrót `93.06927082481445°`, dokładnie równoległy do domu (różnica 180°). Dystans zewnętrznego obrysu do sąsiedniej granicy przy pełnej ścianie wynosi 3 m, przy tylnej ścianie z oknem 4 m. Poprzedni r2 miał przy tej ścianie tylko 3,779 m. Zmieniono krótki odcinek placu łączący bramę; zachowano resztę utwardzeń, wszystkie wymiary, wnętrza, drzewa i otwory. Wariant 1,5 m lub przy granicy wymaga dodatkowych rozwiązań opisanych w bilansie.
 
 Przeliczono dachy z finalnej geometrii: dom 38,8097094818° / 39,2352369450°, kalenice 8,0856938754; garaż 37°, kalenica 5,7585297202. Transformacja pozioma nie zmienia rozpiętości ani wysokości. Węzeł dachu domu i wnętrza nie zmieniły się. Bilans sumy wielokątów: zabudowa z wiatą 220,77 m² (24,84%), intensywność do 0,384; PBC ostrożnie 420,74 m² (47,34%), niedobór 23,66 m². Nie oznaczono nierozstrzygniętych wymogów jako spełnionych. Wyniki dodano do ostrzeżeń projektu.
 
 Przed tą zmianą ponownie przechwycono rzeczywiste profile Chrome i Codex IAB do `tmp/nowe-mpzp-balance-20261019/{chrome-before,iab-before}/`. Publiczne profile nie zawierają niezależnych zapisów tego nowego wariantu. Lokalny IAB `127.0.0.1:5173` ma r1/base r1 z niezależnie zmienioną listą ostrzeżeń: konflikt `/site/knowledgeBase/caveats` zachowano w odzyskiwalnej kopii i nie nadpisano tego originu. Wspólny projekt Mikrus przed zmianą: serverVersion 1, r2, zgodny z zachowanym snapshotem. Publikacja dotyczy niezależnego nowe-mpzp; równoległe lokalne poprawki architekta pozostają poza wydaniem.
+
+## Aktualizacja r4 — usunięcie okna i dodatkowych przejazdów
+
+Użytkownik przekreślił tylne okno oraz dodatkowe pasy dojazdowe, a następnie jawnie potwierdził jeden wspólny dojazd dla wiaty i kampera. Usunięto otwór tylnej ściany i dosunięto garaż do 3 m od obu granic: `x=8.806556329634887,z=-9.888200332287484`, obrót nadal `93.06927082481445°`. Wiata poszerzona do 5,60 × 6,40 m, dwa auta i 5,12 m pomiędzy wewnętrznymi krawędziami słupów. Jedna połączona strefa dojazdu zastępuje wcześniejsze osobne pasy; usunięcia są rzeczywistymi usunięciami encji, nie ukryciem ani zmianą nazwy. Bilans odzyskuje 97,51 m² zieleni; PBC 518,25 m², zapas do 50% wynosi 73,85 m². Warsztat po usunięciu okna wymaga sprawdzenia oświetlenia i wentylacji.
+
+Ponownie przeliczono dachy po zmianie obrysu płaskiej wiaty: główne połacie domu 38,8097094818° i 39,2352369450°, wspólna kalenica 8,0856938754; garaż 37°, kalenica 5,7585297202. Dach i połączenie domu, wysokości, wnętrza oraz reszta otworów są zachowane. Widoki zewnętrzne, rzuty i przekroje sprawdzane z aktualnej geometrii. Test migracji z r3 obejmuje nowe położenie, usunięte okno i strefy, zachowanie niezależnego usunięcia drzewa oraz niezmienność rodzica.
+
+Kopie rzeczywistych Chrome/IAB sprzed r4: `tmp/nowe-mpzp-r4-20261019/{chrome-before,iab-before}/`. Lokalny konflikt caveats r1 nadal zachowano i nie nadpisano originu. Publiczny kod r3 (`242393f`) został opublikowany przed nadejściem doprecyzowania; shared pozostał wtedy serverVersion 1/r2. R4 kontynuuje tę samą tożsamość, z warunkową aktualizacją shared po ponownym sprawdzeniu wersji i treści. Poprzednie publikacje i historie zachowane. Pełne wyniki, metoda i źródła: [BILANS-r4.md](BILANS-r4.md).
