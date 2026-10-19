@@ -3,7 +3,8 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import initial from '../../project-data/nowe-mpzp/initial-r1.json'
-import previous from '../../project-data/nowe-mpzp/before-tree-review-r9.json'
+import previous from '../../project-data/nowe-mpzp/before-front-frame-r10.json'
+import beforeTrees from '../../project-data/nowe-mpzp/before-tree-review-r9.json'
 import architect from '../../project-data/architekt/project.json'
 import source from '../../project-data/nowe-mpzp/source-architekt-r7.json'
 import { parseProject } from '../domain/schema'
@@ -11,6 +12,7 @@ import { validateProject } from '../domain/commands'
 import { polygonArea, polygonBounds, buildingFootprintsWorld, distanceToSegment, pointInPolygon } from '../domain/geometry'
 import { roofWings, gableRoofJunction, gableWallsForBuilding } from '../domain/roofWings'
 import { roomDimensions } from '../domain/roomDimensions'
+import { gableGlazingProfile } from '../domain/gableGlazing'
 import { zielonkiSurveyTrees, surveyTreePosition, surveyTreeRef } from '../../knowledge-bank/zielonki/trees'
 import { landUseAreas } from '../domain/zoning'
 import { DRAFT_PLAN_VERSION, draftZoningBoundary, draftZoningLine } from '../../knowledge-bank/zielonki/draftPlan'
@@ -28,7 +30,6 @@ it('moves only the independent house, preserves cadastral parcels and contains r
   for (const key of ['spaces','storeys','furniture'] as const) expect(house[key]).toEqual(base.buildings[0][key])
   expect(house.slabs.map(({edgeColorHex,...slab})=>slab)).toEqual(base.buildings[0].slabs.map(({edgeColorHex,...slab})=>slab))
   expect(house.walls.map(({finish,heightM,...wall})=>wall)).toEqual(base.buildings[0].walls.map(({finish,heightM,...wall})=>wall))
-  expect(house.roof.footprint).toEqual(base.buildings[0].roof.footprint)
   expect(house.roof.junctions).toEqual(base.buildings[0].roof.junctions)
   expect(validateProject(p).filter(i=>i.severity==='error'||i.code==='building.zoning')).toEqual([])
   expect(landUseAreas(p).filter(z=>z.landRole==='construction').reduce((sum,z)=>sum+polygonArea(z.boundary),0)).toBeCloseTo(888.806452)
@@ -106,10 +107,10 @@ it('fits the camper, working room and entrance below the six metre conceptual he
   expect(validateProject(p).filter(i=>i.subjectRef?.includes('outbuilding'))).toEqual([])
 })
 
-it('removes nominal eaves beyond the wall faces without changing slopes, ridge junctions or the site layout', () => {
+it('preserves flush side eaves, slopes, ridge junctions and building placement around the new front frame', () => {
   const p=parseProject(data),old=parseProject(previous)
   expect(p.site.entrances).toEqual(old.site.entrances)
-  expect({...p.landscape,plants:p.landscape.plants.filter(t=>t.ref!=='plant/survey-503a')}).toEqual(old.landscape)
+  expect({...p.landscape,zones:p.landscape.zones.filter(z=>z.ref!=='zone/nowe-mpzp/front-frame')}).toEqual(old.landscape)
   expect(p.buildings[1]).toEqual(old.buildings[1])
   for(const index of [0,2]){
     const b=p.buildings[index],before=old.buildings[index],halfWall=index===0?.225:.15
@@ -120,7 +121,7 @@ it('removes nominal eaves beyond the wall faces without changing slopes, ridge j
     const oldWings=roofWings(before)
     for(const wing of roofWings(b)){
       const prior=oldWings.find(w=>w.ref===wing.ref)!
-      expect(wing.footprint).toEqual(prior.footprint)
+      expect(wing.footprint).toEqual(prior.footprint.map(v=>wing.ref==='roof/reference/rear-barn'&&v.x===4.84?{...v,x:v.x+1}:v))
       expect(wing.ridgeElevationM).toBeCloseTo(prior.ridgeElevationM,10)
       expect(wing.baseElevationM).toBe(prior.baseElevationM)
       expect(wing.overhangM-halfWall).toBeCloseTo(0,10)
@@ -130,6 +131,24 @@ it('removes nominal eaves beyond the wall faces without changing slopes, ridge j
     }
     expect(b.roof.finish).toEqual({material:'standing-seam-metal',colorHex:'#303638'})
   }
+})
+
+it('projects the living-room portal outward without moving glazing or changing any room', () => {
+  const p=parseProject(data),old=parseProject(previous),house=p.buildings[0],before=old.buildings[0]
+  const {roof,...unchanged}=house, {roof:oldRoof,...original}=before
+  expect(unchanged).toEqual(original)
+  expect(roof.footprint).toEqual(oldRoof.footprint?.map(v=>v.x===4.84?{...v,x:v.x+1}:v))
+  expect(roof.segments[0]).toEqual(oldRoof.segments[0])
+  const front=roof.segments[1]
+  expect(front.gableFrame).toEqual({widthM:.4,depthM:.26,colorHex:'#B78F60'})
+  expect(front.gableRecess?.max).toMatchObject({depthM:1,baseElevationM:.45,soffitColorHex:'#B78F60',sideColorHex:'#AD845B'})
+  expect(gableWallsForBuilding(house)).toEqual(gableWallsForBuilding(before))
+  expect(gableGlazingProfile(front,'max',house)).toEqual(gableGlazingProfile(oldRoof.segments[1],'max',before))
+  const outline=p.landscape.zones.find(z=>z.ref==='zone/nowe-mpzp/front-frame')!.footprint
+  expect(polygonArea(outline)).toBeCloseTo(7.64)
+  const {slope,intercept}=draftZoningLine
+  expect(Math.min(...outline.map(v=>(intercept+slope*v.x-v.z)/Math.hypot(1,slope)))).toBeGreaterThan(.4)
+  for(const t of p.landscape.plants)expect(pointInPolygon(t.position,outline)).toBe(false)
 })
 
 it('matches current architect clear room dimensions and wall heights and removes the grey floor band', () => {
@@ -154,6 +173,7 @@ it('keeps draft zoning and user deletions through list, reload and a later publi
   expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[1].position).toEqual(data.buildings[1].position)
   expect((await loadWorkspace(NOWE_MPZP_REF))!.project.landscape.zones).toEqual(data.landscape.zones)
   expect((await loadWorkspace(NOWE_MPZP_REF))!.project.site.entrances).toEqual(data.site.entrances)
+  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[0].roof).toEqual(data.buildings[0].roof)
   const next=parseProject(data); next.revision++; next.buildings[2].name='Garaż i warsztat — opis'
   expect(await synchronizePublishedProject(next,parseProject(data))).toEqual([])
   const saved=(await loadWorkspace(NOWE_MPZP_REF))!
@@ -167,13 +187,13 @@ it('keeps draft zoning and user deletions through list, reload and a later publi
 })
 
 it('restores the sole omitted tree outside the current buildings and paving, preserving original coordinates and later deletion', async () => {
-  const p=parseProject(data),old=parseProject(previous),footprints=p.buildings.flatMap(buildingFootprintsWorld)
+  const p=parseProject(data),old=parseProject(beforeTrees),footprints=p.buildings.flatMap(buildingFootprintsWorld)
   const candidates=zielonkiSurveyTrees.filter(t=>!old.landscape.plants.some(v=>v.ref===surveyTreeRef(t.handle))).filter(t=>{
     const point=surveyTreePosition(t.handle)
     return !footprints.some(poly=>pointInPolygon(point,poly))&&!p.landscape.zones.some(z=>pointInPolygon(point,z.footprint))
   })
   expect(candidates.map(t=>t.handle)).toEqual(['503A'])
-  expect(p.buildings).toEqual(old.buildings)
+  expect(p.buildings.map(b=>b.position)).toEqual(old.buildings.map(b=>b.position))
   expect(p.landscape.plants).toHaveLength(11)
   for(const tree of p.landscape.plants)expect(tree.position).toEqual(surveyTreePosition(tree.surveyHandle!))
   await synchronizePublishedProject(old,parseProject(initial));await synchronizePublishedNoweMpzp()

@@ -516,3 +516,10 @@ User replaces the camper canopy with two side-by-side cars in project/architekt.
 ## nowe mpzp r10 — przywrócenie drzewa po kontroli źródła
 
 20.10.2026 ponownie pobrano PDF Zielonki_dz54_55_58-akt-v2 z maila geodety 19f27717889d2f98 i sprawdzono 17 symboli z pozycjami CAD. W osobnym nowe-mpzp przywrócono wyłącznie plant/survey-503a w oryginalnej pozycji, 2,14 m od domu, jako warunkowego kandydata do zachowania. Nie przywracano sześciu punktów pni leżących w obrysie domu. Kanoniczne zielonki i inne projekty bez zmian. Bazą był nowe-mpzp r9, zgodny ze shared HTTPS 5/r9; przed edycją wykonano rzeczywiste kopie Chrome/IAB w tmp/nowe-mpzp-trees-20261020. Publiczne originy scalają się bez konfliktów; lokalny konflikt r1 zachowany bez nadpisania. Snapshot poprzedniej publikacji before-tree-review-r9.json, immutable initial-r1.json bez zmian. Szczegóły: ../nowe-mpzp/DRZEWA-r10.md.
+
+
+## nowe mpzp r11 — rama przed przeszkleniem salonu
+
+20.10.2026, źródło: kanoniczny nowe-mpzp r10 i identyczny shared HTTPS serverVersion 6/r10, plus zdjęcie użytkownika. W niezależnym wariancie dodano drewniane obramowanie 0,40 m i wnękę 1 m przed wysokim przeszkleniem salonu. Dach wydłużony wzdłuż kalenicy, płaszczyzna szyby i wszystkie wnętrza bez zmian. Przeliczone połacie 38,8097094818° / 39,2352369450°, wspólna kalenica 8,0856938754 m; garaż 37° / 5,7585297202 m. Węzeł, widoki zewnętrzne i przekroje sprawdzone. Ostrożny bilans PBC 63,25%; około 0,43 m do roboczej granicy MU/R3 nie jest potwierdzeniem zgodności prawnej. Szczegóły w ../nowe-mpzp/README.md.
+
+Kopie rzeczywistych Chrome/IAB i porównania ref/baza: tmp/nowe-mpzp-frame-20261020/. Publiczne kopie scalają się czysto; lokalny konflikt r1 zachowany bez nadpisania. Snapshot before-front-frame-r10.json, immutable initial-r1.json bez zmian. Shared architekt 6/r11 i Główny 6/r80 oraz kanoniczne projekty źródłowe pozostają niezależne. Nie przenoszono danych między originami ani nie resetowano IndexedDB. Main/Pages bez zmian.
