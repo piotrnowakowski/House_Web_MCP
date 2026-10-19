@@ -3,7 +3,7 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import initial from '../../project-data/nowe-mpzp/initial-r1.json'
-import previous from '../../project-data/nowe-mpzp/before-canopy-shift-r6.json'
+import previous from '../../project-data/nowe-mpzp/before-straight-access-r7.json'
 import architect from '../../project-data/architekt/project.json'
 import source from '../../project-data/nowe-mpzp/source-architekt-r7.json'
 import { parseProject } from '../domain/schema'
@@ -51,9 +51,17 @@ it('moves only the independent house, preserves cadastral parcels and contains r
   expect(carport.roof.footprint).toEqual(carport.slabs[0].footprint)
   expect(carport.roof.segments[0].footprint).toEqual(carport.slabs[0].footprint)
   const access=p.landscape.zones.find(z=>z.ref==='zone/driveway')!.footprint.map(local)
-  // The house-side parking bay is the single through route; its front and rear remain connected.
-  for(const x of [-8.864,-5.366])for(const z of [-2,0,4,8,9.3])expect(pointInPolygon({x,z},access)).toBe(true)
-  for(const x of [-8.864,-5.366])for(const z of [-6.6,-2,-.21])expect(pointInPolygon({x,z},buildingFootprintsWorld(carport)[0].map(local))).toBe(true)
+  const entrance=p.site.entrances.find(e=>e.ref==='entrance/house-road')!, gate=[entrance.start,entrance.end].map(local), driveway=polygonBounds(access)
+  expect(access).toHaveLength(4)
+  expect(driveway.minZ).toBeCloseTo(canopy.maxZ,8)
+  expect(driveway.maxX-driveway.minX).toBeCloseTo(6.4,8)
+  expect((driveway.minX+driveway.maxX)/2).toBeCloseTo((canopy.minX+canopy.maxX)/2,8)
+  expect(Math.min(...gate.map(v=>v.x))).toBeCloseTo(driveway.minX,8)
+  expect(Math.max(...gate.map(v=>v.x))).toBeCloseTo(driveway.maxX,8)
+  for(const v of access)expect(Math.min(Math.abs(v.x-driveway.minX),Math.abs(v.x-driveway.maxX))).toBeLessThan(1e-8)
+  for(const x of [-11,-6])for(const z of [0,4,10])expect(pointInPolygon({x,z},access)).toBe(true)
+  // The hard surface stops at the carport; the former rear lane and garage apron stay removed.
+  for(const z of [-7,-10])expect(pointInPolygon({x:-8,z},access)).toBe(false)
   const wings=roofWings(house)
   for (const wing of wings) {
     const b=polygonBounds(wing.footprint), span=wing.ridgeAxis==='z'?b.maxX-b.minX:b.maxZ-b.minZ
@@ -71,10 +79,13 @@ it('fits the camper, working room and entrance below the six metre conceptual he
   expect(polygonArea(garage.slabs[0].footprint)).toBeCloseTo(67.32)
   const footprint=buildingFootprintsWorld(garage)[0]
   const setbacks=[
-    {minimum:3,line:[{x:18.21,z:-15.861},{x:18.591,z:-6.318},{x:19.477,z:15.883}]},
-    {minimum:3,line:[{x:-19.778,z:-15.1},{x:8.7,z:-16.628},{x:8.77,z:-15.63},{x:18.21,z:-15.861}]},
+    {minimum:1.5,line:[{x:18.21,z:-15.861},{x:18.591,z:-6.318},{x:19.477,z:15.883}]},
+    {minimum:1.5,line:[{x:-19.778,z:-15.1},{x:8.7,z:-16.628},{x:8.77,z:-15.63},{x:18.21,z:-15.861}]},
   ]
   for (const {minimum,line} of setbacks) expect(Math.min(...footprint.flatMap(point=>line.slice(1).map((end,i)=>distanceToSegment(point,line[i],end))))).toBeCloseTo(minimum,8)
+  const rb=polygonBounds(roofWings(garage)[0].footprint),o=garage.roof.overhangM,angle=garage.rotationDegrees*Math.PI/180
+  const roof=[{x:rb.minX-o,z:rb.minZ-o},{x:rb.maxX+o,z:rb.minZ-o},{x:rb.maxX+o,z:rb.maxZ+o},{x:rb.minX-o,z:rb.maxZ+o}].map(v=>({x:garage.position.x+v.x*Math.cos(angle)+v.z*Math.sin(angle),z:garage.position.z-v.x*Math.sin(angle)+v.z*Math.cos(angle)}))
+  for(const {line} of setbacks)expect(Math.min(...roof.flatMap(point=>line.slice(1).map((end,i)=>distanceToSegment(point,line[i],end))))).toBeGreaterThanOrEqual(1)
   expect(garage.walls.find(w=>w.ref==='wall/outbuilding/back')!.openings).toEqual([])
   const gate=garage.walls.flatMap(w=>w.openings).find(o=>o.ref==='opening/outbuilding/camper-gate')!
   expect([gate.widthM,gate.heightM]).toEqual([3.5,3.5])
@@ -102,6 +113,7 @@ it('keeps draft zoning and user deletions through list, reload and a later publi
   expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[2].rotationDegrees).toBe(data.buildings[2].rotationDegrees)
   expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[1].position).toEqual(data.buildings[1].position)
   expect((await loadWorkspace(NOWE_MPZP_REF))!.project.landscape.zones).toEqual(data.landscape.zones)
+  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.site.entrances).toEqual(data.site.entrances)
   const next=parseProject(data); next.revision++; next.buildings[2].name='Garaż i warsztat — opis'
   expect(await synchronizePublishedProject(next,parseProject(data))).toEqual([])
   const saved=(await loadWorkspace(NOWE_MPZP_REF))!

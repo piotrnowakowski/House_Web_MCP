@@ -502,3 +502,8 @@ User replaces the camper canopy with two side-by-side cars in project/architekt.
 ## 2026-10-20 — architekt r10: wiata przy bocznej ścianie
 
 Źródło: kanoniczny r9, zachowany jako ../architekt/before-attached-carport-r9.json, oraz ostatnia dyspozycja użytkownika. Wiata 5,00 × 6,40 m przylega do boku domu, zaczyna się 0,62 m za krawędzią drzwi i kończy równo z tylną ścianą. Dwa auta obok siebie, prześwit 2,50 m. Przy granicy pozostaje około 3 m bez zapasu; kwestia odległości od okien nadal nierozwiązana. Dom i dachy główne bez zmian; końcowe przeliczenia w ../architekt/README.md. Kopie rzeczywistych profili Chrome/IAB i shared: tmp/architekt-attached-carport-20261020. Pięć lokalnych kopii scalamy według ref i osobnych baz bez konfliktów; shared 5/r10 z bazą r9 aktualizowany warunkowo z zachowaniem historii. Równoległy niezależny nowe-mpzp r7 jest zachowany. Main/Pages bez zmian.
+
+
+## nowe mpzp r8 — hipotetyczne 1,5 m i prosty podjazd
+
+Źródło: kanoniczny nowe-mpzp r7 oraz zgodny shared HTTPS serverVersion 3/r7, stan z 20.10.2026. Garaż ustawiono po 1,50 m od obu sąsiednich granic, bez obrotu i zmiany bryły; brama została przesunięta na oś wiaty, a prosty dojazd kończy się przy niej. Połączenie z garażem i dawny plac usunięto z istniejącego wielokąta driveway. PBC 64,11%. Kopie rzeczywistych Chrome/IAB i porównania ref/baza: tmp/nowe-mpzp-r8-20261020/. Publiczne kopie bez konfliktów; lokalny konflikt bramy i caveats zachowany bez nadpisania. Poprzedni projekt before-straight-access-r7.json, immutable initial-r1.json bez zmian. Architekt r10 oraz inne projekty niezmienione. Dachy, odległości, bilans i ograniczenia w ../nowe-mpzp/BILANS-r8.md.

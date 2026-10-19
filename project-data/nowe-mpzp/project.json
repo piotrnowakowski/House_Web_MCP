@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp",
   "name": "nowe mpzp",
   "units": "metric",
-  "revision": 7,
-  "updatedAt": "2026-10-19T22:00:49.768Z",
+  "revision": 8,
+  "updatedAt": "2026-10-19T22:21:37.347Z",
   "site": {
     "boundary": [
       {
@@ -1036,14 +1036,14 @@
     "entrances": [
       {
         "ref": "entrance/house-road",
-        "name": "House-side road entrance",
+        "name": "Brama naprzeciwko wiaty · prosty dojazd",
         "start": {
-          "x": -19.630693943,
-          "z": -12.354215089
+          "x": -19.466129382118357,
+          "z": -9.286731682686215
         },
         "end": {
-          "x": -19.287839336,
-          "z": -5.963405228
+          "x": -19.1232747757069,
+          "z": -2.895921819176678
         },
         "connectsTo": "public-road",
         "geometryConfidence": "user-marked"
@@ -1885,11 +1885,10 @@
         "Climate values and planting recommendations are conceptual inputs rather than a site weather station record or horticultural survey.",
         "The app provides conceptual design guidance only and does not establish zoning, building-law, foundation, drainage or planting compliance.",
         "Drzewa kolidujące z koncepcją, wyłączone wyłącznie z tego wariantu: plant/survey-5015. Oryginały w source-architekt-r7.json; to nie zezwolenie na wycinkę.",
-        "Po obrocie garażu o 90° układ podjazdu jest orientacyjny; trzeba sprawdzić tor jazdy i cofania konkretnego kampera względem wiaty i drogi.",
-        "USYTUOWANIE r6: wiata jest połączona z elewacją domu, bez przerwy. Dwa stanowiska, w tym szersze stanowisko przejazdowe przy domu: wspólny pas 3,50 m prowadzi pod wiatą do garażu kampera. Przed przejazdem kampera stanowisko przy domu musi być wolne. Nie ma trzeciego miejsca ani dodatkowego pasa obok wiaty. Dach wiaty podniesiono dla kampera 3,10 m; minimalny modelowy prześwit co najmniej 3,50 m, konstrukcja wymaga weryfikacji. Garaż pozostaje bez tylnego okna, równoległy do domu, po 3 m od obu granic.",
-        "ZMIANA r7: całą wiatę 6,60 × 6,40 m przesunięto o 4,55 m wzdłuż domu, do końca ściany w stronę garażu gospodarczego. Bez wydłużania, poszerzania ani zmiany wysokości. Dwa auta i stanowisko przejazdowe przy domu; zachowano jeden wspólny dojazd. Przed garażem pozostaje około 3,22 m niezadaszonego odcinka, manewry mogą częściowo korzystać z wolnego przejazdu pod wiatą; tor konkretnego kampera wymaga sprawdzenia.",
-        "BILANS r7: część MU 888,81 m²; PBC 551,89 m² (62,09%, zapas 107,48 m² do progu 50%), zabudowa z wiatą 230,12 m² (25,89%), intensywność nadziemna do 0,395. Wyłożony plan nie obowiązuje; wyniki koncepcyjne nie potwierdzają pełnej zgodności.",
-        "POSTÓJ r7: najbliższe modelowane stanowisko pod wiatą jest około 3,60 m od okna pomieszczenia mieszkalnego (opening/reference-kitchen), poniżej 7 m z §19 WT. Wymaga rozwiązania przed realizacją; pozostałe ograniczenia w raporcie."
+        "POSTÓJ r7: najbliższe modelowane stanowisko pod wiatą jest około 3,60 m od okna pomieszczenia mieszkalnego (opening/reference-kitchen), poniżej 7 m z §19 WT. Wymaga rozwiązania przed realizacją; pozostałe ograniczenia w raporcie.",
+        "WARIANT r8: na wyraźne życzenie użytkownika garaż z warsztatem ustawiony hipotetycznie po 1,50 m od obu sąsiednich granic, pełnymi ścianami bez okien i drzwi, równolegle do domu. Projekt MPZP §7 pkt 3 lit. a przewiduje taką możliwość, ale nie obowiązuje. Rozwiązania przeciwpożarowe i ostateczne odległości wymagają projektu budowlanego.",
+        "DOJAZD r8: brama drogowa przesunięta naprzeciwko wiaty. Jeden prosty podjazd o szerokości około 6,40 m kończy się przy dwóch stanowiskach pod wiatą. Usunięto utwardzony przejazd i plac do garażu gospodarczego; obszar wraca do zieleni. Wariant nie zapewnia utwardzonego dojazdu kampera do garażu. Zmiana lokalizacji zjazdu z drogi pozostaje koncepcją do uzgodnienia. Wiata 6,60 × 6,40 m pozostaje przy domu, z prześwitem 3,54 m.",
+        "BILANS r8: część MU 888,81 m²; PBC 569,82 m² (64,11%, zapas 125,42 m² do progu 50%), zabudowa z wiatą 230,12 m² (25,89%), intensywność nadziemna do 0,395. Wyłożony plan nie obowiązuje; to wariant hipotetyczny, nie potwierdzenie pełnej zgodności."
       ]
     }
   },
@@ -4758,7 +4757,7 @@
         }
       ],
       "ref": "building/south-carport",
-      "name": "Wiata przy końcu domu · 2 auta · stanowisko przejazdowe",
+      "name": "Wiata przy końcu domu · 2 auta",
       "kind": "garage",
       "architecturalStyle": "barn",
       "position": {
@@ -4984,8 +4983,8 @@
       "kind": "garage",
       "architecturalStyle": "barn",
       "position": {
-        "x": 8.806556329634887,
-        "z": -9.888200332287484
+        "x": 10.246439856460968,
+        "z": -11.423883801189454
       },
       "rotationDegrees": 93.06927082481445,
       "storeys": [
@@ -5396,80 +5395,24 @@
       },
       {
         "ref": "zone/driveway",
-        "name": "Wspólny dojazd przez wiatę przy domu do garażu kampera",
+        "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
         "kind": "driveway",
         "footprint": [
           {
-            "x": 2.0794885009527206,
-            "z": -12.081156887114048
+            "x": -7.864187136187596,
+            "z": -9.90882992913723
           },
           {
-            "x": 2.35255915671587,
-            "z": -6.988472685217857
+            "x": -7.5215102418227735,
+            "z": -3.5180105366755376
           },
           {
-            "x": 2.0794885009527206,
-            "z": -3.7999999970197678
+            "x": -19.1232747757069,
+            "z": -2.895921819176678
           },
           {
-            "x": -1.5413995012640953,
-            "z": -3.7999999970197678
-          },
-          {
-            "x": -1.5413995012640953,
-            "z": -4.038952462375164
-          },
-          {
-            "x": -7.532218895852566,
-            "z": -3.71772363781929
-          },
-          {
-            "x": -11.801555395126343,
-            "z": -3.4888010397553444
-          },
-          {
-            "x": -17.068519711494446,
-            "z": -3.206385463476181
-          },
-          {
-            "x": -19.287829339504242,
-            "z": -5.963405229151249
-          },
-          {
-            "x": -19.630683943629265,
-            "z": -12.35421508550644
-          },
-          {
-            "x": -17.25592114031315,
-            "z": -6.7013648226857185
-          },
-          {
-            "x": -12.712447971105576,
-            "z": -6.944986671209335
-          },
-          {
-            "x": -12.862369112670422,
-            "z": -9.74097015708685
-          },
-          {
-            "x": -7.8695414662361145,
-            "z": -10.008686482906342
-          },
-          {
-            "x": -7.719620317220688,
-            "z": -7.212702997028828
-          },
-          {
-            "x": -1.5413994938135147,
-            "z": -7.543980315327644
-          },
-          {
-            "x": -1.5413995012640953,
-            "z": -13.399999998509884
-          },
-          {
-            "x": 2.0794885009527206,
-            "z": -13.399999998509884
+            "x": -19.466129382118357,
+            "z": -9.286731682686215
           }
         ],
         "locked": false,
