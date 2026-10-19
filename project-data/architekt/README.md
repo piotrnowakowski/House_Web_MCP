@@ -1,6 +1,14 @@
 # architekt
 
-Independent project `project/architekt`, reconstructed on 2026-10-11 from the three user-supplied architect PDFs and GŁÓWNY. Current canonical revision **r9**, replacing the camper canopy with a two-car canopy on 2026-10-19. Earlier revision notes below remain historical evidence.
+Independent project `project/architekt`, reconstructed on 2026-10-11 from the three user-supplied architect PDFs and GŁÓWNY. Current canonical revision **r10**, attaching the two-car canopy to the entrance-side facade on 2026-10-20. Earlier revision notes below remain historical evidence.
+
+## Attached canopy behind the entrance — 2026-10-20, r10
+
+Per the user's latest placement correction, the canopy now touches the side facade and ends flush with the rear house wall, following the Główny arrangement. Roof/slab bounds are local x=-10.065..-5.065, z=-6.605..-0.205: **5.00 × 6.40 m**, **32.00 m²**. The nearest entrance opening edge is 0.62 m beyond the canopy end. Two 1.90 × 4.70 m car envelopes remain side by side, centred 2.50 m apart, with 0.60 m between bodies and 0.30 m at the sides. Two nominal 2.50 × 5.00 m bays fit; corner posts lie beyond the bay ends. Minimum fascia clearance remains **2.50 m**. The previous rear extension of the added apron is removed; original entry/courtyard parking and paths remain unchanged. House geometry, rooms, openings, finishes and separate garden building are byte-equivalent to r9.
+
+The saved cadastral model gives approximately **2.99954 m** from the canopy edge to the boundary: effectively 3 m with no spare margin, not certified survey clearance. Occupied-room window setbacks remain unresolved; this requested concept does not establish construction approval, flat-roof permission, engineering or turning-path suitability. Main slopes recomputed from unchanged final geometry are **38.8097094818° / 39.2352369450°**, spans 7.30/7.19 m, eaves 5.15 m, common ridge **8.0856938754 m**. Both gables remain symmetric and the valley at (-1.19,-2.985) is recognized, with the hidden rear-end gable omitted.
+
+Previous canonical r9 is preserved as `before-attached-carport-r9.json`; immutable initial-r1 and other snapshots stay intact. Actual Codex IAB and Chrome Default profiles were captured under ignored `tmp/architekt-attached-carport-20261020/{iab-before,chrome-before}/`. Five saved local/HTTP/HTTPS architekt copies merge from their own published baselines by entity ref without conflicts or independent design differences. Shared version 5/project r10 contains canonical r9; the conditional update merges from preserved r9 and retains proposals/drafts. Independent nowe-mpzp publication may advance concurrently and is preserved. Phone Safari is not accessible from this workstation.
 
 ## Two cars instead of the camper — 2026-10-19, r9
 

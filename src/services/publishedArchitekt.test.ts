@@ -6,6 +6,7 @@ import beforeCorrection from '../../project-data/architekt/before-correction-r5.
 import beforeFrameRemoval from '../../project-data/architekt/before-remove-eaves-frames-r6.json'
 import beforeFacadeFix from '../../project-data/architekt/before-facade-carport-r7.json'
 import beforeTwoCars from '../../project-data/architekt/before-two-cars-r8.json'
+import beforeAttachedCarport from '../../project-data/architekt/before-attached-carport-r9.json'
 import source from '../../project-data/architekt/source-glowny-r79.json'
 import main from '../../project-data/zielonki-rear-bath-room/project.json'
 import { parseProject } from '../domain/schema'
@@ -107,7 +108,7 @@ it('keeps the complete 60 cm eaves outside agricultural land after removing the 
   expect(house.roof).toEqual(parseProject(beforeFrameRemoval).buildings[0].roof)
 })
 
-it.each([beforeCorrection,beforeFrameRemoval,beforeFacadeFix,beforeTwoCars])('migrates architect r$revision, retaining unrelated edits and deletions through reload',async(previous)=>{
+it.each([beforeCorrection,beforeFrameRemoval,beforeFacadeFix,beforeTwoCars,beforeAttachedCarport])('migrates architect r$revision, retaining unrelated edits and deletions through reload',async(previous)=>{
   const before=parseProject(previous)
   await synchronizePublishedProject(before,before)
   const local=(await loadWorkspace(ARCHITEKT_REF))!
@@ -163,31 +164,42 @@ it('repairs the photographed facade, continuous gable and corner opening without
   expect(length-opening.offsetM-opening.widthM/2).toBeCloseTo(.225,8)
 })
 
-it('fits two cars side by side beneath the rear canopy, clear of posts, house and site boundaries',()=>{
+it('attaches the two-car canopy behind the entrance, flush with the house end, with clear bays',()=>{
   const project=parseProject(data),carport=project.buildings.find(b=>b.ref==='building/south-carport')!
   const roof=carport.roof.segments[0],canopy=roof.canopy!,cars=carport.furniture!
   const bounds=polygonBounds(roof.footprint),floor=carport.slabs[0].topElevationM
-  expect(bounds.maxX-bounds.minX).toBeCloseTo(6,8)
-  expect(bounds.maxZ-bounds.minZ).toBeCloseTo(6,8)
+  expect(bounds.maxX-bounds.minX).toBeCloseTo(5,8)
+  expect(bounds.maxZ-bounds.minZ).toBeCloseTo(6.4,8)
+  const house=project.buildings[0],houseBounds=polygonBounds(house.slabs[0].footprint)
+  expect(carport.position).toEqual(house.position)
+  expect(carport.rotationDegrees).toBe(house.rotationDegrees)
+  expect(bounds.maxX).toBeCloseTo(houseBounds.minX,8)
+  expect(bounds.minZ).toBeCloseTo(houseBounds.minZ,8)
+  const entranceWall=house.walls.find(w=>w.openings.some(o=>o.ref==='opening/reference-entrance'))!
+  const entrance=entranceWall.openings.find(o=>o.ref==='opening/reference-entrance')!
+  expect(entranceWall.start.z-entrance.offsetM-entrance.widthM/2-bounds.maxZ).toBeCloseTo(.62,8)
   const clearance=Math.min(roof.baseElevationM-.025,roof.baseElevationM+.24-canopy.fasciaHeightM)-floor
   expect(clearance).toBeCloseTo(2.5,8)
   expect(cars.map(c=>c.catalogId)).toEqual(['car','car'])
   expect(cars[0].position.z).toBe(cars[1].position.z)
-  expect(cars[1].position.x-cars[0].position.x).toBeCloseTo(2.76,8)
+  expect(cars[1].position.x-cars[0].position.x).toBeCloseTo(2.5,8)
   for(const car of cars){
     expect(clearance-car.heightM).toBeGreaterThanOrEqual(1)
     expect(itemFitsFloor(car,carport.slabs[0].footprint)).toBe(true)
+    expect(itemFitsFloor({...car,widthM:2.5,depthM:5},carport.slabs[0].footprint)).toBe(true)
     for(const post of canopy.posts){
       expect(Math.abs(post.x-car.position.x)-canopy.postWidthM/2).toBeGreaterThan(car.widthM/2)
+      expect(Math.abs(post.z-car.position.z)-canopy.postWidthM/2).toBeGreaterThan(2.5)
     }
   }
   const angle=carport.rotationDegrees*Math.PI/180
   const world=roof.footprint.map(p=>({x:carport.position.x+p.x*Math.cos(angle)+p.z*Math.sin(angle),z:carport.position.z-p.x*Math.sin(angle)+p.z*Math.cos(angle)}))
   expect(world.every(p=>pointInPolygon(p,project.site.boundary))).toBe(true)
-  expect(Math.min(...world.flatMap(p=>project.site.boundary.map((q,i)=>distanceToSegment(p,q,project.site.boundary[(i+1)%project.site.boundary.length]))))).toBeGreaterThan(3)
+  // The rounded cadastral model has effectively no margin beyond 3 m; this is not a survey certification.
+  expect(Math.min(...world.flatMap(p=>project.site.boundary.map((q,i)=>distanceToSegment(p,q,project.site.boundary[(i+1)%project.site.boundary.length]))))).toBeCloseTo(3,2)
   expect(buildingFootprintsWorld(project.buildings[0]).some(f=>interiorsOverlap(f,world))).toBe(false)
   expect(landUseAreas(project).filter(z=>z.landRole==='agricultural'&&interiorsOverlap(world,z.boundary))).toEqual([])
-  expect(project.buildings.filter(b=>b.ref!==carport.ref)).toEqual(parseProject(beforeTwoCars).buildings.filter(b=>b.ref!==carport.ref))
+  expect(project.buildings.filter(b=>b.ref!==carport.ref)).toEqual(parseProject(beforeAttachedCarport).buildings.filter(b=>b.ref!==carport.ref))
   const apron=project.landscape.zones.find(z=>z.ref==='zone/architekt/carport-apron')!
   expect(world.every(p=>pointInPolygon(p,apron.footprint)||pointOnPolygonBoundary(p,apron.footprint))).toBe(true)
 })
