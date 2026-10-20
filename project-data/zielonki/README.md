@@ -550,3 +550,6 @@ Kopie rzeczywistych Chrome/IAB i porównania ref/baza: tmp/nowe-mpzp-frame-20261
 
 
 20.10.2026 — niezależne nowe mpzp r18: ogrodzenie przedłużone o 5,1206 m do końca szerokiej części, 3189,4704 m², zgodnie z wybraną przez użytkowniczkę opcją. Źródło canonical/shared r17 (serverVersion 13), snapshot before-fence-extend-r17.json. Rzeczywiste kopie Chrome/IAB i porównania według ref/bazy: tmp/nowe-mpzp-fence-extend-20261020. Publiczne scalenia czyste, wcześniejsze lokalne konflikty zachowane. Obie bramy i całe zagospodarowanie bez zmian.
+
+
+20.10.2026 — niezależne nowe mpzp r19: usunięto zaznaczone 12 płyt ścieżki i małą rabatę z sześcioma trawami; uzupełniono 10,4883 m² trawnika. Pozostały ogród, budynki i ogrodzenie bez zmian. Źródło canonical/shared r18 (serverVersion 14), snapshot before-path-removal-r18.json. Rzeczywiste Chrome/IAB i scalenia według ref/bazy: tmp/nowe-mpzp-remove-path-20261020; publiczne scalenia czyste, wcześniejszy lokalny konflikt zachowany.

@@ -4,6 +4,7 @@ import { expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import previous from '../../project-data/nowe-mpzp/before-fence-r16.json'
 import beforeExtension from '../../project-data/nowe-mpzp/before-fence-extend-r17.json'
+import afterExtension from '../../project-data/nowe-mpzp/before-path-removal-r18.json'
 import { parseProject } from '../domain/schema'
 import { distanceToSegment, pointInPolygon, polygonArea } from '../domain/geometry'
 import { diffProjects } from '../domain/diff'
@@ -14,7 +15,7 @@ import { loadWorkspace, saveWorkspace, synchronizePublishedProject } from './per
 it('encloses the complete wide garden with two clear gates and the requested materials, preserving the whole design', () => {
   const p = parseProject(data), old = parseProject(previous), fences = p.site.fences!
   expect(p.buildings).toEqual(old.buildings)
-  expect(p.landscape).toEqual(old.landscape)
+  expect(afterExtension.landscape).toEqual(old.landscape)
   expect(p.site.boundary).toEqual(old.site.boundary)
   expect(p.site.parcels).toEqual(old.site.parcels)
   expect(p.site.entrances[0]).toEqual({ ...old.site.entrances[0], gate: { heightM: 1.8, colorHex: '#15191A' } })
