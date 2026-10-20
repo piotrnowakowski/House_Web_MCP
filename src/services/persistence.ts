@@ -1,4 +1,5 @@
 import { parseProject } from '../domain/schema'
+import { isArchivedProject } from '../domain/projectArchive'
 import { calculateMetrics, validateProject } from '../domain/commands'
 import { isZielonkiProject } from '../domain/terrain'
 import { mergeProjects, sameProject } from '../domain/projectMerge'
@@ -224,13 +225,14 @@ const loadWorkspaceImpl = async (ref?: string): Promise<PersistedWorkspace | nul
 }
 
 /** Every saved project, newest first, with just enough to draw a card. */
-const listWorkspacesImpl = async (): Promise<WorkspaceSummary[]> => {
+const listWorkspacesImpl = async (includeArchived: boolean): Promise<WorkspaceSummary[]> => {
   await migrateLegacyRecord()
   const summaries: WorkspaceSummary[] = []
   const entries = await allEntries()
   const entriesMap = new Map(entries)
   for (const [key, value] of entries) {
     if (!key.startsWith(WORKSPACE_PREFIX)) continue
+    if (!includeArchived && isArchivedProject(key.slice(WORKSPACE_PREFIX.length))) continue
     try {
       const workspace = toWorkspace(value)
       if (knowledgeChanged(value, workspace)) {
@@ -359,7 +361,7 @@ export const loadEditHistory = (project: ProjectV2): Promise<LocalEditHistory | 
     return { history: parse(value.history), future: parse(value.future) }
   } catch { return undefined }
 })
-export const listWorkspaces = () => enqueue(listWorkspacesImpl)
+export const listWorkspaces = (options: { includeArchived?: boolean } = {}) => enqueue(() => listWorkspacesImpl(options.includeArchived ?? true))
 export const renameWorkspace = (ref: string, name: string) => enqueue(() => renameWorkspaceImpl(ref, name))
 export const deleteWorkspace = (ref: string) => enqueue(() => deleteWorkspaceImpl(ref))
 export const synchronizePublishedProject = (published: ProjectV2, base: ProjectV2) => enqueue(() => synchronizePublishedProjectImpl(published, base))

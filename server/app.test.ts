@@ -60,3 +60,13 @@ it('supports explicitly configured public read/write access without exposing cre
   expect((await app.inject({url:'/api/sync/projects'})).statusCode).toBe(401)
  }finally{await publicApi.close()}
 })
+
+it('removes archived identities and saved versions from the shared list while retaining recovery data', async () => {
+  const ref = 'project/paulina-poprawki/before-published-1'
+  const archived = structuredClone(workspace); archived.project.ref = ref
+  await db.query('INSERT INTO house_sync_projects(ref,server_version,workspace) VALUES($1,1,$2)', [ref, archived])
+  const listed = (await app.inject({ url: '/api/sync/projects', headers })).json() as Array<{ ref: string }>
+  expect(listed.some(project => project.ref === ref)).toBe(false)
+  expect(listed.some(project => project.ref === workspace.project.ref)).toBe(true)
+  expect((await app.inject({ url: `/api/sync/workspace?ref=${encodeURIComponent(ref)}`, headers })).json().workspace).toEqual(archived)
+})

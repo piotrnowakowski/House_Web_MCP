@@ -1,5 +1,7 @@
 # Current house deployment
 
+The active launcher and shared-project list now retain only **architekt**, **nowe mpzp** and **nowe mpzp — wariant 2**. The five older designs named below are retired from those lists with recovery data preserved; see [project archive](../project-data/ARCHIVE.md). Their historical release descriptions are not the active project catalogue.
+
 For the new runtime API, persistent server `.env`, database backups and manual synchronization, see [workspace-sync.md](workspace-sync.md). API-enabled releases use `--sync-api`; a static-only redeployment is rejected once sync is present.
 
 The working house branch is `codex/deploy-furnished-zielonki`, previewed locally at `http://127.0.0.1:5173/`.

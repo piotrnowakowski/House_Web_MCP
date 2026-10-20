@@ -33,9 +33,7 @@ import { deleteWorkspace } from './services/persistence'
 import { flushAutosave } from './services/autosave'
 import { runWorkspaceActivity } from './services/workspaceLock'
 import { groupWorkspaces, workspaceVersionKind } from './services/workspaceGroups'
-import { BATH_ROOM_STUDY_REF } from './services/publishedBathRoom'
 import { ARCHITEKT_REF } from './services/publishedArchitekt'
-import { PAULINA_REF } from './services/publishedPaulina'
 import { NOWE_MPZP_REF } from './services/publishedNoweMpzp'
 import { NOWE_MPZP_V2_REF } from './services/publishedNoweMpzpV2'
 import { showStructureViews } from './services/structureViews'
@@ -435,7 +433,7 @@ function StartScreen() {
   }
   const [showOtherVersions, setShowOtherVersions] = useState(false)
   const projectGroups = groupWorkspaces(saved, favoriteRef).filter((item) => item.ref !== REFERENCE_HOUSE_REF)
-  const featuredRefs = [BATH_ROOM_STUDY_REF, ARCHITEKT_REF, NOWE_MPZP_REF, NOWE_MPZP_V2_REF, PAULINA_REF]
+  const featuredRefs = [ARCHITEKT_REF, NOWE_MPZP_REF, NOWE_MPZP_V2_REF]
   const hasMainProject = projectGroups.some((item) => featuredRefs.includes(item.ref))
   const showHistory = showOtherVersions || !hasMainProject
   const visibleProjects = showHistory
@@ -539,7 +537,6 @@ function StartScreen() {
       })}</div>}
       {hasMainProject && <div className="start-actions"><button type="button" aria-expanded={showOtherVersions} onClick={() => { setShowOtherVersions((value) => !value); setExpandedProjects([]); cancelRename(); setRemoveRef(null) }}>{showOtherVersions ? 'Zamknij archiwum' : 'Archiwum i pozostałe projekty'}</button></div>}
       {showHistory && <div className="start-options">
-        <button className="start-card" disabled={loading || savingName} onClick={() => void useStudioStore.getState().openZielonkiStudy()}><strong>Dom w Zielonkach</strong><span>Otwórz zapisany dom lub obejrzyj wyposażone wnętrze, obie kondygnacje i ogród w Zielonkach.</span></button>
         <button className="start-card" disabled={savingName} onClick={() => { cancelRename(); setMode('terrain') }}><strong>Nowa działka</strong><span>Pusta prostokątna działka z własnymi wymiarami, kierunkiem północy i współrzędnymi, gotowa na dom.</span></button>
       </div>}
       {hydrated && <div className="start-actions"><button disabled={savingName} onClick={closeLauncher}>Keep working on {project.name}</button></div>}
