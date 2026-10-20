@@ -1,6 +1,6 @@
 # nowe mpzp — wariant 2
 
-Osobny projekt `project/nowe-mpzp-v2`, przygotowany 20.10.2026 na podstawie ilustracji „Ogród — koncepcja zagospodarowania” przekazanej przez użytkownika. Kanoniczna rewizja: **2**. W lokalnej aplikacji wybierz **Projekty → nowe mpzp — wariant 2**.
+Osobny projekt `project/nowe-mpzp-v2`, przygotowany 20.10.2026 na podstawie ilustracji „Ogród — koncepcja zagospodarowania” przekazanej przez użytkownika. Kanoniczna rewizja: **2**. Na [Mikrusie](https://natan203-20203.mikrus.cloud/) wybierz **Projekty → nowe mpzp — wariant 2**.
 
 ## Układ i skala
 
@@ -52,4 +52,10 @@ Bilans roboczy `balance-r2.json`: część MU 888,8065 m², obrys zabudowy 237,7
 
 Sauna, pergola i szklarnia leżą w koncepcyjnej części **18.R3.1**. Ich lokalizacje pozostają warunkowe w świetle zapisanej analizy projektu planu; odtworzenie zdjęcia nie rozstrzyga dopuszczalności realizacji. Nie wykonywano nowej analizy prawnej, projektu konstrukcyjnego, fundamentów, instalacji, pożarowego ani szczegółowego doboru roślin do gleby i zacienienia.
 
-Kod przygotowany na `codex/deploy-furnished-zielonki`, baza `24d6e812602603605a08191ef80ae623e7554919`. Użytkownik zlecił publikację na Mikrusie. Nowe kopie rzeczywistych Chrome/IAB i porównania 32 zapisów: `tmp/nowe-mpzp-v2-release-20261020/`. Lokalny wariant r6 jest zgodny treściowo z canonical r2, bez konfliktów i dodatkowych propozycji. Wspólnego wariantu 2 jeszcze nie było; przygotowano utworzenie z `expectedVersion=0`. Pełny zestaw 598 testów przeszedł przed publikacją. `main` i GitHub Pages pozostają bez zmian.
+## Publikacja na Mikrusie — 20.10.2026
+
+Na wyraźne polecenie użytkownika opublikowano kod `02e362214e002650048a560e865ae57366f8d867` z `codex/deploy-furnished-zielonki` oraz canonical r2 / shared serverVersion 1. Nowe kopie rzeczywistych Chrome/IAB i porównania 32 zapisów: `tmp/nowe-mpzp-v2-release-20261020/`. Lokalny wariant r6 był zgodny treściowo z canonical r2, bez konfliktów i dodatkowych propozycji. Wspólny wariant utworzono z `expectedVersion=0`; odczyt zwrotny był identyczny z przygotowanym workspace. Wspólne dane nowe-mpzp, architekt, Główny i paulinka poprawki pozostały identyczne z kopiami sprzed publikacji. `main` i GitHub Pages pozostają bez zmian.
+
+Przeszło 598 testów / 112 plików, lint, build frontendu oraz API i kontrola sekretów. Publiczne health/API są poprawne, a SHA256 pobranego pliku JS odpowiada lokalnemu buildowi. Sprawdzono widoczność projektu w launcherze, otwarcie w rzeczywistym profilu IAB i ponowne otwarcie po odświeżeniu. IndexedDB r2 jest dokładnie zgodne ze wspólnym workspace serverVersion 1. Dowody: `release-verification.json`, `browser-after-reload.json`, `shared-after.json` i `deployment-result.json` w katalogu kopii wydania. Nie powtarzano pełnych testów przeglądarkowych niezmienionych wnętrz.
+
+Pierwszy build kandydata przerwał brak miejsca, bez przełączenia działającego wydania. Usunięto wyłącznie siedem nieużywanych rekordów cache źródeł tego projektu, sprawdzonych względem zachowanych katalogów wydań (łącznie ok. 587 MB); obrazy, woluminy, bazy i wydania pozostawiono. Powtórzona publikacja przeszła. Po publikacji `df -h /` pokazuje **428 MB wolnego / 99% zajęcia**; serwer wymaga osobnego uporządkowania miejsca przed kolejnymi większymi wdrożeniami.

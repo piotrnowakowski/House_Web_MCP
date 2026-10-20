@@ -12,11 +12,13 @@ The deployed house is [Mikrus over HTTPS](https://natan203-20203.mikrus.cloud/).
 The original [HTTP address on port 20203](http://natan203.mikrus.xyz:20203/) remains available for existing browser workspaces.
 GitHub Pages/main remains the separately restored competition submission; deploying this branch does not change it.
 
-## HTTPS
-
-### nowe mpzp — wariant 2, 2026-10-20
+## nowe mpzp — wariant 2, 2026-10-20
 
 The launcher also includes the independent `project/nowe-mpzp-v2`, canonical r2, requested from the garden reference image. It preserves the parent r19 buildings and surveyed trees and adds the measured timber terrace, summer kitchen/pergola, pizza oven, round hot tub, sauna, greenhouse/vegetable area and orchard. Four new fixture models are included in the frontend and API schemas. See `project-data/nowe-mpzp-v2/README.md` for dimensions, conditional R3 locations and release verification.
+
+Published code revision: `02e362214e002650048a560e865ae57366f8d867`; shared project version: 1. Public health, exact frontend artifact hash and existing-profile reload/IndexedDB readback passed. Remaining VPS free disk was 428 MB (99% used); preserve database and release backups when addressing capacity separately.
+
+## HTTPS
 
 Mikrus's [automatic subdomain proxy](https://wiki.mikr.us/darmowa_subdomena_dla_vps/) provides HTTPS and certificate renewal for `natan203-20203.mikrus.cloud`. It reaches the application's HTTP port over IPv6. Preserve both published bindings in the server-side Compose configuration:
 
