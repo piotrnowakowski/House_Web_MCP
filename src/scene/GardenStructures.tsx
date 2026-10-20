@@ -9,6 +9,24 @@ import { pergolaMembers } from '../domain/pergola'
 type GardenVisualProps = { selected: boolean; ghost: boolean }
 type Triple = [number, number, number]
 
+export function ThujaPlant({ plant, selected, ghost }: GardenVisualProps & { plant: PlantModel }) {
+  const geometry = useMemo(() => {
+    const result = new LatheGeometry([[0,0],[.32,.04],[.48,.16],[.5,.35],[.42,.58],[.28,.78],[.08,.94],[0,1]].map(([r,y]) => new Vector2(r,y)), 32)
+    const positions = result.getAttribute('position')
+    for (let i = 0; i < positions.count; i++) {
+      const angle = Math.atan2(positions.getZ(i), positions.getX(i))
+      const ripple = .94 + .06 * Math.cos(angle * 12 + positions.getY(i) * 15)
+      positions.setXYZ(i, positions.getX(i) * ripple, positions.getY(i), positions.getZ(i) * ripple)
+    }
+    result.computeVertexNormals()
+    return result
+  }, [])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  return <mesh geometry={geometry} scale={[plant.canopyM, plant.matureHeightM, plant.canopyM]} castShadow={!ghost} receiveShadow>
+    <meshStandardMaterial color={selected ? '#bedb84' : '#416b38'} roughness={.95} transparent={ghost} opacity={ghost ? .35 : 1} depthWrite={!ghost} />
+  </mesh>
+}
+
 export function FloweringBorderPlant({ plant, month, ...props }: GardenVisualProps & { plant: PlantModel; month: number }) {
   const lavender = plant.species.startsWith('Lavandula'), flowering = plant.bloomMonths.includes(month)
   const leaves = plant.leafMonths.includes(month)

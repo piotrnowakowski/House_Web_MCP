@@ -2,12 +2,14 @@ import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp-v2/project.json'
+import beforeThuja from '../../project-data/nowe-mpzp-v2/before-thuja-r2.json'
 import parent from '../../project-data/nowe-mpzp/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
 import { gardenFixtureById } from '../domain/gardenFixtures'
 import { buildingFootprintsWorld, distanceToSegment, pointInPolygon } from '../domain/geometry'
 import { resolveZoneTexture } from '../domain/textures'
+import { mergeProjects } from '../domain/projectMerge'
 import { loadWorkspace, saveWorkspace, deleteWorkspace, listWorkspaces } from './persistence'
 import { NOWE_MPZP_V2_REF, synchronizePublishedNoweMpzpV2 } from './publishedNoweMpzpV2'
 
@@ -85,4 +87,31 @@ it('adds a separate project, reloads edits and deletions, and never rewrites the
   expect(await loadWorkspace(parent.ref)).toEqual(original)
   await deleteWorkspace(NOWE_MPZP_V2_REF);await synchronizePublishedNoweMpzpV2()
   expect(await loadWorkspace(NOWE_MPZP_V2_REF)).toBeNull()
+})
+
+it('changes only the indicated east border into nine thujas and nine grass triplets, preserving saved deletions',()=>{
+  const p=parseProject(data), before=parseProject(beforeThuja)
+  const changed=(ref:string)=> /^plant\/nowe-mpzp-v2\/east-border-([1-9]|1\d|2[0-7])$/.test(ref)
+  expect(p.buildings).toEqual(before.buildings)
+  expect(p.landscape.fixtures).toEqual(before.landscape.fixtures)
+  expect(p.landscape.zones).toEqual(before.landscape.zones)
+  expect(p.site.boundary).toEqual(before.site.boundary)
+  expect(p.landscape.plants.filter(t=>!changed(t.ref)&&!t.ref.includes('/east-grass-group-'))).toEqual(before.landscape.plants.filter(t=>!changed(t.ref)))
+  const border=p.landscape.plants.filter(t=>changed(t.ref)||t.ref.includes('/east-grass-group-'))
+  expect(border.filter(t=>t.species.startsWith('Thuja '))).toHaveLength(9)
+  expect(border.filter(t=>t.kind==='grass')).toHaveLength(27)
+  for(const t of border){
+    expect(t.canopyM).toBe(t.kind==='hedge'?1.3:.6)
+    expect(t.matureHeightM).toBe(t.kind==='hedge'?4.6:1.8)
+    expect(pointInPolygon(t.position,p.site.boundary)).toBe(true)
+    const gap=Math.min(...p.site.boundary.map((v,i)=>distanceToSegment(t.position,v,p.site.boundary[(i+1)%p.site.boundary.length])))-t.canopyM/2
+    expect(gap,t.ref).toBeGreaterThan(.249)
+  }
+  const local=structuredClone(before),deleted='plant/nowe-mpzp-v2/east-border-22'
+  local.name='Własny ogród';local.landscape.plants=local.landscape.plants.filter(t=>t.ref!==deleted)
+  const merged=mergeProjects(before,local,p)
+  expect(merged.project.name).toBe('Własny ogród')
+  expect(merged.project.landscape.plants.some(t=>t.ref===deleted)).toBe(false)
+  expect(merged.conflicts).toHaveLength(1)
+  expect(merged.conflicts[0]).toContain(deleted)
 })

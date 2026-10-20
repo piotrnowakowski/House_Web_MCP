@@ -14,7 +14,7 @@ const sourceFile = `${dir}/source-nowe-mpzp-r19.json`
 if (!fs.existsSync(sourceFile)) fs.copyFileSync('project-data/nowe-mpzp/project.json', sourceFile, fs.constants.COPYFILE_EXCL)
 const source = parseProject(JSON.parse(fs.readFileSync(sourceFile, 'utf8'))), p = structuredClone(source)
 assert.equal(source.revision, 19)
-p.ref = 'project/nowe-mpzp-v2'; p.name = 'nowe mpzp — wariant 2'; p.revision = 2; p.updatedAt = '2026-10-20T19:00:00.000Z'
+p.ref = 'project/nowe-mpzp-v2'; p.name = 'nowe mpzp — wariant 2'; p.revision = 3; p.updatedAt = '2026-10-20T20:20:00.000Z'
 const pt = (x: number, z: number): Vec2 => ({ x: +x.toFixed(4), z: +z.toFixed(4) })
 const rect = (x: number, z: number, w: number, d: number) => [pt(x-w/2,z-d/2),pt(x+w/2,z-d/2),pt(x+w/2,z+d/2),pt(x-w/2,z+d/2)]
 const circle = (x: number, z: number, r: number) => Array.from({length:48},(_,i)=>pt(x+r*Math.cos(i*Math.PI/24),z+r*Math.sin(i*Math.PI/24)))
@@ -121,6 +121,21 @@ border('vegetable-front',[[3.1,33.7],[7.5,33.7],[11.3,33.7]],1.2,1.4)
 border('fire-border',[[8.5,1.9],[12.8,1.0],[15.5,4.2],[15.6,8.7],[13.7,10.4]],1.5,1.4)
 p.landscape.plants.push(...planted)
 
+// Keep the existing refs so saved deletions survive the new planting palette.
+for (let group = 0; group < 9; group++) {
+  const anchor = p.landscape.plants.find(t => t.ref === `plant/nowe-mpzp-v2/east-border-${group * 3 + 1}`)!
+  const { x, z } = anchor.position
+  Object.assign(anchor, { name: 'Tuja Szmaragd · rozmiar docelowy', species: "Thuja occidentalis 'Smaragd'", kind: 'hedge', crownShape: 'conical',
+    matureHeightM: 4.6, canopyM: 1.3, sunNeed: 'sun', waterNeed: 0.7, hardinessMinC: -28, leafMonths: [1,2,3,4,5,6,7,8,9,10,11,12], bloomMonths: [] })
+  for (let member = 0; member < 3; member++) {
+    const ref = member < 2 ? `plant/nowe-mpzp-v2/east-border-${group * 3 + member + 2}` : `plant/nowe-mpzp-v2/east-grass-group-${group + 1}`
+    const grass = { ...templates[1], ref, position: pt(x + (member === 2 ? 0.25 : -0.35), z + [1.6, 2.6, 2.1][member]), locked: false, placementRole: 'site' as const }
+    const existing = p.landscape.plants.find(t => t.ref === ref)
+    if (existing) Object.assign(existing, grass)
+    else p.landscape.plants.push(grass)
+  }
+}
+
 // Polygon zones cannot contain holes; split the lawn at every obstacle centre.
 const garden=cs(p.site.boundary).offset(-.25).intersect(cs(rect(0,26.5,60,84.5)))
 const exclusions=[...bodies,...p.landscape.zones.map(z=>z.footprint)]
@@ -156,6 +171,7 @@ p.site.knowledgeBase.caveats.push(
   'Wariant 2: meble i konstrukcje mają nominalne gabaryty w metrach, bez wskazania producenta. Jacuzzi Ø2,4 m, sauna 2,5 × 3 m, pergola 5 × 7 m, szklarnia 4,14 × 3,2 m, grządki 2,4 × 1,2 m. Posadowienie i instalacje nie są zaprojektowane.',
   'Wariant 2: hortensja Little Lime 1,5 × 1,5 m, trzcinnik Karl Foerster 1,8 × 0,6 m, lawenda Hidcote 0,5 × 1 m. To dobór interpretacyjny zdjęcia. Lawenda wymaga przepuszczalnej gleby i osłoniętego stanowiska; potwierdzić lokalną zimotrwałość.',
   'Wariant 2: dwanaście drzew owocowych z koronami Ø3,2 m i wysokością 3,5 m, rozstaw 4,2 m po boku i 6 m z tyłu. Rzeczywiste odmiany, podkładki i zapylacze należy dobrać do tych gabarytów.',
+  'Wariant 2 r3: wschodni pas od garażu do spa: 9 tui Szmaragd (docelowo 4,6 m wysokości, Ø1,3 m) co ok. 4,2 m, pomiędzy nimi 9 grup po 3 trzcinniki Karl Foerster (1,8 × 0,6 m). Tuje zastępują hortensje, trawy lawendy; docelowy pokrój nie oznacza wielkości sadzonek. Potwierdzić glebę, podlewanie i nasłonecznienie.',
 )
 assert.deepEqual(p.buildings,source.buildings)
 assert.deepEqual(p.site.parcels,source.site.parcels)

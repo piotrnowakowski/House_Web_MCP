@@ -1,6 +1,16 @@
 # nowe mpzp — wariant 2
 
-Osobny projekt `project/nowe-mpzp-v2`, przygotowany 20.10.2026 na podstawie ilustracji „Ogród — koncepcja zagospodarowania” przekazanej przez użytkownika. Kanoniczna rewizja: **2**. Na [Mikrusie](https://natan203-20203.mikrus.cloud/) wybierz **Projekty → nowe mpzp — wariant 2**.
+## Tuje i trawy — r3, 20.10.2026
+
+Na podstawie zaznaczenia na zdjęciu użytkownika zmieniono ciągłą wschodnią rabatę przy ogrodzeniu, od garażu przez kuchnię letnią do spa (z od −7 do ok. 30 m). Dziewięć hortensji zastąpiono tujami Szmaragd, dziewięć lawend trzcinnikami; istniejące trawy przesunięto i dodano dziewięć kęp, tworząc dziewięć grup po trzy trzcinniki pomiędzy tujami. Tuja co ok. 4,2 m jest pionowym akcentem; trawy w trójkątach dają niższą, powtarzalną warstwę. Razem w tej części: **9 tui i 27 traw**, w całym projekcie **184 rośliny**, w tym 161 ozdobnych.
+
+W modelu tuja `Thuja occidentalis 'Smaragd'` ma docelowo **4,6 m wysokości i Ø1,3 m**, z zaokrągleniem rezerwy szerokości w górę względem 15 ft × 3–4 ft podanych przez [szkółkę Monrovia](https://www.monrovia.com/emerald-green-arborvitae.html). Trzcinnik Karl Foerster zachowuje **1,8 × 0,6 m** ([RHS Plants](https://rhs.crocdn.co.uk/plants/_/calamagrostis--acutiflora-karl-foerster/classid.2000012392/)). To docelowa skala, nie wielkość sadzonek; rzeczywisty wzrost zależy od stanowiska i pielęgnacji. Dobór wymaga potwierdzenia nasłonecznienia, wilgotności i gleby. Wszystkie pozostałe nasadzenia, wyposażenie, nawierzchnie, budynki i dachy zachowano bez zmian. Bilans powierzchni r2 pozostaje aktualny.
+
+`before-thuja-r2.json` zachowuje poprzednią publikację; `initial-r1.json` pozostaje niezmienną bazą pierwszej migracji. Stabilne identyfikatory zastępowanych roślin zachowano. Przed pracą skopiowano rzeczywiste profile Chrome/IAB i wspólne dane do `tmp/thuja-border-20261020/`. Lokalny wariant r6/baza2 oraz publiczny HTTPS r2/baza2 były zgodne z kanonicznym r2, bez konfliktów. Pozostałych projektów nie nadpisano.
+
+Przeszło 601 testów w 112 plikach, lint, build frontendu i API oraz kontrola sekretów. Sprawdzono odstępy koron, granic i przejść oraz zachowanie lokalnego usunięcia zastępowanej rośliny z jawnym konfliktem zamiast jej odtworzenia.
+
+Osobny projekt `project/nowe-mpzp-v2`, przygotowany 20.10.2026 na podstawie ilustracji „Ogród — koncepcja zagospodarowania” przekazanej przez użytkownika. Kanoniczna rewizja: **3**. Na [Mikrusie](https://natan203-20203.mikrus.cloud/) wybierz **Projekty → nowe mpzp — wariant 2**.
 
 ## Układ i skala
 
@@ -24,13 +34,13 @@ Ilustracja nie ma skali ani nazw produktów i gatunków. Poniższe gabaryty są 
 | Zestaw wypoczynkowy | rezerwacja katalogowa 3,8 × 3,1 m; sam model ok. 3,6 × 2,43 m |
 | Zestawy jadalniane | rezerwacja katalogowa 3,4 × 2,5 m; sam model ok. 2,25 × 2,36 m |
 
-W rabatach umieszczono **152 roślin**, modelowanych w docelowych rozmiarach:
+W pierwotnej rewizji r2 w rabatach umieszczono **152 roślin**, modelowanych w docelowych rozmiarach:
 
 - Hortensja bukietowa Little Lime: wysokość i szerokość 1,5 m. Zakres hodowcy 0,9–1,5 m: [Proven Winners](https://www.provenwinners.com/plants/hydrangea/little-lime-panicle-hydrangea-hydrangea-paniculata).
 - Trzcinnik Karl Foerster: wysokość 1,8 m, szerokość 0,6 m: [RHS Plants](https://rhs.crocdn.co.uk/plants/_/calamagrostis--acutiflora-karl-foerster/classid.2000012392/).
 - Lawenda Hidcote: wysokość 0,5 m, szerokość 1 m, czyli górne wartości zakresu [RHS](https://www.rhs.org.uk/plants/96353/lavandula-angustifolia-hidcote/details). Wymaga przepuszczalnego, słonecznego i osłoniętego stanowiska. Przyjęcie odmiany wymaga sprawdzenia warunków miejscowych.
 
-Dobór gatunków jest interpretacją charakteru rabat, nie identyfikacją zdjęcia. Zachowano 12 miejsc na drzewa owocowe: siedem po prawej co 4,2 m i pięć z tyłu co 6 m. Rezerwacja każdego drzewa to korona Ø3,2 m i wysokość 3,5 m; odmiany i podkładki trzeba dobrać do tych rozmiarów. Łącznie projekt zawiera **175 roślin** (152 ozdobnych, 12 owocowych, 11 geodezyjnych) i **23 elementy wyposażenia**, wliczając osobne skrzynie i grupy upraw.
+Dobór gatunków jest interpretacją charakteru rabat, nie identyfikacją zdjęcia. Zachowano 12 miejsc na drzewa owocowe: siedem po prawej co 4,2 m i pięć z tyłu co 6 m. Rezerwacja każdego drzewa to korona Ø3,2 m i wysokość 3,5 m; odmiany i podkładki trzeba dobrać do tych rozmiarów. Rewizja r2 zawierała **175 roślin** (152 ozdobnych, 12 owocowych, 11 geodezyjnych) i **23 elementy wyposażenia**, wliczając osobne skrzynie i grupy upraw.
 
 ## Źródło i zachowanie danych
 

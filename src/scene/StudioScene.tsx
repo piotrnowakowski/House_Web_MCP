@@ -1,6 +1,6 @@
 import { metreBoxGeometry } from './metreGeometry'
 import { SiteFence } from './SiteFence'
-import { DetailedGreenhouse, RoundFireLounge, OrnamentalGrass, GardenSpaStructure, FloweringBorderPlant } from './GardenStructures'
+import { DetailedGreenhouse, RoundFireLounge, OrnamentalGrass, GardenSpaStructure, FloweringBorderPlant, ThujaPlant } from './GardenStructures'
 import { gableGlazingProfile } from '../domain/gableGlazing'
 import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
 import { CLEAR_MEASUREMENT_EVENT } from './events'
@@ -1094,7 +1094,7 @@ function Plant({ plant, project, selected, onSelect, ghost = false }: { plant: P
   const y = groundContactY(); const canopy = Math.max(0.25, plant.canopyM / 2); const visibleLeaf = plant.leafMonths.includes(month); const group = useRef<Group>(null)
   if (plant.kind === 'tree' && !treesVisible) return null
   return <><group ref={group} position={[plant.position.x, y, plant.position.z]} userData={{ semanticRef: plant.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) onSelect() }}>
-    {plant.kind === 'grass' ? <OrnamentalGrass height={plant.matureHeightM} width={plant.canopyM} selected={selected} ghost={ghost} /> : /^(Hydrangea|Lavandula)/.test(plant.species) ? <FloweringBorderPlant plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.surveyHandle ? <SurveyTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : hasFruitTreeVisual(plant) ? <FruitTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.crownShape === 'conical' ? <>
+    {plant.kind === 'grass' ? <OrnamentalGrass height={plant.matureHeightM} width={plant.canopyM} selected={selected} ghost={ghost} /> : plant.species.startsWith('Thuja ') ? <ThujaPlant plant={plant} selected={selected} ghost={ghost} /> : /^(Hydrangea|Lavandula)/.test(plant.species) ? <FloweringBorderPlant plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.surveyHandle ? <SurveyTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : hasFruitTreeVisual(plant) ? <FruitTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.crownShape === 'conical' ? <>
       <mesh position={[0, plant.matureHeightM * 0.4, 0]} castShadow={!ghost}><cylinderGeometry args={[0.12, 0.24, plant.matureHeightM * 0.8, 10]} /><meshStandardMaterial color="#584434" transparent={ghost} opacity={ghost ? 0.42 : 1} /></mesh>
       <mesh position={[0, plant.matureHeightM * 0.6, 0]} castShadow={!ghost}><coneGeometry args={[canopy, plant.matureHeightM * 0.8, 14]} /><meshStandardMaterial color={selected || ghost ? '#b9e84d' : '#355a3c'} transparent={ghost} opacity={ghost ? 0.38 : 1} depthWrite={!ghost} /></mesh>
     </> : <>
