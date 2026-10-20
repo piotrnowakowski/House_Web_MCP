@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import project from '../../project-data/zielonki-rear-bath-room/project.json'
 import baseline from '../../project-data/zielonki-rear-bath-room/before-dark-side-r2.json'
 import { parseProject } from './schema'
-import { gableFrameBottom, recessSideBattenOffsets, recessSideLayout } from './gableRecess'
+import { gableFrameBottom, recessSideBattenOffsets, recessSideFaceColors, recessSideLayout } from './gableRecess'
+import { BoxGeometry } from 'three'
 import { mergeProjects } from './projectMerge'
 import { IDBFactory } from 'fake-indexeddb'
 import { loadWorkspace, saveWorkspace, synchronizePublishedProject } from '../services/persistence'
@@ -10,6 +11,22 @@ import { loadWorkspace, saveWorkspace, synchronizePublishedProject } from '../se
 describe('recessed facade lining', () => {
   const building = parseProject(project).buildings[0]
   const segment = building.roof.segments[0]
+  it('colours only the outward face on both sides and ridge axes, preserving legacy finishes', () => {
+    const box = new BoxGeometry()
+    for (const alongZ of [true, false]) for (const sign of [-1, 1]) {
+      const colors = recessSideFaceColors('#AD845B', '#181C1D', alongZ, sign)
+      for (const group of box.groups) {
+        const vertex = box.index!.getX(group.start), normal = box.getAttribute('normal')
+        const outward = (alongZ ? normal.getX(vertex) : normal.getZ(vertex)) === sign
+        expect(colors[group.materialIndex!]).toBe(outward ? '#181C1D' : '#AD845B')
+      }
+      expect(recessSideFaceColors('#AD845B', undefined, alongZ, sign)).toEqual(Array(6).fill('#AD845B'))
+    }
+    box.dispose()
+    const invalid = structuredClone(building)
+    invalid.roof.segments[0].gableRecess!.max!.sideExteriorColorHex = 'black'
+    expect(() => parseProject({ ...project, buildings: [invalid] })).toThrow()
+  })
   it('covers both staggered wall ends with one edge and non-coplanar faces', () => {
     const panel = recessSideLayout(building, segment, 'max')
     expect(panel.inner).toBeCloseTo(4.395)
@@ -41,6 +58,7 @@ describe('recessed facade lining', () => {
     const before = parseProject(baseline); const incoming = structuredClone(before)
     incoming.revision++
     incoming.buildings[0].roof.segments[0].gableRecess!.max!.sideColorHex = '#65432E'
+    incoming.buildings[0].roof.segments[0].gableRecess!.max!.sideExteriorColorHex = '#181C1D'
     expect(segment.gableRecess!.max!.sideColorHex).toBe('#65432E')
     const local = structuredClone(before)
     const deletedRef = local.buildings[0].furniture!.pop()!.ref
@@ -49,9 +67,11 @@ describe('recessed facade lining', () => {
     expect(merged.project.buildings[0].furniture!.some(f => f.ref === deletedRef)).toBe(false)
     const recess = merged.project.buildings[0].roof.segments[0].gableRecess!.max!
     expect(recess.sideColorHex).toBe('#65432E')
+    expect(recess.sideExteriorColorHex).toBe('#181C1D')
     expect(recess.soffitColorHex).toBe('#B78F60')
     const roof = structuredClone(incoming.buildings[0].roof)
     delete roof.segments[0].gableRecess!.max!.sideColorHex
+    delete roof.segments[0].gableRecess!.max!.sideExteriorColorHex
     expect(roof).toEqual(before.buildings[0].roof)
   })
   it('persists the new finish and a user deletion through synchronization and reload', async () => {
@@ -59,6 +79,7 @@ describe('recessed facade lining', () => {
     const before = parseProject(baseline); const incoming = structuredClone(before)
     incoming.revision++
     incoming.buildings[0].roof.segments[0].gableRecess!.max!.sideColorHex = '#65432E'
+    incoming.buildings[0].roof.segments[0].gableRecess!.max!.sideExteriorColorHex = '#181C1D'
     await synchronizePublishedProject(before, before)
     const workspace = (await loadWorkspace(before.ref))!
     const deleted = workspace.project.buildings[0].furniture!.pop()!.ref
@@ -68,5 +89,6 @@ describe('recessed facade lining', () => {
     const loaded = (await loadWorkspace(before.ref))!.project
     expect(loaded.buildings[0].furniture!.some(f => f.ref === deleted)).toBe(false)
     expect(loaded.buildings[0].roof.segments[0].gableRecess!.max!.sideColorHex).toBe('#65432E')
+    expect(loaded.buildings[0].roof.segments[0].gableRecess!.max!.sideExteriorColorHex).toBe('#181C1D')
   })
 })

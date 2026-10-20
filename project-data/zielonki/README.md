@@ -528,3 +528,8 @@ Kopie rzeczywistych Chrome/IAB i porównania ref/baza: tmp/nowe-mpzp-frame-20261
 ## nowe mpzp r12 — pełna wysokość dwóch okien
 
 20.10.2026, źródło: kanoniczny nowe-mpzp r11 i zgodny shared HTTPS serverVersion 7/r11 oraz dwa zdjęcia użytkownika. Okna gabinetu i kuchni wydłużono do posadzki, 1,50 × 2,35 m i 2,00 × 2,35 m. Pozostała geometria domu i działki, wymiary pokoi, dachy, czarna rama i drewno zachowane. Snapshot ../nowe-mpzp/before-full-height-windows-r11.json, immutable initial-r1.json bez zmian. Rzeczywiste kopie Chrome/IAB i porównania ref/baza w tmp/nowe-mpzp-windows-20261020; publiczne kopie bez konfliktów, lokalny konflikt r1 zachowany bez nadpisania. Shared źródeł architekt 6/r11 i Główny 6/r80 zachowane. Szczegóły w ../nowe-mpzp/README.md. Main/Pages bez zmian.
+
+
+## nowe mpzp r13 — czarne zewnętrzne boki wnęki
+
+20.10.2026, źródło: kanoniczny nowe-mpzp r12 i zgodny shared HTTPS serverVersion 8/r12 oraz zaznaczenie użytkownika na zdjęciu. Zewnętrzne lica boków wnęki są czarne #181C1D; drewno wewnątrz, podbitka, podest i cała geometria zachowane. Opcjonalny kolor zewnętrznego lica w schemacie/renderowaniu nie zmienia projektów bez tego ustawienia. Snapshot ../nowe-mpzp/before-black-side-r12.json, immutable initial-r1.json bez zmian. Kopie rzeczywistych Chrome/IAB i porównania ref/baza w tmp/nowe-mpzp-black-side-20261020; publiczne kopie bez konfliktów, lokalny konflikt r1 zachowany bez nadpisania. Shared źródeł architekt 6/r11 i Główny 6/r80 zachowane. Szczegóły w ../nowe-mpzp/README.md. Main/Pages bez zmian.

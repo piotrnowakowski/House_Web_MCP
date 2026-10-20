@@ -22,7 +22,7 @@ import { ProductModel } from '../interior/ProductModel'
 import { FinishMaterial } from '../interior/FinishMaterial'
 import { fitVisiblePlot } from './fitVisiblePlot'
 import { resolveGableWallFinish, resolveWallFinish } from '../domain/wallFinishes'
-import { recessSideBattenOffsets, recessSideLayout } from '../domain/gableRecess'
+import { recessSideBattenOffsets, recessSideFaceColors, recessSideLayout } from '../domain/gableRecess'
 import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
 import type { GeneratedSolid } from '../geometry/types'
 import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
@@ -809,7 +809,8 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
           </mesh>
           <mesh position={alongZ ? [middle + sign * span / 2, (base + recess.baseElevationM) / 2, lining.center] : [lining.center, (base + recess.baseElevationM) / 2, middle + sign * span / 2]} castShadow receiveShadow>
             <boxGeometry args={alongZ ? [lining.thickness, sideHeight, lining.depth] : [lining.depth, sideHeight, lining.thickness]} />
-            <meshStandardMaterial color={sideColor} roughness={.9} />
+            {recessSideFaceColors(sideColor, recess.sideExteriorColorHex, alongZ, sign).map((color, face) =>
+              <meshStandardMaterial key={face} attach={`material-${face}`} color={color} roughness={.9} />)}
           </mesh>
           {sideBattens.map((offset, battenIndex) => <mesh key={`side-batten-${battenIndex}`} position={alongZ
             ? [middle + sign * span / 2 - sign * (lining.thickness / 2 + .018), (base + recess.baseElevationM) / 2, lining.center + offset]

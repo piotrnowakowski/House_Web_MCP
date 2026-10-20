@@ -4,6 +4,7 @@ import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import initial from '../../project-data/nowe-mpzp/initial-r1.json'
 import previous from '../../project-data/nowe-mpzp/before-front-frame-r10.json'
+import beforeSide from '../../project-data/nowe-mpzp/before-black-side-r12.json'
 import beforeWindows from '../../project-data/nowe-mpzp/before-full-height-windows-r11.json'
 import beforeTrees from '../../project-data/nowe-mpzp/before-tree-review-r9.json'
 import architect from '../../project-data/architekt/project.json'
@@ -143,7 +144,7 @@ it('projects the living-room portal outward without moving glazing or changing a
   expect(roof.segments[0]).toEqual(oldRoof.segments[0])
   const front=roof.segments[1]
   expect(front.gableFrame).toEqual({widthM:.4,depthM:.26,colorHex:'#181C1D'})
-  expect(front.gableRecess?.max).toMatchObject({depthM:1,baseElevationM:.45,soffitColorHex:'#B78F60',sideColorHex:'#AD845B'})
+  expect(front.gableRecess?.max).toMatchObject({depthM:1,baseElevationM:.45,soffitColorHex:'#B78F60',sideColorHex:'#AD845B',sideExteriorColorHex:'#181C1D'})
   expect(gableWallsForBuilding(house)).toEqual(gableWallsForBuilding(before))
   expect(gableGlazingProfile(front,'max',house)).toEqual(gableGlazingProfile(oldRoof.segments[1],'max',before))
   const outline=p.landscape.zones.find(z=>z.ref==='zone/nowe-mpzp/front-frame')!.footprint
@@ -161,6 +162,7 @@ it('matches current architect clear room dimensions and wall heights and removes
   for (const opening of expected.walls.flatMap(w=>w.openings)) if (['opening/reference-office-window','opening/reference-kitchen'].includes(opening.ref)) {
     opening.sillM=0; opening.heightM=2.35
   }
+  expected.roof.segments[1].gableRecess!.max!.sideExteriorColorHex='#181C1D'
   expect(house).toEqual(expected)
   for(const room of house.spaces)expect(roomDimensions(house,room)).toEqual(roomDimensions(reference,reference.spaces.find(r=>r.ref===room.ref)!))
   expect(house.slabs.find(s=>s.ref==='slab/reference-upper')!.edgeColorHex).toBe('#303638')
@@ -171,7 +173,7 @@ it('keeps draft zoning and user deletions through list, reload and a later publi
   const original={version:1 as const,project:parseProject(architect),proposals:[],draftChangeSets:[]}
   original.project.name='Mój architekt'; original.project.landscape.plants.pop()
   await saveWorkspace(original)
-  expect(await synchronizePublishedProject(parseProject(beforeWindows),parseProject(initial))).toEqual([])
+  expect(await synchronizePublishedProject(parseProject(beforeSide),parseProject(initial))).toEqual([])
   const w=(await loadWorkspace(NOWE_MPZP_REF))!, removed=w.project.landscape.plants.pop()!.ref
   w.project.name='Moje nowe mpzp'; await saveWorkspace(w); await listWorkspaces()
   expect(await synchronizePublishedNoweMpzp()).toEqual([])
