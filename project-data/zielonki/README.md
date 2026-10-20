@@ -544,3 +544,6 @@ Kopie rzeczywistych Chrome/IAB i porównania ref/baza: tmp/nowe-mpzp-frame-20261
 
 
 20.10.2026 — niezależne nowe mpzp r16: palenisko bliżej domu, pełny rząd 12 drzew co 3 m i sześć grządek bliżej szklarni z przejściami 0,8/1 m. Źródło canonical/shared r15 (serverVersion 11), snapshot before-fire-row-r15.json. Kopie rzeczywistych Chrome/IAB i scalenia według ref/bazy: tmp/nowe-mpzp-fire-row-20261020. Publiczne scalenia czyste; wcześniejsze lokalne konflikty zachowane. Pozostałe projekty, budynki i drzewa z mapy bez zmian.
+
+
+20.10.2026 — niezależne nowe mpzp r17: 3000 m² ogrodzonego terenu według oznaczeń użytkowniczki, czarny beton/panele, druga brama 4 m; źródło canonical/shared r16 (serverVersion 12), snapshot before-fence-r16.json. Rzeczywiste Chrome/IAB przechwycone i porównane według ref/bazy w tmp/nowe-mpzp-fence-20261020. Publiczne scalenia czyste, wcześniejsze lokalne konflikty zachowane. Budynki, ogród, granice działek i pozostałe projekty bez zmian. Szczegóły koncepcji i bilans z rezerwą pod fundament w README nowe-mpzp.

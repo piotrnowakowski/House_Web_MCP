@@ -1,7 +1,7 @@
 import { calculateMetrics } from './commands'
 import type { ProjectMetrics, ProjectV2 } from './types'
 
-export type ChangeKind = 'interior' | 'site' | 'building' | 'storey' | 'slab' | 'wall' | 'opening' | 'space' | 'roof' | 'roof-segment' | 'platform' | 'ceiling-finish' | 'zone' | 'plant' | 'fixture' | 'parcel' | 'entrance' | 'climate'
+export type ChangeKind = 'interior' | 'site' | 'building' | 'storey' | 'slab' | 'wall' | 'opening' | 'space' | 'roof' | 'roof-segment' | 'platform' | 'ceiling-finish' | 'zone' | 'plant' | 'fixture' | 'parcel' | 'entrance' | 'fence' | 'climate'
 export interface ProjectChange { kind: ChangeKind; ref: string; change: 'added' | 'removed' | 'modified'; fields?: string[] }
 export interface MetricDelta { before: number; after: number; delta: number }
 export interface ProjectDiff { counts: { added: number; removed: number; modified: number }; changes: ProjectChange[]; omittedChanges: number; metricDeltas: Partial<Record<keyof ProjectMetrics, MetricDelta>> }
@@ -16,7 +16,8 @@ const entries = (project: ProjectV2): Array<[ChangeKind, Entry[]]> => {
   return [
     ['site', [{ ref: 'site', fields: { boundary: project.site.boundary, northDegrees: project.site.northDegrees, terrain: project.site.terrain, neighbors: project.site.neighbors } }]],
     ['parcel', project.site.parcels.map((parcel) => ({ ref: parcel.ref, fields: pick(parcel as unknown as Record<string, unknown>, ['cadastralNumber', 'landRole', 'officialAreaM2', 'boundary', 'landUseZones']) }))],
-    ['entrance', project.site.entrances.map((entrance) => ({ ref: entrance.ref, fields: pick(entrance as unknown as Record<string, unknown>, ['name', 'start', 'end']) }))],
+    ['entrance', project.site.entrances.map((entrance) => ({ ref: entrance.ref, fields: pick(entrance as unknown as Record<string, unknown>, ['name', 'start', 'end', 'gate']) }))],
+    ['fence', (project.site.fences ?? []).map(({ ref, ...fields }) => ({ ref, fields }))],
     ['building', buildings.map((building) => ({ ref: building.ref, fields: pick(building as unknown as Record<string, unknown>, ['name', 'kind', 'designStatus', 'architecturalStyle', 'garageMode', 'position', 'rotationDegrees']) }))],
     ['storey', buildings.flatMap((building) => building.storeys.map((storey) => ({ ref: storey.ref, fields: pick(storey as unknown as Record<string, unknown>, ['name', 'level', 'elevationM', 'clearHeightM', 'kneeWallHeightM', 'baseSlabRef', 'topBoundaryRef', 'wallRefs', 'spaceRefs', 'platformRefs', 'ceilingFinishRefs']) })))],
     ['slab', buildings.flatMap((building) => building.slabs.map((slab) => ({ ref: slab.ref, fields: pick(slab as unknown as Record<string, unknown>, ['footprint', 'holes', 'topElevationM', 'thicknessM', 'edgeColorHex', 'locked']) })))],

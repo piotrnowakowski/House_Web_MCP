@@ -112,7 +112,8 @@ it('fits the camper, working room and entrance below the six metre conceptual he
 
 it('preserves flush side eaves, slopes, ridge junctions and building placement around the new front frame', () => {
   const p=parseProject(data),old=parseProject(previous)
-  expect(p.site.entrances).toEqual(old.site.entrances)
+  expect(p.site.entrances[0].start).toEqual(old.site.entrances[0].start)
+  expect(p.site.entrances[0].end).toEqual(old.site.entrances[0].end)
   expect({...beforeGarden.landscape,zones:beforeGarden.landscape.zones.filter(z=>z.ref!=='zone/nowe-mpzp/front-frame')}).toEqual(old.landscape)
   expect(p.buildings[1]).toEqual(old.buildings[1])
   for(const index of [0,2]){

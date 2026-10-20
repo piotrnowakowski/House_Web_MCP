@@ -1,4 +1,5 @@
 import { metreBoxGeometry } from './metreGeometry'
+import { SiteFence } from './SiteFence'
 import { DetailedGreenhouse, RoundFireLounge, OrnamentalGrass } from './GardenStructures'
 import { gableGlazingProfile } from '../domain/gableGlazing'
 import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
@@ -1046,7 +1047,13 @@ function TerrainAndSite({ project }: { project: ProjectV2 }) {
     {(usesDraftPlan(project) || project.site.parcels.some((parcel) => parcel.landUseZones?.some((zone) => zone.sourceRef === 'source/mpzp-boundary-v2'))) && <group userData={{ semanticRef: 'site/zoning' }}>
       <DreiLine points={(usesDraftPlan(project) ? draftZoningBoundary : zielonkiZoningBoundary).map((point) => [point.x, 0.12, point.z] as [number, number, number])} color="#ffc15a" lineWidth={3} dashed dashSize={0.65} gapSize={0.3} depthTest={false} renderOrder={12} />
     </group>}
-    {project.site.entrances.map((entrance) => <RoadEntranceMarker key={entrance.ref} entrance={entrance} />)}
+    {project.site.fences?.map(fence => <SiteFence key={fence.ref} {...fence} semanticRef={fence.ref} />)}
+    {project.site.entrances.map((entrance) => {
+      if (!entrance.gate) return <RoadEntranceMarker key={entrance.ref} entrance={entrance} />
+      const { start, end } = entrance, length = Math.hypot(end.x - start.x, end.z - start.z)
+      const inward = pointInPolygon({ x: (start.x + end.x) / 2 - (end.z - start.z) / length * 0.1, z: (start.z + end.z) / 2 + (end.x - start.x) / length * 0.1 }, project.site.boundary)
+      return <SiteFence key={entrance.ref} start={inward ? start : end} end={inward ? end : start} {...entrance.gate} material="gate" semanticRef={entrance.ref} />
+    })}
   </group>
 }
 

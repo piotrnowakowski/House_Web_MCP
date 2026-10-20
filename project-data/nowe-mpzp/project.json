@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp",
   "name": "nowe mpzp",
   "units": "metric",
-  "revision": 16,
-  "updatedAt": "2026-10-20T12:55:34.446Z",
+  "revision": 17,
+  "updatedAt": "2026-10-20T13:13:41.417Z",
   "site": {
     "boundary": [
       {
@@ -1046,21 +1046,29 @@
           "z": -2.895921819176678
         },
         "connectsTo": "public-road",
-        "geometryConfidence": "user-marked"
+        "geometryConfidence": "user-marked",
+        "gate": {
+          "heightM": 1.8,
+          "colorHex": "#15191A"
+        }
       },
       {
         "ref": "entrance/field-road",
-        "name": "Field-side road entrance",
+        "name": "Druga brama · 4 m · do części ogrodowej",
         "start": {
           "x": -18.403,
-          "z": 66
+          "z": 52.92943236258144
         },
         "end": {
           "x": -18.403,
-          "z": 74
+          "z": 56.92943236258144
         },
         "connectsTo": "public-road",
-        "geometryConfidence": "user-marked"
+        "geometryConfidence": "user-marked",
+        "gate": {
+          "heightM": 1.8,
+          "colorHex": "#15191A"
+        }
       }
     ],
     "knowledgeBase": {
@@ -1905,9 +1913,237 @@
         "Ogród r14: szklarnia 4 × 3 m w niebieskiej strefie jest wyłącznie wariantem koncepcyjnym. Projekt planu §37 zakazuje nowych budynków na 18.R3.1; nie potwierdzono dopuszczalności tej szklarni ani zmiany użytkowania gruntu rolnego. Granice dalszych działek /4 mają dokładność context-only.",
         "Ogród r14: palenisko pokazano bez ognia. Położenie, urządzenie, nawierzchnia i odległości od koron, materiałów palnych oraz ewentualnego lasu wymagają sprawdzenia przeciwpożarowego przed użyciem. Model nie symuluje dymu.",
         "Sad i palenisko r16: palenisko z siedziskami przesunięto o 1 m ku domowi i 1,3 m w głąb ogrodu (11,8; 4,4). Zgodnie z doprecyzowaniem użytkownika te same 12 drzew tworzy ciągły rząd co 3 m między pniami, z=-6 do 27 m, około 2,5 m od bocznej granicy. Dopasowano dojście piesze i towarzyszącą rabatę traw. Zachowano modelowaną średnicę koron 3,2 m: sąsiednie korony stykają się/nakładają około 0,2 m. Nie wchodzą nad placyk ani przejścia; nie potwierdza to bezpieczeństwa rzeczywistego paleniska. Dobór podkładek/odmian i prowadzenie koron wymagają sprawdzenia dla rozstawu 3 m.",
-        "Warzywnik r16: sześć istniejących grządek 2,4 × 1,2 m przysunięto do nieprzesuwanej szklarni. Odstępy między rzędami 0,8 m, środkowe przejście 1 m, od grządek do katalogowego obrysu szklarni 1 m. Żwirową strefę skrócono z 14,2 do 11,3 m, dopasowując płyty dojścia i dwie rabaty traw. Zachowano wszystkie ref grządek/upraw, szklarnię i jej dotychczasowy warunkowy status R3."
+        "Warzywnik r16: sześć istniejących grządek 2,4 × 1,2 m przysunięto do nieprzesuwanej szklarni. Odstępy między rzędami 0,8 m, środkowe przejście 1 m, od grządek do katalogowego obrysu szklarni 1 m. Żwirową strefę skrócono z 14,2 do 11,3 m, dopasowując płyty dojścia i dwie rabaty traw. Zachowano wszystkie ref grządek/upraw, szklarnię i jej dotychczasowy warunkowy status R3.",
+        "Ogrodzenie koncepcyjne 20.10.2026: 3000 m² (30 arów) po zewnętrznym obrysie ogrodzenia w modelu, tylna granica z=63.929432 m. Nie zmienia granic własności ani przeznaczenia MU/R3. Czarne betonowe od frontu i po lewej do z=18 m, pozostałe czarne panelowe; wysokość robocza 1,80 m. Druga brama 4 m, główna 6,40 m. Dokładny przebieg granic, posadowienie, dostęp do drogi i możliwość wykonania wymagają weryfikacji; model nie zawiera projektu fundamentów ani automatyki bram."
       ]
-    }
+    },
+    "fences": [
+      {
+        "ref": "fence/nowe-mpzp/1-1",
+        "name": "Czarne ogrodzenie betonowe",
+        "start": {
+          "x": 8.77,
+          "z": -15.63
+        },
+        "end": {
+          "x": 18.21,
+          "z": -15.861
+        },
+        "material": "concrete",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp/2-1",
+        "name": "Czarne ogrodzenie panelowe",
+        "start": {
+          "x": 18.21,
+          "z": -15.861
+        },
+        "end": {
+          "x": 18.591,
+          "z": -6.318
+        },
+        "material": "panel",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp/3-1",
+        "name": "Czarne ogrodzenie panelowe",
+        "start": {
+          "x": 18.591,
+          "z": -6.318
+        },
+        "end": {
+          "x": 19.477,
+          "z": 15.883000000000001
+        },
+        "material": "panel",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp/4-1",
+        "name": "Czarne ogrodzenie panelowe",
+        "start": {
+          "x": 19.477,
+          "z": 15.883
+        },
+        "end": {
+          "x": 18.64326286657718,
+          "z": 63.92943236258144
+        },
+        "material": "panel",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp/5-1",
+        "name": "Czarne ogrodzenie panelowe",
+        "start": {
+          "x": 18.64326286657718,
+          "z": 63.92943236258144
+        },
+        "end": {
+          "x": -18.403,
+          "z": 63.92943236258144
+        },
+        "material": "panel",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp/6-1",
+        "name": "Czarne ogrodzenie panelowe",
+        "start": {
+          "x": -18.403,
+          "z": 63.92943236258144
+        },
+        "end": {
+          "x": -18.403,
+          "z": 56.92943236258144
+        },
+        "material": "panel",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp/6-3",
+        "name": "Czarne ogrodzenie panelowe",
+        "start": {
+          "x": -18.403,
+          "z": 52.92943236258144
+        },
+        "end": {
+          "x": -18.403,
+          "z": 18
+        },
+        "material": "panel",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp/6-4",
+        "name": "Czarne ogrodzenie betonowe",
+        "start": {
+          "x": -18.403,
+          "z": 18
+        },
+        "end": {
+          "x": -18.403,
+          "z": 15.881999999999998
+        },
+        "material": "concrete",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp/7-1",
+        "name": "Czarne ogrodzenie betonowe",
+        "start": {
+          "x": -18.403,
+          "z": 15.882
+        },
+        "end": {
+          "x": -18.403,
+          "z": 10.53
+        },
+        "material": "concrete",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp/8-1",
+        "name": "Czarne ogrodzenie betonowe",
+        "start": {
+          "x": -18.403,
+          "z": 10.53
+        },
+        "end": {
+          "x": -19.123274775706903,
+          "z": -2.895921819176678
+        },
+        "material": "concrete",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp/8-3",
+        "name": "Czarne ogrodzenie betonowe",
+        "start": {
+          "x": -19.466129382118357,
+          "z": -9.286731682686215
+        },
+        "end": {
+          "x": -19.778,
+          "z": -15.1
+        },
+        "material": "concrete",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp/9-1",
+        "name": "Czarne ogrodzenie betonowe",
+        "start": {
+          "x": -19.778,
+          "z": -15.1
+        },
+        "end": {
+          "x": -10.621,
+          "z": -15.591
+        },
+        "material": "concrete",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp/10-1",
+        "name": "Czarne ogrodzenie betonowe",
+        "start": {
+          "x": -10.621,
+          "z": -15.591
+        },
+        "end": {
+          "x": -0.8379999999999992,
+          "z": -16.116
+        },
+        "material": "concrete",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp/11-1",
+        "name": "Czarne ogrodzenie betonowe",
+        "start": {
+          "x": -0.838,
+          "z": -16.116
+        },
+        "end": {
+          "x": 8.7,
+          "z": -16.628
+        },
+        "material": "concrete",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp/12-1",
+        "name": "Czarne ogrodzenie betonowe",
+        "start": {
+          "x": 8.7,
+          "z": -16.628
+        },
+        "end": {
+          "x": 8.77,
+          "z": -15.63
+        },
+        "material": "concrete",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      }
+    ]
   },
   "buildings": [
     {

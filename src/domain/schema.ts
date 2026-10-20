@@ -46,7 +46,17 @@ const ParcelSchema = z.object({
 const SiteEntranceSchema = z.object({
   ref: z.string().min(1), name: z.string().min(1), start: Vec2Schema, end: Vec2Schema,
   connectsTo: z.literal('public-road'), geometryConfidence: z.enum(['user-marked', 'surveyed']),
+  gate: z.object({ heightM: z.number().positive().max(3), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) }).optional(),
 }).refine((entrance) => Math.hypot(entrance.end.x - entrance.start.x, entrance.end.z - entrance.start.z) > 0.5, { message: 'Site entrance must have length.' })
+  .refine(entrance => !entrance.gate || Math.hypot(entrance.end.x - entrance.start.x, entrance.end.z - entrance.start.z) <= 20, 'Modeled gate width must not exceed 20 m.')
+const SiteFenceSchema = z.object({
+  ref: z.string().min(1), name: z.string().min(1), start: Vec2Schema, end: Vec2Schema,
+  material: z.enum(['concrete', 'panel']), heightM: z.number().positive().max(3),
+  colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+}).refine(fence => {
+  const length = Math.hypot(fence.end.x - fence.start.x, fence.end.z - fence.start.z)
+  return length > 0.1 && length <= 500
+}, 'Fence segment length must be between 0.1 and 500 m.')
 const OpeningSchema = z.object({
   finish: InteriorFinishSchema.optional(),
   mullionFractions: z.array(z.number().gt(0).lt(1)).optional(),
@@ -148,6 +158,7 @@ export const ProjectSchema = z.object({
   schemaVersion: z.literal(2), ref: z.string().min(1), name: z.string().min(1), units: z.literal('metric'), revision: z.number().int().positive(), updatedAt: z.string(),
   site: z.object({
     boundary: PolygonSchema, northDegrees: z.number().finite(),
+    fences: z.array(SiteFenceSchema).max(500).refine(items => new Set(items.map(item => item.ref)).size === items.length, 'Fence references must be unique').optional(),
     neighbors: z.array(z.object({
       ref: z.string().min(1), name: z.string().min(1), footprint: PolygonSchema,
       groundElevationM: z.number().finite(), eavesHeightM: z.number().positive().max(100), ridgeHeightM: z.number().positive().max(100),

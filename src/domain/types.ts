@@ -25,7 +25,9 @@ export type ParcelLandRole = 'construction' | 'agricultural' | 'mixed'
 export type GeometryConfidence = 'surveyed' | 'derived' | 'context-only'
 export interface LandUseZone { ref: string; code: string; landRole: 'construction' | 'agricultural'; boundary: Polygon2; sourceRef: string; geometryConfidence: GeometryConfidence }
 export interface PlotParcelModel { ref: string; cadastralNumber: string; landRole: ParcelLandRole; officialAreaM2: number; boundary: Polygon2; geometryConfidence: GeometryConfidence; landUseZones?: LandUseZone[] }
-export interface SiteEntranceModel { ref: string; name: string; start: Vec2; end: Vec2; connectsTo: 'public-road'; geometryConfidence: 'user-marked' | 'surveyed' }
+export interface SiteEntranceModel { ref: string; name: string; start: Vec2; end: Vec2; connectsTo: 'public-road'; geometryConfidence: 'user-marked' | 'surveyed'; gate?: { heightM: number; colorHex: string } }
+/** Endpoints follow the enclosure counterclockwise in x/z; the fence thickness lies inside. */
+export interface SiteFenceModel { ref: string; name: string; start: Vec2; end: Vec2; material: 'concrete' | 'panel'; heightM: number; colorHex: string }
 export interface TerrainModel { boundary: Polygon2; elevationPoints: Array<Vec2 & { elevation: number }> }
 /** Source-data shape used by the bundled Zielonki evidence module before it is nested into SiteModel. */
 export interface PlotModel { boundary: Polygon2; northDegrees: number; elevationPoints: TerrainModel['elevationPoints']; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[] }
@@ -52,7 +54,7 @@ export interface NeighborBuilding {
   roofType: 'gable' | 'hip' | 'flat'; footprintSource: string; footprintConfidence: 'map-derived' | 'approximate'
   heightConfidence: 'estimated'; sourceDate: string
 }
-export interface SiteModel { boundary: Polygon2; northDegrees: number; terrain: TerrainModel; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[]; knowledgeBase: SiteKnowledgeBase; neighbors?: NeighborBuilding[] }
+export interface SiteModel { boundary: Polygon2; northDegrees: number; terrain: TerrainModel; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[]; fences?: SiteFenceModel[]; knowledgeBase: SiteKnowledgeBase; neighbors?: NeighborBuilding[] }
 
 export interface OpeningModel { finish?: InteriorFinish; ref: string; kind: 'door' | 'window'; glazed?: boolean; mullionFractions?: number[]; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number; hinge?: 'left' | 'right'; swing?: 'in' | 'out' }
 export interface InteriorFinish { presetId: string; color: string; rotationDegrees: number; tileM: number }
