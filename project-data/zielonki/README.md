@@ -541,3 +541,6 @@ Kopie rzeczywistych Chrome/IAB i porównania ref/baza: tmp/nowe-mpzp-frame-20261
 
 
 20.10.2026 — niezależne nowe mpzp r15: przesunięcie istniejących 12 planowanych drzew owocowych i ich ściółkowanych mis ku budynkowi gospodarczemu. Źródło: zgodne canonical/shared r14 (serverVersion 10), snapshot before-orchard-move-r14.json, rzeczywiste kopie Chrome/IAB w tmp/nowe-mpzp-orchard-20261020. Scalenia publicznych originów czyste; wcześniejszy lokalny konflikt bramy/caveats zachowano bez nadpisania. Stable ref drzew i niezależne dane pozostałych projektów zachowane. Szczegóły i bilans w README nowe-mpzp.
+
+
+20.10.2026 — niezależne nowe mpzp r16: palenisko bliżej domu, pełny rząd 12 drzew co 3 m i sześć grządek bliżej szklarni z przejściami 0,8/1 m. Źródło canonical/shared r15 (serverVersion 11), snapshot before-fire-row-r15.json. Kopie rzeczywistych Chrome/IAB i scalenia według ref/bazy: tmp/nowe-mpzp-fire-row-20261020. Publiczne scalenia czyste; wcześniejsze lokalne konflikty zachowane. Pozostałe projekty, budynki i drzewa z mapy bez zmian.

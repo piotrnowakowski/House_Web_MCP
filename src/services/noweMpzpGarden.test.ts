@@ -3,7 +3,7 @@ import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import before from '../../project-data/nowe-mpzp/before-garden-r13.json'
-import beforeOrchardMove from '../../project-data/nowe-mpzp/before-orchard-move-r14.json'
+import beforeFireRow from '../../project-data/nowe-mpzp/before-fire-row-r15.json'
 import { parseProject } from '../domain/schema'
 import { gardenFixtureById } from '../domain/gardenFixtures'
 import { pointInPolygon, distanceToSegment } from '../domain/geometry'
@@ -11,31 +11,36 @@ import { draftZoningLine } from '../../knowledge-bank/zielonki/draftPlan'
 import { loadWorkspace, saveWorkspace, synchronizePublishedProject } from './persistence'
 import { mergeProjects } from '../domain/projectMerge'
 
-it('moves the same orchard towards the workshop while preserving the garden and keeping crowns off paths and the fire court', () => {
-  const p=parseProject(data), old=parseProject(beforeOrchardMove)
+it('moves the fire court towards the house and closes the gaps in the same orchard without obstructing paths', () => {
+  const p=parseProject(data), old=parseProject(beforeFireRow)
   const fruit=(ref:string)=>ref.startsWith('plant/nowe-mpzp/fruit-')
   const trees=p.landscape.plants.filter(t=>fruit(t.ref))
   expect(p.buildings).toEqual(old.buildings)
-  expect(p.landscape.fixtures).toEqual(old.landscape.fixtures)
-  expect(p.landscape.plants.filter(t=>!fruit(t.ref))).toEqual(old.landscape.plants.filter(t=>!fruit(t.ref)))
-  const unchangedZone=(ref:string)=>!ref.includes('/fruit-mulch-')&&!ref.includes('/lawn-')
+  const unchangedFixture=(ref:string)=>ref!=='fixture/nowe-mpzp/fire-lounge'&&!ref.startsWith('fixture-set/')
+  expect(p.landscape.fixtures.filter(f=>unchangedFixture(f.ref))).toEqual(old.landscape.fixtures.filter(f=>unchangedFixture(f.ref)))
+  const fire=p.landscape.fixtures.find(f=>f.catalogId==='round-fire-lounge')!, previousFire=old.landscape.fixtures.find(f=>f.ref===fire.ref)!
+  expect({...fire,position:previousFire.position}).toEqual(previousFire)
+  expect(fire.position.x).toBeCloseTo(previousFire.position.x-1)
+  expect(fire.position.z).toBeCloseTo(previousFire.position.z+1.3)
+  const unchangedPlant=(ref:string)=>!fruit(ref)&&![3,4,5].some(i=>ref.startsWith(`plant/nowe-mpzp/grasses-${i}-`))
+  expect(p.landscape.plants.filter(t=>unchangedPlant(t.ref))).toEqual(old.landscape.plants.filter(t=>unchangedPlant(t.ref)))
+  const unchangedZone=(ref:string)=>!ref.includes('/fruit-mulch-')&&!ref.includes('/lawn-')&&!ref.includes('/step-')&&!['/fire-court','/house-fire-path','/kitchen-garden','/grass-border-3','/grass-border-4','/grass-border-5'].some(s=>ref.endsWith(s))
   expect(p.landscape.zones.filter(z=>unchangedZone(z.ref))).toEqual(old.landscape.zones.filter(z=>unchangedZone(z.ref)))
-  expect(trees[0].position.z).toBe(-6)
-  expect(trees.at(-1)!.position.z).toBe(46)
+  expect(trees.map(t=>t.position.z)).toEqual(Array.from({length:12},(_,i)=>-6+3*i))
   for(const tree of trees){
     const previous=old.landscape.plants.find(t=>t.ref===tree.ref)!
     expect({...tree,position:previous.position}).toEqual(previous)
-    expect(tree.position.z).toBeLessThan(previous.position.z)
+    expect(tree.position.z).toBeLessThanOrEqual(previous.position.z)
     for(const zone of p.landscape.zones.filter(z=>['path','driveway','terrace'].includes(z.kind)||z.ref.endsWith('/fire-court'))){
       expect(pointInPolygon(tree.position,zone.footprint)).toBe(false)
       expect(Math.min(...zone.footprint.map((v,i)=>distanceToSegment(tree.position,v,zone.footprint[(i+1)%zone.footprint.length])))).toBeGreaterThan(tree.canopyM/2)
     }
   }
   const local=structuredClone(old)
-  local.landscape.plants=local.landscape.plants.filter(t=>t.ref!==trees[0].ref)
+  local.landscape.plants=local.landscape.plants.filter(t=>t.ref!==trees[2].ref)
   const merged=mergeProjects(old,local,p)
   expect(merged.conflicts.length).toBeGreaterThan(0)
-  expect(merged.project.landscape.plants.some(t=>t.ref===trees[0].ref)).toBe(false)
+  expect(merged.project.landscape.plants.some(t=>t.ref===trees[2].ref)).toBe(false)
 })
 
 it('moves the existing beds to the blue garden, keeps trees and buildings, and reserves twelve spaced fruit trees', () => {
@@ -49,13 +54,17 @@ it('moves the existing beds to the blue garden, keeps trees and buildings, and r
   for(const old of before.landscape.fixtures.filter(f=>f.ref.startsWith('fixture-set/'))){
     const moved=p.landscape.fixtures.find(f=>f.ref===old.ref)!
     expect({...moved,position:old.position}).toEqual(old)
-    expect(moved.position.z).toBeGreaterThan(19)
+    expect(moved.position.z).toBeGreaterThanOrEqual(18.3)
   }
   const trees=p.landscape.plants.filter(t=>t.ref.startsWith('plant/nowe-mpzp/fruit-'))
   expect(trees).toHaveLength(12)
   for(const [i,tree] of trees.entries()){
     expect(Math.min(...p.site.boundary.map((v,j)=>distanceToSegment(tree.position,v,p.site.boundary[(j+1)%p.site.boundary.length])))).toBeGreaterThan(2.4)
-    if(i)expect(Math.hypot(tree.position.x-trees[i-1].position.x,tree.position.z-trees[i-1].position.z)).toBeGreaterThanOrEqual(4)
+    if(i){
+      const spacing=Math.hypot(tree.position.x-trees[i-1].position.x,tree.position.z-trees[i-1].position.z)
+      expect(spacing).toBeGreaterThanOrEqual(3)
+      expect(spacing).toBeLessThan(3.01)
+    }
   }
   for(const f of p.landscape.fixtures.filter(f=>['greenhouse','raised-bed-2x1'].includes(f.catalogId))){
     const {widthM:w,depthM:d}=gardenFixtureById(f.catalogId)
@@ -67,13 +76,15 @@ it('moves the existing beds to the blue garden, keeps trees and buildings, and r
   expect(p.site.knowledgeBase.caveats.some(c=>c.includes('§37')&&c.includes('szklarnia'))).toBe(true)
   expect(p.landscape.zones.filter(z=>z.kind==='driveway')).toEqual(before.landscape.zones.filter(z=>z.kind==='driveway'))
   const fire=p.landscape.fixtures.find(f=>f.catalogId==='round-fire-lounge')!
-  expect(fire.position).toEqual({x:12.8,z:3.1})
+  expect(fire.position).toEqual({x:11.8,z:4.4})
   const paths=p.landscape.zones.filter(z=>['path','terrace','driveway'].includes(z.kind))
   for(const grass of p.landscape.plants.filter(t=>t.kind==='grass'))for(const path of paths){
     expect(pointInPolygon(grass.position,path.footprint)).toBe(false)
     expect(Math.min(...path.footprint.map((v,i)=>distanceToSegment(grass.position,v,path.footprint[(i+1)%path.footprint.length])))).toBeGreaterThanOrEqual(grass.canopyM/2)
   }
-  expect(beds[1].position.z-beds[0].position.z-1.2).toBeCloseTo(1.4)
+  expect(beds[1].position.z-beds[0].position.z-1.2).toBeCloseTo(.8)
+  expect(beds[3].position.x-beds[0].position.x-2.4).toBeCloseTo(1)
+  expect(beds[0].position.z-.6-greenhouse.position.z-gardenFixtureById('greenhouse').depthM/2).toBeCloseTo(1)
 })
 
 it('migrates the garden without restoring a deleted old bed and retains deletion of the new greenhouse after reload',async()=>{
