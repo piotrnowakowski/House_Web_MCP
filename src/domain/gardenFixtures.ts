@@ -31,6 +31,7 @@ export const gardenFixtureCatalog: GardenFixtureDefinition[] = [
   { id: 'garden-sauna', name: 'Sauna ogrodowa 2,5 × 3 m', category: 'structure', description: 'Kabina 2,5 × 3 × 2,5 m z przeszklonym wejściem. Lokalizacja i instalacje wymagają projektu.', widthM: 2.5, depthM: 3, heightM: 2.5 },
   { id: 'pizza-oven', name: 'Piec do pizzy', category: 'furniture', description: 'Kopuła na podstawie 1 × 1,05 m, wysokość z kominem 2,1 m. Dobór urządzenia i odstępy pożarowe wymagają sprawdzenia.', widthM: 1, depthM: 1.05, heightM: 2.1 },
   { id: 'kitchen-pergola', name: 'Pergola kuchni letniej 5 × 7 m', category: 'structure', description: 'Otwarta pergola 5 × 7 × 2,7 m z sześcioma słupami, bez szczelnego dachu. Wyposażenie ustawiane osobno.', widthM: 5, depthM: 7, heightM: 2.7 },
+  { id: 'kitchen-spa-canopy', name: 'Wiata kuchni i spa 7,4 × 15,2 m', category: 'structure', description: 'Wspólny pełny dach nad kuchnią, przejściem, jacuzzi i sauną. Naturalne jasne drewno, grafitowe pokrycie, wysokość 3,1 m. Koncepcja bez obliczeń konstrukcji.', widthM: 7.4, depthM: 15.2, heightM: 3.1 },
 ]
 
 export const gardenFixtureById = (id: GardenFixtureCatalogId) => {

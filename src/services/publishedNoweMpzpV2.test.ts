@@ -3,6 +3,7 @@ import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp-v2/project.json'
 import beforeThuja from '../../project-data/nowe-mpzp-v2/before-thuja-r2.json'
+import beforeTerrace from '../../project-data/nowe-mpzp-v2/before-terrace-canopy-r3.json'
 import parent from '../../project-data/nowe-mpzp/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
@@ -33,20 +34,20 @@ it('keeps the house, roofs, site and surveyed trees while fitting the reference 
     }
   }
   expect(p.landscape.fixtures.filter(f=>f.catalogId==='raised-bed-2x1')).toHaveLength(6)
-  expect(p.landscape.fixtures.map(f=>f.catalogId)).toEqual(expect.arrayContaining(['round-hot-tub','garden-sauna','pizza-oven','kitchen-pergola','outdoor-kitchen','greenhouse']))
-  const pergola=p.landscape.fixtures.find(f=>f.catalogId==='kitchen-pergola')!
+  expect(p.landscape.fixtures.map(f=>f.catalogId)).toEqual(expect.arrayContaining(['round-hot-tub','garden-sauna','pizza-oven','kitchen-spa-canopy','outdoor-kitchen','greenhouse']))
+  const pergola=p.landscape.fixtures.find(f=>f.catalogId==='kitchen-spa-canopy')!
   const kitchen=p.landscape.fixtures.find(f=>f.catalogId==='outdoor-kitchen')!
   const table=p.landscape.fixtures.find(f=>f.ref.endsWith('/summer-table'))!
   for(const f of [kitchen,table]){
     const size=gardenFixtureById(f.catalogId)
-    expect(Math.abs(f.position.x-pergola.position.x)+size.depthM/2).toBeLessThan(2.5)
-    expect(Math.abs(f.position.z-pergola.position.z)+size.widthM/2).toBeLessThan(3.5)
+    expect(Math.abs(f.position.x-pergola.position.x)+size.depthM/2).toBeLessThan(3.7)
+    expect(Math.abs(f.position.z-pergola.position.z)+size.widthM/2).toBeLessThan(7.6)
   }
   expect(kitchen.position.x-.4-(table.position.x+1.25)).toBeGreaterThanOrEqual(1)
   const oven=p.landscape.fixtures.find(f=>f.catalogId==='pizza-oven')!
-  expect(oven.position.z+.5).toBeLessThan(pergola.position.z-3.5)
+  expect(oven.position.z+.5).toBeLessThan(pergola.position.z-7.6)
   const deck=p.landscape.zones.find(z=>z.ref==='zone/terrace')!
-  expect(resolveZoneTexture(deck)?.id).toBe('coated-pine')
+  expect(resolveZoneTexture(deck)?.id).toBe('hinoki')
   expect(p.site.knowledgeBase.caveats.some(c=>c.includes('sauna')&&c.includes('18.R3.1'))).toBe(true)
 })
 
@@ -93,8 +94,6 @@ it('changes only the indicated east border into nine thujas and nine grass tripl
   const p=parseProject(data), before=parseProject(beforeThuja)
   const changed=(ref:string)=> /^plant\/nowe-mpzp-v2\/east-border-([1-9]|1\d|2[0-7])$/.test(ref)
   expect(p.buildings).toEqual(before.buildings)
-  expect(p.landscape.fixtures).toEqual(before.landscape.fixtures)
-  expect(p.landscape.zones).toEqual(before.landscape.zones)
   expect(p.site.boundary).toEqual(before.site.boundary)
   expect(p.landscape.plants.filter(t=>!changed(t.ref)&&!t.ref.includes('/east-grass-group-'))).toEqual(before.landscape.plants.filter(t=>!changed(t.ref)))
   const border=p.landscape.plants.filter(t=>changed(t.ref)||t.ref.includes('/east-grass-group-'))
@@ -114,4 +113,37 @@ it('changes only the indicated east border into nine thujas and nine grass tripl
   expect(merged.project.landscape.plants.some(t=>t.ref===deleted)).toBe(false)
   expect(merged.conflicts).toHaveLength(1)
   expect(merged.conflicts[0]).toContain(deleted)
+})
+
+it('swaps terrace sets, covers the kitchen-to-sauna route, and preserves plants and independent saved edits',()=>{
+  const p=parseProject(data),before=parseProject(beforeTerrace)
+  const fixture=(project:typeof p,suffix:string)=>project.landscape.fixtures.find(f=>f.ref===`fixture/nowe-mpzp-v2/${suffix}`)!
+  expect(p.landscape.plants).toEqual(before.landscape.plants)
+  expect(fixture(p,'terrace-lounge').position).toEqual(fixture(before,'terrace-dining').position)
+  expect(fixture(p,'terrace-lounge').rotationDegrees).toBe(180)
+  expect(fixture(p,'terrace-dining').position).toEqual(fixture(before,'terrace-lounge').position)
+  const canopy=fixture(p,'pergola'),size=gardenFixtureById(canopy.catalogId)
+  expect(size).toMatchObject({widthM:7.4,depthM:15.2,heightM:3.1})
+  const deck=p.landscape.zones.find(z=>z.ref.endsWith('/summer-deck'))!
+  expect(resolveZoneTexture(deck)?.id).toBe('hinoki')
+  for(const suffix of ['kitchen','summer-table','hot-tub','sauna']){
+    const f=fixture(p,suffix),s=gardenFixtureById(f.catalogId),a=f.rotationDegrees*Math.PI/180
+    for(const x of [-s.widthM/2,s.widthM/2])for(const z of [-s.depthM/2,s.depthM/2]){
+      const q={x:f.position.x+x*Math.cos(a)+z*Math.sin(a),z:f.position.z-x*Math.sin(a)+z*Math.cos(a)}
+      expect(Math.abs(q.x-canopy.position.x)).toBeLessThan(size.widthM/2)
+      expect(Math.abs(q.z-canopy.position.z)).toBeLessThan(size.depthM/2)
+    }
+  }
+  for(const x of [-size.widthM/2,size.widthM/2])for(const z of [-size.depthM/2,size.depthM/2])
+    expect(pointInPolygon({x:canopy.position.x+x,z:canopy.position.z+z},deck.footprint)).toBe(true)
+  const changed=new Set(['terrace-lounge','terrace-dining','pergola','pizza','sauna'].map(s=>`fixture/nowe-mpzp-v2/${s}`))
+  expect(p.landscape.fixtures.filter(f=>!changed.has(f.ref))).toEqual(before.landscape.fixtures.filter(f=>!changed.has(f.ref)))
+  const local=structuredClone(before)
+  local.landscape.fixtures=local.landscape.fixtures.filter(f=>f.ref!==fixture(before,'terrace-dining').ref)
+  fixture(local,'hot-tub').position.x-=.1
+  const merged=mergeProjects(before,local,p)
+  expect(merged.project.landscape.fixtures.some(f=>f.ref===fixture(before,'terrace-dining').ref)).toBe(false)
+  expect(fixture(merged.project,'hot-tub').position.x).toBe(9.9)
+  expect(merged.conflicts).toHaveLength(1)
+  expect(merged.conflicts[0]).toContain('terrace-dining')
 })

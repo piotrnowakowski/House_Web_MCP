@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp-v2",
   "name": "nowe mpzp — wariant 2",
   "units": "metric",
-  "revision": 3,
-  "updatedAt": "2026-10-20T20:20:00.000Z",
+  "revision": 4,
+  "updatedAt": "2026-10-20T20:43:00.000Z",
   "site": {
     "boundary": [
       {
@@ -2149,11 +2149,12 @@
         "Warzywnik r16: sześć istniejących grządek 2,4 × 1,2 m przysunięto do nieprzesuwanej szklarni. Odstępy między rzędami 0,8 m, środkowe przejście 1 m, od grządek do katalogowego obrysu szklarni 1 m. Żwirową strefę skrócono z 14,2 do 11,3 m, dopasowując płyty dojścia i dwie rabaty traw. Zachowano wszystkie ref grządek/upraw, szklarnię i jej dotychczasowy warunkowy status R3.",
         "Ogrodzenie koncepcyjne 20.10.2026: 3189.4704 m² (około 31,9 ara) po zewnętrznym obrysie w modelu, do końca szerokiej części ogrodu z=69,05 m. Dalszy wąski pas pozostaje poza ogrodzeniem. Nie zmienia granic własności ani przeznaczenia MU/R3. Czarne betonowe od frontu i po lewej do z=18 m, pozostałe czarne panelowe; wysokość robocza 1,80 m. Druga brama 4 m i główna 6,40 m pozostają w dotychczasowych miejscach. Dokładny przebieg granic, posadowienie, dostęp do drogi i możliwość wykonania wymagają weryfikacji; model nie zawiera projektu fundamentów ani automatyki bram.",
         "Wariant 2: ilustracja bez skali. Dom, garaż, wiata, granice, ogrodzenie i 11 drzew geodezyjnych zachowane z r19. Ogród dostosowany do rzeczywistych metrów, bez skalowania budynków i miniaturyzacji drzew.",
-        "Wariant 2: sauna, pergola kuchni i szklarnia w 18.R3.1 są lokalizacjami warunkowymi. Projekt planu §37 zakazuje nowych budynków; to odtworzenie zamówionej koncepcji, nie potwierdzenie dopuszczalności realizacji.",
-        "Wariant 2: palenisko Ø6 m i piec pokazano bez ognia. Odsunięcie pieca poza pergolę nie stanowi projektu ochrony przeciwpożarowej; wymagane instrukcje konkretnych urządzeń, odstępy od drewna i koron oraz projekt podłoża.",
-        "Wariant 2: meble i konstrukcje mają nominalne gabaryty w metrach, bez wskazania producenta. Jacuzzi Ø2,4 m, sauna 2,5 × 3 m, pergola 5 × 7 m, szklarnia 4,14 × 3,2 m, grządki 2,4 × 1,2 m. Posadowienie i instalacje nie są zaprojektowane.",
+        "Wariant 2: sauna, wiata kuchni i spa oraz szklarnia w 18.R3.1 są lokalizacjami warunkowymi. Projekt planu §37 zakazuje nowych budynków; to odtworzenie zamówionej koncepcji, nie potwierdzenie dopuszczalności realizacji.",
+        "Wariant 2: palenisko Ø6 m i piec pokazano bez ognia. Odsunięcie pieca poza wiatę nie stanowi projektu ochrony przeciwpożarowej; wymagane instrukcje konkretnych urządzeń, odstępy od drewna i koron oraz projekt podłoża.",
+        "Wariant 2: meble i konstrukcje mają nominalne gabaryty w metrach, bez wskazania producenta. Jacuzzi Ø2,4 m, sauna 2,5 × 3 m, wiata z pełnym dachem 7,4 × 15,2 × 3,1 m, szklarnia 4,14 × 3,2 m, grządki 2,4 × 1,2 m. Posadowienie i instalacje nie są zaprojektowane.",
         "Wariant 2: hortensja Little Lime 1,5 × 1,5 m, trzcinnik Karl Foerster 1,8 × 0,6 m, lawenda Hidcote 0,5 × 1 m. To dobór interpretacyjny zdjęcia. Lawenda wymaga przepuszczalnej gleby i osłoniętego stanowiska; potwierdzić lokalną zimotrwałość.",
         "Wariant 2: dwanaście drzew owocowych z koronami Ø3,2 m i wysokością 3,5 m, rozstaw 4,2 m po boku i 6 m z tyłu. Rzeczywiste odmiany, podkładki i zapylacze należy dobrać do tych gabarytów.",
+        "Wariant 2 r4: zestaw wypoczynkowy przed przeszkleniem, stół w bocznej części tarasu; oparcia na zewnątrz zestawów. Taras, pomost, wiata i sauna w jasnym naturalnym drewnie Hinoki jak deski elewacji. Ciągły pełny dach nad kuchnią, przejściem, jacuzzi i sauną; konstrukcja, spadek odwodnienia i bezpieczna wentylacja grilla wymagają projektu wykonawczego.",
         "Wariant 2 r3: wschodni pas od garażu do spa: 9 tui Szmaragd (docelowo 4,6 m wysokości, Ø1,3 m) co ok. 4,2 m, pomiędzy nimi 9 grup po 3 trzcinniki Karl Foerster (1,8 × 0,6 m). Tuje zastępują hortensje, trawy lawendy; docelowy pokrój nie oznacza wielkości sadzonek. Potwierdzić glebę, podlewanie i nasłonecznienie."
       ]
     }
@@ -5776,7 +5777,7 @@
             "z": 4.38712252676487
           }
         ],
-        "textureId": "coated-pine",
+        "textureId": "hinoki",
         "locked": false
       },
       {
@@ -6548,7 +6549,7 @@
             "z": 30.5
           }
         ],
-        "textureId": "coated-pine",
+        "textureId": "hinoki",
         "locked": false
       },
       {
@@ -24780,10 +24781,10 @@
         "catalogId": "garden-lounge-set",
         "name": "Wypoczynek na tarasie · 3,8 × 3,1 m",
         "position": {
-          "x": -11,
-          "z": 7.65
+          "x": -5.1,
+          "z": 9.45
         },
-        "rotationDegrees": 0,
+        "rotationDegrees": 180,
         "locked": false
       },
       {
@@ -24791,19 +24792,19 @@
         "catalogId": "outdoor-dining-set",
         "name": "Stół tarasowy z sześcioma krzesłami · 3,4 × 2,5 m",
         "position": {
-          "x": -5.1,
-          "z": 9.45
+          "x": -11,
+          "z": 7.65
         },
         "rotationDegrees": 0,
         "locked": false
       },
       {
         "ref": "fixture/nowe-mpzp-v2/pergola",
-        "catalogId": "kitchen-pergola",
-        "name": "Kuchnia letnia · pergola 5 × 7 m · lokalizacja warunkowa",
+        "catalogId": "kitchen-spa-canopy",
+        "name": "Wiata kuchni i spa · pełny dach 7,4 × 15,2 m · R3, lokalizacja warunkowa",
         "position": {
-          "x": 12.3,
-          "z": 17.8
+          "x": 12,
+          "z": 21.8
         },
         "rotationDegrees": 0,
         "locked": false
@@ -24822,7 +24823,7 @@
       {
         "ref": "fixture/nowe-mpzp-v2/pizza",
         "catalogId": "pizza-oven",
-        "name": "Piec do pizzy obok otwartej pergoli · 1 × 1,05 m",
+        "name": "Piec do pizzy przed wiatą · 1 × 1,05 m",
         "position": {
           "x": 14.8,
           "z": 12.7
@@ -24855,7 +24856,7 @@
       {
         "ref": "fixture/nowe-mpzp-v2/sauna",
         "catalogId": "garden-sauna",
-        "name": "Sauna · 2,5 × 3 m · R3, lokalizacja warunkowa",
+        "name": "Sauna w naturalnym drewnie · 2,5 × 3 m · R3, lokalizacja warunkowa",
         "position": {
           "x": 14,
           "z": 27

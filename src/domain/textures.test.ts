@@ -57,7 +57,7 @@ describe('texture library', () => {
     expect(resolveZoneTexture(zone('terrace'))).toEqual({ id: 'concrete-tiles', rotation: 0 })
     expect(resolveZoneTexture(zone('terrace', 'brick-pavement'))).toEqual({ id: 'brick-pavement', rotation: 0 })
     expect(resolveZoneTexture(zone('terrace', 'none'))).toBeUndefined()
-    expect(resolveZoneTexture(zone('terrace', 'hinoki'))).toEqual({ id: 'concrete-tiles', rotation: 0 })
+    expect(resolveZoneTexture(zone('terrace', 'hinoki'))).toEqual({ id: 'hinoki', rotation: 0 })
   })
 
   it('keeps the seasonal lawn tint only while the lawn wears grass', () => {

@@ -137,14 +137,14 @@ describe('ProjectV2 WebMCP surface', () => {
 
   it('lists the three catalogues compactly, including the operation reference', async () => {
     const fixtures = payload(await tool('list_catalog').execute({ catalog: 'garden-fixtures' }))
-    expect(fixtures.data.map((item: { id: string }) => item.id)).toEqual(['recycling-bins', 'jacuzzi', 'outdoor-kitchen', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'greenhouse', 'round-fire-lounge', 'round-hot-tub', 'garden-sauna', 'pizza-oven', 'kitchen-pergola'])
+    expect(fixtures.data.map((item: { id: string }) => item.id)).toEqual(['recycling-bins', 'jacuzzi', 'outdoor-kitchen', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'greenhouse', 'round-fire-lounge', 'round-hot-tub', 'garden-sauna', 'pizza-oven', 'kitchen-pergola', 'kitchen-spa-canopy'])
     const texturesResult = await tool('list_catalog').execute({ catalog: 'textures' }); const textures = payload(texturesResult)
     expect(textures.data).toHaveLength(12)
     expect(textures.data[0]).toMatchObject({ id: expect.any(String), name: expect.any(String), tileM: expect.any(Number), surfaces: expect.any(Array) })
     expect(texturesResult.content[0].text.length).toBeLessThan(1500)
     const ground = payload(await tool('list_catalog').execute({ catalog: 'textures', surface: 'ground' }))
     expect(ground.data.map((item: { id: string }) => item.id)).toContain('dirt')
-    expect(ground.data.map((item: { id: string }) => item.id)).not.toContain('hinoki')
+    expect(ground.data.map((item: { id: string }) => item.id)).toContain('hinoki')
     const operationsResult = await tool('list_catalog').execute({ catalog: 'operations' }); const operations = payload(operationsResult)
     expect(operations.data).toHaveLength(operationReference.length)
     expect(operations.data[0]).toEqual({ type: 'site.update', purpose: expect.any(String) })

@@ -14,7 +14,7 @@ const sourceFile = `${dir}/source-nowe-mpzp-r19.json`
 if (!fs.existsSync(sourceFile)) fs.copyFileSync('project-data/nowe-mpzp/project.json', sourceFile, fs.constants.COPYFILE_EXCL)
 const source = parseProject(JSON.parse(fs.readFileSync(sourceFile, 'utf8'))), p = structuredClone(source)
 assert.equal(source.revision, 19)
-p.ref = 'project/nowe-mpzp-v2'; p.name = 'nowe mpzp — wariant 2'; p.revision = 3; p.updatedAt = '2026-10-20T20:20:00.000Z'
+p.ref = 'project/nowe-mpzp-v2'; p.name = 'nowe mpzp — wariant 2'; p.revision = 4; p.updatedAt = '2026-10-20T20:43:00.000Z'
 const pt = (x: number, z: number): Vec2 => ({ x: +x.toFixed(4), z: +z.toFixed(4) })
 const rect = (x: number, z: number, w: number, d: number) => [pt(x-w/2,z-d/2),pt(x+w/2,z-d/2),pt(x+w/2,z+d/2),pt(x-w/2,z+d/2)]
 const circle = (x: number, z: number, r: number) => Array.from({length:48},(_,i)=>pt(x+r*Math.cos(i*Math.PI/24),z+r*Math.sin(i*Math.PI/24)))
@@ -36,23 +36,23 @@ p.landscape.zones = p.landscape.zones.filter(z=>['zone/driveway','zone/architekt
 zone('zone/terrace','Taras drewniany przy salonie i jadalni','terrace',[
   pt(-13.901,4.685),pt(-8.339,4.387),pt(-8.212,6.764),pt(-.583,6.355),
   pt(-.32,11.25),pt(-13.55,11.96),
-],'coated-pine')
-fixture('terrace-lounge','garden-lounge-set','Wypoczynek na tarasie · 3,8 × 3,1 m',-11.0,7.65,0)
-fixture('terrace-dining','outdoor-dining-set','Stół tarasowy z sześcioma krzesłami · 3,4 × 2,5 m',-5.1,9.45,0)
+],'hinoki')
+fixture('terrace-lounge','garden-lounge-set','Wypoczynek na tarasie · 3,8 × 3,1 m',-5.1,9.45,180)
+fixture('terrace-dining','outdoor-dining-set','Stół tarasowy z sześcioma krzesłami · 3,4 × 2,5 m',-11.0,7.65,0)
 const fire=p.landscape.fixtures.find(f=>f.catalogId==='round-fire-lounge')!
 fire.position=pt(11.8,5.3)
 zone('zone/nowe-mpzp/garden/fire-court','Palenisko · placyk Ø6 m','terrace',circle(11.8,5.3,3),'river-pebbles')
 zone('zone/nowe-mpzp/garden/house-fire-path','Łukowe dojście od tarasu · 1,4 m','path',curve([[-.5,10.2],[3.5,11.4],[7.8,10.8],[11.8,8.2]],1.4),'river-pebbles')
 zone('zone/nowe-mpzp/garden/garden-path','Dojście do kuchni letniej · 1,4 m','path',curve([[7.6,10.8],[9.5,11.7],[11,13],[11.3,14.5]],1.4),'river-pebbles')
 
-zone(zref('summer-deck'),'Drewniany pomost kuchni, jacuzzi i sauny · 7,8 × 17 m','terrace',rect(11.9,22,7.8,17),'coated-pine')
-fixture('pergola','kitchen-pergola','Kuchnia letnia · pergola 5 × 7 m · lokalizacja warunkowa',12.3,17.8)
+zone(zref('summer-deck'),'Drewniany pomost kuchni, jacuzzi i sauny · 7,8 × 17 m','terrace',rect(11.9,22,7.8,17),'hinoki')
+fixture('pergola','kitchen-spa-canopy','Wiata kuchni i spa · pełny dach 7,4 × 15,2 m · R3, lokalizacja warunkowa',12.0,21.8)
 fixture('kitchen','outdoor-kitchen','Grill, zlew i blat · 3,6 × 0,8 m',14.2,18.0,-90)
-fixture('pizza','pizza-oven','Piec do pizzy obok otwartej pergoli · 1 × 1,05 m',14.8,12.7,-90)
+fixture('pizza','pizza-oven','Piec do pizzy przed wiatą · 1 × 1,05 m',14.8,12.7,-90)
 zone(zref('oven-pad'),'Kamienny podest pieca · 1,5 × 1,5 m','terrace',rect(14.8,12.7,1.5,1.5),'concrete-tiles')
 fixture('summer-table','outdoor-dining-set','Stół kuchni letniej · sześć miejsc',11.5,17.9,90)
 fixture('hot-tub','round-hot-tub','Jacuzzi okrągłe · Ø2,4 m',10.0,26.7,0)
-fixture('sauna','garden-sauna','Sauna · 2,5 × 3 m · R3, lokalizacja warunkowa',14.0,27.0,0)
+fixture('sauna','garden-sauna','Sauna w naturalnym drewnie · 2,5 × 3 m · R3, lokalizacja warunkowa',14.0,27.0,0)
 
 const greenhouse=p.landscape.fixtures.find(f=>f.catalogId==='greenhouse')!
 greenhouse.position=pt(12.6,39.8);greenhouse.rotationDegrees=90
@@ -166,11 +166,12 @@ p.site.knowledgeBase.sources.push({
 p.site.knowledgeBase.caveats=p.site.knowledgeBase.caveats.filter(c=>!/^Ogród r14:/.test(c))
 p.site.knowledgeBase.caveats.push(
   'Wariant 2: ilustracja bez skali. Dom, garaż, wiata, granice, ogrodzenie i 11 drzew geodezyjnych zachowane z r19. Ogród dostosowany do rzeczywistych metrów, bez skalowania budynków i miniaturyzacji drzew.',
-  'Wariant 2: sauna, pergola kuchni i szklarnia w 18.R3.1 są lokalizacjami warunkowymi. Projekt planu §37 zakazuje nowych budynków; to odtworzenie zamówionej koncepcji, nie potwierdzenie dopuszczalności realizacji.',
-  'Wariant 2: palenisko Ø6 m i piec pokazano bez ognia. Odsunięcie pieca poza pergolę nie stanowi projektu ochrony przeciwpożarowej; wymagane instrukcje konkretnych urządzeń, odstępy od drewna i koron oraz projekt podłoża.',
-  'Wariant 2: meble i konstrukcje mają nominalne gabaryty w metrach, bez wskazania producenta. Jacuzzi Ø2,4 m, sauna 2,5 × 3 m, pergola 5 × 7 m, szklarnia 4,14 × 3,2 m, grządki 2,4 × 1,2 m. Posadowienie i instalacje nie są zaprojektowane.',
+  'Wariant 2: sauna, wiata kuchni i spa oraz szklarnia w 18.R3.1 są lokalizacjami warunkowymi. Projekt planu §37 zakazuje nowych budynków; to odtworzenie zamówionej koncepcji, nie potwierdzenie dopuszczalności realizacji.',
+  'Wariant 2: palenisko Ø6 m i piec pokazano bez ognia. Odsunięcie pieca poza wiatę nie stanowi projektu ochrony przeciwpożarowej; wymagane instrukcje konkretnych urządzeń, odstępy od drewna i koron oraz projekt podłoża.',
+  'Wariant 2: meble i konstrukcje mają nominalne gabaryty w metrach, bez wskazania producenta. Jacuzzi Ø2,4 m, sauna 2,5 × 3 m, wiata z pełnym dachem 7,4 × 15,2 × 3,1 m, szklarnia 4,14 × 3,2 m, grządki 2,4 × 1,2 m. Posadowienie i instalacje nie są zaprojektowane.',
   'Wariant 2: hortensja Little Lime 1,5 × 1,5 m, trzcinnik Karl Foerster 1,8 × 0,6 m, lawenda Hidcote 0,5 × 1 m. To dobór interpretacyjny zdjęcia. Lawenda wymaga przepuszczalnej gleby i osłoniętego stanowiska; potwierdzić lokalną zimotrwałość.',
   'Wariant 2: dwanaście drzew owocowych z koronami Ø3,2 m i wysokością 3,5 m, rozstaw 4,2 m po boku i 6 m z tyłu. Rzeczywiste odmiany, podkładki i zapylacze należy dobrać do tych gabarytów.',
+  'Wariant 2 r4: zestaw wypoczynkowy przed przeszkleniem, stół w bocznej części tarasu; oparcia na zewnątrz zestawów. Taras, pomost, wiata i sauna w jasnym naturalnym drewnie Hinoki jak deski elewacji. Ciągły pełny dach nad kuchnią, przejściem, jacuzzi i sauną; konstrukcja, spadek odwodnienia i bezpieczna wentylacja grilla wymagają projektu wykonawczego.',
   'Wariant 2 r3: wschodni pas od garażu do spa: 9 tui Szmaragd (docelowo 4,6 m wysokości, Ø1,3 m) co ok. 4,2 m, pomiędzy nimi 9 grup po 3 trzcinniki Karl Foerster (1,8 × 0,6 m). Tuje zastępują hortensje, trawy lawendy; docelowy pokrój nie oznacza wielkości sadzonek. Potwierdzić glebę, podlewanie i nasłonecznienie.',
 )
 assert.deepEqual(p.buildings,source.buildings)

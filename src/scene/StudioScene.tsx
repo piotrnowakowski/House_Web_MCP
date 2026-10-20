@@ -1158,7 +1158,7 @@ function DiningChair({ position, rotation = 0, selected, ghost }: { position: [n
 }
 
 function OutdoorDiningSetFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
-  const chairs = [[-0.72, -0.92, 0], [0, -0.92, 0], [0.72, -0.92, 0], [-0.72, 0.92, Math.PI], [0, 0.92, Math.PI], [0.72, 0.92, Math.PI]] as const
+  const chairs = [[-0.72, -0.92, Math.PI], [0, -0.92, Math.PI], [0.72, -0.92, Math.PI], [-0.72, 0.92, 0], [0, 0.92, 0], [0.72, 0.92, 0]] as const
   return <group>
     <mesh position={[0, 0.75, 0]} castShadow receiveShadow><boxGeometry args={[2.25, 0.13, 1.02]} />{fixtureMaterial('#a4774d', selected, ghost)}</mesh>
     {[-0.91, 0.91].flatMap((x) => [-0.34, 0.34].map((z) => <mesh key={`${x}-${z}`} position={[x, 0.37, z]} castShadow><boxGeometry args={[0.09, 0.74, 0.09]} />{fixtureMaterial('#4b4138', selected, ghost)}</mesh>))}
@@ -1170,16 +1170,16 @@ function LoungeSeat({ width, position, rotation = 0, selected, ghost }: { width:
   return <group position={position} rotation={[0, rotation, 0]}>
     <mesh position={[0, 0.28, 0]} castShadow><boxGeometry args={[width, 0.32, 0.78]} />{fixtureMaterial('#343a38', selected, ghost)}</mesh>
     <mesh position={[0, 0.51, -0.02]} castShadow><boxGeometry args={[Math.max(0.42, width - 0.22), 0.16, 0.58]} />{fixtureMaterial('#d8c9aa', selected, ghost)}</mesh>
-    <mesh position={[0, 0.72, 0.31]} rotation={[-Math.PI / 18, 0, 0]} castShadow><boxGeometry args={[Math.max(0.42, width - 0.2), 0.5, 0.14]} />{fixtureMaterial('#c8b894', selected, ghost)}</mesh>
+    <mesh position={[0, 0.72, 0.31]} rotation={[Math.PI / 18, 0, 0]} castShadow><boxGeometry args={[Math.max(0.42, width - 0.2), 0.5, 0.14]} />{fixtureMaterial('#c8b894', selected, ghost)}</mesh>
     {[-width / 2 + 0.07, width / 2 - 0.07].map((x) => <mesh key={x} position={[x, 0.48, 0]} castShadow><boxGeometry args={[0.12, 0.32, 0.8]} />{fixtureMaterial('#343a38', selected, ghost)}</mesh>)}
   </group>
 }
 
 function GardenLoungeSetFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
   return <group>
-    <LoungeSeat width={2.25} position={[0, 0, 1.03]} rotation={Math.PI} selected={selected} ghost={ghost} />
-    <LoungeSeat width={0.9} position={[-1.4, 0, -0.55]} rotation={Math.PI / 2} selected={selected} ghost={ghost} />
-    <LoungeSeat width={0.9} position={[1.4, 0, -0.55]} rotation={-Math.PI / 2} selected={selected} ghost={ghost} />
+    <LoungeSeat width={2.25} position={[0, 0, 1.03]} selected={selected} ghost={ghost} />
+    <LoungeSeat width={0.9} position={[-1.4, 0, -0.55]} rotation={-Math.PI / 2} selected={selected} ghost={ghost} />
+    <LoungeSeat width={0.9} position={[1.4, 0, -0.55]} rotation={Math.PI / 2} selected={selected} ghost={ghost} />
     <mesh position={[0, 0.31, -0.45]} castShadow receiveShadow><boxGeometry args={[1.25, 0.1, 0.72]} />{fixtureMaterial('#986f4a', selected, ghost)}</mesh>
     {[-0.5, 0.5].flatMap((x) => [-0.25, 0.25].map((z) => <mesh key={`${x}-${z}`} position={[x, 0.15, z - 0.45]}><boxGeometry args={[0.05, 0.3, 0.05]} />{fixtureMaterial('#343a38', selected, ghost)}</mesh>))}
   </group>
@@ -1241,7 +1241,7 @@ function RecyclingBinsFixture({ selected, ghost }: { selected: boolean; ghost: b
 
 function GardenFixtureModel({ catalogId, selected, ghost }: { catalogId: GardenFixtureModel['catalogId']; selected: boolean; ghost: boolean }) {
   switch (catalogId) {
-    case 'round-hot-tub': case 'garden-sauna': case 'pizza-oven': case 'kitchen-pergola': return <GardenSpaStructure kind={catalogId} selected={selected} ghost={ghost} />
+    case 'round-hot-tub': case 'garden-sauna': case 'pizza-oven': case 'kitchen-pergola': case 'kitchen-spa-canopy': return <GardenSpaStructure kind={catalogId} selected={selected} ghost={ghost} />
     case 'greenhouse': return <DetailedGreenhouse selected={selected} ghost={ghost} />
     case 'round-fire-lounge': return <RoundFireLounge selected={selected} ghost={ghost} />
     case 'recycling-bins': return <RecyclingBinsFixture selected={selected} ghost={ghost} />

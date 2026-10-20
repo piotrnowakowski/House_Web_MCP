@@ -1,5 +1,17 @@
 # nowe mpzp — wariant 2
 
+## Taras i wspólna wiata kuchni ze spa — r4, 20.10.2026
+
+Na podstawie trzech zdjęć użytkownika zamieniono miejsca zestawów: wypoczynek stoi przed przeszkleniem (−5,1; 9,45 m, obrót 180°), a stół z sześcioma krzesłami w bocznej części tarasu (−11; 7,65 m). Wspólne modele mebli poprawiono u źródła: siedziska są skierowane do stołów, oparcia na zewnątrz; poprawka dotyczy również stołu kuchni letniej. Zostaje około 1,2 m między sofą a przeszkleniem. Realna obwiednia wypoczynku to 3,645 × 2,452 m, stołu z krzesłami 2,25 × 2,453 m.
+
+Oba tarasy otrzymują jasne deski Hinoki z tej samej tekstury co naturalna część elewacji; wiata i ściany sauny używają tej samej palety drewna. Ściany domu pozostają bez zmian, z dotychczasowym lekkim zabarwieniem tekstury. Ażurową pergolę zastępuje wiata **7,4 × 15,2 × 3,1 m**, zachowująca `fixture/nowe-mpzp-v2/pergola`. Ciągły szczelny w modelu dach ma grafitowe pokrycie oraz drewniany spód i obramowanie. Obejmuje kuchnię, przejście, jacuzzi i saunę; dziesięć słupów pozostaje poza wyposażeniem. Prześwit między belkami a dachem sauny wynosi 0,21 m. Piec do pizzy pozostaje poza zadaszeniem, przed wiatą. To koncepcja: rozpiętości, przekroje, fundamenty, spadek odwodnienia oraz wentylacja i odstępy grilla wymagają projektu wykonawczego. Lokalizacja w 18.R3.1 nadal jest warunkowa; brak nowej oceny prawnej.
+
+`before-terrace-canopy-r3.json` zachowuje poprzednią publikację r3; pierwotna baza migracji `initial-r1.json` pozostaje niezmienna. Wszystkie 184 rośliny, w tym tuje i trawy, oraz geometria domu, garażu i ich dachów są identyczne z r3. Rzuty nawierzchni pozostają identyczne, więc bilans MU r2 nie zmienia się; nowy dach leży w koncepcyjnej części R3. Starsze opisy pergoli poniżej dokumentują stan r2/r3.
+
+Przed edycją skopiowano rzeczywiste profile Chrome Default i Codex IAB oraz trzy wspólne workspace z HTTPS do `tmp/terrace-canopy-20261020/`. Publiczny wariant miał lokalne r4/bazę3, shared r3/serverVersion2 i treść zgodną z canonical r3. Lokalny wariant r7/baza3 scalał się bez konfliktów. Wcześniejsze konflikty bramy/caveats lokalnego pierwszego MPZP zachowano poza zakresem pracy. Wszystkie stabilne ref zachowano. Testy migracji chronią lokalne usunięcie przenoszonego stołu i niezależne przesunięcie jacuzzi.
+
+Przeszło **602 testy / 112 plików** i lint. W rzeczywistej scenie 3D sprawdzono kierunek wszystkich 15 siedzisk obu stołów i wypoczynku, brak kolizji dziesięciu słupów z wyposażeniem, gabaryty dachu i prześwit nad sauną. Dowód: `tmp/terrace-canopy-20261020/scene-assertions.json`. Przeliczenie istniejących dachów daje 38,809709° / 39,235237°, wspólną kalenicę 8,085694 m i rozpoznany styk skrzydeł; garaż 37° i kalenica 5,758530 m. Geometria domu nie była zmieniana. Build frontendu i API oraz kontrola sekretów przeszły.
+
 ## Tuje i trawy — r3, 20.10.2026
 
 Na podstawie zaznaczenia na zdjęciu użytkownika zmieniono ciągłą wschodnią rabatę przy ogrodzeniu, od garażu przez kuchnię letnią do spa (z od −7 do ok. 30 m). Dziewięć hortensji zastąpiono tujami Szmaragd, dziewięć lawend trzcinnikami; istniejące trawy przesunięto i dodano dziewięć kęp, tworząc dziewięć grup po trzy trzcinniki pomiędzy tujami. Tuja co ok. 4,2 m jest pionowym akcentem; trawy w trójkątach dają niższą, powtarzalną warstwę. Razem w tej części: **9 tui i 27 traw**, w całym projekcie **184 rośliny**, w tym 161 ozdobnych.
@@ -10,7 +22,7 @@ W modelu tuja `Thuja occidentalis 'Smaragd'` ma docelowo **4,6 m wysokości i Ø
 
 Przeszło 601 testów w 112 plikach, lint, build frontendu i API oraz kontrola sekretów. Sprawdzono odstępy koron, granic i przejść oraz zachowanie lokalnego usunięcia zastępowanej rośliny z jawnym konfliktem zamiast jej odtworzenia.
 
-Osobny projekt `project/nowe-mpzp-v2`, przygotowany 20.10.2026 na podstawie ilustracji „Ogród — koncepcja zagospodarowania” przekazanej przez użytkownika. Kanoniczna rewizja: **3**. Na [Mikrusie](https://natan203-20203.mikrus.cloud/) wybierz **Projekty → nowe mpzp — wariant 2**.
+Osobny projekt `project/nowe-mpzp-v2`, przygotowany 20.10.2026 na podstawie ilustracji „Ogród — koncepcja zagospodarowania” przekazanej przez użytkownika. Kanoniczna rewizja: **4**. Na [Mikrusie](https://natan203-20203.mikrus.cloud/) wybierz **Projekty → nowe mpzp — wariant 2**.
 
 ## Układ i skala
 

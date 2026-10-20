@@ -43,7 +43,19 @@ export function FloweringBorderPlant({ plant, month, ...props }: GardenVisualPro
   </group>
 }
 
-export function GardenSpaStructure({ kind, ...props }: GardenVisualProps & { kind: 'round-hot-tub' | 'garden-sauna' | 'pizza-oven' | 'kitchen-pergola' }) {
+export function GardenSpaStructure({ kind, ...props }: GardenVisualProps & { kind: 'round-hot-tub' | 'garden-sauna' | 'pizza-oven' | 'kitchen-pergola' | 'kitchen-spa-canopy' }) {
+  if (kind === 'kitchen-spa-canopy') return <group>
+    <GardenBox size={[7.4, .18, 15.2]} at={[0, 2.98, 0]} asset="hinoki" {...props} />
+    <GardenBox size={[7.4, .03, 15.2]} at={[0, 3.085, 0]} color="#343936" {...props} />
+    {[-1, 1].flatMap(side => [
+      <GardenBox key={`side-${side}`} size={[.16, .3, 15.2]} at={[side * 3.62, 2.95, 0]} asset="hinoki" {...props} />,
+      <GardenBox key={`end-${side}`} size={[7.08, .3, .16]} at={[0, 2.95, side * 7.52]} asset="hinoki" {...props} />,
+    ])}
+    {[-7.4, -3.7, 0, 3.7, 7.4].map(z => <group key={z}>
+      <GardenBox size={[7.16, .18, .16]} at={[0, 2.8, z]} asset="hinoki" {...props} />
+      {[-3.5, 3.5].map(x => <GardenBox key={x} size={[.16, 2.71, .16]} at={[x, 1.355, z]} asset="hinoki" {...props} />)}
+    </group>)}
+  </group>
   if (kind === 'kitchen-pergola') {
     const members = pergolaMembers({
       ref: 'roof/garden-pergola', type: 'flat', footprint: [{ x: -2.43, z: -3.43 }, { x: 2.43, z: -3.43 }, { x: 2.43, z: 3.43 }, { x: -2.43, z: 3.43 }],
@@ -56,7 +68,7 @@ export function GardenSpaStructure({ kind, ...props }: GardenVisualProps & { kin
   if (kind === 'garden-sauna') return <group>
     <GardenBox size={[2.5, 0.14, 3]} at={[0, 0.07, 0]} asset="hinoki" {...props} />
     <GardenBox size={[2.5, 0.14, 3]} at={[0, 2.43, 0]} color="#303638" {...props} />
-    {[-1, 1].map(s => <GardenBox key={s} size={[0.12, 2.22, 3]} at={[s * 1.19, 1.25, 0]} asset="hinoki" color="#3c3933" {...props} />)}
+    {[-1, 1].map(s => <GardenBox key={s} size={[0.12, 2.22, 3]} at={[s * 1.19, 1.25, 0]} asset="hinoki" {...props} />)}
     <GardenBox size={[2.26, 2.22, 0.12]} at={[0, 1.25, -1.44]} asset="hinoki" {...props} />
     {[-0.85, 0.85].map(x => <GardenBox key={x} size={[0.52, 0.1, 2.2]} at={[x, 0.58, -0.2]} asset="hinoki" {...props} />)}
     <mesh position={[0, 1.25, 1.43]}><planeGeometry args={[2.26, 2.22]} /><meshPhysicalMaterial color={props.selected ? '#bedb84' : '#d1e1d9'} transparent opacity={props.ghost ? 0.12 : 0.25} roughness={0.1} side={DoubleSide} depthWrite={false} /></mesh>

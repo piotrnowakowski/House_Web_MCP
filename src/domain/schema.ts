@@ -148,7 +148,7 @@ const PlantSchema = z.object({
   attachment: z.object({ hostRef: z.string().min(1), hostFace: z.enum(['top', 'bottom', 'inside', 'outside', 'terrain']), localPosition: Vec3Schema, rotationDegrees: z.number().finite() }).optional(),
 })
 const GardenFixtureSchema = z.object({
-  ref: z.string().min(1), catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'greenhouse', 'round-fire-lounge', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'jacuzzi', 'outdoor-kitchen', 'recycling-bins', 'round-hot-tub', 'garden-sauna', 'pizza-oven', 'kitchen-pergola']), name: z.string().min(1),
+  ref: z.string().min(1), catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'greenhouse', 'round-fire-lounge', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'jacuzzi', 'outdoor-kitchen', 'recycling-bins', 'round-hot-tub', 'garden-sauna', 'pizza-oven', 'kitchen-pergola', 'kitchen-spa-canopy']), name: z.string().min(1),
   position: Vec2Schema, rotationDegrees: z.number().finite(), locked: z.boolean(),
 })
 const TemperatureByDayPartSchema = z.object({ night: z.number(), morning: z.number(), day: z.number(), evening: z.number() }).strict()

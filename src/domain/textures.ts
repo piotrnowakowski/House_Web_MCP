@@ -21,7 +21,7 @@ export interface TextureDefinition {
 export const textureLibrary: TextureDefinition[] = [
   { id: 'medieval-brick', folder: 'medieval_red_brick', name: 'Red brick', author: 'Rob Tuytel', description: 'Weathered red clay brick with lime mortar', tileM: 2, surfaces: ['wall'], diffuse: '2k', wallRotation: 0 },
   { id: 'brick-floor', folder: 'brick_floor_04', name: 'Dark brick pavers', author: 'Dimitrios Savva', description: 'Dark fired brick laid in a running bond', tileM: 1.9, surfaces: ['wall', 'ground'], diffuse: '2k', wallRotation: 0 },
-  { id: 'hinoki', folder: 'hinoki_planks', name: 'Hinoki planks', author: 'Charlotte Baglioni', description: 'Pale cypress boards, vertical on walls', tileM: 1.9, surfaces: ['wall'], diffuse: '2k', wallRotation: Math.PI / 2 },
+  { id: 'hinoki', folder: 'hinoki_planks', name: 'Hinoki planks', author: 'Charlotte Baglioni', description: 'Pale cypress boards, vertical on walls', tileM: 1.9, surfaces: ['wall', 'ground'], diffuse: '2k', wallRotation: Math.PI / 2 },
   { id: 'coated-pine', folder: 'coated_pine', name: 'Coated pine', author: 'Charlotte Baglioni, Rico Cilliers', description: 'Varnished pine boards', tileM: 0.7, surfaces: ['wall', 'ground'], diffuse: '2k', wallRotation: Math.PI / 2 },
   { id: 'rusty-painted-metal', folder: 'rusty_painted_metal', name: 'Corrugated metal', author: 'Amal Kumar', description: 'Painted corrugated sheet with rust streaks', tileM: 2.2, surfaces: ['wall'], diffuse: '2k', wallRotation: 0 },
   { id: 'concrete-tiles', folder: 'concrete_tiles_02', name: 'Concrete slabs', author: 'Charlotte Baglioni', description: 'Grey concrete paving slabs', tileM: 1.8, surfaces: ['ground'], diffuse: '2k', wallRotation: 0 },
