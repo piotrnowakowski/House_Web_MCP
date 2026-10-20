@@ -3,11 +3,40 @@ import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import before from '../../project-data/nowe-mpzp/before-garden-r13.json'
+import beforeOrchardMove from '../../project-data/nowe-mpzp/before-orchard-move-r14.json'
 import { parseProject } from '../domain/schema'
 import { gardenFixtureById } from '../domain/gardenFixtures'
 import { pointInPolygon, distanceToSegment } from '../domain/geometry'
 import { draftZoningLine } from '../../knowledge-bank/zielonki/draftPlan'
 import { loadWorkspace, saveWorkspace, synchronizePublishedProject } from './persistence'
+import { mergeProjects } from '../domain/projectMerge'
+
+it('moves the same orchard towards the workshop while preserving the garden and keeping crowns off paths and the fire court', () => {
+  const p=parseProject(data), old=parseProject(beforeOrchardMove)
+  const fruit=(ref:string)=>ref.startsWith('plant/nowe-mpzp/fruit-')
+  const trees=p.landscape.plants.filter(t=>fruit(t.ref))
+  expect(p.buildings).toEqual(old.buildings)
+  expect(p.landscape.fixtures).toEqual(old.landscape.fixtures)
+  expect(p.landscape.plants.filter(t=>!fruit(t.ref))).toEqual(old.landscape.plants.filter(t=>!fruit(t.ref)))
+  const unchangedZone=(ref:string)=>!ref.includes('/fruit-mulch-')&&!ref.includes('/lawn-')
+  expect(p.landscape.zones.filter(z=>unchangedZone(z.ref))).toEqual(old.landscape.zones.filter(z=>unchangedZone(z.ref)))
+  expect(trees[0].position.z).toBe(-6)
+  expect(trees.at(-1)!.position.z).toBe(46)
+  for(const tree of trees){
+    const previous=old.landscape.plants.find(t=>t.ref===tree.ref)!
+    expect({...tree,position:previous.position}).toEqual(previous)
+    expect(tree.position.z).toBeLessThan(previous.position.z)
+    for(const zone of p.landscape.zones.filter(z=>['path','driveway','terrace'].includes(z.kind)||z.ref.endsWith('/fire-court'))){
+      expect(pointInPolygon(tree.position,zone.footprint)).toBe(false)
+      expect(Math.min(...zone.footprint.map((v,i)=>distanceToSegment(tree.position,v,zone.footprint[(i+1)%zone.footprint.length])))).toBeGreaterThan(tree.canopyM/2)
+    }
+  }
+  const local=structuredClone(old)
+  local.landscape.plants=local.landscape.plants.filter(t=>t.ref!==trees[0].ref)
+  const merged=mergeProjects(old,local,p)
+  expect(merged.conflicts.length).toBeGreaterThan(0)
+  expect(merged.project.landscape.plants.some(t=>t.ref===trees[0].ref)).toBe(false)
+})
 
 it('moves the existing beds to the blue garden, keeps trees and buildings, and reserves twelve spaced fruit trees', () => {
   const p=parseProject(data)
