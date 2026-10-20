@@ -37,6 +37,7 @@ import { BATH_ROOM_STUDY_REF } from './services/publishedBathRoom'
 import { ARCHITEKT_REF } from './services/publishedArchitekt'
 import { PAULINA_REF } from './services/publishedPaulina'
 import { NOWE_MPZP_REF } from './services/publishedNoweMpzp'
+import { NOWE_MPZP_V2_REF } from './services/publishedNoweMpzpV2'
 import { showStructureViews } from './services/structureViews'
 import { registerWebMcpTools, resolveVariantConfirmation } from './services/webmcp'
 import type { WebMcpManifest } from './services/webmcpDefinitions'
@@ -434,7 +435,7 @@ function StartScreen() {
   }
   const [showOtherVersions, setShowOtherVersions] = useState(false)
   const projectGroups = groupWorkspaces(saved, favoriteRef).filter((item) => item.ref !== REFERENCE_HOUSE_REF)
-  const featuredRefs = [BATH_ROOM_STUDY_REF, ARCHITEKT_REF, NOWE_MPZP_REF, PAULINA_REF]
+  const featuredRefs = [BATH_ROOM_STUDY_REF, ARCHITEKT_REF, NOWE_MPZP_REF, NOWE_MPZP_V2_REF, PAULINA_REF]
   const hasMainProject = projectGroups.some((item) => featuredRefs.includes(item.ref))
   const showHistory = showOtherVersions || !hasMainProject
   const visibleProjects = showHistory

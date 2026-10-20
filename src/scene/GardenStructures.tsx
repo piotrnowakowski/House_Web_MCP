@@ -3,9 +3,64 @@ import { BufferGeometry, DoubleSide, Float32BufferAttribute, LatheGeometry, Vect
 import { metreBoxGeometry } from './metreGeometry'
 import { TexturedMaterial } from './materials'
 import type { TextureId } from '../domain/textures'
+import type { PlantModel } from '../domain/types'
+import { pergolaMembers } from '../domain/pergola'
 
 type GardenVisualProps = { selected: boolean; ghost: boolean }
 type Triple = [number, number, number]
+
+export function FloweringBorderPlant({ plant, month, ...props }: GardenVisualProps & { plant: PlantModel; month: number }) {
+  const lavender = plant.species.startsWith('Lavandula'), flowering = plant.bloomMonths.includes(month)
+  const leaves = plant.leafMonths.includes(month)
+  return <group scale={[plant.canopyM, plant.matureHeightM, plant.canopyM]}>
+    <mesh position-y={0.36} scale={[0.5, 0.36, 0.5]} castShadow={!props.ghost} receiveShadow>
+      <sphereGeometry args={[1, 12, 8]} /><meshStandardMaterial color={props.selected ? '#bedb84' : lavender ? '#718671' : leaves ? '#527543' : '#74624e'} roughness={0.9} transparent={props.ghost} opacity={props.ghost ? 0.35 : 1} />
+    </mesh>
+    {Array.from({ length: lavender ? 13 : 9 }, (_, i) => {
+      const angle=i*2.39996, radius=.3*Math.sqrt((i+.5)/(lavender?13:9)), y=.76+(i%3)*.06
+      return <mesh key={i} position={[Math.cos(angle)*radius,y,Math.sin(angle)*radius]} scale={lavender?[.025,.12,.025]:[.13,.12,.13]} castShadow={!props.ghost}>
+        <sphereGeometry args={[1, 8, 6]} /><meshStandardMaterial color={props.selected ? '#bedb84' : flowering ? lavender ? '#8c72a7' : '#e5e7c5' : '#6b7d4e'} roughness={0.9} transparent={props.ghost} opacity={props.ghost ? 0.35 : 1} />
+      </mesh>
+    })}
+  </group>
+}
+
+export function GardenSpaStructure({ kind, ...props }: GardenVisualProps & { kind: 'round-hot-tub' | 'garden-sauna' | 'pizza-oven' | 'kitchen-pergola' }) {
+  if (kind === 'kitchen-pergola') {
+    const members = pergolaMembers({
+      ref: 'roof/garden-pergola', type: 'flat', footprint: [{ x: -2.43, z: -3.43 }, { x: 2.43, z: -3.43 }, { x: 2.43, z: 3.43 }, { x: -2.43, z: 3.43 }],
+      baseElevationM: 2.46, pitchDegrees: 0, overhangM: 0, ridgeDirection: 'z', adjacentSegmentRefs: [], finish: { material: 'membrane', colorHex: '#343936' },
+      canopy: { fasciaHeightM: 0.18, fasciaEdgeIndices: [0, 1, 2, 3], soffitColorHex: '#a78258', postWidthM: 0.14, postBaseElevationM: 0,
+        posts: [-2.43, 2.43].flatMap(x => [-3.43, 0, 3.43].map(z => ({ x, z }))), slats: { direction: 'x', spacingM: 0.42, widthM: 0.08 } },
+    })
+    return <group>{members.map((m, i) => <GardenBox key={i} size={[m.size.x, m.size.y, m.size.z]} at={[m.centre.x, m.centre.y, m.centre.z]} rotation={[0, m.yaw, 0]} asset="hinoki" color="#94704d" {...props} />)}</group>
+  }
+  if (kind === 'garden-sauna') return <group>
+    <GardenBox size={[2.5, 0.14, 3]} at={[0, 0.07, 0]} asset="hinoki" {...props} />
+    <GardenBox size={[2.5, 0.14, 3]} at={[0, 2.43, 0]} color="#303638" {...props} />
+    {[-1, 1].map(s => <GardenBox key={s} size={[0.12, 2.22, 3]} at={[s * 1.19, 1.25, 0]} asset="hinoki" color="#3c3933" {...props} />)}
+    <GardenBox size={[2.26, 2.22, 0.12]} at={[0, 1.25, -1.44]} asset="hinoki" {...props} />
+    {[-0.85, 0.85].map(x => <GardenBox key={x} size={[0.52, 0.1, 2.2]} at={[x, 0.58, -0.2]} asset="hinoki" {...props} />)}
+    <mesh position={[0, 1.25, 1.43]}><planeGeometry args={[2.26, 2.22]} /><meshPhysicalMaterial color={props.selected ? '#bedb84' : '#d1e1d9'} transparent opacity={props.ghost ? 0.12 : 0.25} roughness={0.1} side={DoubleSide} depthWrite={false} /></mesh>
+    {[-1.12, -0.48, 0.48, 1.12].map(x => <GardenBox key={x} size={[0.045, 2.22, 0.07]} at={[x, 1.25, 1.46]} color="#303638" {...props} />)}
+    <GardenBox size={[0.035, 0.5, 0.06]} at={[0.38, 1.1, 1.47]} asset="hinoki" {...props} />
+    <GardenBox size={[0.45, 0.7, 0.45]} at={[0, 0.49, -1]} color="#363d3f" {...props} />
+  </group>
+  if (kind === 'pizza-oven') return <group>
+    <GardenBox size={[1, 0.88, 1.05]} at={[0, 0.44, 0]} asset="brick-floor" {...props} />
+    <GardenBox size={[1, 0.08, 1.05]} at={[0, 0.92, 0]} color="#aaa69b" {...props} />
+    <mesh position={[0, 0.96, -0.04]} scale={[0.48, 0.48, 0.46]} castShadow={!props.ghost}><sphereGeometry args={[1, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2]} /><meshStandardMaterial color={props.selected ? '#bedb84' : '#d9cfb7'} transparent={props.ghost} opacity={props.ghost ? 0.35 : 1} /></mesh>
+    <GardenBox size={[0.42, 0.28, 0.035]} at={[0, 1.1, 0.4]} color="#242725" {...props} />
+    <mesh position={[0, 1.73, -0.15]} castShadow={!props.ghost}><cylinderGeometry args={[0.08, 0.08, 0.74, 16]} /><meshStandardMaterial color={props.selected ? '#bedb84' : '#363d3f'} transparent={props.ghost} opacity={props.ghost ? 0.35 : 1} /></mesh>
+  </group>
+  return <group>
+    <mesh position={[0, 0.51, -0.25]} castShadow={!props.ghost}><cylinderGeometry args={[1.2, 1.18, 1.02, 48]} /><TexturedMaterial asset="hinoki" color={props.selected ? '#bedb84' : '#a78258'} transparent={props.ghost} opacity={props.ghost ? 0.35 : 1} /></mesh>
+    <mesh position={[0, 1.06, -0.25]} rotation-x={-Math.PI / 2}><circleGeometry args={[1.08, 48]} /><meshPhysicalMaterial color="#78bbc4" roughness={0.17} metalness={0.1} transparent opacity={props.ghost ? 0.3 : 0.88} /></mesh>
+    <mesh position={[0, 1.075, -0.25]} rotation-x={Math.PI / 2} castShadow={!props.ghost}><torusGeometry args={[1.125, 0.075, 10, 48]} /><meshStandardMaterial color={props.selected ? '#bedb84' : '#d6c2a0'} transparent={props.ghost} opacity={props.ghost ? 0.35 : 1} /></mesh>
+    <GardenBox size={[1, 0.22, 0.5]} at={[0, 0.11, 1.2]} asset="hinoki" {...props} />
+    <GardenBox size={[1, 0.2, 0.25]} at={[0, 0.32, 1.075]} asset="hinoki" {...props} />
+  </group>
+}
 
 function GardenBox({ size, at = [0, 0, 0], rotation = [0, 0, 0], asset, color = '#ffffff', selected, ghost, roughness = 0.8 }: GardenVisualProps & { size: Triple; at?: Triple; rotation?: Triple; asset?: TextureId; color?: string; roughness?: number }) {
   const [w, h, d] = size

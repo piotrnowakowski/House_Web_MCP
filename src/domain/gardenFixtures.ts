@@ -27,6 +27,10 @@ export const gardenFixtureCatalog: GardenFixtureDefinition[] = [
   { id: 'cucumber-trellis', name: 'Cucumber trellis', category: 'crop', description: 'Climbing cucumber row on a simple timber frame.', widthM: 2.15, depthM: 0.78, heightM: 1.45 },
   { id: 'greenhouse', name: 'Szklarnia', category: 'structure', description: 'Szklarnia 4 × 3 m z czarną ramą i przesuwnymi drzwiami. Lokalizacja wymaga sprawdzenia MPZP.', widthM: 4.14, depthM: 3.2, heightM: 2.64 },
   { id: 'round-fire-lounge', name: 'Palenisko z siedziskami', category: 'structure', description: 'Okrągły placyk 6 m, misa paleniskowa i trzy siedziska. Koncepcja do sprawdzenia pod kątem ochrony przeciwpożarowej.', widthM: 6, depthM: 6, heightM: 0.9 },
+  { id: 'round-hot-tub', name: 'Jacuzzi okrągłe Ø2,4 m', category: 'furniture', description: 'Balia Ø2,4 m, wysokość 1,15 m; obrys ze schodkiem 2,4 × 2,9 m. Gabaryt koncepcyjny, bez wskazania producenta.', widthM: 2.4, depthM: 2.9, heightM: 1.15 },
+  { id: 'garden-sauna', name: 'Sauna ogrodowa 2,5 × 3 m', category: 'structure', description: 'Kabina 2,5 × 3 × 2,5 m z przeszklonym wejściem. Lokalizacja i instalacje wymagają projektu.', widthM: 2.5, depthM: 3, heightM: 2.5 },
+  { id: 'pizza-oven', name: 'Piec do pizzy', category: 'furniture', description: 'Kopuła na podstawie 1 × 1,05 m, wysokość z kominem 2,1 m. Dobór urządzenia i odstępy pożarowe wymagają sprawdzenia.', widthM: 1, depthM: 1.05, heightM: 2.1 },
+  { id: 'kitchen-pergola', name: 'Pergola kuchni letniej 5 × 7 m', category: 'structure', description: 'Otwarta pergola 5 × 7 × 2,7 m z sześcioma słupami, bez szczelnego dachu. Wyposażenie ustawiane osobno.', widthM: 5, depthM: 7, heightM: 2.7 },
 ]
 
 export const gardenFixtureById = (id: GardenFixtureCatalogId) => {

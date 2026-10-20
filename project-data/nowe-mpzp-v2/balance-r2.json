@@ -1,0 +1,15 @@
+{
+  "project": "project/nowe-mpzp-v2",
+  "revision": 2,
+  "mu": {
+    "areaM2": 888.8064518367655,
+    "buildingM2": 237.76069994467906,
+    "greenM2": 501.7281126944936,
+    "greenPct": 56.44964791351884
+  },
+  "assumptions": [
+    "Koncepcja, nie formalny bilans projektu budowlanego.",
+    "Żwir, drewno, wszystkie gabaryty wyposażenia i pasy 0,20 m przy ogrodzeniu wyłączone z PBC.",
+    "Sauna, pergola i szklarnia w R3 pozostają warunkowe niezależnie od wyniku PBC."
+  ]
+}
