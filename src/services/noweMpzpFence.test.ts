@@ -3,6 +3,7 @@ import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp/project.json'
 import previous from '../../project-data/nowe-mpzp/before-fence-r16.json'
+import beforeExtension from '../../project-data/nowe-mpzp/before-fence-extend-r17.json'
 import { parseProject } from '../domain/schema'
 import { distanceToSegment, pointInPolygon, polygonArea } from '../domain/geometry'
 import { diffProjects } from '../domain/diff'
@@ -10,7 +11,7 @@ import { mergeProjects } from '../domain/projectMerge'
 import { fenceGeometry } from '../scene/fenceGeometry'
 import { loadWorkspace, saveWorkspace, synchronizePublishedProject } from './persistence'
 
-it('encloses 30 ares with two clear gates and the requested materials, preserving the whole design', () => {
+it('encloses the complete wide garden with two clear gates and the requested materials, preserving the whole design', () => {
   const p = parseProject(data), old = parseProject(previous), fences = p.site.fences!
   expect(p.buildings).toEqual(old.buildings)
   expect(p.landscape).toEqual(old.landscape)
@@ -27,7 +28,19 @@ it('encloses 30 ares with two clear gates and the requested materials, preservin
   }
   expect(ordered.at(-1)!.end.x).toBeCloseTo(ordered[0].start.x, 8)
   expect(ordered.at(-1)!.end.z).toBeCloseTo(ordered[0].start.z, 8)
-  expect(polygonArea(ordered.map(e => e.start))).toBeCloseTo(3000, 7)
+  expect(polygonArea(ordered.map(e => e.start))).toBeCloseTo(3189.4703984845, 7)
+  expect(Math.max(...ordered.map(e => e.start.z))).toBe(69.05)
+  const before = parseProject(beforeExtension)
+  expect(p.site.entrances).toEqual(before.site.entrances)
+  expect(fences.map(f => f.ref)).toEqual(before.site.fences!.map(f => f.ref))
+  expect(diffProjects(before, p).changes.filter(c => c.kind === 'fence').map(c => c.ref)).toEqual([
+    'fence/nowe-mpzp/4-1', 'fence/nowe-mpzp/5-1', 'fence/nowe-mpzp/6-1',
+  ])
+  const deletedRear = structuredClone(before)
+  deletedRear.site.fences = deletedRear.site.fences!.filter(f => f.ref !== 'fence/nowe-mpzp/5-1')
+  const merged = mergeProjects(before, deletedRear, p)
+  expect(merged.conflicts).toContain('/site/fences/fence/nowe-mpzp/5-1')
+  expect(merged.project.site.fences!.some(f => f.ref === 'fence/nowe-mpzp/5-1')).toBe(false)
   for (const f of fences) {
     const mid = { x: (f.start.x + f.end.x) / 2, z: (f.start.z + f.end.z) / 2 }
     expect(f.material).toBe(mid.z < -14.5 || (mid.x < -17 && mid.z < 18) ? 'concrete' : 'panel')

@@ -547,3 +547,6 @@ Kopie rzeczywistych Chrome/IAB i porównania ref/baza: tmp/nowe-mpzp-frame-20261
 
 
 20.10.2026 — niezależne nowe mpzp r17: 3000 m² ogrodzonego terenu według oznaczeń użytkowniczki, czarny beton/panele, druga brama 4 m; źródło canonical/shared r16 (serverVersion 12), snapshot before-fence-r16.json. Rzeczywiste Chrome/IAB przechwycone i porównane według ref/bazy w tmp/nowe-mpzp-fence-20261020. Publiczne scalenia czyste, wcześniejsze lokalne konflikty zachowane. Budynki, ogród, granice działek i pozostałe projekty bez zmian. Szczegóły koncepcji i bilans z rezerwą pod fundament w README nowe-mpzp.
+
+
+20.10.2026 — niezależne nowe mpzp r18: ogrodzenie przedłużone o 5,1206 m do końca szerokiej części, 3189,4704 m², zgodnie z wybraną przez użytkowniczkę opcją. Źródło canonical/shared r17 (serverVersion 13), snapshot before-fence-extend-r17.json. Rzeczywiste kopie Chrome/IAB i porównania według ref/bazy: tmp/nowe-mpzp-fence-extend-20261020. Publiczne scalenia czyste, wcześniejsze lokalne konflikty zachowane. Obie bramy i całe zagospodarowanie bez zmian.

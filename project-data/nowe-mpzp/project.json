@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp",
   "name": "nowe mpzp",
   "units": "metric",
-  "revision": 17,
-  "updatedAt": "2026-10-20T13:13:41.417Z",
+  "revision": 18,
+  "updatedAt": "2026-10-20T13:34:33.466Z",
   "site": {
     "boundary": [
       {
@@ -1914,7 +1914,7 @@
         "Ogród r14: palenisko pokazano bez ognia. Położenie, urządzenie, nawierzchnia i odległości od koron, materiałów palnych oraz ewentualnego lasu wymagają sprawdzenia przeciwpożarowego przed użyciem. Model nie symuluje dymu.",
         "Sad i palenisko r16: palenisko z siedziskami przesunięto o 1 m ku domowi i 1,3 m w głąb ogrodu (11,8; 4,4). Zgodnie z doprecyzowaniem użytkownika te same 12 drzew tworzy ciągły rząd co 3 m między pniami, z=-6 do 27 m, około 2,5 m od bocznej granicy. Dopasowano dojście piesze i towarzyszącą rabatę traw. Zachowano modelowaną średnicę koron 3,2 m: sąsiednie korony stykają się/nakładają około 0,2 m. Nie wchodzą nad placyk ani przejścia; nie potwierdza to bezpieczeństwa rzeczywistego paleniska. Dobór podkładek/odmian i prowadzenie koron wymagają sprawdzenia dla rozstawu 3 m.",
         "Warzywnik r16: sześć istniejących grządek 2,4 × 1,2 m przysunięto do nieprzesuwanej szklarni. Odstępy między rzędami 0,8 m, środkowe przejście 1 m, od grządek do katalogowego obrysu szklarni 1 m. Żwirową strefę skrócono z 14,2 do 11,3 m, dopasowując płyty dojścia i dwie rabaty traw. Zachowano wszystkie ref grządek/upraw, szklarnię i jej dotychczasowy warunkowy status R3.",
-        "Ogrodzenie koncepcyjne 20.10.2026: 3000 m² (30 arów) po zewnętrznym obrysie ogrodzenia w modelu, tylna granica z=63.929432 m. Nie zmienia granic własności ani przeznaczenia MU/R3. Czarne betonowe od frontu i po lewej do z=18 m, pozostałe czarne panelowe; wysokość robocza 1,80 m. Druga brama 4 m, główna 6,40 m. Dokładny przebieg granic, posadowienie, dostęp do drogi i możliwość wykonania wymagają weryfikacji; model nie zawiera projektu fundamentów ani automatyki bram."
+        "Ogrodzenie koncepcyjne 20.10.2026: 3189.4704 m² (około 31,9 ara) po zewnętrznym obrysie w modelu, do końca szerokiej części ogrodu z=69,05 m. Dalszy wąski pas pozostaje poza ogrodzeniem. Nie zmienia granic własności ani przeznaczenia MU/R3. Czarne betonowe od frontu i po lewej do z=18 m, pozostałe czarne panelowe; wysokość robocza 1,80 m. Druga brama 4 m i główna 6,40 m pozostają w dotychczasowych miejscach. Dokładny przebieg granic, posadowienie, dostęp do drogi i możliwość wykonania wymagają weryfikacji; model nie zawiera projektu fundamentów ani automatyki bram."
       ]
     },
     "fences": [
@@ -1971,8 +1971,8 @@
           "z": 15.883
         },
         "end": {
-          "x": 18.64326286657718,
-          "z": 63.92943236258144
+          "x": 18.554407,
+          "z": 69.05
         },
         "material": "panel",
         "heightM": 1.8,
@@ -1982,12 +1982,12 @@
         "ref": "fence/nowe-mpzp/5-1",
         "name": "Czarne ogrodzenie panelowe",
         "start": {
-          "x": 18.64326286657718,
-          "z": 63.92943236258144
+          "x": 18.554407,
+          "z": 69.05
         },
         "end": {
           "x": -18.403,
-          "z": 63.92943236258144
+          "z": 69.05
         },
         "material": "panel",
         "heightM": 1.8,
@@ -1998,7 +1998,7 @@
         "name": "Czarne ogrodzenie panelowe",
         "start": {
           "x": -18.403,
-          "z": 63.92943236258144
+          "z": 69.05
         },
         "end": {
           "x": -18.403,
