@@ -137,7 +137,7 @@ describe('ProjectV2 WebMCP surface', () => {
 
   it('lists the three catalogues compactly, including the operation reference', async () => {
     const fixtures = payload(await tool('list_catalog').execute({ catalog: 'garden-fixtures' }))
-    expect(fixtures.data.map((item: { id: string }) => item.id)).toEqual(['recycling-bins', 'jacuzzi', 'outdoor-kitchen', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'greenhouse', 'round-fire-lounge', 'round-hot-tub', 'garden-sauna', 'pizza-oven', 'kitchen-pergola', 'kitchen-spa-canopy'])
+    expect(fixtures.data.map((item: { id: string }) => item.id)).toEqual(['recycling-bins', 'jacuzzi', 'outdoor-kitchen', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'greenhouse', 'round-fire-lounge', 'round-hot-tub', 'garden-sauna', 'pizza-oven', 'kitchen-pergola', 'kitchen-spa-canopy', 'kitchen-spa-retractable', 'pizza-oven-tall-flue'])
     const texturesResult = await tool('list_catalog').execute({ catalog: 'textures' }); const textures = payload(texturesResult)
     expect(textures.data).toHaveLength(12)
     expect(textures.data[0]).toMatchObject({ id: expect.any(String), name: expect.any(String), tileM: expect.any(Number), surfaces: expect.any(Array) })

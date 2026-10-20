@@ -64,6 +64,10 @@ describe('texture library', () => {
     expect(zoneTintFor(zone('lawn'), 1)).not.toBe(zoneTintFor(zone('lawn'), 7))
     expect(zoneTintFor(zone('lawn', 'river-pebbles'), 1)).toBe(zoneTintFor(zone('lawn', 'river-pebbles'), 7))
     expect(zoneTintFor(zone('terrace'), 1)).toBe(zoneTintFor(zone('terrace'), 7))
+    const greener = { ...zone('lawn'), colorHex: '#B7D7A5' }
+    expect(zoneTintFor(greener, 7)).toBe('#B7D7A5')
+    expect(zoneTintFor(greener, 1)).toBe(zoneTintFor(zone('lawn'), 1))
+    expect(zoneTintFor({ ...greener, textureId: 'river-pebbles' }, 7)).toBe('#FFFFFF')
   })
 
   it('rejects scans that do not fit the surface and accepts none', () => {

@@ -1,4 +1,5 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { Html } from '@react-three/drei'
 import { BufferGeometry, DoubleSide, Float32BufferAttribute, LatheGeometry, Vector2 } from 'three'
 import { metreBoxGeometry } from './metreGeometry'
 import { TexturedMaterial } from './materials'
@@ -43,15 +44,31 @@ export function FloweringBorderPlant({ plant, month, ...props }: GardenVisualPro
   </group>
 }
 
-export function GardenSpaStructure({ kind, ...props }: GardenVisualProps & { kind: 'round-hot-tub' | 'garden-sauna' | 'pizza-oven' | 'kitchen-pergola' | 'kitchen-spa-canopy' }) {
-  if (kind === 'kitchen-spa-canopy') return <group>
-    <GardenBox size={[7.4, .18, 15.2]} at={[0, 2.98, 0]} asset="hinoki" {...props} />
-    <GardenBox size={[7.4, .03, 15.2]} at={[0, 3.085, 0]} color="#343936" {...props} />
+export function GardenSpaStructure({ kind, ...props }: GardenVisualProps & { kind: 'round-hot-tub' | 'garden-sauna' | 'pizza-oven' | 'pizza-oven-tall-flue' | 'kitchen-pergola' | 'kitchen-spa-canopy' | 'kitchen-spa-retractable' }) {
+  const [coverOpen, setCoverOpen] = useState(true)
+  const retractable = kind === 'kitchen-spa-retractable'
+  if (kind === 'kitchen-spa-canopy' || retractable) return <group>
+    {(retractable ? [
+      [-3.7, 3.7, -7.6, -.55], [-3.7, 3.7, .15, 3.3], [-3.7, 2, -.55, .15], [2.7, 3.7, -.55, .15],
+      [-3.7, 3.7, 7.15, 7.6], [-3.7, -3.4, 3.3, 7.15], [-.5, 3.7, 3.3, 7.15],
+    ] : [[-3.7, 3.7, -7.6, 7.6]]).map(([x1,x2,z1,z2],i)=><group key={i}>
+      <GardenBox size={[x2-x1, .18, z2-z1]} at={[(x1+x2)/2, 2.98, (z1+z2)/2]} asset="hinoki" {...props} />
+      <GardenBox size={[x2-x1, .03, z2-z1]} at={[(x1+x2)/2, 3.085, (z1+z2)/2]} color="#343936" {...props} />
+    </group>)}
+    {retractable && <group>
+      {[-3.36,-.54].map(x=><GardenBox key={x} size={[.08,.1,3.85]} at={[x,2.96,5.225]} color="#343936" {...props} />)}
+      {Array.from({length:6},(_,i)=><GardenBox key={i} size={[2.82,.035,coverOpen ? .22 : .65]} at={[-1.95,3.025-i*.004,coverOpen?7.02-i*.13:3.625+i*.64]} color="#d6d0bd" {...props} />)}
+      {/* Noncombustible conceptual collar; final clearances depend on the selected flue system. */}
+      <GardenBox size={[.7,.04,.7]} at={[2.35,3.08,-.2]} color="#737a79" {...props} />
+      {props.selected && !props.ghost && <Html position={[-1.95,3.5,5.2]} center>
+        <button type="button" style={{whiteSpace:'nowrap'}} onPointerDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();setCoverOpen(!coverOpen)}}>{coverOpen?'Zasłoń dach nad jacuzzi':'Odsłoń dach nad jacuzzi'}</button>
+      </Html>}
+    </group>}
     {[-1, 1].flatMap(side => [
       <GardenBox key={`side-${side}`} size={[.16, .3, 15.2]} at={[side * 3.62, 2.95, 0]} asset="hinoki" {...props} />,
       <GardenBox key={`end-${side}`} size={[7.08, .3, .16]} at={[0, 2.95, side * 7.52]} asset="hinoki" {...props} />,
     ])}
-    {[-7.4, -3.7, 0, 3.7, 7.4].map(z => <group key={z}>
+    {[-7.4, -3.7, 0, retractable ? 3.3 : 3.7, 7.4].map(z => <group key={z}>
       <GardenBox size={[7.16, .18, .16]} at={[0, 2.8, z]} asset="hinoki" {...props} />
       {[-3.5, 3.5].map(x => <GardenBox key={x} size={[.16, 2.71, .16]} at={[x, 1.355, z]} asset="hinoki" {...props} />)}
     </group>)}
@@ -76,12 +93,13 @@ export function GardenSpaStructure({ kind, ...props }: GardenVisualProps & { kin
     <GardenBox size={[0.035, 0.5, 0.06]} at={[0.38, 1.1, 1.47]} asset="hinoki" {...props} />
     <GardenBox size={[0.45, 0.7, 0.45]} at={[0, 0.49, -1]} color="#363d3f" {...props} />
   </group>
-  if (kind === 'pizza-oven') return <group>
+  if (kind === 'pizza-oven' || kind === 'pizza-oven-tall-flue') return <group>
     <GardenBox size={[1, 0.88, 1.05]} at={[0, 0.44, 0]} asset="brick-floor" {...props} />
     <GardenBox size={[1, 0.08, 1.05]} at={[0, 0.92, 0]} color="#aaa69b" {...props} />
     <mesh position={[0, 0.96, -0.04]} scale={[0.48, 0.48, 0.46]} castShadow={!props.ghost}><sphereGeometry args={[1, 24, 14, 0, Math.PI * 2, 0, Math.PI / 2]} /><meshStandardMaterial color={props.selected ? '#bedb84' : '#d9cfb7'} transparent={props.ghost} opacity={props.ghost ? 0.35 : 1} /></mesh>
     <GardenBox size={[0.42, 0.28, 0.035]} at={[0, 1.1, 0.4]} color="#242725" {...props} />
-    <mesh position={[0, 1.73, -0.15]} castShadow={!props.ghost}><cylinderGeometry args={[0.08, 0.08, 0.74, 16]} /><meshStandardMaterial color={props.selected ? '#bedb84' : '#363d3f'} transparent={props.ghost} opacity={props.ghost ? 0.35 : 1} /></mesh>
+    <mesh position={[0, kind === 'pizza-oven' ? 1.73 : 2.73, -0.15]} castShadow={!props.ghost}><cylinderGeometry args={[kind === 'pizza-oven' ? .08 : .13, kind === 'pizza-oven' ? .08 : .13, kind === 'pizza-oven' ? .74 : 2.74, 24]} /><meshStandardMaterial color={props.selected ? '#bedb84' : '#363d3f'} transparent={props.ghost} opacity={props.ghost ? 0.35 : 1} /></mesh>
+    {kind === 'pizza-oven-tall-flue' && <mesh position={[0,4.16,-.15]} castShadow={!props.ghost}><coneGeometry args={[.22,.08,24]} /><meshStandardMaterial color={props.selected?'#bedb84':'#363d3f'} transparent={props.ghost} opacity={props.ghost ? .35 : 1} /></mesh>}
   </group>
   return <group>
     <mesh position={[0, 0.51, -0.25]} castShadow={!props.ghost}><cylinderGeometry args={[1.2, 1.18, 1.02, 48]} /><TexturedMaterial asset="hinoki" color={props.selected ? '#bedb84' : '#a78258'} transparent={props.ghost} opacity={props.ghost ? 0.35 : 1} /></mesh>

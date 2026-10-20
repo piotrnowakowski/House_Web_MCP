@@ -5,6 +5,7 @@ import data from '../../project-data/nowe-mpzp-v2/project.json'
 import beforeThuja from '../../project-data/nowe-mpzp-v2/before-thuja-r2.json'
 import beforeTerrace from '../../project-data/nowe-mpzp-v2/before-terrace-canopy-r3.json'
 import beforeAllPlants from '../../project-data/nowe-mpzp-v2/before-all-thuja-grass-r4.json'
+import beforeGardenRefine from '../../project-data/nowe-mpzp-v2/before-garden-refine-r5.json'
 import parent from '../../project-data/nowe-mpzp/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
@@ -35,8 +36,8 @@ it('keeps the house, roofs, site and surveyed trees while fitting the reference 
     }
   }
   expect(p.landscape.fixtures.filter(f=>f.catalogId==='raised-bed-2x1')).toHaveLength(6)
-  expect(p.landscape.fixtures.map(f=>f.catalogId)).toEqual(expect.arrayContaining(['round-hot-tub','garden-sauna','pizza-oven','kitchen-spa-canopy','outdoor-kitchen','greenhouse']))
-  const pergola=p.landscape.fixtures.find(f=>f.catalogId==='kitchen-spa-canopy')!
+  expect(p.landscape.fixtures.map(f=>f.catalogId)).toEqual(expect.arrayContaining(['round-hot-tub','garden-sauna','pizza-oven-tall-flue','kitchen-spa-retractable','outdoor-kitchen','greenhouse']))
+  const pergola=p.landscape.fixtures.find(f=>f.catalogId==='kitchen-spa-retractable')!
   const kitchen=p.landscape.fixtures.find(f=>f.catalogId==='outdoor-kitchen')!
   const table=p.landscape.fixtures.find(f=>f.ref.endsWith('/summer-table'))!
   for(const f of [kitchen,table]){
@@ -45,8 +46,11 @@ it('keeps the house, roofs, site and surveyed trees while fitting the reference 
     expect(Math.abs(f.position.z-pergola.position.z)+size.widthM/2).toBeLessThan(7.6)
   }
   expect(kitchen.position.x-.4-(table.position.x+1.25)).toBeGreaterThanOrEqual(1)
-  const oven=p.landscape.fixtures.find(f=>f.catalogId==='pizza-oven')!
-  expect(oven.position.z+.5).toBeLessThan(pergola.position.z-7.6)
+  const oven=p.landscape.fixtures.find(f=>f.catalogId==='pizza-oven-tall-flue')!
+  expect(oven.position.z-.5-(kitchen.position.z+1.8)).toBeGreaterThan(1)
+  expect(oven.rotationDegrees).toBe(-90)
+  expect(oven.position.x+.15-pergola.position.x).toBeCloseTo(2.35)
+  expect(oven.position.z-pergola.position.z).toBeCloseTo(-.2)
   const deck=p.landscape.zones.find(z=>z.ref==='zone/terrace')!
   expect(resolveZoneTexture(deck)?.id).toBe('hinoki')
   expect(p.site.knowledgeBase.caveats.some(c=>c.includes('sauna')&&c.includes('18.R3.1'))).toBe(true)
@@ -63,10 +67,14 @@ it('reserves actual mature crowns and clear walks instead of scaling plants down
   }
   for(let i=0;i<ornamental.length;i++)for(let j=i+1;j<ornamental.length;j++){
     const a=ornamental[i],b=ornamental[j]
+    if(a.kind==='hedge'&&b.kind==='hedge'&&/\/(west|east|rear)-border-/.test(a.ref)&&/\/(west|east|rear)-border-/.test(b.ref)) {
+      expect(Math.hypot(a.position.x-b.position.x,a.position.z-b.position.z)).toBeGreaterThan(.79)
+      continue
+    }
     expect(Math.hypot(a.position.x-b.position.x,a.position.z-b.position.z)).toBeGreaterThan((a.canopyM+b.canopyM)/2)
   }
   const fruit=p.landscape.plants.filter(t=>t.ref.startsWith('plant/nowe-mpzp/fruit-'))
-  expect(fruit).toHaveLength(12)
+  expect(fruit).toHaveLength(7)
   expect(fruit.every(t=>t.canopyM===3.2&&t.matureHeightM===3.5)).toBe(true)
   for(let i=0;i<fruit.length;i++)for(let j=i+1;j<fruit.length;j++)
     expect(Math.hypot(fruit[i].position.x-fruit[j].position.x,fruit[i].position.z-fruit[j].position.z)).toBeGreaterThan(3.2)
@@ -150,7 +158,7 @@ it('swaps terrace sets, covers the kitchen-to-sauna route, and preserves plants 
 })
 
 it('replaces all remaining flowers with thujas and tall grasses without moving plants or changing the terrace and canopy',()=>{
-  const p=parseProject(data),before=parseProject(beforeAllPlants)
+  const p=parseProject(beforeGardenRefine),before=parseProject(beforeAllPlants)
   const replaced=(t:typeof p.landscape.plants[number])=>t.ref.startsWith('plant/nowe-mpzp-v2/')&&/^(Hydrangea|Lavandula)/.test(t.species)
   const refs=new Set(before.landscape.plants.filter(replaced).map(t=>t.ref))
   expect(refs.size).toBe(83)
@@ -177,4 +185,34 @@ it('replaces all remaining flowers with thujas and tall grasses without moving p
   expect(merged.project.name).toBe('Mój ogród')
   expect(merged.conflicts).toHaveLength(1)
   expect(merged.conflicts[0]).toContain(deleted)
+})
+
+it('removes the marked trees, densifies only the existing fence rows and preserves saved deletions across migration',async()=>{
+  const p=parseProject(data),before=parseProject(beforeGardenRefine)
+  const removed=before.landscape.plants.filter(t=>!p.landscape.plants.some(n=>n.ref===t.ref))
+  expect(removed).toHaveLength(16)
+  expect(removed.filter(t=>t.species.startsWith('Thuja '))).toHaveLength(11)
+  expect(removed.every(t=>/\/(terrace-|spa-|vegetable-)/.test(t.ref)||/fruit-(08|09|10|11|12)$/.test(t.ref))).toBe(true)
+  expect(p.landscape.plants.filter(t=>t.kind==='grass')).toHaveLength(117)
+  const additions=p.landscape.plants.filter(t=>!before.landscape.plants.some(n=>n.ref===t.ref))
+  expect(additions.length).toBeGreaterThan(100)
+  expect(additions.every(t=>t.species.startsWith('Thuja ')&&t.ref.includes('-border-')&&t.canopyM===1.3&&t.matureHeightM===4.6)).toBe(true)
+  for(const t of additions){
+    expect(pointInPolygon(t.position,p.site.boundary)).toBe(true)
+    expect(Math.min(...p.site.boundary.map((v,i)=>distanceToSegment(t.position,v,p.site.boundary[(i+1)%p.site.boundary.length])))-t.canopyM/2).toBeGreaterThan(.249)
+    expect(p.landscape.plants.some(n=>n!==t&&n.kind==='hedge'&&Math.hypot(n.position.x-t.position.x,n.position.z-t.position.z)<=.951)).toBe(true)
+  }
+  expect(p.landscape.zones.some(z=>/fruit-mulch-(8|9|10|11|12)$/.test(z.ref))).toBe(false)
+  expect(p.landscape.zones.filter(z=>z.kind==='lawn').every(z=>z.colorHex==='#B7D7A5')).toBe(true)
+  const changed=new Set(['fixture/nowe-mpzp-v2/pergola','fixture/nowe-mpzp-v2/pizza'])
+  expect(p.landscape.fixtures.filter(f=>!changed.has(f.ref))).toEqual(before.landscape.fixtures.filter(f=>!changed.has(f.ref)))
+  globalThis.indexedDB=new IDBFactory()
+  const local=structuredClone(before),deleted='plant/nowe-mpzp-v2/west-border-4'
+  local.name='Mój ogród';local.landscape.plants=local.landscape.plants.filter(t=>t.ref!==deleted)
+  const merged=mergeProjects(before,local,p)
+  expect(merged.conflicts).toEqual([])
+  await saveWorkspace({version:1,project:merged.project,proposals:[],draftChangeSets:[]})
+  const reloaded=(await loadWorkspace(p.ref))!.project
+  expect(reloaded.name).toBe('Mój ogród')
+  expect(reloaded.landscape.plants.some(t=>t.ref===deleted||removed.some(r=>r.ref===t.ref))).toBe(false)
 })

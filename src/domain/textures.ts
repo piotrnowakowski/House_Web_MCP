@@ -73,7 +73,7 @@ const LAWN_GROWING_TINT = '#D3E2C1'
 /** Tint multiplied over a zone's scan: grass goes to straw from November to March, every other scan stays neutral. */
 export const zoneTintFor = (zone: LandscapeZone, month: number): string => {
   if (resolveZoneTexture(zone)?.id !== 'leafy-grass') return '#FFFFFF'
-  return month >= 4 && month <= 10 ? LAWN_GROWING_TINT : LAWN_DORMANT_TINT
+  return month >= 4 && month <= 10 ? zone.colorHex ?? LAWN_GROWING_TINT : LAWN_DORMANT_TINT
 }
 
 /** Scans the project draws right now, so they can load ahead of the rest of the library. */

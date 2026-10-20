@@ -32,6 +32,8 @@ export const gardenFixtureCatalog: GardenFixtureDefinition[] = [
   { id: 'pizza-oven', name: 'Piec do pizzy', category: 'furniture', description: 'Kopuła na podstawie 1 × 1,05 m, wysokość z kominem 2,1 m. Dobór urządzenia i odstępy pożarowe wymagają sprawdzenia.', widthM: 1, depthM: 1.05, heightM: 2.1 },
   { id: 'kitchen-pergola', name: 'Pergola kuchni letniej 5 × 7 m', category: 'structure', description: 'Otwarta pergola 5 × 7 × 2,7 m z sześcioma słupami, bez szczelnego dachu. Wyposażenie ustawiane osobno.', widthM: 5, depthM: 7, heightM: 2.7 },
   { id: 'kitchen-spa-canopy', name: 'Wiata kuchni i spa 7,4 × 15,2 m', category: 'structure', description: 'Wspólny pełny dach nad kuchnią, przejściem, jacuzzi i sauną. Naturalne jasne drewno, grafitowe pokrycie, wysokość 3,1 m. Koncepcja bez obliczeń konstrukcji.', widthM: 7.4, depthM: 15.2, heightM: 3.1 },
+  { id: 'kitchen-spa-retractable', name: 'Wiata z rozsuwanym dachem nad jacuzzi', category: 'structure', description: 'Wiata 7,4 × 15,2 m z rozsuwaną osłoną 2,9 × 3,85 m nad jacuzzi i przejściem kominowym przy kuchni. Wybierz wiatę, aby zasłonić lub odsłonić dach w podglądzie. Koncepcja wymaga projektu konstrukcji i instalacji.', widthM: 7.4, depthM: 15.2, heightM: 3.1 },
+  { id: 'pizza-oven-tall-flue', name: 'Piec do pizzy z wysokim kominem', category: 'furniture', description: 'Piec 1 × 1,05 m z pionowym izolowanym kominem z tyłu kopuły, do wysokości 4,2 m. Gabaryt koncepcyjny; średnica, odległości i wylot wymagają doboru do urządzenia.', widthM: 1, depthM: 1.05, heightM: 4.2 },
 ]
 
 export const gardenFixtureById = (id: GardenFixtureCatalogId) => {

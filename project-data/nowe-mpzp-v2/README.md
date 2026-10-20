@@ -1,5 +1,17 @@
 # nowe mpzp — wariant 2
 
+## Gęsty szpaler, otwierany dach jacuzzi i komin — r6, 21.10.2026
+
+Na podstawie czerwonego zaznaczenia użytkownika usunięto 11 tui przy tarasie, wiacie i warzywniku oraz pięć tylnych drzew owocowych (fruit-08–12). Zachowano siedem owocowych po prawej, 11 drzew geodezyjnych i tuje przy palenisku. Pozostałe 31 tui przy ogrodzeniu zachowują pozycje i ref; między nimi dodano 115 sztuk, z docelowo zachodzącymi koronami w szpalerze co ok. 0,85–0,95 m. Nie wypełniano odcinka z siedmioma drzewami owocowymi. 65 kolidujących traw przesunięto przed szpaler; wszystkie 117 traw zachowano. Razem: **283 rośliny, w tym 148 tui**. Nie pomniejszano docelowych wymiarów: tuje 4,6 × 1,3 m, trawy 1,8 × 0,6 m.
+
+Trawnik ma delikatnie bardziej zielony tint `#B7D7A5`, zapisany tylko w strefach tego wariantu; zimowe przebarwienie pozostaje sezonowe. Zachowano dotychczasowe obrysy trawnika, a pięć usuniętych mis i dawny podest pieca wypełniono osobnymi strefami trawy. Pozostałe nawierzchnie i ich ref bez zmian.
+
+Wiata zachowuje ref i obrys 7,4 × 15,2 m. Nad jacuzzi ma otwór **2,9 × 3,85 m** z sześcioma rozsuwanymi panelami na prowadnicach, domyślnie odsłonięty. Po wybraniu wiaty przycisk „Zasłoń/Odsłoń dach nad jacuzzi” zmienia wyłącznie podgląd; stan osłony resetuje się po otwarciu sceny. Pozostały dach jest stały. Piec przeniesiono z przodu na tył kuchni, pozycja (14,2; 21,6 m), otworem ku trawnikowi. Pionowy komin za kopułą ma w modelu wysokość **4,2 m**, przechodzi przez otwór w stałym dachu z metalowym kołnierzem. To koncepcja: średnica, ciąg, izolacja, odstępy od drewna/roślin, wylot, niepalne podłoże oraz konstrukcja i odwodnienie osłony wymagają projektu do konkretnego urządzenia.
+
+Źródło: canonical/shared r5, serverVersion 4; snapshot `before-garden-refine-r5.json` oraz pierwsza baza `initial-r1.json` pozostają niezmienne. Kopie rzeczywistych plików IndexedDB Chrome Default i Codex IAB: `tmp/garden-refine-20261021/`. Niezmienione magazyny odczytano z wcześniejszego eksportu wyłącznie po porównaniu wszystkich hashy plików; aktualny publiczny origin odczytano bezpośrednio przez przeglądarkę. Publiczny wariant r6/baza5 odpowiadał canonical r5 i scalał się bez konfliktów. Lokalny origin 127.0.0.1 zachowano przed zmianą jako surową kopię; bieżący odczyt wykonano po migracji. Wspólne architekt i pierwszy MPZP są zgodne ze swoimi bazami i nie są zmieniane.
+
+Przeszły **604 testy / 112 plików**. Testy obejmują usunięcia po scaleniu i ponownym odczycie, granice, wolne przejścia i docelowe korony; nakładanie koron dopuszczono wyłącznie między tujami szpaleru. W rzeczywistej scenie dziewięć promieni nad wodą nie trafia w odsłonięty dach, a wszystkie dziewięć trafia po zasłonięciu. Komin ma zmierzone 4,2 m i w osi przejścia trafia tylko w metalowy kołnierz, bez drewna. Budynki i główne dachy są identyczne z r5; ponowne obliczenia dały 38,809709° / 39,235237°, wspólną kalenicę 8,085694 m i rozpoznany styk, garaż 37° i 5,758530 m. Dowody: `roof-scene-audit.json`, `roof-check.json` i logi w katalogu kopii. Nie wykonywano projektu konstrukcyjnego ani instalacyjnego.
+
 ## Tuje i wysokie trawy w całym ogrodzie — r5, 20.10.2026
 
 Na podstawie nowego zdjęcia z zaznaczonymi rabatami zastąpiono wszystkie pozostałe **42 hortensje i 41 lawend**. Przy ogrodzeniu, palenisku i spa tuje tworzą powtarzalne pionowe akcenty, rozdzielone wysokimi trawami. Przed środkową częścią przeszklenia tarasu i wzdłuż grządek jest przewaga traw; tuje stoją na końcach i wybranych narożnikach. Nowa paleta obejmuje **44 tuje Szmaragd** (docelowo 4,6 m wysokości, rezerwa szerokości 1,3 m) i **117 trzcinników Karl Foerster** (1,8 × 0,6 m). To zachowane wcześniej przyjęte gatunki i wymiary, nie nowy dobór odmian ani wielkość sadzonek.
@@ -36,7 +48,7 @@ W modelu tuja `Thuja occidentalis 'Smaragd'` ma docelowo **4,6 m wysokości i Ø
 
 Przeszło 601 testów w 112 plikach, lint, build frontendu i API oraz kontrola sekretów. Sprawdzono odstępy koron, granic i przejść oraz zachowanie lokalnego usunięcia zastępowanej rośliny z jawnym konfliktem zamiast jej odtworzenia.
 
-Osobny projekt `project/nowe-mpzp-v2`, przygotowany 20.10.2026 na podstawie ilustracji „Ogród — koncepcja zagospodarowania” przekazanej przez użytkownika. Kanoniczna rewizja: **5**. Na [Mikrusie](https://natan203-20203.mikrus.cloud/) wybierz **Projekty → nowe mpzp — wariant 2**.
+Osobny projekt `project/nowe-mpzp-v2`, przygotowany 20.10.2026 na podstawie ilustracji „Ogród — koncepcja zagospodarowania” przekazanej przez użytkownika. Kanoniczna rewizja: **6**. Na [Mikrusie](https://natan203-20203.mikrus.cloud/) wybierz **Projekty → nowe mpzp — wariant 2**.
 
 ## Układ i skala
 

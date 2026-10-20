@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp-v2",
   "name": "nowe mpzp — wariant 2",
   "units": "metric",
-  "revision": 5,
-  "updatedAt": "2026-10-20T20:55:00.000Z",
+  "revision": 6,
+  "updatedAt": "2026-10-20T23:23:14.000Z",
   "site": {
     "boundary": [
       {
@@ -2150,12 +2150,11 @@
         "Ogrodzenie koncepcyjne 20.10.2026: 3189.4704 m² (około 31,9 ara) po zewnętrznym obrysie w modelu, do końca szerokiej części ogrodu z=69,05 m. Dalszy wąski pas pozostaje poza ogrodzeniem. Nie zmienia granic własności ani przeznaczenia MU/R3. Czarne betonowe od frontu i po lewej do z=18 m, pozostałe czarne panelowe; wysokość robocza 1,80 m. Druga brama 4 m i główna 6,40 m pozostają w dotychczasowych miejscach. Dokładny przebieg granic, posadowienie, dostęp do drogi i możliwość wykonania wymagają weryfikacji; model nie zawiera projektu fundamentów ani automatyki bram.",
         "Wariant 2: ilustracja bez skali. Dom, garaż, wiata, granice, ogrodzenie i 11 drzew geodezyjnych zachowane z r19. Ogród dostosowany do rzeczywistych metrów, bez skalowania budynków i miniaturyzacji drzew.",
         "Wariant 2: sauna, wiata kuchni i spa oraz szklarnia w 18.R3.1 są lokalizacjami warunkowymi. Projekt planu §37 zakazuje nowych budynków; to odtworzenie zamówionej koncepcji, nie potwierdzenie dopuszczalności realizacji.",
-        "Wariant 2: palenisko Ø6 m i piec pokazano bez ognia. Odsunięcie pieca poza wiatę nie stanowi projektu ochrony przeciwpożarowej; wymagane instrukcje konkretnych urządzeń, odstępy od drewna i koron oraz projekt podłoża.",
-        "Wariant 2: meble i konstrukcje mają nominalne gabaryty w metrach, bez wskazania producenta. Jacuzzi Ø2,4 m, sauna 2,5 × 3 m, wiata z pełnym dachem 7,4 × 15,2 × 3,1 m, szklarnia 4,14 × 3,2 m, grządki 2,4 × 1,2 m. Posadowienie i instalacje nie są zaprojektowane.",
-        "Wariant 2 r5: wszystkie hortensje i lawendy zastąpiono tujami Szmaragd i wysokimi trzcinnikami Karl Foerster. Łącznie 44 tuje (docelowo 4,6 × 1,3 m) i 117 traw (1,8 × 0,6 m). Przy przeszkleniu tarasu i grządkach przewaga traw, tuje na końcach rabat; przy ogrodzeniu powtarzalny rytm. To rozmiary docelowe, nie sadzonek; dobór wymaga potwierdzenia gleby, podlewania i nasłonecznienia.",
-        "Wariant 2: dwanaście drzew owocowych z koronami Ø3,2 m i wysokością 3,5 m, rozstaw 4,2 m po boku i 6 m z tyłu. Rzeczywiste odmiany, podkładki i zapylacze należy dobrać do tych gabarytów.",
-        "Wariant 2 r4: zestaw wypoczynkowy przed przeszkleniem, stół w bocznej części tarasu; oparcia na zewnątrz zestawów. Taras, pomost, wiata i sauna w jasnym naturalnym drewnie Hinoki jak deski elewacji. Ciągły pełny dach nad kuchnią, przejściem, jacuzzi i sauną; konstrukcja, spadek odwodnienia i bezpieczna wentylacja grilla wymagają projektu wykonawczego.",
-        "Wariant 2 r3: wschodni pas od garażu do spa: 9 tui Szmaragd (docelowo 4,6 m wysokości, Ø1,3 m) co ok. 4,2 m, pomiędzy nimi 9 grup po 3 trzcinniki Karl Foerster (1,8 × 0,6 m). Tuje zastępują hortensje, trawy lawendy; docelowy pokrój nie oznacza wielkości sadzonek. Potwierdzić glebę, podlewanie i nasłonecznienie."
+        "Wariant 2 r6: piec do pizzy z tyłu kuchni letniej ma pionowy komin pokazany do 4,2 m, z przejściem przez stałą część dachu. To koncepcja przebiegu: średnica, ciąg, izolacja, odstępy od drewna i roślin, wylot oraz niepalne podłoże wymagają projektu do konkretnego urządzenia. Palenisko i piec pokazano bez ognia.",
+        "Wariant 2: meble i konstrukcje mają nominalne gabaryty w metrach, bez wskazania producenta. Jacuzzi Ø2,4 m, sauna 2,5 × 3 m, wiata 7,4 × 15,2 × 3,1 m, szklarnia 4,14 × 3,2 m, grządki 2,4 × 1,2 m. Posadowienie i instalacje nie są zaprojektowane.",
+        "Wariant 2 r6: usunięto 11 zaznaczonych tui przy tarasie, wiacie i warzywniku oraz pięć tylnych drzew owocowych. Pozostałe tuje przy płocie zagęszczono do ok. 0,85–0,95 m; zachodzenie docelowych koron jest zamierzone w żywopłocie. Łącznie 148 tui (4,6 × 1,3 m) i 117 traw (1,8 × 0,6 m), z trawami przesuniętymi przed szpaler. Dobór do gleby i nasłonecznienia wymaga potwierdzenia.",
+        "Wariant 2 r6: siedem nieoznaczonych drzew owocowych po prawej zachowano z koronami Ø3,2 m, wysokością 3,5 m i rozstawem 4,2 m. Rzeczywiste odmiany, podkładki i zapylacze należy dobrać do tych gabarytów.",
+        "Wariant 2 r6: nad jacuzzi otwór 2,9 × 3,85 m z rozsuwaną osłoną na prowadnicach; reszta wiaty ma pełny dach. Przycisk po wybraniu wiaty zmienia tylko podgląd otwarcia, domyślnie odsłonięty. Konstrukcja, odwodnienie i odporność na wiatr/śnieg wymagają projektu wykonawczego. Drewno, meble i sauna zachowują poprzedni układ i wykończenie."
       ]
     }
   },
@@ -6553,31 +6552,6 @@
         "locked": false
       },
       {
-        "ref": "zone/nowe-mpzp-v2/oven-pad",
-        "name": "Kamienny podest pieca · 1,5 × 1,5 m",
-        "kind": "terrace",
-        "footprint": [
-          {
-            "x": 14.05,
-            "z": 11.95
-          },
-          {
-            "x": 15.55,
-            "z": 11.95
-          },
-          {
-            "x": 15.55,
-            "z": 13.45
-          },
-          {
-            "x": 14.05,
-            "z": 13.45
-          }
-        ],
-        "textureId": "concrete-tiles",
-        "locked": false
-      },
-      {
         "ref": "zone/nowe-mpzp/garden/kitchen-garden",
         "name": "Warzywnik i szklarnia po prawej · przejścia 1–1,4 m",
         "kind": "path",
@@ -8154,1011 +8128,6 @@
           {
             "x": 17.1932,
             "z": 58.0956
-          }
-        ],
-        "textureId": "forest-floor",
-        "locked": false
-      },
-      {
-        "ref": "zone/nowe-mpzp/garden/fruit-mulch-8",
-        "name": "Misa drzewa owocowego 8",
-        "kind": "bed",
-        "footprint": [
-          {
-            "x": -10.2,
-            "z": 62.5
-          },
-          {
-            "x": -10.2068,
-            "z": 62.6044
-          },
-          {
-            "x": -10.2273,
-            "z": 62.7071
-          },
-          {
-            "x": -10.2609,
-            "z": 62.8061
-          },
-          {
-            "x": -10.3072,
-            "z": 62.9
-          },
-          {
-            "x": -10.3653,
-            "z": 62.987
-          },
-          {
-            "x": -10.4343,
-            "z": 63.0657
-          },
-          {
-            "x": -10.513,
-            "z": 63.1347
-          },
-          {
-            "x": -10.6,
-            "z": 63.1928
-          },
-          {
-            "x": -10.6939,
-            "z": 63.2391
-          },
-          {
-            "x": -10.7929,
-            "z": 63.2727
-          },
-          {
-            "x": -10.8956,
-            "z": 63.2932
-          },
-          {
-            "x": -11,
-            "z": 63.3
-          },
-          {
-            "x": -11.1044,
-            "z": 63.2932
-          },
-          {
-            "x": -11.2071,
-            "z": 63.2727
-          },
-          {
-            "x": -11.3061,
-            "z": 63.2391
-          },
-          {
-            "x": -11.4,
-            "z": 63.1928
-          },
-          {
-            "x": -11.487,
-            "z": 63.1347
-          },
-          {
-            "x": -11.5657,
-            "z": 63.0657
-          },
-          {
-            "x": -11.6347,
-            "z": 62.987
-          },
-          {
-            "x": -11.6928,
-            "z": 62.9
-          },
-          {
-            "x": -11.7391,
-            "z": 62.8061
-          },
-          {
-            "x": -11.7727,
-            "z": 62.7071
-          },
-          {
-            "x": -11.7932,
-            "z": 62.6044
-          },
-          {
-            "x": -11.8,
-            "z": 62.5
-          },
-          {
-            "x": -11.7932,
-            "z": 62.3956
-          },
-          {
-            "x": -11.7727,
-            "z": 62.2929
-          },
-          {
-            "x": -11.7391,
-            "z": 62.1939
-          },
-          {
-            "x": -11.6928,
-            "z": 62.1
-          },
-          {
-            "x": -11.6347,
-            "z": 62.013
-          },
-          {
-            "x": -11.5657,
-            "z": 61.9343
-          },
-          {
-            "x": -11.487,
-            "z": 61.8653
-          },
-          {
-            "x": -11.4,
-            "z": 61.8072
-          },
-          {
-            "x": -11.3061,
-            "z": 61.7609
-          },
-          {
-            "x": -11.2071,
-            "z": 61.7273
-          },
-          {
-            "x": -11.1044,
-            "z": 61.7068
-          },
-          {
-            "x": -11,
-            "z": 61.7
-          },
-          {
-            "x": -10.8956,
-            "z": 61.7068
-          },
-          {
-            "x": -10.7929,
-            "z": 61.7273
-          },
-          {
-            "x": -10.6939,
-            "z": 61.7609
-          },
-          {
-            "x": -10.6,
-            "z": 61.8072
-          },
-          {
-            "x": -10.513,
-            "z": 61.8653
-          },
-          {
-            "x": -10.4343,
-            "z": 61.9343
-          },
-          {
-            "x": -10.3653,
-            "z": 62.013
-          },
-          {
-            "x": -10.3072,
-            "z": 62.1
-          },
-          {
-            "x": -10.2609,
-            "z": 62.1939
-          },
-          {
-            "x": -10.2273,
-            "z": 62.2929
-          },
-          {
-            "x": -10.2068,
-            "z": 62.3956
-          }
-        ],
-        "textureId": "forest-floor",
-        "locked": false
-      },
-      {
-        "ref": "zone/nowe-mpzp/garden/fruit-mulch-9",
-        "name": "Misa drzewa owocowego 9",
-        "kind": "bed",
-        "footprint": [
-          {
-            "x": -4.2,
-            "z": 62.5
-          },
-          {
-            "x": -4.2068,
-            "z": 62.6044
-          },
-          {
-            "x": -4.2273,
-            "z": 62.7071
-          },
-          {
-            "x": -4.2609,
-            "z": 62.8061
-          },
-          {
-            "x": -4.3072,
-            "z": 62.9
-          },
-          {
-            "x": -4.3653,
-            "z": 62.987
-          },
-          {
-            "x": -4.4343,
-            "z": 63.0657
-          },
-          {
-            "x": -4.513,
-            "z": 63.1347
-          },
-          {
-            "x": -4.6,
-            "z": 63.1928
-          },
-          {
-            "x": -4.6939,
-            "z": 63.2391
-          },
-          {
-            "x": -4.7929,
-            "z": 63.2727
-          },
-          {
-            "x": -4.8956,
-            "z": 63.2932
-          },
-          {
-            "x": -5,
-            "z": 63.3
-          },
-          {
-            "x": -5.1044,
-            "z": 63.2932
-          },
-          {
-            "x": -5.2071,
-            "z": 63.2727
-          },
-          {
-            "x": -5.3061,
-            "z": 63.2391
-          },
-          {
-            "x": -5.4,
-            "z": 63.1928
-          },
-          {
-            "x": -5.487,
-            "z": 63.1347
-          },
-          {
-            "x": -5.5657,
-            "z": 63.0657
-          },
-          {
-            "x": -5.6347,
-            "z": 62.987
-          },
-          {
-            "x": -5.6928,
-            "z": 62.9
-          },
-          {
-            "x": -5.7391,
-            "z": 62.8061
-          },
-          {
-            "x": -5.7727,
-            "z": 62.7071
-          },
-          {
-            "x": -5.7932,
-            "z": 62.6044
-          },
-          {
-            "x": -5.8,
-            "z": 62.5
-          },
-          {
-            "x": -5.7932,
-            "z": 62.3956
-          },
-          {
-            "x": -5.7727,
-            "z": 62.2929
-          },
-          {
-            "x": -5.7391,
-            "z": 62.1939
-          },
-          {
-            "x": -5.6928,
-            "z": 62.1
-          },
-          {
-            "x": -5.6347,
-            "z": 62.013
-          },
-          {
-            "x": -5.5657,
-            "z": 61.9343
-          },
-          {
-            "x": -5.487,
-            "z": 61.8653
-          },
-          {
-            "x": -5.4,
-            "z": 61.8072
-          },
-          {
-            "x": -5.3061,
-            "z": 61.7609
-          },
-          {
-            "x": -5.2071,
-            "z": 61.7273
-          },
-          {
-            "x": -5.1044,
-            "z": 61.7068
-          },
-          {
-            "x": -5,
-            "z": 61.7
-          },
-          {
-            "x": -4.8956,
-            "z": 61.7068
-          },
-          {
-            "x": -4.7929,
-            "z": 61.7273
-          },
-          {
-            "x": -4.6939,
-            "z": 61.7609
-          },
-          {
-            "x": -4.6,
-            "z": 61.8072
-          },
-          {
-            "x": -4.513,
-            "z": 61.8653
-          },
-          {
-            "x": -4.4343,
-            "z": 61.9343
-          },
-          {
-            "x": -4.3653,
-            "z": 62.013
-          },
-          {
-            "x": -4.3072,
-            "z": 62.1
-          },
-          {
-            "x": -4.2609,
-            "z": 62.1939
-          },
-          {
-            "x": -4.2273,
-            "z": 62.2929
-          },
-          {
-            "x": -4.2068,
-            "z": 62.3956
-          }
-        ],
-        "textureId": "forest-floor",
-        "locked": false
-      },
-      {
-        "ref": "zone/nowe-mpzp/garden/fruit-mulch-10",
-        "name": "Misa drzewa owocowego 10",
-        "kind": "bed",
-        "footprint": [
-          {
-            "x": 1.8,
-            "z": 62.5
-          },
-          {
-            "x": 1.7932,
-            "z": 62.6044
-          },
-          {
-            "x": 1.7727,
-            "z": 62.7071
-          },
-          {
-            "x": 1.7391,
-            "z": 62.8061
-          },
-          {
-            "x": 1.6928,
-            "z": 62.9
-          },
-          {
-            "x": 1.6347,
-            "z": 62.987
-          },
-          {
-            "x": 1.5657,
-            "z": 63.0657
-          },
-          {
-            "x": 1.487,
-            "z": 63.1347
-          },
-          {
-            "x": 1.4,
-            "z": 63.1928
-          },
-          {
-            "x": 1.3061,
-            "z": 63.2391
-          },
-          {
-            "x": 1.2071,
-            "z": 63.2727
-          },
-          {
-            "x": 1.1044,
-            "z": 63.2932
-          },
-          {
-            "x": 1,
-            "z": 63.3
-          },
-          {
-            "x": 0.8956,
-            "z": 63.2932
-          },
-          {
-            "x": 0.7929,
-            "z": 63.2727
-          },
-          {
-            "x": 0.6939,
-            "z": 63.2391
-          },
-          {
-            "x": 0.6,
-            "z": 63.1928
-          },
-          {
-            "x": 0.513,
-            "z": 63.1347
-          },
-          {
-            "x": 0.4343,
-            "z": 63.0657
-          },
-          {
-            "x": 0.3653,
-            "z": 62.987
-          },
-          {
-            "x": 0.3072,
-            "z": 62.9
-          },
-          {
-            "x": 0.2609,
-            "z": 62.8061
-          },
-          {
-            "x": 0.2273,
-            "z": 62.7071
-          },
-          {
-            "x": 0.2068,
-            "z": 62.6044
-          },
-          {
-            "x": 0.2,
-            "z": 62.5
-          },
-          {
-            "x": 0.2068,
-            "z": 62.3956
-          },
-          {
-            "x": 0.2273,
-            "z": 62.2929
-          },
-          {
-            "x": 0.2609,
-            "z": 62.1939
-          },
-          {
-            "x": 0.3072,
-            "z": 62.1
-          },
-          {
-            "x": 0.3653,
-            "z": 62.013
-          },
-          {
-            "x": 0.4343,
-            "z": 61.9343
-          },
-          {
-            "x": 0.513,
-            "z": 61.8653
-          },
-          {
-            "x": 0.6,
-            "z": 61.8072
-          },
-          {
-            "x": 0.6939,
-            "z": 61.7609
-          },
-          {
-            "x": 0.7929,
-            "z": 61.7273
-          },
-          {
-            "x": 0.8956,
-            "z": 61.7068
-          },
-          {
-            "x": 1,
-            "z": 61.7
-          },
-          {
-            "x": 1.1044,
-            "z": 61.7068
-          },
-          {
-            "x": 1.2071,
-            "z": 61.7273
-          },
-          {
-            "x": 1.3061,
-            "z": 61.7609
-          },
-          {
-            "x": 1.4,
-            "z": 61.8072
-          },
-          {
-            "x": 1.487,
-            "z": 61.8653
-          },
-          {
-            "x": 1.5657,
-            "z": 61.9343
-          },
-          {
-            "x": 1.6347,
-            "z": 62.013
-          },
-          {
-            "x": 1.6928,
-            "z": 62.1
-          },
-          {
-            "x": 1.7391,
-            "z": 62.1939
-          },
-          {
-            "x": 1.7727,
-            "z": 62.2929
-          },
-          {
-            "x": 1.7932,
-            "z": 62.3956
-          }
-        ],
-        "textureId": "forest-floor",
-        "locked": false
-      },
-      {
-        "ref": "zone/nowe-mpzp/garden/fruit-mulch-11",
-        "name": "Misa drzewa owocowego 11",
-        "kind": "bed",
-        "footprint": [
-          {
-            "x": 7.8,
-            "z": 62.5
-          },
-          {
-            "x": 7.7932,
-            "z": 62.6044
-          },
-          {
-            "x": 7.7727,
-            "z": 62.7071
-          },
-          {
-            "x": 7.7391,
-            "z": 62.8061
-          },
-          {
-            "x": 7.6928,
-            "z": 62.9
-          },
-          {
-            "x": 7.6347,
-            "z": 62.987
-          },
-          {
-            "x": 7.5657,
-            "z": 63.0657
-          },
-          {
-            "x": 7.487,
-            "z": 63.1347
-          },
-          {
-            "x": 7.4,
-            "z": 63.1928
-          },
-          {
-            "x": 7.3061,
-            "z": 63.2391
-          },
-          {
-            "x": 7.2071,
-            "z": 63.2727
-          },
-          {
-            "x": 7.1044,
-            "z": 63.2932
-          },
-          {
-            "x": 7,
-            "z": 63.3
-          },
-          {
-            "x": 6.8956,
-            "z": 63.2932
-          },
-          {
-            "x": 6.7929,
-            "z": 63.2727
-          },
-          {
-            "x": 6.6939,
-            "z": 63.2391
-          },
-          {
-            "x": 6.6,
-            "z": 63.1928
-          },
-          {
-            "x": 6.513,
-            "z": 63.1347
-          },
-          {
-            "x": 6.4343,
-            "z": 63.0657
-          },
-          {
-            "x": 6.3653,
-            "z": 62.987
-          },
-          {
-            "x": 6.3072,
-            "z": 62.9
-          },
-          {
-            "x": 6.2609,
-            "z": 62.8061
-          },
-          {
-            "x": 6.2273,
-            "z": 62.7071
-          },
-          {
-            "x": 6.2068,
-            "z": 62.6044
-          },
-          {
-            "x": 6.2,
-            "z": 62.5
-          },
-          {
-            "x": 6.2068,
-            "z": 62.3956
-          },
-          {
-            "x": 6.2273,
-            "z": 62.2929
-          },
-          {
-            "x": 6.2609,
-            "z": 62.1939
-          },
-          {
-            "x": 6.3072,
-            "z": 62.1
-          },
-          {
-            "x": 6.3653,
-            "z": 62.013
-          },
-          {
-            "x": 6.4343,
-            "z": 61.9343
-          },
-          {
-            "x": 6.513,
-            "z": 61.8653
-          },
-          {
-            "x": 6.6,
-            "z": 61.8072
-          },
-          {
-            "x": 6.6939,
-            "z": 61.7609
-          },
-          {
-            "x": 6.7929,
-            "z": 61.7273
-          },
-          {
-            "x": 6.8956,
-            "z": 61.7068
-          },
-          {
-            "x": 7,
-            "z": 61.7
-          },
-          {
-            "x": 7.1044,
-            "z": 61.7068
-          },
-          {
-            "x": 7.2071,
-            "z": 61.7273
-          },
-          {
-            "x": 7.3061,
-            "z": 61.7609
-          },
-          {
-            "x": 7.4,
-            "z": 61.8072
-          },
-          {
-            "x": 7.487,
-            "z": 61.8653
-          },
-          {
-            "x": 7.5657,
-            "z": 61.9343
-          },
-          {
-            "x": 7.6347,
-            "z": 62.013
-          },
-          {
-            "x": 7.6928,
-            "z": 62.1
-          },
-          {
-            "x": 7.7391,
-            "z": 62.1939
-          },
-          {
-            "x": 7.7727,
-            "z": 62.2929
-          },
-          {
-            "x": 7.7932,
-            "z": 62.3956
-          }
-        ],
-        "textureId": "forest-floor",
-        "locked": false
-      },
-      {
-        "ref": "zone/nowe-mpzp/garden/fruit-mulch-12",
-        "name": "Misa drzewa owocowego 12",
-        "kind": "bed",
-        "footprint": [
-          {
-            "x": 13.8,
-            "z": 62.5
-          },
-          {
-            "x": 13.7932,
-            "z": 62.6044
-          },
-          {
-            "x": 13.7727,
-            "z": 62.7071
-          },
-          {
-            "x": 13.7391,
-            "z": 62.8061
-          },
-          {
-            "x": 13.6928,
-            "z": 62.9
-          },
-          {
-            "x": 13.6347,
-            "z": 62.987
-          },
-          {
-            "x": 13.5657,
-            "z": 63.0657
-          },
-          {
-            "x": 13.487,
-            "z": 63.1347
-          },
-          {
-            "x": 13.4,
-            "z": 63.1928
-          },
-          {
-            "x": 13.3061,
-            "z": 63.2391
-          },
-          {
-            "x": 13.2071,
-            "z": 63.2727
-          },
-          {
-            "x": 13.1044,
-            "z": 63.2932
-          },
-          {
-            "x": 13,
-            "z": 63.3
-          },
-          {
-            "x": 12.8956,
-            "z": 63.2932
-          },
-          {
-            "x": 12.7929,
-            "z": 63.2727
-          },
-          {
-            "x": 12.6939,
-            "z": 63.2391
-          },
-          {
-            "x": 12.6,
-            "z": 63.1928
-          },
-          {
-            "x": 12.513,
-            "z": 63.1347
-          },
-          {
-            "x": 12.4343,
-            "z": 63.0657
-          },
-          {
-            "x": 12.3653,
-            "z": 62.987
-          },
-          {
-            "x": 12.3072,
-            "z": 62.9
-          },
-          {
-            "x": 12.2609,
-            "z": 62.8061
-          },
-          {
-            "x": 12.2273,
-            "z": 62.7071
-          },
-          {
-            "x": 12.2068,
-            "z": 62.6044
-          },
-          {
-            "x": 12.2,
-            "z": 62.5
-          },
-          {
-            "x": 12.2068,
-            "z": 62.3956
-          },
-          {
-            "x": 12.2273,
-            "z": 62.2929
-          },
-          {
-            "x": 12.2609,
-            "z": 62.1939
-          },
-          {
-            "x": 12.3072,
-            "z": 62.1
-          },
-          {
-            "x": 12.3653,
-            "z": 62.013
-          },
-          {
-            "x": 12.4343,
-            "z": 61.9343
-          },
-          {
-            "x": 12.513,
-            "z": 61.8653
-          },
-          {
-            "x": 12.6,
-            "z": 61.8072
-          },
-          {
-            "x": 12.6939,
-            "z": 61.7609
-          },
-          {
-            "x": 12.7929,
-            "z": 61.7273
-          },
-          {
-            "x": 12.8956,
-            "z": 61.7068
-          },
-          {
-            "x": 13,
-            "z": 61.7
-          },
-          {
-            "x": 13.1044,
-            "z": 61.7068
-          },
-          {
-            "x": 13.2071,
-            "z": 61.7273
-          },
-          {
-            "x": 13.3061,
-            "z": 61.7609
-          },
-          {
-            "x": 13.4,
-            "z": 61.8072
-          },
-          {
-            "x": 13.487,
-            "z": 61.8653
-          },
-          {
-            "x": 13.5657,
-            "z": 61.9343
-          },
-          {
-            "x": 13.6347,
-            "z": 62.013
-          },
-          {
-            "x": 13.6928,
-            "z": 62.1
-          },
-          {
-            "x": 13.7391,
-            "z": 62.1939
-          },
-          {
-            "x": 13.7727,
-            "z": 62.2929
-          },
-          {
-            "x": 13.7932,
-            "z": 62.3956
           }
         ],
         "textureId": "forest-floor",
@@ -11956,8 +10925,9 @@
             "z": -15.75
           }
         ],
+        "locked": false,
         "textureId": "leafy-grass",
-        "locked": false
+        "colorHex": "#B7D7A5"
       },
       {
         "ref": "zone/nowe-mpzp-v2/lawn-2",
@@ -12893,8 +11863,9 @@
             "z": 10.527900002896786
           }
         ],
+        "locked": false,
         "textureId": "leafy-grass",
-        "locked": false
+        "colorHex": "#B7D7A5"
       },
       {
         "ref": "zone/nowe-mpzp-v2/lawn-3",
@@ -12926,8 +11897,9 @@
             "z": -3.5
           }
         ],
+        "locked": false,
         "textureId": "leafy-grass",
-        "locked": false
+        "colorHex": "#B7D7A5"
       },
       {
         "ref": "zone/nowe-mpzp-v2/lawn-4",
@@ -14479,8 +13451,9 @@
             "z": -3.411923550069332
           }
         ],
+        "locked": false,
         "textureId": "leafy-grass",
-        "locked": false
+        "colorHex": "#B7D7A5"
       },
       {
         "ref": "zone/nowe-mpzp-v2/lawn-5",
@@ -14636,8 +13609,9 @@
             "z": 12.700000002980232
           }
         ],
+        "locked": false,
         "textureId": "leafy-grass",
-        "locked": false
+        "colorHex": "#B7D7A5"
       },
       {
         "ref": "zone/nowe-mpzp-v2/lawn-6",
@@ -15493,8 +14467,9 @@
             "z": 32.850000001490116
           }
         ],
+        "locked": false,
         "textureId": "leafy-grass",
-        "locked": false
+        "colorHex": "#B7D7A5"
       },
       {
         "ref": "zone/nowe-mpzp-v2/lawn-7",
@@ -15798,8 +14773,9 @@
             "z": 12.734999999403954
           }
         ],
+        "locked": false,
         "textureId": "leafy-grass",
-        "locked": false
+        "colorHex": "#B7D7A5"
       },
       {
         "ref": "zone/nowe-mpzp-v2/lawn-8",
@@ -15875,8 +14851,9 @@
             "z": 31.84059999883175
           }
         ],
+        "locked": false,
         "textureId": "leafy-grass",
-        "locked": false
+        "colorHex": "#B7D7A5"
       },
       {
         "ref": "zone/nowe-mpzp-v2/lawn-9",
@@ -17636,8 +16613,9 @@
             "z": 58.20000000298023
           }
         ],
+        "locked": false,
         "textureId": "leafy-grass",
-        "locked": false
+        "colorHex": "#B7D7A5"
       },
       {
         "ref": "zone/nowe-mpzp-v2/lawn-10",
@@ -17709,8 +16687,9 @@
             "z": 33.70000000298023
           }
         ],
+        "locked": false,
         "textureId": "leafy-grass",
-        "locked": false
+        "colorHex": "#B7D7A5"
       },
       {
         "ref": "zone/nowe-mpzp-v2/lawn-11",
@@ -17874,8 +16853,9 @@
             "z": 42.4598999992013
           }
         ],
+        "locked": false,
         "textureId": "leafy-grass",
-        "locked": false
+        "colorHex": "#B7D7A5"
       },
       {
         "ref": "zone/nowe-mpzp-v2/lawn-12",
@@ -18531,8 +17511,1045 @@
             "z": 62.5
           }
         ],
+        "locked": false,
         "textureId": "leafy-grass",
-        "locked": false
+        "colorHex": "#B7D7A5"
+      },
+      {
+        "ref": "zone/nowe-mpzp-v2/oven-pad-lawn-infill",
+        "name": "Trawnik po usuniętym drzewie lub podeście",
+        "kind": "lawn",
+        "footprint": [
+          {
+            "x": 14.05,
+            "z": 11.95
+          },
+          {
+            "x": 15.55,
+            "z": 11.95
+          },
+          {
+            "x": 15.55,
+            "z": 13.45
+          },
+          {
+            "x": 14.05,
+            "z": 13.45
+          }
+        ],
+        "textureId": "leafy-grass",
+        "locked": false,
+        "colorHex": "#B7D7A5"
+      },
+      {
+        "ref": "zone/nowe-mpzp/garden/fruit-mulch-8-lawn-infill",
+        "name": "Trawnik po usuniętym drzewie lub podeście",
+        "kind": "lawn",
+        "footprint": [
+          {
+            "x": -10.2,
+            "z": 62.5
+          },
+          {
+            "x": -10.2068,
+            "z": 62.6044
+          },
+          {
+            "x": -10.2273,
+            "z": 62.7071
+          },
+          {
+            "x": -10.2609,
+            "z": 62.8061
+          },
+          {
+            "x": -10.3072,
+            "z": 62.9
+          },
+          {
+            "x": -10.3653,
+            "z": 62.987
+          },
+          {
+            "x": -10.4343,
+            "z": 63.0657
+          },
+          {
+            "x": -10.513,
+            "z": 63.1347
+          },
+          {
+            "x": -10.6,
+            "z": 63.1928
+          },
+          {
+            "x": -10.6939,
+            "z": 63.2391
+          },
+          {
+            "x": -10.7929,
+            "z": 63.2727
+          },
+          {
+            "x": -10.8956,
+            "z": 63.2932
+          },
+          {
+            "x": -11,
+            "z": 63.3
+          },
+          {
+            "x": -11.1044,
+            "z": 63.2932
+          },
+          {
+            "x": -11.2071,
+            "z": 63.2727
+          },
+          {
+            "x": -11.3061,
+            "z": 63.2391
+          },
+          {
+            "x": -11.4,
+            "z": 63.1928
+          },
+          {
+            "x": -11.487,
+            "z": 63.1347
+          },
+          {
+            "x": -11.5657,
+            "z": 63.0657
+          },
+          {
+            "x": -11.6347,
+            "z": 62.987
+          },
+          {
+            "x": -11.6928,
+            "z": 62.9
+          },
+          {
+            "x": -11.7391,
+            "z": 62.8061
+          },
+          {
+            "x": -11.7727,
+            "z": 62.7071
+          },
+          {
+            "x": -11.7932,
+            "z": 62.6044
+          },
+          {
+            "x": -11.8,
+            "z": 62.5
+          },
+          {
+            "x": -11.7932,
+            "z": 62.3956
+          },
+          {
+            "x": -11.7727,
+            "z": 62.2929
+          },
+          {
+            "x": -11.7391,
+            "z": 62.1939
+          },
+          {
+            "x": -11.6928,
+            "z": 62.1
+          },
+          {
+            "x": -11.6347,
+            "z": 62.013
+          },
+          {
+            "x": -11.5657,
+            "z": 61.9343
+          },
+          {
+            "x": -11.487,
+            "z": 61.8653
+          },
+          {
+            "x": -11.4,
+            "z": 61.8072
+          },
+          {
+            "x": -11.3061,
+            "z": 61.7609
+          },
+          {
+            "x": -11.2071,
+            "z": 61.7273
+          },
+          {
+            "x": -11.1044,
+            "z": 61.7068
+          },
+          {
+            "x": -11,
+            "z": 61.7
+          },
+          {
+            "x": -10.8956,
+            "z": 61.7068
+          },
+          {
+            "x": -10.7929,
+            "z": 61.7273
+          },
+          {
+            "x": -10.6939,
+            "z": 61.7609
+          },
+          {
+            "x": -10.6,
+            "z": 61.8072
+          },
+          {
+            "x": -10.513,
+            "z": 61.8653
+          },
+          {
+            "x": -10.4343,
+            "z": 61.9343
+          },
+          {
+            "x": -10.3653,
+            "z": 62.013
+          },
+          {
+            "x": -10.3072,
+            "z": 62.1
+          },
+          {
+            "x": -10.2609,
+            "z": 62.1939
+          },
+          {
+            "x": -10.2273,
+            "z": 62.2929
+          },
+          {
+            "x": -10.2068,
+            "z": 62.3956
+          }
+        ],
+        "textureId": "leafy-grass",
+        "locked": false,
+        "colorHex": "#B7D7A5"
+      },
+      {
+        "ref": "zone/nowe-mpzp/garden/fruit-mulch-9-lawn-infill",
+        "name": "Trawnik po usuniętym drzewie lub podeście",
+        "kind": "lawn",
+        "footprint": [
+          {
+            "x": -4.2,
+            "z": 62.5
+          },
+          {
+            "x": -4.2068,
+            "z": 62.6044
+          },
+          {
+            "x": -4.2273,
+            "z": 62.7071
+          },
+          {
+            "x": -4.2609,
+            "z": 62.8061
+          },
+          {
+            "x": -4.3072,
+            "z": 62.9
+          },
+          {
+            "x": -4.3653,
+            "z": 62.987
+          },
+          {
+            "x": -4.4343,
+            "z": 63.0657
+          },
+          {
+            "x": -4.513,
+            "z": 63.1347
+          },
+          {
+            "x": -4.6,
+            "z": 63.1928
+          },
+          {
+            "x": -4.6939,
+            "z": 63.2391
+          },
+          {
+            "x": -4.7929,
+            "z": 63.2727
+          },
+          {
+            "x": -4.8956,
+            "z": 63.2932
+          },
+          {
+            "x": -5,
+            "z": 63.3
+          },
+          {
+            "x": -5.1044,
+            "z": 63.2932
+          },
+          {
+            "x": -5.2071,
+            "z": 63.2727
+          },
+          {
+            "x": -5.3061,
+            "z": 63.2391
+          },
+          {
+            "x": -5.4,
+            "z": 63.1928
+          },
+          {
+            "x": -5.487,
+            "z": 63.1347
+          },
+          {
+            "x": -5.5657,
+            "z": 63.0657
+          },
+          {
+            "x": -5.6347,
+            "z": 62.987
+          },
+          {
+            "x": -5.6928,
+            "z": 62.9
+          },
+          {
+            "x": -5.7391,
+            "z": 62.8061
+          },
+          {
+            "x": -5.7727,
+            "z": 62.7071
+          },
+          {
+            "x": -5.7932,
+            "z": 62.6044
+          },
+          {
+            "x": -5.8,
+            "z": 62.5
+          },
+          {
+            "x": -5.7932,
+            "z": 62.3956
+          },
+          {
+            "x": -5.7727,
+            "z": 62.2929
+          },
+          {
+            "x": -5.7391,
+            "z": 62.1939
+          },
+          {
+            "x": -5.6928,
+            "z": 62.1
+          },
+          {
+            "x": -5.6347,
+            "z": 62.013
+          },
+          {
+            "x": -5.5657,
+            "z": 61.9343
+          },
+          {
+            "x": -5.487,
+            "z": 61.8653
+          },
+          {
+            "x": -5.4,
+            "z": 61.8072
+          },
+          {
+            "x": -5.3061,
+            "z": 61.7609
+          },
+          {
+            "x": -5.2071,
+            "z": 61.7273
+          },
+          {
+            "x": -5.1044,
+            "z": 61.7068
+          },
+          {
+            "x": -5,
+            "z": 61.7
+          },
+          {
+            "x": -4.8956,
+            "z": 61.7068
+          },
+          {
+            "x": -4.7929,
+            "z": 61.7273
+          },
+          {
+            "x": -4.6939,
+            "z": 61.7609
+          },
+          {
+            "x": -4.6,
+            "z": 61.8072
+          },
+          {
+            "x": -4.513,
+            "z": 61.8653
+          },
+          {
+            "x": -4.4343,
+            "z": 61.9343
+          },
+          {
+            "x": -4.3653,
+            "z": 62.013
+          },
+          {
+            "x": -4.3072,
+            "z": 62.1
+          },
+          {
+            "x": -4.2609,
+            "z": 62.1939
+          },
+          {
+            "x": -4.2273,
+            "z": 62.2929
+          },
+          {
+            "x": -4.2068,
+            "z": 62.3956
+          }
+        ],
+        "textureId": "leafy-grass",
+        "locked": false,
+        "colorHex": "#B7D7A5"
+      },
+      {
+        "ref": "zone/nowe-mpzp/garden/fruit-mulch-10-lawn-infill",
+        "name": "Trawnik po usuniętym drzewie lub podeście",
+        "kind": "lawn",
+        "footprint": [
+          {
+            "x": 1.8,
+            "z": 62.5
+          },
+          {
+            "x": 1.7932,
+            "z": 62.6044
+          },
+          {
+            "x": 1.7727,
+            "z": 62.7071
+          },
+          {
+            "x": 1.7391,
+            "z": 62.8061
+          },
+          {
+            "x": 1.6928,
+            "z": 62.9
+          },
+          {
+            "x": 1.6347,
+            "z": 62.987
+          },
+          {
+            "x": 1.5657,
+            "z": 63.0657
+          },
+          {
+            "x": 1.487,
+            "z": 63.1347
+          },
+          {
+            "x": 1.4,
+            "z": 63.1928
+          },
+          {
+            "x": 1.3061,
+            "z": 63.2391
+          },
+          {
+            "x": 1.2071,
+            "z": 63.2727
+          },
+          {
+            "x": 1.1044,
+            "z": 63.2932
+          },
+          {
+            "x": 1,
+            "z": 63.3
+          },
+          {
+            "x": 0.8956,
+            "z": 63.2932
+          },
+          {
+            "x": 0.7929,
+            "z": 63.2727
+          },
+          {
+            "x": 0.6939,
+            "z": 63.2391
+          },
+          {
+            "x": 0.6,
+            "z": 63.1928
+          },
+          {
+            "x": 0.513,
+            "z": 63.1347
+          },
+          {
+            "x": 0.4343,
+            "z": 63.0657
+          },
+          {
+            "x": 0.3653,
+            "z": 62.987
+          },
+          {
+            "x": 0.3072,
+            "z": 62.9
+          },
+          {
+            "x": 0.2609,
+            "z": 62.8061
+          },
+          {
+            "x": 0.2273,
+            "z": 62.7071
+          },
+          {
+            "x": 0.2068,
+            "z": 62.6044
+          },
+          {
+            "x": 0.2,
+            "z": 62.5
+          },
+          {
+            "x": 0.2068,
+            "z": 62.3956
+          },
+          {
+            "x": 0.2273,
+            "z": 62.2929
+          },
+          {
+            "x": 0.2609,
+            "z": 62.1939
+          },
+          {
+            "x": 0.3072,
+            "z": 62.1
+          },
+          {
+            "x": 0.3653,
+            "z": 62.013
+          },
+          {
+            "x": 0.4343,
+            "z": 61.9343
+          },
+          {
+            "x": 0.513,
+            "z": 61.8653
+          },
+          {
+            "x": 0.6,
+            "z": 61.8072
+          },
+          {
+            "x": 0.6939,
+            "z": 61.7609
+          },
+          {
+            "x": 0.7929,
+            "z": 61.7273
+          },
+          {
+            "x": 0.8956,
+            "z": 61.7068
+          },
+          {
+            "x": 1,
+            "z": 61.7
+          },
+          {
+            "x": 1.1044,
+            "z": 61.7068
+          },
+          {
+            "x": 1.2071,
+            "z": 61.7273
+          },
+          {
+            "x": 1.3061,
+            "z": 61.7609
+          },
+          {
+            "x": 1.4,
+            "z": 61.8072
+          },
+          {
+            "x": 1.487,
+            "z": 61.8653
+          },
+          {
+            "x": 1.5657,
+            "z": 61.9343
+          },
+          {
+            "x": 1.6347,
+            "z": 62.013
+          },
+          {
+            "x": 1.6928,
+            "z": 62.1
+          },
+          {
+            "x": 1.7391,
+            "z": 62.1939
+          },
+          {
+            "x": 1.7727,
+            "z": 62.2929
+          },
+          {
+            "x": 1.7932,
+            "z": 62.3956
+          }
+        ],
+        "textureId": "leafy-grass",
+        "locked": false,
+        "colorHex": "#B7D7A5"
+      },
+      {
+        "ref": "zone/nowe-mpzp/garden/fruit-mulch-11-lawn-infill",
+        "name": "Trawnik po usuniętym drzewie lub podeście",
+        "kind": "lawn",
+        "footprint": [
+          {
+            "x": 7.8,
+            "z": 62.5
+          },
+          {
+            "x": 7.7932,
+            "z": 62.6044
+          },
+          {
+            "x": 7.7727,
+            "z": 62.7071
+          },
+          {
+            "x": 7.7391,
+            "z": 62.8061
+          },
+          {
+            "x": 7.6928,
+            "z": 62.9
+          },
+          {
+            "x": 7.6347,
+            "z": 62.987
+          },
+          {
+            "x": 7.5657,
+            "z": 63.0657
+          },
+          {
+            "x": 7.487,
+            "z": 63.1347
+          },
+          {
+            "x": 7.4,
+            "z": 63.1928
+          },
+          {
+            "x": 7.3061,
+            "z": 63.2391
+          },
+          {
+            "x": 7.2071,
+            "z": 63.2727
+          },
+          {
+            "x": 7.1044,
+            "z": 63.2932
+          },
+          {
+            "x": 7,
+            "z": 63.3
+          },
+          {
+            "x": 6.8956,
+            "z": 63.2932
+          },
+          {
+            "x": 6.7929,
+            "z": 63.2727
+          },
+          {
+            "x": 6.6939,
+            "z": 63.2391
+          },
+          {
+            "x": 6.6,
+            "z": 63.1928
+          },
+          {
+            "x": 6.513,
+            "z": 63.1347
+          },
+          {
+            "x": 6.4343,
+            "z": 63.0657
+          },
+          {
+            "x": 6.3653,
+            "z": 62.987
+          },
+          {
+            "x": 6.3072,
+            "z": 62.9
+          },
+          {
+            "x": 6.2609,
+            "z": 62.8061
+          },
+          {
+            "x": 6.2273,
+            "z": 62.7071
+          },
+          {
+            "x": 6.2068,
+            "z": 62.6044
+          },
+          {
+            "x": 6.2,
+            "z": 62.5
+          },
+          {
+            "x": 6.2068,
+            "z": 62.3956
+          },
+          {
+            "x": 6.2273,
+            "z": 62.2929
+          },
+          {
+            "x": 6.2609,
+            "z": 62.1939
+          },
+          {
+            "x": 6.3072,
+            "z": 62.1
+          },
+          {
+            "x": 6.3653,
+            "z": 62.013
+          },
+          {
+            "x": 6.4343,
+            "z": 61.9343
+          },
+          {
+            "x": 6.513,
+            "z": 61.8653
+          },
+          {
+            "x": 6.6,
+            "z": 61.8072
+          },
+          {
+            "x": 6.6939,
+            "z": 61.7609
+          },
+          {
+            "x": 6.7929,
+            "z": 61.7273
+          },
+          {
+            "x": 6.8956,
+            "z": 61.7068
+          },
+          {
+            "x": 7,
+            "z": 61.7
+          },
+          {
+            "x": 7.1044,
+            "z": 61.7068
+          },
+          {
+            "x": 7.2071,
+            "z": 61.7273
+          },
+          {
+            "x": 7.3061,
+            "z": 61.7609
+          },
+          {
+            "x": 7.4,
+            "z": 61.8072
+          },
+          {
+            "x": 7.487,
+            "z": 61.8653
+          },
+          {
+            "x": 7.5657,
+            "z": 61.9343
+          },
+          {
+            "x": 7.6347,
+            "z": 62.013
+          },
+          {
+            "x": 7.6928,
+            "z": 62.1
+          },
+          {
+            "x": 7.7391,
+            "z": 62.1939
+          },
+          {
+            "x": 7.7727,
+            "z": 62.2929
+          },
+          {
+            "x": 7.7932,
+            "z": 62.3956
+          }
+        ],
+        "textureId": "leafy-grass",
+        "locked": false,
+        "colorHex": "#B7D7A5"
+      },
+      {
+        "ref": "zone/nowe-mpzp/garden/fruit-mulch-12-lawn-infill",
+        "name": "Trawnik po usuniętym drzewie lub podeście",
+        "kind": "lawn",
+        "footprint": [
+          {
+            "x": 13.8,
+            "z": 62.5
+          },
+          {
+            "x": 13.7932,
+            "z": 62.6044
+          },
+          {
+            "x": 13.7727,
+            "z": 62.7071
+          },
+          {
+            "x": 13.7391,
+            "z": 62.8061
+          },
+          {
+            "x": 13.6928,
+            "z": 62.9
+          },
+          {
+            "x": 13.6347,
+            "z": 62.987
+          },
+          {
+            "x": 13.5657,
+            "z": 63.0657
+          },
+          {
+            "x": 13.487,
+            "z": 63.1347
+          },
+          {
+            "x": 13.4,
+            "z": 63.1928
+          },
+          {
+            "x": 13.3061,
+            "z": 63.2391
+          },
+          {
+            "x": 13.2071,
+            "z": 63.2727
+          },
+          {
+            "x": 13.1044,
+            "z": 63.2932
+          },
+          {
+            "x": 13,
+            "z": 63.3
+          },
+          {
+            "x": 12.8956,
+            "z": 63.2932
+          },
+          {
+            "x": 12.7929,
+            "z": 63.2727
+          },
+          {
+            "x": 12.6939,
+            "z": 63.2391
+          },
+          {
+            "x": 12.6,
+            "z": 63.1928
+          },
+          {
+            "x": 12.513,
+            "z": 63.1347
+          },
+          {
+            "x": 12.4343,
+            "z": 63.0657
+          },
+          {
+            "x": 12.3653,
+            "z": 62.987
+          },
+          {
+            "x": 12.3072,
+            "z": 62.9
+          },
+          {
+            "x": 12.2609,
+            "z": 62.8061
+          },
+          {
+            "x": 12.2273,
+            "z": 62.7071
+          },
+          {
+            "x": 12.2068,
+            "z": 62.6044
+          },
+          {
+            "x": 12.2,
+            "z": 62.5
+          },
+          {
+            "x": 12.2068,
+            "z": 62.3956
+          },
+          {
+            "x": 12.2273,
+            "z": 62.2929
+          },
+          {
+            "x": 12.2609,
+            "z": 62.1939
+          },
+          {
+            "x": 12.3072,
+            "z": 62.1
+          },
+          {
+            "x": 12.3653,
+            "z": 62.013
+          },
+          {
+            "x": 12.4343,
+            "z": 61.9343
+          },
+          {
+            "x": 12.513,
+            "z": 61.8653
+          },
+          {
+            "x": 12.6,
+            "z": 61.8072
+          },
+          {
+            "x": 12.6939,
+            "z": 61.7609
+          },
+          {
+            "x": 12.7929,
+            "z": 61.7273
+          },
+          {
+            "x": 12.8956,
+            "z": 61.7068
+          },
+          {
+            "x": 13,
+            "z": 61.7
+          },
+          {
+            "x": 13.1044,
+            "z": 61.7068
+          },
+          {
+            "x": 13.2071,
+            "z": 61.7273
+          },
+          {
+            "x": 13.3061,
+            "z": 61.7609
+          },
+          {
+            "x": 13.4,
+            "z": 61.8072
+          },
+          {
+            "x": 13.487,
+            "z": 61.8653
+          },
+          {
+            "x": 13.5657,
+            "z": 61.9343
+          },
+          {
+            "x": 13.6347,
+            "z": 62.013
+          },
+          {
+            "x": 13.6928,
+            "z": 62.1
+          },
+          {
+            "x": 13.7391,
+            "z": 62.1939
+          },
+          {
+            "x": 13.7727,
+            "z": 62.2929
+          },
+          {
+            "x": 13.7932,
+            "z": 62.3956
+          }
+        ],
+        "textureId": "leafy-grass",
+        "locked": false,
+        "colorHex": "#B7D7A5"
       }
     ],
     "plants": [
@@ -19103,161 +19120,6 @@
         "placementRole": "site"
       },
       {
-        "ref": "plant/nowe-mpzp/fruit-08",
-        "name": "Śliwa 2 · rezerwa podkładki słabo rosnącej; korona 3,2 m",
-        "species": "Prunus domestica",
-        "kind": "tree",
-        "position": {
-          "x": -11,
-          "z": 62.5
-        },
-        "matureHeightM": 3.5,
-        "canopyM": 3.2,
-        "sunNeed": "sun",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
-        "leafMonths": [
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10
-        ],
-        "bloomMonths": [
-          4,
-          5
-        ],
-        "locked": false,
-        "crownShape": "rounded",
-        "placementRole": "site"
-      },
-      {
-        "ref": "plant/nowe-mpzp/fruit-09",
-        "name": "Śliwa 3 · rezerwa podkładki słabo rosnącej; korona 3,2 m",
-        "species": "Prunus domestica",
-        "kind": "tree",
-        "position": {
-          "x": -5,
-          "z": 62.5
-        },
-        "matureHeightM": 3.5,
-        "canopyM": 3.2,
-        "sunNeed": "sun",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
-        "leafMonths": [
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10
-        ],
-        "bloomMonths": [
-          4,
-          5
-        ],
-        "locked": false,
-        "crownShape": "rounded",
-        "placementRole": "site"
-      },
-      {
-        "ref": "plant/nowe-mpzp/fruit-10",
-        "name": "Wiśnia 1 · rezerwa podkładki słabo rosnącej; korona 3,2 m",
-        "species": "Prunus cerasus",
-        "kind": "tree",
-        "position": {
-          "x": 1,
-          "z": 62.5
-        },
-        "matureHeightM": 3.5,
-        "canopyM": 3.2,
-        "sunNeed": "sun",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
-        "leafMonths": [
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10
-        ],
-        "bloomMonths": [
-          4,
-          5
-        ],
-        "locked": false,
-        "crownShape": "rounded",
-        "placementRole": "site"
-      },
-      {
-        "ref": "plant/nowe-mpzp/fruit-11",
-        "name": "Wiśnia 2 · rezerwa podkładki słabo rosnącej; korona 3,2 m",
-        "species": "Prunus cerasus",
-        "kind": "tree",
-        "position": {
-          "x": 7,
-          "z": 62.5
-        },
-        "matureHeightM": 3.5,
-        "canopyM": 3.2,
-        "sunNeed": "sun",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
-        "leafMonths": [
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10
-        ],
-        "bloomMonths": [
-          4,
-          5
-        ],
-        "locked": false,
-        "crownShape": "rounded",
-        "placementRole": "site"
-      },
-      {
-        "ref": "plant/nowe-mpzp/fruit-12",
-        "name": "Wiśnia 3 · rezerwa podkładki słabo rosnącej; korona 3,2 m",
-        "species": "Prunus cerasus",
-        "kind": "tree",
-        "position": {
-          "x": 13,
-          "z": 62.5
-        },
-        "matureHeightM": 3.5,
-        "canopyM": 3.2,
-        "sunNeed": "sun",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
-        "leafMonths": [
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10
-        ],
-        "bloomMonths": [
-          4,
-          5
-        ],
-        "locked": false,
-        "crownShape": "rounded",
-        "placementRole": "site"
-      },
-      {
         "name": "Tuja Szmaragd · rozmiar docelowy",
         "species": "Thuja occidentalis 'Smaragd'",
         "kind": "hedge",
@@ -19317,8 +19179,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-2",
         "position": {
-          "x": -16.9166,
-          "z": 11.4247
+          "x": -16.2166,
+          "z": 9.3247
         },
         "locked": false,
         "placementRole": "site"
@@ -19350,8 +19212,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-3",
         "position": {
-          "x": -16.8231,
-          "z": 12.8486
+          "x": -15.9231,
+          "z": 12.1486
         },
         "locked": false,
         "placementRole": "site"
@@ -19416,8 +19278,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-5",
         "position": {
-          "x": -16.6255,
-          "z": 15.6958
+          "x": -15.7255,
+          "z": 14.6458
         },
         "locked": false,
         "placementRole": "site"
@@ -19449,8 +19311,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-6",
         "position": {
-          "x": -16.5321,
-          "z": 17.1198
+          "x": -15.6321,
+          "z": 16.4198
         },
         "locked": false,
         "placementRole": "site"
@@ -19515,8 +19377,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-8",
         "position": {
-          "x": -16.3808,
-          "z": 19.9698
+          "x": -15.4808,
+          "z": 18.9198
         },
         "locked": false,
         "placementRole": "site"
@@ -19548,8 +19410,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-9",
         "position": {
-          "x": -16.3308,
-          "z": 21.3959
+          "x": -15.4308,
+          "z": 20.6959
         },
         "locked": false,
         "placementRole": "site"
@@ -19614,8 +19476,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-11",
         "position": {
-          "x": -16.299,
-          "z": 24.2496
+          "x": -15.399,
+          "z": 24.9496
         },
         "locked": false,
         "placementRole": "site"
@@ -19647,8 +19509,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-12",
         "position": {
-          "x": -16.322,
-          "z": 25.6765
+          "x": -15.422,
+          "z": 26.7265
         },
         "locked": false,
         "placementRole": "site"
@@ -19713,8 +19575,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-14",
         "position": {
-          "x": -16.4208,
-          "z": 28.5289
+          "x": -15.5208,
+          "z": 29.2289
         },
         "locked": false,
         "placementRole": "site"
@@ -19746,8 +19608,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-15",
         "position": {
-          "x": -16.4868,
-          "z": 29.9545
+          "x": -15.5868,
+          "z": 31.0045
         },
         "locked": false,
         "placementRole": "site"
@@ -19812,8 +19674,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-17",
         "position": {
-          "x": -16.6315,
-          "z": 32.805
+          "x": -15.7315,
+          "z": 33.505
         },
         "locked": false,
         "placementRole": "site"
@@ -19845,8 +19707,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-18",
         "position": {
-          "x": -16.7031,
-          "z": 34.2303
+          "x": -15.8031,
+          "z": 35.2803
         },
         "locked": false,
         "placementRole": "site"
@@ -19911,7 +19773,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-20",
         "position": {
-          "x": -16.8265,
+          "x": -15.7265,
           "z": 37.0817
         },
         "locked": false,
@@ -19944,7 +19806,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-21",
         "position": {
-          "x": -16.8703,
+          "x": -15.7703,
           "z": 38.5081
         },
         "locked": false,
@@ -20010,7 +19872,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-23",
         "position": {
-          "x": -16.8982,
+          "x": -15.7982,
           "z": 41.3619
         },
         "locked": false,
@@ -20043,7 +19905,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-24",
         "position": {
-          "x": -16.88,
+          "x": -15.78,
           "z": 42.7888
         },
         "locked": false,
@@ -20109,8 +19971,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-26",
         "position": {
-          "x": -16.7994,
-          "z": 45.6418
+          "x": -15.8994,
+          "z": 44.5918
         },
         "locked": false,
         "placementRole": "site"
@@ -20142,8 +20004,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-27",
         "position": {
-          "x": -16.7419,
-          "z": 47.0677
+          "x": -15.8419,
+          "z": 45.3177
         },
         "locked": false,
         "placementRole": "site"
@@ -20208,8 +20070,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-29",
         "position": {
-          "x": -16.6047,
-          "z": 49.9185
+          "x": -15.7047,
+          "z": 48.8685
         },
         "locked": false,
         "placementRole": "site"
@@ -20241,8 +20103,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-30",
         "position": {
-          "x": -16.5299,
-          "z": 51.3437
+          "x": -15.6299,
+          "z": 50.6437
         },
         "locked": false,
         "placementRole": "site"
@@ -20307,8 +20169,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-32",
         "position": {
-          "x": -16.3821,
-          "z": 54.194
+          "x": -15.4821,
+          "z": 53.144
         },
         "locked": false,
         "placementRole": "site"
@@ -20340,8 +20202,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-33",
         "position": {
-          "x": -16.316,
-          "z": 55.6195
+          "x": -15.416,
+          "z": 54.9195
         },
         "locked": false,
         "placementRole": "site"
@@ -20406,8 +20268,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-35",
         "position": {
-          "x": -16.1983,
-          "z": 58.471
+          "x": -15.2983,
+          "z": 57.421
         },
         "locked": false,
         "placementRole": "site"
@@ -20439,8 +20301,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-36",
         "position": {
-          "x": -16.1389,
-          "z": 59.8969
+          "x": -15.2389,
+          "z": 59.1969
         },
         "locked": false,
         "placementRole": "site"
@@ -20505,8 +20367,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-38",
         "position": {
-          "x": -16.0194,
-          "z": 62.7484
+          "x": -15.1194,
+          "z": 61.6984
         },
         "locked": false,
         "placementRole": "site"
@@ -20538,8 +20400,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/west-border-39",
         "position": {
-          "x": -15.9596,
-          "z": 64.1741
+          "x": -15.2596,
+          "z": 66.9741
         },
         "locked": false,
         "placementRole": "site"
@@ -20637,7 +20499,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-2",
         "position": {
-          "x": 16.85,
+          "x": 16.15,
           "z": -5.4
         },
         "locked": false,
@@ -20670,7 +20532,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-3",
         "position": {
-          "x": 16.85,
+          "x": 16.15,
           "z": -4.4
         },
         "locked": false,
@@ -20736,7 +20598,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-5",
         "position": {
-          "x": 17.1127,
+          "x": 16.4127,
           "z": -1.206
         },
         "locked": false,
@@ -20769,7 +20631,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-6",
         "position": {
-          "x": 17.1127,
+          "x": 16.4127,
           "z": -0.206
         },
         "locked": false,
@@ -20835,7 +20697,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-8",
         "position": {
-          "x": 17.357,
+          "x": 16.657,
           "z": 2.9891
         },
         "locked": false,
@@ -20868,7 +20730,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-9",
         "position": {
-          "x": 17.357,
+          "x": 16.657,
           "z": 3.9891
         },
         "locked": false,
@@ -20934,7 +20796,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-11",
         "position": {
-          "x": 17.479,
+          "x": 16.779,
           "z": 7.189
         },
         "locked": false,
@@ -20967,7 +20829,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-12",
         "position": {
-          "x": 17.479,
+          "x": 16.779,
           "z": 8.189
         },
         "locked": false,
@@ -21033,7 +20895,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-14",
         "position": {
-          "x": 17.4916,
+          "x": 16.7916,
           "z": 11.3915
         },
         "locked": false,
@@ -21066,7 +20928,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-15",
         "position": {
-          "x": 17.4916,
+          "x": 16.7916,
           "z": 12.3915
         },
         "locked": false,
@@ -21132,7 +20994,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-17",
         "position": {
-          "x": 17.4493,
+          "x": 16.7493,
           "z": 15.5938
         },
         "locked": false,
@@ -21165,7 +21027,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-18",
         "position": {
-          "x": 17.4493,
+          "x": 16.7493,
           "z": 16.5938
         },
         "locked": false,
@@ -21231,7 +21093,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-20",
         "position": {
-          "x": 17.3811,
+          "x": 16.6811,
           "z": 19.7957
         },
         "locked": false,
@@ -21264,7 +21126,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-21",
         "position": {
-          "x": 17.3811,
+          "x": 16.6811,
           "z": 20.7957
         },
         "locked": false,
@@ -21330,7 +21192,7 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-23",
         "position": {
-          "x": 17.2991,
+          "x": 16.5991,
           "z": 23.9971
         },
         "locked": false,
@@ -21363,8 +21225,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-border-24",
         "position": {
-          "x": 17.2991,
-          "z": 24.9971
+          "x": 16.5991,
+          "z": 25.3471
         },
         "locked": false,
         "placementRole": "site"
@@ -21627,8 +21489,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/rear-border-2",
         "position": {
-          "x": -14.5002,
-          "z": 66.2475
+          "x": -17.3002,
+          "z": 65.5475
         },
         "locked": false,
         "placementRole": "site"
@@ -21660,8 +21522,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/rear-border-3",
         "position": {
-          "x": -13.1006,
-          "z": 66.3018
+          "x": -11.3506,
+          "z": 65.4018
         },
         "locked": false,
         "placementRole": "site"
@@ -21727,7 +21589,7 @@
         "ref": "plant/nowe-mpzp-v2/rear-border-5",
         "position": {
           "x": -10.3014,
-          "z": 66.4105
+          "z": 65.3105
         },
         "locked": false,
         "placementRole": "site"
@@ -21760,7 +21622,7 @@
         "ref": "plant/nowe-mpzp-v2/rear-border-6",
         "position": {
           "x": -8.9015,
-          "z": 66.4548
+          "z": 65.3548
         },
         "locked": false,
         "placementRole": "site"
@@ -21826,7 +21688,7 @@
         "ref": "plant/nowe-mpzp-v2/rear-border-8",
         "position": {
           "x": -6.1007,
-          "z": 66.4998
+          "z": 65.3998
         },
         "locked": false,
         "placementRole": "site"
@@ -21859,7 +21721,7 @@
         "ref": "plant/nowe-mpzp-v2/rear-border-9",
         "position": {
           "x": -4.7001,
-          "z": 66.4895
+          "z": 65.3895
         },
         "locked": false,
         "placementRole": "site"
@@ -21924,8 +21786,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/rear-border-11",
         "position": {
-          "x": -1.9001,
-          "z": 66.4069
+          "x": -2.9501,
+          "z": 65.5069
         },
         "locked": false,
         "placementRole": "site"
@@ -21957,8 +21819,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/rear-border-12",
         "position": {
-          "x": -0.5006,
-          "z": 66.3507
+          "x": -1.2006,
+          "z": 65.4507
         },
         "locked": false,
         "placementRole": "site"
@@ -22023,8 +21885,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/rear-border-14",
         "position": {
-          "x": 2.2987,
-          "z": 66.246
+          "x": 1.2487,
+          "z": 65.346
         },
         "locked": false,
         "placementRole": "site"
@@ -22056,8 +21918,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/rear-border-15",
         "position": {
-          "x": 3.6989,
-          "z": 66.212
+          "x": 2.9989,
+          "z": 65.312
         },
         "locked": false,
         "placementRole": "site"
@@ -22122,8 +21984,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/rear-border-17",
         "position": {
-          "x": 6.5,
-          "z": 66.2096
+          "x": 7.2,
+          "z": 65.3096
         },
         "locked": false,
         "placementRole": "site"
@@ -22155,8 +22017,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/rear-border-18",
         "position": {
-          "x": 7.9005,
-          "z": 66.2341
+          "x": 10.7005,
+          "z": 65.3341
         },
         "locked": false,
         "placementRole": "site"
@@ -22221,8 +22083,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/rear-border-20",
         "position": {
-          "x": 10.7006,
-          "z": 66.314
+          "x": 11.4006,
+          "z": 65.414
         },
         "locked": false,
         "placementRole": "site"
@@ -22254,8 +22116,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/rear-border-21",
         "position": {
-          "x": 12.1004,
-          "z": 66.3623
+          "x": 13.1504,
+          "z": 65.4623
         },
         "locked": false,
         "placementRole": "site"
@@ -22320,44 +22182,11 @@
         ],
         "ref": "plant/nowe-mpzp-v2/rear-border-23",
         "position": {
-          "x": 14.9,
-          "z": 66.4588
+          "x": 17.7,
+          "z": 65.7588
         },
         "locked": false,
         "placementRole": "site"
-      },
-      {
-        "name": "Tuja Szmaragd · rozmiar docelowy",
-        "species": "Thuja occidentalis 'Smaragd'",
-        "kind": "hedge",
-        "matureHeightM": 4.6,
-        "canopyM": 1.3,
-        "sunNeed": "sun",
-        "waterNeed": 0.7,
-        "hardinessMinC": -28,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "ref": "plant/nowe-mpzp-v2/terrace-front-1",
-        "position": {
-          "x": -13.8,
-          "z": 13
-        },
-        "locked": false,
-        "placementRole": "site",
-        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -22624,39 +22453,6 @@
         "placementRole": "site"
       },
       {
-        "name": "Tuja Szmaragd · rozmiar docelowy",
-        "species": "Thuja occidentalis 'Smaragd'",
-        "kind": "hedge",
-        "matureHeightM": 4.6,
-        "canopyM": 1.3,
-        "sunNeed": "sun",
-        "waterNeed": 0.7,
-        "hardinessMinC": -28,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "ref": "plant/nowe-mpzp-v2/terrace-front-10",
-        "position": {
-          "x": -1,
-          "z": 12.4
-        },
-        "locked": false,
-        "placementRole": "site",
-        "crownShape": "conical"
-      },
-      {
         "name": "Trzcinnik Karl Foerster",
         "species": "Calamagrostis × acutiflora 'Karl Foerster'",
         "kind": "grass",
@@ -22721,72 +22517,6 @@
         },
         "locked": false,
         "placementRole": "site"
-      },
-      {
-        "name": "Tuja Szmaragd · rozmiar docelowy",
-        "species": "Thuja occidentalis 'Smaragd'",
-        "kind": "hedge",
-        "matureHeightM": 4.6,
-        "canopyM": 1.3,
-        "sunNeed": "sun",
-        "waterNeed": 0.7,
-        "hardinessMinC": -28,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "ref": "plant/nowe-mpzp-v2/terrace-side-4",
-        "position": {
-          "x": -14.7518,
-          "z": 11.301
-        },
-        "locked": false,
-        "placementRole": "site",
-        "crownShape": "conical"
-      },
-      {
-        "name": "Tuja Szmaragd · rozmiar docelowy",
-        "species": "Thuja occidentalis 'Smaragd'",
-        "kind": "hedge",
-        "matureHeightM": 4.6,
-        "canopyM": 1.3,
-        "sunNeed": "sun",
-        "waterNeed": 0.7,
-        "hardinessMinC": -28,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "ref": "plant/nowe-mpzp-v2/spa-lawn-edge-1",
-        "position": {
-          "x": 7,
-          "z": 13.4
-        },
-        "locked": false,
-        "placementRole": "site",
-        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -22855,39 +22585,6 @@
         "placementRole": "site"
       },
       {
-        "name": "Tuja Szmaragd · rozmiar docelowy",
-        "species": "Thuja occidentalis 'Smaragd'",
-        "kind": "hedge",
-        "matureHeightM": 4.6,
-        "canopyM": 1.3,
-        "sunNeed": "sun",
-        "waterNeed": 0.7,
-        "hardinessMinC": -28,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "ref": "plant/nowe-mpzp-v2/spa-lawn-edge-4",
-        "position": {
-          "x": 6.9005,
-          "z": 17.8159
-        },
-        "locked": false,
-        "placementRole": "site",
-        "crownShape": "conical"
-      },
-      {
         "name": "Trzcinnik Karl Foerster",
         "species": "Calamagrostis × acutiflora 'Karl Foerster'",
         "kind": "grass",
@@ -22952,39 +22649,6 @@
         },
         "locked": false,
         "placementRole": "site"
-      },
-      {
-        "name": "Tuja Szmaragd · rozmiar docelowy",
-        "species": "Thuja occidentalis 'Smaragd'",
-        "kind": "hedge",
-        "matureHeightM": 4.6,
-        "canopyM": 1.3,
-        "sunNeed": "sun",
-        "waterNeed": 0.7,
-        "hardinessMinC": -28,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "ref": "plant/nowe-mpzp-v2/spa-lawn-edge-7",
-        "position": {
-          "x": 6.9936,
-          "z": 22.2319
-        },
-        "locked": false,
-        "placementRole": "site",
-        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -23053,39 +22717,6 @@
         "placementRole": "site"
       },
       {
-        "name": "Tuja Szmaragd · rozmiar docelowy",
-        "species": "Thuja occidentalis 'Smaragd'",
-        "kind": "hedge",
-        "matureHeightM": 4.6,
-        "canopyM": 1.3,
-        "sunNeed": "sun",
-        "waterNeed": 0.7,
-        "hardinessMinC": -28,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "ref": "plant/nowe-mpzp-v2/spa-lawn-edge-10",
-        "position": {
-          "x": 6.8638,
-          "z": 26.6463
-        },
-        "locked": false,
-        "placementRole": "site",
-        "crownShape": "conical"
-      },
-      {
         "name": "Trzcinnik Karl Foerster",
         "species": "Calamagrostis × acutiflora 'Karl Foerster'",
         "kind": "grass",
@@ -23152,39 +22783,6 @@
         "placementRole": "site"
       },
       {
-        "name": "Tuja Szmaragd · rozmiar docelowy",
-        "species": "Thuja occidentalis 'Smaragd'",
-        "kind": "hedge",
-        "matureHeightM": 4.6,
-        "canopyM": 1.3,
-        "sunNeed": "sun",
-        "waterNeed": 0.7,
-        "hardinessMinC": -28,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "ref": "plant/nowe-mpzp-v2/spa-rear-1",
-        "position": {
-          "x": 7.5,
-          "z": 31.6
-        },
-        "locked": false,
-        "placementRole": "site",
-        "crownShape": "conical"
-      },
-      {
         "name": "Trzcinnik Karl Foerster",
         "species": "Calamagrostis × acutiflora 'Karl Foerster'",
         "kind": "grass",
@@ -23249,39 +22847,6 @@
         },
         "locked": false,
         "placementRole": "site"
-      },
-      {
-        "name": "Tuja Szmaragd · rozmiar docelowy",
-        "species": "Thuja occidentalis 'Smaragd'",
-        "kind": "hedge",
-        "matureHeightM": 4.6,
-        "canopyM": 1.3,
-        "sunNeed": "sun",
-        "waterNeed": 0.7,
-        "hardinessMinC": -28,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "ref": "plant/nowe-mpzp-v2/vegetable-left-1",
-        "position": {
-          "x": 1.9,
-          "z": 35
-        },
-        "locked": false,
-        "placementRole": "site",
-        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -23447,39 +23012,6 @@
         },
         "locked": false,
         "placementRole": "site"
-      },
-      {
-        "name": "Tuja Szmaragd · rozmiar docelowy",
-        "species": "Thuja occidentalis 'Smaragd'",
-        "kind": "hedge",
-        "matureHeightM": 4.6,
-        "canopyM": 1.3,
-        "sunNeed": "sun",
-        "waterNeed": 0.7,
-        "hardinessMinC": -28,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "ref": "plant/nowe-mpzp-v2/vegetable-left-7",
-        "position": {
-          "x": 1.5282,
-          "z": 43.3826
-        },
-        "locked": false,
-        "placementRole": "site",
-        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -23744,39 +23276,6 @@
         },
         "locked": false,
         "placementRole": "site"
-      },
-      {
-        "name": "Tuja Szmaragd · rozmiar docelowy",
-        "species": "Thuja occidentalis 'Smaragd'",
-        "kind": "hedge",
-        "matureHeightM": 4.6,
-        "canopyM": 1.3,
-        "sunNeed": "sun",
-        "waterNeed": 0.7,
-        "hardinessMinC": -28,
-        "leafMonths": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8,
-          9,
-          10,
-          11,
-          12
-        ],
-        "bloomMonths": [],
-        "ref": "plant/nowe-mpzp-v2/vegetable-left-16",
-        "position": {
-          "x": 13.0996,
-          "z": 45.4407
-        },
-        "locked": false,
-        "placementRole": "site",
-        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -24300,8 +23799,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-grass-group-1",
         "position": {
-          "x": 17.45,
-          "z": -4.9
+          "x": 16.35,
+          "z": -3.5
         },
         "locked": false,
         "placementRole": "site"
@@ -24333,8 +23832,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-grass-group-2",
         "position": {
-          "x": 17.7127,
-          "z": -0.706
+          "x": 16.6127,
+          "z": 0.694
         },
         "locked": false,
         "placementRole": "site"
@@ -24366,8 +23865,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-grass-group-3",
         "position": {
-          "x": 17.957,
-          "z": 3.4891
+          "x": 16.857,
+          "z": 5.2391
         },
         "locked": false,
         "placementRole": "site"
@@ -24399,8 +23898,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-grass-group-4",
         "position": {
-          "x": 18.079,
-          "z": 7.689
+          "x": 16.779,
+          "z": 6.289
         },
         "locked": false,
         "placementRole": "site"
@@ -24432,8 +23931,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-grass-group-5",
         "position": {
-          "x": 18.0916,
-          "z": 11.8915
+          "x": 16.7916,
+          "z": 10.4915
         },
         "locked": false,
         "placementRole": "site"
@@ -24465,8 +23964,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-grass-group-6",
         "position": {
-          "x": 18.0493,
-          "z": 16.0938
+          "x": 16.7493,
+          "z": 14.6938
         },
         "locked": false,
         "placementRole": "site"
@@ -24498,8 +23997,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-grass-group-7",
         "position": {
-          "x": 17.9811,
-          "z": 20.2957
+          "x": 16.6811,
+          "z": 18.8957
         },
         "locked": false,
         "placementRole": "site"
@@ -24531,8 +24030,8 @@
         ],
         "ref": "plant/nowe-mpzp-v2/east-grass-group-8",
         "position": {
-          "x": 17.8991,
-          "z": 24.4971
+          "x": 16.7991,
+          "z": 27.2971
         },
         "locked": false,
         "placementRole": "site"
@@ -24569,6 +24068,3801 @@
         },
         "locked": false,
         "placementRole": "site"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-1-infill-1",
+        "position": {
+          "x": -16.9449,
+          "z": 10.8544
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-1-infill-2",
+        "position": {
+          "x": -16.8897,
+          "z": 11.7089
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-1-infill-3",
+        "position": {
+          "x": -16.8346,
+          "z": 12.5633
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-1-infill-4",
+        "position": {
+          "x": -16.7794,
+          "z": 13.4178
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-4-infill-1",
+        "position": {
+          "x": -16.6693,
+          "z": 15.1266
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-4-infill-2",
+        "position": {
+          "x": -16.6142,
+          "z": 15.9811
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-4-infill-3",
+        "position": {
+          "x": -16.5592,
+          "z": 16.8355
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-4-infill-4",
+        "position": {
+          "x": -16.5041,
+          "z": 17.69
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-7-infill-1",
+        "position": {
+          "x": -16.4197,
+          "z": 19.4
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-7-infill-2",
+        "position": {
+          "x": -16.3903,
+          "z": 20.2557
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-7-infill-3",
+        "position": {
+          "x": -16.3608,
+          "z": 21.1113
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-7-infill-4",
+        "position": {
+          "x": -16.3314,
+          "z": 21.967
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-10-infill-1",
+        "position": {
+          "x": -16.3145,
+          "z": 23.6787
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-10-infill-2",
+        "position": {
+          "x": -16.327,
+          "z": 24.5348
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-10-infill-3",
+        "position": {
+          "x": -16.3394,
+          "z": 25.3908
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-10-infill-4",
+        "position": {
+          "x": -16.3519,
+          "z": 26.2469
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-13-infill-1",
+        "position": {
+          "x": -16.4032,
+          "z": 27.9584
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-13-infill-2",
+        "position": {
+          "x": -16.442,
+          "z": 28.8137
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-13-infill-3",
+        "position": {
+          "x": -16.4807,
+          "z": 29.6691
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-13-infill-4",
+        "position": {
+          "x": -16.5195,
+          "z": 30.5244
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-16-infill-1",
+        "position": {
+          "x": -16.6005,
+          "z": 32.235
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-16-infill-2",
+        "position": {
+          "x": -16.6427,
+          "z": 33.0902
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-16-infill-3",
+        "position": {
+          "x": -16.6849,
+          "z": 33.9454
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-16-infill-4",
+        "position": {
+          "x": -16.7271,
+          "z": 34.8006
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-19-infill-1",
+        "position": {
+          "x": -16.7946,
+          "z": 36.5116
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-19-infill-2",
+        "position": {
+          "x": -16.82,
+          "z": 37.3674
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-19-infill-3",
+        "position": {
+          "x": -16.8453,
+          "z": 38.2233
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-19-infill-4",
+        "position": {
+          "x": -16.8707,
+          "z": 39.0791
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-22-infill-1",
+        "position": {
+          "x": -16.886,
+          "z": 40.791
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-22-infill-2",
+        "position": {
+          "x": -16.8761,
+          "z": 41.6471
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-22-infill-3",
+        "position": {
+          "x": -16.8661,
+          "z": 42.5033
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-22-infill-4",
+        "position": {
+          "x": -16.8562,
+          "z": 43.3594
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-25-infill-1",
+        "position": {
+          "x": -16.8122,
+          "z": 45.071
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-25-infill-2",
+        "position": {
+          "x": -16.7782,
+          "z": 45.9266
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-25-infill-3",
+        "position": {
+          "x": -16.7442,
+          "z": 46.7821
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-25-infill-4",
+        "position": {
+          "x": -16.7102,
+          "z": 47.6377
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-28-infill-1",
+        "position": {
+          "x": -16.6319,
+          "z": 49.3483
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-28-infill-2",
+        "position": {
+          "x": -16.5876,
+          "z": 50.2034
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-28-infill-3",
+        "position": {
+          "x": -16.5432,
+          "z": 51.0586
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-28-infill-4",
+        "position": {
+          "x": -16.4989,
+          "z": 51.9137
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-31-infill-1",
+        "position": {
+          "x": -16.4151,
+          "z": 53.6241
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-31-infill-2",
+        "position": {
+          "x": -16.3756,
+          "z": 54.4793
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-31-infill-3",
+        "position": {
+          "x": -16.3362,
+          "z": 55.3346
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-31-infill-4",
+        "position": {
+          "x": -16.2967,
+          "z": 56.1898
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-34-infill-1",
+        "position": {
+          "x": -16.2216,
+          "z": 57.9006
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-34-infill-2",
+        "position": {
+          "x": -16.186,
+          "z": 58.7561
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-34-infill-3",
+        "position": {
+          "x": -16.1504,
+          "z": 59.6116
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-34-infill-4",
+        "position": {
+          "x": -16.1148,
+          "z": 60.4671
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-37-infill-1",
+        "position": {
+          "x": -16.0434,
+          "z": 62.1781
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-37-infill-2",
+        "position": {
+          "x": -16.0075,
+          "z": 63.0336
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-37-infill-3",
+        "position": {
+          "x": -15.9717,
+          "z": 63.889
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-37-infill-4",
+        "position": {
+          "x": -15.9358,
+          "z": 64.7445
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-1-infill-1",
+        "position": {
+          "x": 17.2525,
+          "z": -6.1612
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-1-infill-2",
+        "position": {
+          "x": 17.3051,
+          "z": -5.3224
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-1-infill-3",
+        "position": {
+          "x": 17.3576,
+          "z": -4.4836
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-1-infill-4",
+        "position": {
+          "x": 17.4102,
+          "z": -3.6448
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-4-infill-1",
+        "position": {
+          "x": 17.5116,
+          "z": -1.967
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-4-infill-2",
+        "position": {
+          "x": 17.5604,
+          "z": -1.128
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-4-infill-3",
+        "position": {
+          "x": 17.6093,
+          "z": -0.2889
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-4-infill-4",
+        "position": {
+          "x": 17.6581,
+          "z": 0.5501
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-7-infill-1",
+        "position": {
+          "x": 17.7314,
+          "z": 2.2291
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-7-infill-2",
+        "position": {
+          "x": 17.7558,
+          "z": 3.0691
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-7-infill-3",
+        "position": {
+          "x": 17.7802,
+          "z": 3.909
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-7-infill-4",
+        "position": {
+          "x": 17.8046,
+          "z": 4.749
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-10-infill-1",
+        "position": {
+          "x": 17.8315,
+          "z": 6.4295
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-10-infill-2",
+        "position": {
+          "x": 17.834,
+          "z": 7.27
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-10-infill-3",
+        "position": {
+          "x": 17.8366,
+          "z": 8.1105
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-10-infill-4",
+        "position": {
+          "x": 17.8391,
+          "z": 8.951
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-13-infill-1",
+        "position": {
+          "x": 17.8331,
+          "z": 10.632
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-13-infill-2",
+        "position": {
+          "x": 17.8247,
+          "z": 11.4724
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-13-infill-3",
+        "position": {
+          "x": 17.8162,
+          "z": 12.3129
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-13-infill-4",
+        "position": {
+          "x": 17.8078,
+          "z": 13.1533
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-16-infill-1",
+        "position": {
+          "x": 17.7857,
+          "z": 14.8342
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-16-infill-2",
+        "position": {
+          "x": 17.772,
+          "z": 15.6746
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-16-infill-3",
+        "position": {
+          "x": 17.7584,
+          "z": 16.5149
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-16-infill-4",
+        "position": {
+          "x": 17.7447,
+          "z": 17.3553
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-19-infill-1",
+        "position": {
+          "x": 17.7147,
+          "z": 19.036
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-19-infill-2",
+        "position": {
+          "x": 17.6983,
+          "z": 19.8763
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-19-infill-3",
+        "position": {
+          "x": 17.6819,
+          "z": 20.7165
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-19-infill-4",
+        "position": {
+          "x": 17.6655,
+          "z": 21.5568
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-22-infill-1",
+        "position": {
+          "x": 17.624,
+          "z": 23.2371
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-22-infill-2",
+        "position": {
+          "x": 17.5989,
+          "z": 24.0771
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-22-infill-3",
+        "position": {
+          "x": 17.5737,
+          "z": 24.9171
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/east-border-22-infill-4",
+        "position": {
+          "x": 17.5486,
+          "z": 25.7571
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-40-infill-1",
+        "position": {
+          "x": -15.0602,
+          "z": 65.7516
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-40-infill-2",
+        "position": {
+          "x": -14.2204,
+          "z": 65.9031
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-40-infill-3",
+        "position": {
+          "x": -13.3807,
+          "z": 66.0547
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/west-border-40-infill-4",
+        "position": {
+          "x": -12.5409,
+          "z": 66.2062
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-4-infill-1",
+        "position": {
+          "x": -10.8611,
+          "z": 66.3834
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-4-infill-2",
+        "position": {
+          "x": -10.0212,
+          "z": 66.4091
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-4-infill-3",
+        "position": {
+          "x": -9.1812,
+          "z": 66.4347
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-4-infill-4",
+        "position": {
+          "x": -8.3413,
+          "z": 66.4604
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-7-infill-1",
+        "position": {
+          "x": -6.661,
+          "z": 66.48
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-7-infill-2",
+        "position": {
+          "x": -5.8207,
+          "z": 66.4739
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-7-infill-3",
+        "position": {
+          "x": -4.9805,
+          "z": 66.4679
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-7-infill-4",
+        "position": {
+          "x": -4.1402,
+          "z": 66.4618
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-10-infill-1",
+        "position": {
+          "x": -2.4601,
+          "z": 66.4236
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-10-infill-2",
+        "position": {
+          "x": -1.6204,
+          "z": 66.3913
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-10-infill-3",
+        "position": {
+          "x": -0.7806,
+          "z": 66.3591
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-10-infill-4",
+        "position": {
+          "x": 0.0591,
+          "z": 66.3268
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-13-infill-1",
+        "position": {
+          "x": 1.739,
+          "z": 66.2757
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-13-infill-2",
+        "position": {
+          "x": 2.5791,
+          "z": 66.2568
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-13-infill-3",
+        "position": {
+          "x": 3.4192,
+          "z": 66.2378
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-13-infill-4",
+        "position": {
+          "x": 4.2593,
+          "z": 66.2189
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-16-infill-1",
+        "position": {
+          "x": 5.9396,
+          "z": 66.214
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-16-infill-2",
+        "position": {
+          "x": 6.7799,
+          "z": 66.228
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-16-infill-3",
+        "position": {
+          "x": 7.6201,
+          "z": 66.2421
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-16-infill-4",
+        "position": {
+          "x": 8.4604,
+          "z": 66.2561
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-19-infill-1",
+        "position": {
+          "x": 10.1405,
+          "z": 66.2984
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-19-infill-2",
+        "position": {
+          "x": 10.9804,
+          "z": 66.3267
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-19-infill-3",
+        "position": {
+          "x": 11.8203,
+          "z": 66.3551
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-19-infill-4",
+        "position": {
+          "x": 12.6602,
+          "z": 66.3834
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-22-infill-1",
+        "position": {
+          "x": 14.2391,
+          "z": 65.9089
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-22-infill-2",
+        "position": {
+          "x": 14.9781,
+          "z": 65.406
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
+      },
+      {
+        "name": "Tuja Szmaragd · gęsty szpaler",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
+        "leafMonths": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12
+        ],
+        "bloomMonths": [],
+        "ref": "plant/nowe-mpzp-v2/rear-border-22-infill-3",
+        "position": {
+          "x": 15.7171,
+          "z": 64.9032
+        },
+        "locked": false,
+        "placementRole": "site",
+        "crownShape": "conical"
       }
     ],
     "fixtures": [
@@ -24761,8 +28055,8 @@
       },
       {
         "ref": "fixture/nowe-mpzp-v2/pergola",
-        "catalogId": "kitchen-spa-canopy",
-        "name": "Wiata kuchni i spa · pełny dach 7,4 × 15,2 m · R3, lokalizacja warunkowa",
+        "catalogId": "kitchen-spa-retractable",
+        "name": "Wiata kuchni i spa · rozsuwany dach nad jacuzzi · R3, lokalizacja warunkowa",
         "position": {
           "x": 12,
           "z": 21.8
@@ -24783,11 +28077,11 @@
       },
       {
         "ref": "fixture/nowe-mpzp-v2/pizza",
-        "catalogId": "pizza-oven",
-        "name": "Piec do pizzy przed wiatą · 1 × 1,05 m",
+        "catalogId": "pizza-oven-tall-flue",
+        "name": "Piec do pizzy z tyłu kuchni · komin 4,2 m · koncepcja",
         "position": {
-          "x": 14.8,
-          "z": 12.7
+          "x": 14.2,
+          "z": 21.6
         },
         "rotationDegrees": -90,
         "locked": false

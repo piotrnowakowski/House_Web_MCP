@@ -10,7 +10,7 @@ export type BuildingKind = 'house' | 'garage'
 export type ArchitecturalStyle = 'classic' | 'futuristic' | 'barn'
 export type GardenZoneKind = 'lawn' | 'terrace' | 'path' | 'driveway' | 'bed' | 'rain-garden' | 'vegetable'
 export type PlantKind = 'tree' | 'hedge' | 'shrub' | 'perennial' | 'grass' | 'crop' | 'wetland'
-export type GardenFixtureCatalogId = 'raised-bed-2x1' | 'tomato-row' | 'potato-row' | 'cucumber-trellis' | 'greenhouse' | 'round-fire-lounge' | 'outdoor-dining-set' | 'garden-lounge-set' | 'slatted-bench' | 'sun-lounger' | 'cantilever-parasol' | 'jacuzzi' | 'outdoor-kitchen' | 'recycling-bins' | 'round-hot-tub' | 'garden-sauna' | 'pizza-oven' | 'kitchen-pergola' | 'kitchen-spa-canopy'
+export type GardenFixtureCatalogId = 'raised-bed-2x1' | 'tomato-row' | 'potato-row' | 'cucumber-trellis' | 'greenhouse' | 'round-fire-lounge' | 'outdoor-dining-set' | 'garden-lounge-set' | 'slatted-bench' | 'sun-lounger' | 'cantilever-parasol' | 'jacuzzi' | 'outdoor-kitchen' | 'recycling-bins' | 'round-hot-tub' | 'garden-sauna' | 'pizza-oven' | 'kitchen-pergola' | 'kitchen-spa-canopy' | 'kitchen-spa-retractable' | 'pizza-oven-tall-flue'
 
 export type ClimateDayPart = 'night' | 'morning' | 'day' | 'evening'
 export type TemperatureByDayPartC = Record<ClimateDayPart, number>
@@ -121,7 +121,7 @@ export type InteriorCommand = { type: 'interior.update'; buildingRef: string; st
 )
 
 /** `textureId` picks a ground scan from the texture library; omit for the kind default, `none` for a flat colour. */
-export interface LandscapeZone { ref: string; name: string; kind: GardenZoneKind; footprint: Polygon2; locked: boolean; textureId?: string }
+export interface LandscapeZone { ref: string; name: string; kind: GardenZoneKind; footprint: Polygon2; locked: boolean; textureId?: string; colorHex?: string }
 export interface SurfaceAttachment { hostRef: string; hostFace: 'top' | 'bottom' | 'inside' | 'outside' | 'terrain'; localPosition: Vec3; rotationDegrees: number }
 export interface PlantModel { ref: string; name: string; species: string; kind: PlantKind; position: Vec2; matureHeightM: number; canopyM: number; sunNeed: 'shade' | 'partial' | 'sun'; waterNeed: number; hardinessMinC: number; leafMonths: number[]; bloomMonths: number[]; locked: boolean; attachment?: SurfaceAttachment; crownShape?: 'rounded' | 'conical'; placementRole?: 'site' | 'context'; surveyHandle?: string }
 export interface GardenFixtureModel { ref: string; catalogId: GardenFixtureCatalogId; name: string; position: Vec2; rotationDegrees: number; locked: boolean }
