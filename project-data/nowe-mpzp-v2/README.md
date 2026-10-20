@@ -1,5 +1,15 @@
 # nowe mpzp — wariant 2
 
+## Tuje i wysokie trawy w całym ogrodzie — r5, 20.10.2026
+
+Na podstawie nowego zdjęcia z zaznaczonymi rabatami zastąpiono wszystkie pozostałe **42 hortensje i 41 lawend**. Przy ogrodzeniu, palenisku i spa tuje tworzą powtarzalne pionowe akcenty, rozdzielone wysokimi trawami. Przed środkową częścią przeszklenia tarasu i wzdłuż grządek jest przewaga traw; tuje stoją na końcach i wybranych narożnikach. Nowa paleta obejmuje **44 tuje Szmaragd** (docelowo 4,6 m wysokości, rezerwa szerokości 1,3 m) i **117 trzcinników Karl Foerster** (1,8 × 0,6 m). To zachowane wcześniej przyjęte gatunki i wymiary, nie nowy dobór odmian ani wielkość sadzonek.
+
+Wszystkie 83 zastępowane rośliny zachowują pozycje i `ref`; nowe korony są mniejsze od poprzednich. Nie dodano ani nie usunięto miejsc sadzenia: nadal 184 rośliny, w tym niezmienione 11 drzew geodezyjnych i 12 owocowych. Pozostałe 101 roślin, nawierzchnie, meble, pełna wiata i budynki są identyczne z r4. Bilans powierzchni pozostaje bez zmian. Weryfikacja obejmuje docelowe korony, odstępy od ścieżek, tarasów i granic, a także zachowanie lokalnego usunięcia zastępowanej rośliny.
+
+Źródło: canonical/shared r4, serverVersion 3. Snapshot poprzedniej publikacji: `before-all-thuja-grass-r4.json`; niezmienna pierwsza baza `initial-r1.json` zachowana. Rzeczywiste Chrome Default i Codex IAB oraz wspólne dane trzech aktywnych projektów skopiowano do `tmp/all-thuja-grass-20261020/`. Publiczna kopia wariantu r5/baza4 i lokalna r8/baza4 scalały się bez konfliktów z canonical r4. Starszy lokalny konflikt bramy pierwszego MPZP pozostawiono poza zakresem pracy.
+
+Przeszły **603 testy / 112 plików**, lint, build frontendu i API oraz kontrola sekretów. Dobór do rzeczywistej gleby, wilgotności i nasłonecznienia wymaga potwierdzenia przed zakupem roślin; nie wykonano nowego pomiaru tych warunków.
+
 ## Taras i wspólna wiata kuchni ze spa — r4, 20.10.2026
 
 Na podstawie trzech zdjęć użytkownika zamieniono miejsca zestawów: wypoczynek stoi przed przeszkleniem (−5,1; 9,45 m, obrót 180°), a stół z sześcioma krzesłami w bocznej części tarasu (−11; 7,65 m). Wspólne modele mebli poprawiono u źródła: siedziska są skierowane do stołów, oparcia na zewnątrz; poprawka dotyczy również stołu kuchni letniej. Zostaje około 1,2 m między sofą a przeszkleniem. Realna obwiednia wypoczynku to 3,645 × 2,452 m, stołu z krzesłami 2,25 × 2,453 m.
@@ -22,7 +32,7 @@ W modelu tuja `Thuja occidentalis 'Smaragd'` ma docelowo **4,6 m wysokości i Ø
 
 Przeszło 601 testów w 112 plikach, lint, build frontendu i API oraz kontrola sekretów. Sprawdzono odstępy koron, granic i przejść oraz zachowanie lokalnego usunięcia zastępowanej rośliny z jawnym konfliktem zamiast jej odtworzenia.
 
-Osobny projekt `project/nowe-mpzp-v2`, przygotowany 20.10.2026 na podstawie ilustracji „Ogród — koncepcja zagospodarowania” przekazanej przez użytkownika. Kanoniczna rewizja: **4**. Na [Mikrusie](https://natan203-20203.mikrus.cloud/) wybierz **Projekty → nowe mpzp — wariant 2**.
+Osobny projekt `project/nowe-mpzp-v2`, przygotowany 20.10.2026 na podstawie ilustracji „Ogród — koncepcja zagospodarowania” przekazanej przez użytkownika. Kanoniczna rewizja: **5**. Na [Mikrusie](https://natan203-20203.mikrus.cloud/) wybierz **Projekty → nowe mpzp — wariant 2**.
 
 ## Układ i skala
 

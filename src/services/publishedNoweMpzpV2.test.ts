@@ -4,6 +4,7 @@ import { expect, it } from 'vitest'
 import data from '../../project-data/nowe-mpzp-v2/project.json'
 import beforeThuja from '../../project-data/nowe-mpzp-v2/before-thuja-r2.json'
 import beforeTerrace from '../../project-data/nowe-mpzp-v2/before-terrace-canopy-r3.json'
+import beforeAllPlants from '../../project-data/nowe-mpzp-v2/before-all-thuja-grass-r4.json'
 import parent from '../../project-data/nowe-mpzp/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
@@ -91,7 +92,7 @@ it('adds a separate project, reloads edits and deletions, and never rewrites the
 })
 
 it('changes only the indicated east border into nine thujas and nine grass triplets, preserving saved deletions',()=>{
-  const p=parseProject(data), before=parseProject(beforeThuja)
+  const p=parseProject(beforeTerrace), before=parseProject(beforeThuja)
   const changed=(ref:string)=> /^plant\/nowe-mpzp-v2\/east-border-([1-9]|1\d|2[0-7])$/.test(ref)
   expect(p.buildings).toEqual(before.buildings)
   expect(p.site.boundary).toEqual(before.site.boundary)
@@ -116,7 +117,7 @@ it('changes only the indicated east border into nine thujas and nine grass tripl
 })
 
 it('swaps terrace sets, covers the kitchen-to-sauna route, and preserves plants and independent saved edits',()=>{
-  const p=parseProject(data),before=parseProject(beforeTerrace)
+  const p=parseProject(beforeAllPlants),before=parseProject(beforeTerrace)
   const fixture=(project:typeof p,suffix:string)=>project.landscape.fixtures.find(f=>f.ref===`fixture/nowe-mpzp-v2/${suffix}`)!
   expect(p.landscape.plants).toEqual(before.landscape.plants)
   expect(fixture(p,'terrace-lounge').position).toEqual(fixture(before,'terrace-dining').position)
@@ -146,4 +147,34 @@ it('swaps terrace sets, covers the kitchen-to-sauna route, and preserves plants 
   expect(fixture(merged.project,'hot-tub').position.x).toBe(9.9)
   expect(merged.conflicts).toHaveLength(1)
   expect(merged.conflicts[0]).toContain('terrace-dining')
+})
+
+it('replaces all remaining flowers with thujas and tall grasses without moving plants or changing the terrace and canopy',()=>{
+  const p=parseProject(data),before=parseProject(beforeAllPlants)
+  const replaced=(t:typeof p.landscape.plants[number])=>t.ref.startsWith('plant/nowe-mpzp-v2/')&&/^(Hydrangea|Lavandula)/.test(t.species)
+  const refs=new Set(before.landscape.plants.filter(replaced).map(t=>t.ref))
+  expect(refs.size).toBe(83)
+  expect(p.landscape.plants.filter(t=>/^(Hydrangea|Lavandula)/.test(t.species))).toEqual([])
+  expect(p.landscape.plants.map(t=>({ref:t.ref,position:t.position}))).toEqual(before.landscape.plants.map(t=>({ref:t.ref,position:t.position})))
+  expect(p.landscape.plants.filter(t=>!refs.has(t.ref))).toEqual(before.landscape.plants.filter(t=>!refs.has(t.ref)))
+  expect(p.landscape.fixtures).toEqual(before.landscape.fixtures)
+  expect(p.landscape.zones).toEqual(before.landscape.zones)
+  expect(p.buildings).toEqual(before.buildings)
+  const ornamental=p.landscape.plants.filter(t=>t.ref.startsWith('plant/nowe-mpzp-v2/'))
+  expect(ornamental.filter(t=>t.species==="Thuja occidentalis 'Smaragd'")).toHaveLength(44)
+  expect(ornamental.filter(t=>t.species==="Calamagrostis × acutiflora 'Karl Foerster'")).toHaveLength(117)
+  for(const t of ornamental){
+    expect(t.matureHeightM).toBe(t.kind==='hedge'?4.6:1.8)
+    expect(t.canopyM).toBe(t.kind==='hedge'?1.3:.6)
+  }
+  for(const ref of ['terrace-front-4','terrace-front-7','vegetable-front-1','vegetable-front-4'])
+    expect(p.landscape.plants.find(t=>t.ref===`plant/nowe-mpzp-v2/${ref}`)?.kind).toBe('grass')
+  const local=structuredClone(before),deleted='plant/nowe-mpzp-v2/west-border-4'
+  local.landscape.plants=local.landscape.plants.filter(t=>t.ref!==deleted)
+  local.name='Mój ogród'
+  const merged=mergeProjects(before,local,p)
+  expect(merged.project.landscape.plants.some(t=>t.ref===deleted)).toBe(false)
+  expect(merged.project.name).toBe('Mój ogród')
+  expect(merged.conflicts).toHaveLength(1)
+  expect(merged.conflicts[0]).toContain(deleted)
 })

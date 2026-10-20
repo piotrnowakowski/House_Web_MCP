@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp-v2",
   "name": "nowe mpzp — wariant 2",
   "units": "metric",
-  "revision": 4,
-  "updatedAt": "2026-10-20T20:43:00.000Z",
+  "revision": 5,
+  "updatedAt": "2026-10-20T20:55:00.000Z",
   "site": {
     "boundary": [
       {
@@ -2152,7 +2152,7 @@
         "Wariant 2: sauna, wiata kuchni i spa oraz szklarnia w 18.R3.1 są lokalizacjami warunkowymi. Projekt planu §37 zakazuje nowych budynków; to odtworzenie zamówionej koncepcji, nie potwierdzenie dopuszczalności realizacji.",
         "Wariant 2: palenisko Ø6 m i piec pokazano bez ognia. Odsunięcie pieca poza wiatę nie stanowi projektu ochrony przeciwpożarowej; wymagane instrukcje konkretnych urządzeń, odstępy od drewna i koron oraz projekt podłoża.",
         "Wariant 2: meble i konstrukcje mają nominalne gabaryty w metrach, bez wskazania producenta. Jacuzzi Ø2,4 m, sauna 2,5 × 3 m, wiata z pełnym dachem 7,4 × 15,2 × 3,1 m, szklarnia 4,14 × 3,2 m, grządki 2,4 × 1,2 m. Posadowienie i instalacje nie są zaprojektowane.",
-        "Wariant 2: hortensja Little Lime 1,5 × 1,5 m, trzcinnik Karl Foerster 1,8 × 0,6 m, lawenda Hidcote 0,5 × 1 m. To dobór interpretacyjny zdjęcia. Lawenda wymaga przepuszczalnej gleby i osłoniętego stanowiska; potwierdzić lokalną zimotrwałość.",
+        "Wariant 2 r5: wszystkie hortensje i lawendy zastąpiono tujami Szmaragd i wysokimi trzcinnikami Karl Foerster. Łącznie 44 tuje (docelowo 4,6 × 1,3 m) i 117 traw (1,8 × 0,6 m). Przy przeszkleniu tarasu i grządkach przewaga traw, tuje na końcach rabat; przy ogrodzeniu powtarzalny rytm. To rozmiary docelowe, nie sadzonek; dobór wymaga potwierdzenia gleby, podlewania i nasłonecznienia.",
         "Wariant 2: dwanaście drzew owocowych z koronami Ø3,2 m i wysokością 3,5 m, rozstaw 4,2 m po boku i 6 m z tyłu. Rzeczywiste odmiany, podkładki i zapylacze należy dobrać do tych gabarytów.",
         "Wariant 2 r4: zestaw wypoczynkowy przed przeszkleniem, stół w bocznej części tarasu; oparcia na zewnątrz zestawów. Taras, pomost, wiata i sauna w jasnym naturalnym drewnie Hinoki jak deski elewacji. Ciągły pełny dach nad kuchnią, przejściem, jacuzzi i sauną; konstrukcja, spadek odwodnienia i bezpieczna wentylacja grilla wymagają projektu wykonawczego.",
         "Wariant 2 r3: wschodni pas od garażu do spa: 9 tui Szmaragd (docelowo 4,6 m wysokości, Ø1,3 m) co ok. 4,2 m, pomiędzy nimi 9 grup po 3 trzcinniki Karl Foerster (1,8 × 0,6 m). Tuje zastępują hortensje, trawy lawendy; docelowy pokrój nie oznacza wielkości sadzonek. Potwierdzić glebę, podlewanie i nasłonecznienie."
@@ -19258,35 +19258,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/west-border-1",
         "position": {
           "x": -17,
           "z": 10
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -19322,17 +19324,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -19341,8 +19341,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -19358,35 +19357,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/west-border-4",
         "position": {
           "x": -16.7243,
           "z": 14.2722
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -19422,17 +19423,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -19441,8 +19440,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -19458,35 +19456,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/west-border-7",
         "position": {
           "x": -16.4491,
           "z": 18.5444
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -19522,17 +19522,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -19541,8 +19539,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -19558,35 +19555,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/west-border-10",
         "position": {
           "x": -16.302,
           "z": 22.8226
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -19622,17 +19621,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -19641,8 +19638,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -19658,35 +19654,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/west-border-13",
         "position": {
           "x": -16.3644,
           "z": 27.103
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -19722,17 +19720,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -19741,8 +19737,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -19758,35 +19753,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/west-border-16",
         "position": {
           "x": -16.5583,
           "z": 31.3798
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -19822,17 +19819,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -19841,8 +19836,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -19858,35 +19852,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/west-border-19",
         "position": {
           "x": -16.7693,
           "z": 35.6558
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -19922,17 +19918,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -19941,8 +19935,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -19958,35 +19951,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/west-border-22",
         "position": {
           "x": -16.896,
           "z": 39.9349
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -20022,17 +20017,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -20041,8 +20034,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -20058,35 +20050,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/west-border-25",
         "position": {
           "x": -16.8462,
           "z": 44.2155
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -20122,17 +20116,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -20141,8 +20133,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -20158,35 +20149,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/west-border-28",
         "position": {
           "x": -16.6762,
           "z": 48.4932
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -20222,17 +20215,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -20241,8 +20232,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -20258,35 +20248,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/west-border-31",
         "position": {
           "x": -16.4546,
           "z": 52.7688
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -20322,17 +20314,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -20341,8 +20331,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -20358,35 +20347,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/west-border-34",
         "position": {
           "x": -16.2572,
           "z": 57.0451
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -20422,17 +20413,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -20441,8 +20430,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -20458,35 +20446,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/west-border-37",
         "position": {
           "x": -16.0792,
           "z": 61.3226
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -20522,17 +20512,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -20541,8 +20529,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -20558,35 +20545,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/west-border-40",
         "position": {
           "x": -15.9,
           "z": 65.6
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Tuja Szmaragd · rozmiar docelowy",
@@ -21513,17 +21502,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -21532,8 +21519,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -21549,35 +21535,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/east-border-52",
         "position": {
           "x": 16.4561,
           "z": 64.4004
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -21646,17 +21634,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -21665,8 +21651,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -21682,35 +21667,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/rear-border-4",
         "position": {
           "x": -11.7011,
           "z": 66.3578
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -21746,17 +21733,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -21765,8 +21750,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -21782,35 +21766,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/rear-border-7",
         "position": {
           "x": -7.5013,
           "z": 66.486
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -21846,17 +21832,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -21865,8 +21849,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -21882,35 +21865,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/rear-border-10",
         "position": {
           "x": -3.2999,
           "z": 66.4558
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -21946,17 +21931,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -21965,8 +21948,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -21982,35 +21964,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/rear-border-13",
         "position": {
           "x": 0.8989,
           "z": 66.2946
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -22046,17 +22030,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -22065,8 +22047,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -22082,35 +22063,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/rear-border-16",
         "position": {
           "x": 5.0994,
           "z": 66.2
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -22146,17 +22129,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -22165,8 +22146,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -22182,35 +22162,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/rear-border-19",
         "position": {
           "x": 9.3006,
           "z": 66.2701
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -22246,17 +22228,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -22265,8 +22245,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -22282,35 +22261,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/rear-border-22",
         "position": {
           "x": 13.5001,
           "z": 66.4117
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -22346,35 +22327,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/terrace-front-1",
         "position": {
           "x": -13.8,
           "z": 13
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -22410,17 +22393,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -22429,8 +22410,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -22446,27 +22426,29 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
+        "sunNeed": "sun",
+        "waterNeed": 0.5,
         "hardinessMinC": -25,
         "leafMonths": [
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11
         ],
         "bloomMonths": [
+          6,
           7,
-          8,
-          9
+          8
         ],
         "ref": "plant/nowe-mpzp-v2/terrace-front-4",
         "position": {
@@ -22510,17 +22492,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -22529,8 +22509,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -22546,27 +22525,29 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
+        "sunNeed": "sun",
+        "waterNeed": 0.5,
         "hardinessMinC": -25,
         "leafMonths": [
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11
         ],
         "bloomMonths": [
+          6,
           7,
-          8,
-          9
+          8
         ],
         "ref": "plant/nowe-mpzp-v2/terrace-front-7",
         "position": {
@@ -22610,17 +22591,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -22629,8 +22608,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -22646,35 +22624,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/terrace-front-10",
         "position": {
           "x": -1,
           "z": 12.4
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -22710,17 +22690,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -22729,8 +22707,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -22746,66 +22723,70 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/terrace-side-4",
         "position": {
           "x": -14.7518,
           "z": 11.301
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/spa-lawn-edge-1",
         "position": {
           "x": 7,
           "z": 13.4
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -22841,17 +22822,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -22860,8 +22839,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -22877,35 +22855,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/spa-lawn-edge-4",
         "position": {
           "x": 6.9005,
           "z": 17.8159
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -22941,17 +22921,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -22960,8 +22938,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -22977,35 +22954,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/spa-lawn-edge-7",
         "position": {
           "x": 6.9936,
           "z": 22.2319
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -23041,17 +23020,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -23060,8 +23037,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -23077,35 +23053,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/spa-lawn-edge-10",
         "position": {
           "x": 6.8638,
           "z": 26.6463
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -23141,17 +23119,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -23160,8 +23136,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -23177,35 +23152,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/spa-rear-1",
         "position": {
           "x": 7.5,
           "z": 31.6
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -23241,17 +23218,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -23260,8 +23235,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -23277,35 +23251,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/vegetable-left-1",
         "position": {
           "x": 1.9,
           "z": 35
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -23341,17 +23317,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -23360,8 +23334,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -23377,27 +23350,29 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
+        "sunNeed": "sun",
+        "waterNeed": 0.5,
         "hardinessMinC": -25,
         "leafMonths": [
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11
         ],
         "bloomMonths": [
+          6,
           7,
-          8,
-          9
+          8
         ],
         "ref": "plant/nowe-mpzp-v2/vegetable-left-4",
         "position": {
@@ -23441,17 +23416,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -23460,8 +23433,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -23477,35 +23449,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/vegetable-left-7",
         "position": {
           "x": 1.5282,
           "z": 43.3826
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -23541,17 +23515,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -23560,8 +23532,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -23577,27 +23548,29 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
+        "sunNeed": "sun",
+        "waterNeed": 0.5,
         "hardinessMinC": -25,
         "leafMonths": [
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11
         ],
         "bloomMonths": [
+          6,
           7,
-          8,
-          9
+          8
         ],
         "ref": "plant/nowe-mpzp-v2/vegetable-left-10",
         "position": {
@@ -23641,17 +23614,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -23660,8 +23631,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -23677,27 +23647,29 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
+        "sunNeed": "sun",
+        "waterNeed": 0.5,
         "hardinessMinC": -25,
         "leafMonths": [
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11
         ],
         "bloomMonths": [
+          6,
           7,
-          8,
-          9
+          8
         ],
         "ref": "plant/nowe-mpzp-v2/vegetable-left-13",
         "position": {
@@ -23741,17 +23713,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -23760,8 +23730,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -23777,58 +23746,62 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/vegetable-left-16",
         "position": {
           "x": 13.0996,
           "z": 45.4407
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
+        "sunNeed": "sun",
+        "waterNeed": 0.5,
         "hardinessMinC": -25,
         "leafMonths": [
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11
         ],
         "bloomMonths": [
+          6,
           7,
-          8,
-          9
+          8
         ],
         "ref": "plant/nowe-mpzp-v2/vegetable-front-1",
         "position": {
@@ -23872,17 +23845,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -23891,8 +23862,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -23908,27 +23878,29 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
+        "sunNeed": "sun",
+        "waterNeed": 0.5,
         "hardinessMinC": -25,
         "leafMonths": [
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11
         ],
         "bloomMonths": [
+          6,
           7,
-          8,
-          9
+          8
         ],
         "ref": "plant/nowe-mpzp-v2/vegetable-front-4",
         "position": {
@@ -23972,17 +23944,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -23991,8 +23961,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -24008,17 +23977,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -24027,8 +23994,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -24044,35 +24010,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/fire-border-4",
         "position": {
           "x": 12.691,
           "z": 0.9668
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -24108,17 +24076,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -24127,8 +24093,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -24177,17 +24142,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -24196,8 +24159,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
@@ -24213,35 +24175,37 @@
         "placementRole": "site"
       },
       {
-        "name": "Hortensja bukietowa Little Lime",
-        "species": "Hydrangea paniculata 'Jane' LITTLE LIME",
-        "kind": "shrub",
-        "matureHeightM": 1.5,
-        "canopyM": 1.5,
-        "sunNeed": "partial",
-        "waterNeed": 0.8,
-        "hardinessMinC": -25,
+        "name": "Tuja Szmaragd · rozmiar docelowy",
+        "species": "Thuja occidentalis 'Smaragd'",
+        "kind": "hedge",
+        "matureHeightM": 4.6,
+        "canopyM": 1.3,
+        "sunNeed": "sun",
+        "waterNeed": 0.7,
+        "hardinessMinC": -28,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
-        "bloomMonths": [
-          7,
-          8,
-          9
-        ],
+        "bloomMonths": [],
         "ref": "plant/nowe-mpzp-v2/fire-border-10",
         "position": {
           "x": 15.7065,
           "z": 8.4066
         },
         "locked": false,
-        "placementRole": "site"
+        "placementRole": "site",
+        "crownShape": "conical"
       },
       {
         "name": "Trzcinnik Karl Foerster",
@@ -24277,17 +24241,15 @@
         "placementRole": "site"
       },
       {
-        "name": "Lawenda Hidcote · stanowisko przepuszczalne",
-        "species": "Lavandula angustifolia 'Hidcote'",
-        "kind": "perennial",
-        "matureHeightM": 0.5,
-        "canopyM": 1,
+        "name": "Trzcinnik Karl Foerster",
+        "species": "Calamagrostis × acutiflora 'Karl Foerster'",
+        "kind": "grass",
+        "matureHeightM": 1.8,
+        "canopyM": 0.6,
         "sunNeed": "sun",
-        "waterNeed": 0.3,
-        "hardinessMinC": -15,
+        "waterNeed": 0.5,
+        "hardinessMinC": -25,
         "leafMonths": [
-          1,
-          2,
           3,
           4,
           5,
@@ -24296,8 +24258,7 @@
           8,
           9,
           10,
-          11,
-          12
+          11
         ],
         "bloomMonths": [
           6,
