@@ -10,6 +10,10 @@ Wszystkie 83 zastępowane rośliny zachowują pozycje i `ref`; nowe korony są m
 
 Przeszły **603 testy / 112 plików**, lint, build frontendu i API oraz kontrola sekretów. Dobór do rzeczywistej gleby, wilgotności i nasłonecznienia wymaga potwierdzenia przed zakupem roślin; nie wykonano nowego pomiaru tych warunków.
 
+Publikacja r5 na Mikrusie potwierdzona: kod **a5e00bf42e72557faac7f10bea7506eb056f93cf**, canonical **r5**, shared **serverVersion 4**, zapis z expectedVersion=3 i identyczny odczyt zwrotny. Wspólne architekt i pierwszy MPZP pozostały identyczne. Publiczne health/API są poprawne, a SHA256 głównego pliku JS zgadza się z lokalnym buildem. Świeży origin testowy otrzymał r5, istniejący lokalny r9, istniejący publiczny HTTPS r6; wszystkie odpowiadają canonical r5 przy tolerancji 1e-9 dla normalizacji liczb. Kolejne odświeżenie zachowało publiczny workspace dokładnie, bez błędów konsoli.
+
+W rzeczywistej scenie sprawdzono komplet 161 roślin ozdobnych: 44 tuje o wysokości 4,6 m i 117 traw o wysokości siatki ok. 1,745 m w rezerwie 1,8 m. Kadry publiczne: `output/all-thuja-grass-20261020/mikrus-ogrod.png` i `mikrus-rabaty.png`; podgląd pozostawiono na całym ogrodzie. Dowody, kopie i wyniki publikacji: `tmp/all-thuja-grass-20261020/`. Nie powtarzano testów niezmienionych wnętrz ani testu na fizycznym iPhonie. Po publikacji VPS ma **201 MB wolnego / zaokrąglone 100% zajęcia**; kolejne większe wdrożenie wymaga uporządkowania miejsca. Main i GitHub Pages bez zmian.
+
 ## Taras i wspólna wiata kuchni ze spa — r4, 20.10.2026
 
 Na podstawie trzech zdjęć użytkownika zamieniono miejsca zestawów: wypoczynek stoi przed przeszkleniem (−5,1; 9,45 m, obrót 180°), a stół z sześcioma krzesłami w bocznej części tarasu (−11; 7,65 m). Wspólne modele mebli poprawiono u źródła: siedziska są skierowane do stołów, oparcia na zewnątrz; poprawka dotyczy również stołu kuchni letniej. Zostaje około 1,2 m między sofą a przeszkleniem. Realna obwiednia wypoczynku to 3,645 × 2,452 m, stołu z krzesłami 2,25 × 2,453 m.
