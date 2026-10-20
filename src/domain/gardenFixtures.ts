@@ -25,6 +25,8 @@ export const gardenFixtureCatalog: GardenFixtureDefinition[] = [
   { id: 'tomato-row', name: 'Tomato row', category: 'crop', description: 'Four staked tomato plants for a raised bed.', widthM: 2.15, depthM: 0.72, heightM: 1.55 },
   { id: 'potato-row', name: 'Potato row', category: 'crop', description: 'Five compact potato plants in a productive row.', widthM: 2.1, depthM: 0.78, heightM: 0.58 },
   { id: 'cucumber-trellis', name: 'Cucumber trellis', category: 'crop', description: 'Climbing cucumber row on a simple timber frame.', widthM: 2.15, depthM: 0.78, heightM: 1.45 },
+  { id: 'greenhouse', name: 'Szklarnia', category: 'structure', description: 'Szklarnia 4 × 3 m z czarną ramą i przesuwnymi drzwiami. Lokalizacja wymaga sprawdzenia MPZP.', widthM: 4.14, depthM: 3.2, heightM: 2.64 },
+  { id: 'round-fire-lounge', name: 'Palenisko z siedziskami', category: 'structure', description: 'Okrągły placyk 6 m, misa paleniskowa i trzy siedziska. Koncepcja do sprawdzenia pod kątem ochrony przeciwpożarowej.', widthM: 6, depthM: 6, heightM: 0.9 },
 ]
 
 export const gardenFixtureById = (id: GardenFixtureCatalogId) => {

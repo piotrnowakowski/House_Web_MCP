@@ -1,3 +1,5 @@
+import { metreBoxGeometry } from './metreGeometry'
+import { DetailedGreenhouse, RoundFireLounge, OrnamentalGrass } from './GardenStructures'
 import { gableGlazingProfile } from '../domain/gableGlazing'
 import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
 import { CLEAR_MEASUREMENT_EVENT } from './events'
@@ -83,13 +85,6 @@ const metrePlaneGeometry = (width: number, depth: number) => {
   return geometry
 }
 
-/** A box whose UVs are in metres per face (three.js face order: +x, -x, +y, -y, +z, -z). */
-const metreBoxGeometry = (width: number, height: number, depth: number) => {
-  const geometry = new BoxGeometry(width, height, depth); const uv = geometry.attributes.uv
-  const spans: Array<[number, number]> = [[depth, height], [depth, height], [width, depth], [width, depth], [width, height], [width, height]]
-  for (let index = 0; index < uv.count; index += 1) { const [u, v] = spans[Math.floor(index / 4)]; uv.setXY(index, uv.getX(index) * u, uv.getY(index) * v) }
-  return geometry
-}
 
 function MeasurementLabel({ position, type, children }: { position: Vector3; type: 'length' | 'area' | 'height'; children: React.ReactNode }) {
   return <Html position={position} center zIndexRange={[18, 0]} style={{ pointerEvents: 'none' }}><div className={`spatial-measurement-label ${type}`} role="status" aria-label={`${type === 'length' ? 'Length' : type === 'area' ? 'Area' : 'Height'} measurement`}>{children}</div></Html>
@@ -1011,7 +1006,7 @@ function ParcelSurface({ boundary, landRole, planning = false }: { boundary: Pol
     : '#627b50'
   return <group>
     <mesh geometry={geometry} position={[0, TERRAIN_SURFACE_Y + (planning ? 0.055 : 0.006), 0]} renderOrder={1} receiveShadow>
-      <meshStandardMaterial color={fill} transparent opacity={construction ? planning ? 0.58 : 0.34 : 0.82} roughness={1} side={DoubleSide} depthWrite={!construction} />
+      <meshStandardMaterial color={fill} transparent opacity={construction ? planning ? 0.58 : 0.34 : 0.82} roughness={1} side={DoubleSide} depthWrite={false} />
     </mesh>
     <lineSegments geometry={edges} position={[0, TERRAIN_SURFACE_Y + (planning ? 0.065 : 0.012), 0]} renderOrder={2}>
       <lineBasicMaterial color={construction ? '#526b45' : '#4d6841'} transparent opacity={construction ? 0.95 : 0.88} depthWrite={false} />
@@ -1064,12 +1059,14 @@ function ZoneSurface({ zone }: { zone: LandscapeZone }) {
   useEffect(() => () => geometry.dispose(), [geometry])
   // Finished surfaces are a render skin on the flat visible terrain, not a
   // second elevation model. Ground-bound solids use exact contact at y = 0.
-  const y = groundSurfaceY()
+  const y = groundSurfaceY() - (zone.kind === 'lawn' ? 0.001 : 0)
+  // Keep coplanar finishes stable in distant garden views without raising physical ground.
+  const surfaceDepth = { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }
   const selected = selectedRef === zone.ref; const texture = resolveZoneTexture(zone); const grass = texture?.id === 'leafy-grass'; const group = useRef<Group>(null)
   return <><group ref={group} position={[0, y, 0]} userData={{ semanticRef: zone.ref }}>
-    <mesh geometry={geometry} receiveShadow onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(zone.ref) }}>{texture
-      ? <TexturedMaterial asset={texture.id} color={selected ? '#b9e84d' : zoneTintFor(zone, month)} fallbackColor={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={grass ? 1 : 0.9} side={DoubleSide} normalScale={grass ? 0.5 : 0.7} />
-      : <meshStandardMaterial color={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={0.95} side={DoubleSide} />}</mesh>
+    <mesh geometry={geometry} renderOrder={zone.kind === 'lawn' ? 2 : 3} receiveShadow onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(zone.ref) }}>{texture
+      ? <TexturedMaterial asset={texture.id} color={selected ? '#b9e84d' : zoneTintFor(zone, month)} fallbackColor={selected ? '#b9e84d' : zoneColor[zone.kind]} transparent roughness={grass ? 1 : 0.9} side={DoubleSide} normalScale={grass ? 0.5 : 0.7} {...surfaceDepth} />
+      : <meshStandardMaterial color={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={0.95} transparent side={DoubleSide} {...surfaceDepth} />}</mesh>
   </group>{selected && !zone.locked && repositioningRef === zone.ref && group.current && <TransformControls object={group.current} mode="translate" showY={false} userData={{ editorOnly: true }} onMouseUp={() => {
     if (!group.current) return
     try { commitCommand({ type: 'landscape.update', action: 'move', zoneRef: zone.ref, delta: { x: group.current.position.x, z: group.current.position.z } }) }
@@ -1090,7 +1087,7 @@ function Plant({ plant, project, selected, onSelect, ghost = false }: { plant: P
   const y = groundContactY(); const canopy = Math.max(0.25, plant.canopyM / 2); const visibleLeaf = plant.leafMonths.includes(month); const group = useRef<Group>(null)
   if (plant.kind === 'tree' && !treesVisible) return null
   return <><group ref={group} position={[plant.position.x, y, plant.position.z]} userData={{ semanticRef: plant.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) onSelect() }}>
-    {plant.surveyHandle ? <SurveyTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : hasFruitTreeVisual(plant) ? <FruitTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.crownShape === 'conical' ? <>
+    {plant.kind === 'grass' ? <OrnamentalGrass height={plant.matureHeightM} width={plant.canopyM} selected={selected} ghost={ghost} /> : plant.surveyHandle ? <SurveyTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : hasFruitTreeVisual(plant) ? <FruitTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.crownShape === 'conical' ? <>
       <mesh position={[0, plant.matureHeightM * 0.4, 0]} castShadow={!ghost}><cylinderGeometry args={[0.12, 0.24, plant.matureHeightM * 0.8, 10]} /><meshStandardMaterial color="#584434" transparent={ghost} opacity={ghost ? 0.42 : 1} /></mesh>
       <mesh position={[0, plant.matureHeightM * 0.6, 0]} castShadow={!ghost}><coneGeometry args={[canopy, plant.matureHeightM * 0.8, 14]} /><meshStandardMaterial color={selected || ghost ? '#b9e84d' : '#355a3c'} transparent={ghost} opacity={ghost ? 0.38 : 1} depthWrite={!ghost} /></mesh>
     </> : <>
@@ -1237,6 +1234,8 @@ function RecyclingBinsFixture({ selected, ghost }: { selected: boolean; ghost: b
 
 function GardenFixtureModel({ catalogId, selected, ghost }: { catalogId: GardenFixtureModel['catalogId']; selected: boolean; ghost: boolean }) {
   switch (catalogId) {
+    case 'greenhouse': return <DetailedGreenhouse selected={selected} ghost={ghost} />
+    case 'round-fire-lounge': return <RoundFireLounge selected={selected} ghost={ghost} />
     case 'recycling-bins': return <RecyclingBinsFixture selected={selected} ghost={ghost} />
     case 'jacuzzi': case 'outdoor-kitchen': return <SpaFixture kind={catalogId} selected={selected} ghost={ghost} />
     case 'outdoor-dining-set': return <OutdoorDiningSetFixture selected={selected} ghost={ghost} />

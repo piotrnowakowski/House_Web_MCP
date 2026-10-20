@@ -5,6 +5,7 @@ import data from '../../project-data/nowe-mpzp/project.json'
 import initial from '../../project-data/nowe-mpzp/initial-r1.json'
 import previous from '../../project-data/nowe-mpzp/before-front-frame-r10.json'
 import beforeSide from '../../project-data/nowe-mpzp/before-black-side-r12.json'
+import beforeGarden from '../../project-data/nowe-mpzp/before-garden-r13.json'
 import beforeWindows from '../../project-data/nowe-mpzp/before-full-height-windows-r11.json'
 import beforeTrees from '../../project-data/nowe-mpzp/before-tree-review-r9.json'
 import architect from '../../project-data/architekt/project.json'
@@ -112,7 +113,7 @@ it('fits the camper, working room and entrance below the six metre conceptual he
 it('preserves flush side eaves, slopes, ridge junctions and building placement around the new front frame', () => {
   const p=parseProject(data),old=parseProject(previous)
   expect(p.site.entrances).toEqual(old.site.entrances)
-  expect({...p.landscape,zones:p.landscape.zones.filter(z=>z.ref!=='zone/nowe-mpzp/front-frame')}).toEqual(old.landscape)
+  expect({...beforeGarden.landscape,zones:beforeGarden.landscape.zones.filter(z=>z.ref!=='zone/nowe-mpzp/front-frame')}).toEqual(old.landscape)
   expect(p.buildings[1]).toEqual(old.buildings[1])
   for(const index of [0,2]){
     const b=p.buildings[index],before=old.buildings[index],halfWall=index===0?.225:.15
@@ -199,12 +200,13 @@ it('restores the sole omitted tree outside the current buildings and paving, pre
   const p=parseProject(data),old=parseProject(beforeTrees),footprints=p.buildings.flatMap(buildingFootprintsWorld)
   const candidates=zielonkiSurveyTrees.filter(t=>!old.landscape.plants.some(v=>v.ref===surveyTreeRef(t.handle))).filter(t=>{
     const point=surveyTreePosition(t.handle)
-    return !footprints.some(poly=>pointInPolygon(point,poly))&&!p.landscape.zones.some(z=>pointInPolygon(point,z.footprint))
+    return !footprints.some(poly=>pointInPolygon(point,poly))&&!p.landscape.zones.filter(z=>!['lawn','bed'].includes(z.kind)).some(z=>pointInPolygon(point,z.footprint))
   })
   expect(candidates.map(t=>t.handle)).toEqual(['503A'])
   expect(p.buildings.map(b=>b.position)).toEqual(old.buildings.map(b=>b.position))
-  expect(p.landscape.plants).toHaveLength(11)
-  for(const tree of p.landscape.plants)expect(tree.position).toEqual(surveyTreePosition(tree.surveyHandle!))
+  const surveyed=p.landscape.plants.filter(tree=>tree.surveyHandle)
+  expect(surveyed).toHaveLength(11)
+  for(const tree of surveyed)expect(tree.position).toEqual(surveyTreePosition(tree.surveyHandle!))
   await synchronizePublishedProject(old,parseProject(initial));await synchronizePublishedNoweMpzp()
   const saved=(await loadWorkspace(NOWE_MPZP_REF))!
   expect(saved.project.landscape.plants.some(t=>t.ref==='plant/survey-503a')).toBe(true)

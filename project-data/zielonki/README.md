@@ -533,3 +533,8 @@ Kopie rzeczywistych Chrome/IAB i porównania ref/baza: tmp/nowe-mpzp-frame-20261
 ## nowe mpzp r13 — czarne zewnętrzne boki wnęki
 
 20.10.2026, źródło: kanoniczny nowe-mpzp r12 i zgodny shared HTTPS serverVersion 8/r12 oraz zaznaczenie użytkownika na zdjęciu. Zewnętrzne lica boków wnęki są czarne #181C1D; drewno wewnątrz, podbitka, podest i cała geometria zachowane. Opcjonalny kolor zewnętrznego lica w schemacie/renderowaniu nie zmienia projektów bez tego ustawienia. Snapshot ../nowe-mpzp/before-black-side-r12.json, immutable initial-r1.json bez zmian. Kopie rzeczywistych Chrome/IAB i porównania ref/baza w tmp/nowe-mpzp-black-side-20261020; publiczne kopie bez konfliktów, lokalny konflikt r1 zachowany bez nadpisania. Shared źródeł architekt 6/r11 i Główny 6/r80 zachowane. Szczegóły w ../nowe-mpzp/README.md. Main/Pages bez zmian.
+
+
+## nowe mpzp r14 — ogród według zaznaczeń
+
+20.10.2026: źródło kanoniczny nowe-mpzp r13, zgodny shared HTTPS 9/r13 i pięć zdjęć użytkownika. Palenisko w czerwonej strefie, przeniesione stare grządki i trzy dodatkowe ze szklarnią w niebieskiej, piesze ścieżki, trawy i 12 miejsc na drzewa owocowe przy bocznej granicy. Budynki, brama, podjazd i wszystkie drzewa geodezyjne bez zmian. Szklarnia w R3 jest koncepcją warunkową, a nie zatwierdzoną lokalizacją. PBC w części MU 60,7204%; szczegóły i ograniczenia w ../nowe-mpzp/README.md. Snapshot ../nowe-mpzp/before-garden-r13.json, initial-r1.json zachowany. Rzeczywiste Chrome/IAB przechwycone i porównane według ref i własnych baz w tmp/nowe-mpzp-garden-20261020; publiczne kopie bez konfliktów, lokalny konflikt r1 zachowany. Nie nadpisywano oryginalnych profili; shared źródeł i ich kanoniczne projekty zachowane. Main/Pages bez zmian.
