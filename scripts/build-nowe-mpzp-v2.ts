@@ -14,7 +14,7 @@ const sourceFile = `${dir}/source-nowe-mpzp-r19.json`
 if (!fs.existsSync(sourceFile)) fs.copyFileSync('project-data/nowe-mpzp/project.json', sourceFile, fs.constants.COPYFILE_EXCL)
 const source = parseProject(JSON.parse(fs.readFileSync(sourceFile, 'utf8'))), p = structuredClone(source)
 assert.equal(source.revision, 19)
-p.ref = 'project/nowe-mpzp-v2'; p.name = 'nowe mpzp — wariant 2'; p.revision = 6; p.updatedAt = '2026-10-20T23:23:14.000Z'
+p.ref = 'project/nowe-mpzp-v2'; p.name = 'nowe mpzp — wariant 2'; p.revision = 7; p.updatedAt = '2026-10-21T00:20:00.000Z'
 const pt = (x: number, z: number): Vec2 => ({ x: +x.toFixed(4), z: +z.toFixed(4) })
 const rect = (x: number, z: number, w: number, d: number) => [pt(x-w/2,z-d/2),pt(x+w/2,z-d/2),pt(x+w/2,z+d/2),pt(x-w/2,z+d/2)]
 const circle = (x: number, z: number, r: number) => Array.from({length:48},(_,i)=>pt(x+r*Math.cos(i*Math.PI/24),z+r*Math.sin(i*Math.PI/24)))
@@ -203,6 +203,54 @@ p.site.knowledgeBase.caveats.push(
   `Wariant 2 r6: usunięto 11 zaznaczonych tui przy tarasie, wiacie i warzywniku oraz pięć tylnych drzew owocowych. Pozostałe tuje przy płocie zagęszczono do ok. 0,85–0,95 m; zachodzenie docelowych koron jest zamierzone w żywopłocie. Łącznie ${p.landscape.plants.filter(t=>t.species.startsWith('Thuja ')).length} tui (4,6 × 1,3 m) i 117 traw (1,8 × 0,6 m), z trawami przesuniętymi przed szpaler. Dobór do gleby i nasłonecznienia wymaga potwierdzenia.`,
   'Wariant 2 r6: siedem nieoznaczonych drzew owocowych po prawej zachowano z koronami Ø3,2 m, wysokością 3,5 m i rozstawem 4,2 m. Rzeczywiste odmiany, podkładki i zapylacze należy dobrać do tych gabarytów.',
   'Wariant 2 r6: nad jacuzzi otwór 2,9 × 3,85 m z rozsuwaną osłoną na prowadnicach; reszta wiaty ma pełny dach. Przycisk po wybraniu wiaty zmienia tylko podgląd otwarcia, domyślnie odsłonięty. Konstrukcja, odwodnienie i odporność na wiatr/śnieg wymagają projektu wykonawczego. Drewno, meble i sauna zachowują poprzedni układ i wykończenie.',
+)
+// Compact only this published garden; keep every unrelated entity and prior deletion.
+const compactSource = JSON.parse(fs.readFileSync(`${dir}/before-compact-kitchen-r6.json`, 'utf8'))
+const beforeCompact = parseProject(compactSource)
+p.landscape = structuredClone(compactSource.landscape)
+const compactFixture = (suffix:string, catalogId:GardenFixtureCatalogId, name:string, x:number, z:number) => {
+  Object.assign(p.landscape.fixtures.find(f=>f.ref===`fixture/nowe-mpzp-v2/${suffix}`)!, {catalogId,name,position:pt(x,z)})
+}
+compactFixture('pergola','compact-kitchen-spa','Kompaktowa wiata 6,4 × 9,8 m · rozsuwany dach jacuzzi · R3, lokalizacja warunkowa',12.3,18.8)
+compactFixture('kitchen','outdoor-kitchen-l','Kuchnia murowana L · grill, zlew i narożny blat',13.55,16.7)
+compactFixture('pizza','pizza-oven-tall-flue','Piec do pizzy z tyłu kuchni · komin 4,2 m · koncepcja',14.3,19.6)
+compactFixture('summer-table','outdoor-dining-set','Stół kuchni letniej · sześć miejsc',10.9,15.9)
+compactFixture('hot-tub','round-hot-tub','Jacuzzi okrągłe · Ø2,4 m',10.75,21.95)
+compactFixture('sauna','garden-sauna','Sauna w naturalnym drewnie · 2,5 × 3 m · R3, lokalizacja warunkowa',13.85,21.9)
+const oldSpaZones = p.landscape.zones.filter(z=>/\/(summer-deck|spa-lawn-edge-|spa-rear-|spa-garden-step-)/.test(z.ref))
+const summerDeck=p.landscape.zones.find(z=>z.ref===zref('summer-deck'))!
+summerDeck.footprint=rect(12.3,18.9,6.8,10.8)
+summerDeck.name='Kompaktowy podest kuchni, jacuzzi i sauny · 6,8 × 10,8 m'
+for(const bed of p.landscape.zones.filter(z=>z.ref.includes('/spa-lawn-edge-'))) bed.footprint=rect(8.1,19.2,1.1,10.6)
+for(const bed of p.landscape.zones.filter(z=>z.ref.includes('/spa-rear-'))) bed.footprint=rect(10.45,25.05,4.3,1.1)
+for(const [i,t] of p.landscape.plants.filter(t=>t.ref.includes('/spa-lawn-edge-')).entries())t.position=pt(8.1,15+i*1.2)
+for(const [i,t] of p.landscape.plants.filter(t=>t.ref.includes('/spa-rear-')).entries())t.position=pt(9.7+i*1.4,25.05)
+for(let i=0;i<15;i++) {
+  const ref=zref(`spa-garden-step-${i+1}`),footprint=rect(13.2,24.65+i*.7,1.2,.55)
+  const existing=p.landscape.zones.find(z=>z.ref===ref)
+  if(existing)existing.footprint=footprint
+  else zone(ref,`Płyta dojścia ${i+1} · 1,2 × 0,55 m`,'path',footprint,'concrete-tiles')
+}
+const newSpaZones=p.landscape.zones.filter(z=>/\/(summer-deck|spa-lawn-edge-|spa-rear-|spa-garden-step-)/.test(z.ref))
+const newSpa=union(newSpaZones.map(z=>z.footprint))
+const oldLawns=beforeCompact.landscape.zones.filter(z=>z.kind==='lawn')
+for(const old of oldLawns) {
+  const clipped=cs(old.footprint).subtract(newSpa)
+  if(Math.abs(clipped.area()-polygonArea(old.footprint))<1e-7)continue
+  const pieces=clipped.toPolygons().map((poly,i)=>({...old,ref:i?`${old.ref}-compact-${i}`:old.ref,footprint:poly.map(([x,z])=>({x,z}))}))
+  p.landscape.zones.splice(p.landscape.zones.findIndex(z=>z.ref===old.ref),1,...pieces)
+}
+const oldSpa=beforeCompact.landscape.zones.filter(z=>oldSpaZones.some(old=>old.ref===z.ref))
+const fill=union(oldSpa.map(z=>z.footprint)).subtract(union(p.landscape.zones.map(z=>z.footprint)))
+// Split through the stepping-stone holes because zones store one simple contour.
+const fillPolys=[cs([pt(-100,-100),pt(13.2,-100),pt(13.2,100),pt(-100,100)]),cs([pt(13.2,-100),pt(100,-100),pt(100,100),pt(13.2,100)])].flatMap(half=>fill.intersect(half).toPolygons())
+assert(Math.abs(fillPolys.reduce((sum,poly)=>sum+polygonArea(poly.map(([x,z])=>({x,z}))),0)-fill.area())<1e-6)
+for(const [i,poly] of fillPolys.entries())p.landscape.zones.push({ref:zref(`compact-lawn-infill-${i+1}`),name:'Trawnik po zmniejszeniu wiaty i rabat',kind:'lawn',textureId:'leafy-grass',colorHex:'#B7D7A5',locked:false,footprint:poly.map(([x,z])=>({x,z}))})
+assert(p.landscape.zones.filter(z=>z.kind==='lawn').every(z=>cs(z.footprint).intersect(newSpa).area()<1e-6))
+p.site.knowledgeBase.caveats=p.site.knowledgeBase.caveats.filter(c=>!c.includes('wiata 7,4')&&!c.includes('nad jacuzzi otwór 2,9'))
+p.site.knowledgeBase.caveats.push(
+  'Wariant 2 r7: podest zmniejszony z 7,8 × 17 m (132,6 m²) do 6,8 × 10,8 m (73,44 m²), wiata z 7,4 × 15,2 m do 6,4 × 9,8 m. Pełny dach nad kuchnią, widoczne belki i zastrzały, kuchnia L o obrysie 4,4 × 2,5 m. Jacuzzi Ø2,4 m i sauna 2,5 × 3 m zachowują nominalne rozmiary.',
+  'Wariant 2 r7: otwór nad jacuzzi 2,9 × 3,25 m z rozsuwaną osłoną, domyślnie otwartą; przycisk zmienia podgląd. Komin do 4,2 m ma osobne przejście przez dach. Konstrukcja, pokrycie, odwodnienie, instalacje i niepalne oddzielenie pieca od drewna wymagają projektu wykonawczego.',
 )
 assert.deepEqual(p.buildings,source.buildings)
 assert.deepEqual(p.site.parcels,source.site.parcels)

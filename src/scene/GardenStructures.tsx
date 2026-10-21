@@ -44,8 +44,42 @@ export function FloweringBorderPlant({ plant, month, ...props }: GardenVisualPro
   </group>
 }
 
-export function GardenSpaStructure({ kind, ...props }: GardenVisualProps & { kind: 'round-hot-tub' | 'garden-sauna' | 'pizza-oven' | 'pizza-oven-tall-flue' | 'kitchen-pergola' | 'kitchen-spa-canopy' | 'kitchen-spa-retractable' }) {
+export function GardenSpaStructure({ kind, ...props }: GardenVisualProps & { kind: 'round-hot-tub' | 'garden-sauna' | 'pizza-oven' | 'pizza-oven-tall-flue' | 'kitchen-pergola' | 'kitchen-spa-canopy' | 'kitchen-spa-retractable' | 'compact-kitchen-spa' }) {
   const [coverOpen, setCoverOpen] = useState(true)
+  if (kind === 'compact-kitchen-spa') return <group>
+    {/* Full timber soffit with a graphite weathering layer; separate openings for the flue and sliding cover. */}
+    {[
+      [-3.2,3.2,-4.9,.45], [-3.2,1.8,.45,1.15], [2.5,3.2,.45,1.15],
+      [-3.2,3.2,1.15,1.4], [-3.2,-3,1.4,4.65], [-.1,3.2,1.4,4.65], [-3.2,3.2,4.65,4.9],
+    ].map(([x1,x2,z1,z2],i)=><group key={i}>
+      <GardenBox size={[x2-x1,.08,z2-z1]} at={[(x1+x2)/2,3.03,(z1+z2)/2]} asset="hinoki" {...props} />
+      <GardenBox size={[x2-x1,.03,z2-z1]} at={[(x1+x2)/2,3.085,(z1+z2)/2]} color="#343936" {...props} />
+    </group>)}
+    {[-1,1].flatMap(s=>[
+      <GardenBox key={`side-${s}`} size={[.2,.32,9.8]} at={[s*3.1,2.84,0]} asset="hinoki" {...props} />,
+      <GardenBox key={`end-${s}`} size={[6,.32,.2]} at={[0,2.84,s*4.8]} asset="hinoki" {...props} />,
+    ])}
+    {[-4.65,1.3,4.65].flatMap(z=>[-3,3].map(x=><group key={`${x}-${z}`}>
+      <GardenBox size={[.2,2.68,.2]} at={[x,1.34,z]} asset="hinoki" {...props} />
+      <GardenBox size={[.14,1.13,.14]} at={[x-Math.sign(x)*.4,2.25,z]} rotation={[0,0,-Math.sign(x)*Math.PI/4]} asset="hinoki" {...props} />
+      <GardenBox size={[.14,1.13,.14]} at={[x,2.25,z-Math.sign(z)*.4]} rotation={[Math.sign(z)*Math.PI/4,0,0]} asset="hinoki" {...props} />
+    </group>))}
+    {Array.from({length:8},(_,i)=>-4.55+i*.65).map(z=><GardenBox key={z} size={[6,.22,.1]} at={[0,2.88,z]} asset="hinoki" {...props} />)}
+    {[[4.8,-.6],[.5,2.75]].map(([w,x])=><GardenBox key={x} size={[w,.22,.1]} at={[x,2.88,.65]} asset="hinoki" {...props} />)}
+    {[1.3,4.65].map(z=><GardenBox key={z} size={[6,.22,.12]} at={[0,2.88,z]} asset="hinoki" {...props} />)}
+    {[2,2.65,3.3,3.95].map(z=><GardenBox key={z} size={[3.1,.22,.1]} at={[1.45,2.88,z]} asset="hinoki" {...props} />)}
+    {[-2.96,-.14].map(x=><GardenBox key={x} size={[.08,.1,3.25]} at={[x,2.96,3.025]} color="#343936" {...props} />)}
+    {Array.from({length:6},(_,i)=><GardenBox key={i} size={[2.82,.035,coverOpen?.2:.55]} at={[-1.55,3.025-i*.004,coverOpen?4.53-i*.12:1.675+i*.54]} color="#d6d0bd" {...props} />)}
+    <GardenBox size={[.7,.04,.7]} at={[2.15,3.08,.8]} color="#737a79" {...props} />
+    {[-3.8,-2.3,-.8].map(z=><group key={z} position={[.8,0,z]}>
+      <GardenBox size={[.015,.48,.015]} at={[0,2.64,0]} color="#343936" {...props} />
+      <mesh position={[0,2.36,0]} castShadow={!props.ghost}><coneGeometry args={[.2,.12,24,1,true]} /><meshStandardMaterial color={props.selected?'#bedb84':'#343936'} side={DoubleSide} transparent={props.ghost} opacity={props.ghost?.35:1} /></mesh>
+      <mesh position={[0,2.3,0]}><sphereGeometry args={[.045,12,8]} /><meshStandardMaterial color="#ffedc0" emissive="#ffca78" emissiveIntensity={props.ghost?0:.5} transparent={props.ghost} opacity={props.ghost?.35:1} /></mesh>
+    </group>)}
+    {props.selected && !props.ghost && <Html position={[-1.55,3.5,3.025]} center>
+      <button type="button" style={{whiteSpace:'nowrap',color:'#213026',background:'#f4f0e6',padding:'6px 10px'}} onPointerDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();setCoverOpen(!coverOpen)}}>{coverOpen?'Zasłoń dach nad jacuzzi':'Odsłoń dach nad jacuzzi'}</button>
+    </Html>}
+  </group>
   const retractable = kind === 'kitchen-spa-retractable'
   if (kind === 'kitchen-spa-canopy' || retractable) return <group>
     {(retractable ? [
@@ -61,7 +95,7 @@ export function GardenSpaStructure({ kind, ...props }: GardenVisualProps & { kin
       {/* Noncombustible conceptual collar; final clearances depend on the selected flue system. */}
       <GardenBox size={[.7,.04,.7]} at={[2.35,3.08,-.2]} color="#737a79" {...props} />
       {props.selected && !props.ghost && <Html position={[-1.95,3.5,5.2]} center>
-        <button type="button" style={{whiteSpace:'nowrap'}} onPointerDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();setCoverOpen(!coverOpen)}}>{coverOpen?'Zasłoń dach nad jacuzzi':'Odsłoń dach nad jacuzzi'}</button>
+        <button type="button" style={{whiteSpace:'nowrap',color:'#213026',background:'#f4f0e6',padding:'6px 10px'}} onPointerDown={e=>e.stopPropagation()} onClick={e=>{e.stopPropagation();setCoverOpen(!coverOpen)}}>{coverOpen?'Zasłoń dach nad jacuzzi':'Odsłoń dach nad jacuzzi'}</button>
       </Html>}
     </group>}
     {[-1, 1].flatMap(side => [

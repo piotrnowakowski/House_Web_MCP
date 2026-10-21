@@ -1241,11 +1241,11 @@ function RecyclingBinsFixture({ selected, ghost }: { selected: boolean; ghost: b
 
 function GardenFixtureModel({ catalogId, selected, ghost }: { catalogId: GardenFixtureModel['catalogId']; selected: boolean; ghost: boolean }) {
   switch (catalogId) {
-    case 'round-hot-tub': case 'garden-sauna': case 'pizza-oven': case 'pizza-oven-tall-flue': case 'kitchen-pergola': case 'kitchen-spa-canopy': case 'kitchen-spa-retractable': return <GardenSpaStructure kind={catalogId} selected={selected} ghost={ghost} />
+    case 'round-hot-tub': case 'garden-sauna': case 'pizza-oven': case 'pizza-oven-tall-flue': case 'kitchen-pergola': case 'kitchen-spa-canopy': case 'kitchen-spa-retractable': case 'compact-kitchen-spa': return <GardenSpaStructure kind={catalogId} selected={selected} ghost={ghost} />
     case 'greenhouse': return <DetailedGreenhouse selected={selected} ghost={ghost} />
     case 'round-fire-lounge': return <RoundFireLounge selected={selected} ghost={ghost} />
     case 'recycling-bins': return <RecyclingBinsFixture selected={selected} ghost={ghost} />
-    case 'jacuzzi': case 'outdoor-kitchen': return <SpaFixture kind={catalogId} selected={selected} ghost={ghost} />
+    case 'jacuzzi': case 'outdoor-kitchen': case 'outdoor-kitchen-l': return <SpaFixture kind={catalogId} selected={selected} ghost={ghost} />
     case 'outdoor-dining-set': return <OutdoorDiningSetFixture selected={selected} ghost={ghost} />
     case 'garden-lounge-set': return <GardenLoungeSetFixture selected={selected} ghost={ghost} />
     case 'slatted-bench': return <SlattedBenchFixture selected={selected} ghost={ghost} />

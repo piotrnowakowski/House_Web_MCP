@@ -34,6 +34,8 @@ export const gardenFixtureCatalog: GardenFixtureDefinition[] = [
   { id: 'kitchen-spa-canopy', name: 'Wiata kuchni i spa 7,4 × 15,2 m', category: 'structure', description: 'Wspólny pełny dach nad kuchnią, przejściem, jacuzzi i sauną. Naturalne jasne drewno, grafitowe pokrycie, wysokość 3,1 m. Koncepcja bez obliczeń konstrukcji.', widthM: 7.4, depthM: 15.2, heightM: 3.1 },
   { id: 'kitchen-spa-retractable', name: 'Wiata z rozsuwanym dachem nad jacuzzi', category: 'structure', description: 'Wiata 7,4 × 15,2 m z rozsuwaną osłoną 2,9 × 3,85 m nad jacuzzi i przejściem kominowym przy kuchni. Wybierz wiatę, aby zasłonić lub odsłonić dach w podglądzie. Koncepcja wymaga projektu konstrukcji i instalacji.', widthM: 7.4, depthM: 15.2, heightM: 3.1 },
   { id: 'pizza-oven-tall-flue', name: 'Piec do pizzy z wysokim kominem', category: 'furniture', description: 'Piec 1 × 1,05 m z pionowym izolowanym kominem z tyłu kopuły, do wysokości 4,2 m. Gabaryt koncepcyjny; średnica, odległości i wylot wymagają doboru do urządzenia.', widthM: 1, depthM: 1.05, heightM: 4.2 },
+  { id: 'compact-kitchen-spa', name: 'Kompaktowa wiata kuchni i spa', category: 'structure', description: 'Drewniana wiata 6,4 × 9,8 m z widocznymi belkami, zastrzałami, pełnym dachem nad kuchnią i rozsuwaną osłoną nad jacuzzi. Koncepcja konstrukcji i komina.', widthM: 6.4, depthM: 9.8, heightM: 3.1 },
+  { id: 'outdoor-kitchen-l', name: 'Kuchnia letnia L', category: 'furniture', description: 'Murowana kuchnia z grillem, zlewem i narożnym blatem; obrys 4,4 × 2,5 m, głębokość blatu 0,8 m.', widthM: 4.4, depthM: 2.5, heightM: 1.35 },
 ]
 
 export const gardenFixtureById = (id: GardenFixtureCatalogId) => {

@@ -6,11 +6,12 @@ import beforeThuja from '../../project-data/nowe-mpzp-v2/before-thuja-r2.json'
 import beforeTerrace from '../../project-data/nowe-mpzp-v2/before-terrace-canopy-r3.json'
 import beforeAllPlants from '../../project-data/nowe-mpzp-v2/before-all-thuja-grass-r4.json'
 import beforeGardenRefine from '../../project-data/nowe-mpzp-v2/before-garden-refine-r5.json'
+import beforeCompact from '../../project-data/nowe-mpzp-v2/before-compact-kitchen-r6.json'
 import parent from '../../project-data/nowe-mpzp/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
 import { gardenFixtureById } from '../domain/gardenFixtures'
-import { buildingFootprintsWorld, distanceToSegment, pointInPolygon } from '../domain/geometry'
+import { buildingFootprintsWorld, distanceToSegment, pointInPolygon, polygonArea } from '../domain/geometry'
 import { resolveZoneTexture } from '../domain/textures'
 import { mergeProjects } from '../domain/projectMerge'
 import { loadWorkspace, saveWorkspace, deleteWorkspace, listWorkspaces } from './persistence'
@@ -36,21 +37,21 @@ it('keeps the house, roofs, site and surveyed trees while fitting the reference 
     }
   }
   expect(p.landscape.fixtures.filter(f=>f.catalogId==='raised-bed-2x1')).toHaveLength(6)
-  expect(p.landscape.fixtures.map(f=>f.catalogId)).toEqual(expect.arrayContaining(['round-hot-tub','garden-sauna','pizza-oven-tall-flue','kitchen-spa-retractable','outdoor-kitchen','greenhouse']))
-  const pergola=p.landscape.fixtures.find(f=>f.catalogId==='kitchen-spa-retractable')!
-  const kitchen=p.landscape.fixtures.find(f=>f.catalogId==='outdoor-kitchen')!
+  expect(p.landscape.fixtures.map(f=>f.catalogId)).toEqual(expect.arrayContaining(['round-hot-tub','garden-sauna','pizza-oven-tall-flue','compact-kitchen-spa','outdoor-kitchen-l','greenhouse']))
+  const pergola=p.landscape.fixtures.find(f=>f.catalogId==='compact-kitchen-spa')!
+  const kitchen=p.landscape.fixtures.find(f=>f.catalogId==='outdoor-kitchen-l')!
   const table=p.landscape.fixtures.find(f=>f.ref.endsWith('/summer-table'))!
   for(const f of [kitchen,table]){
     const size=gardenFixtureById(f.catalogId)
-    expect(Math.abs(f.position.x-pergola.position.x)+size.depthM/2).toBeLessThan(3.7)
-    expect(Math.abs(f.position.z-pergola.position.z)+size.widthM/2).toBeLessThan(7.6)
+    expect(Math.abs(f.position.x-pergola.position.x)+size.depthM/2).toBeLessThan(3.2)
+    expect(Math.abs(f.position.z-pergola.position.z)+size.widthM/2).toBeLessThan(4.9)
   }
-  expect(kitchen.position.x-.4-(table.position.x+1.25)).toBeGreaterThanOrEqual(1)
+  expect(kitchen.position.x+.85-.4-(table.position.x+1.25)).toBeGreaterThanOrEqual(1)
   const oven=p.landscape.fixtures.find(f=>f.catalogId==='pizza-oven-tall-flue')!
-  expect(oven.position.z-.5-(kitchen.position.z+1.8)).toBeGreaterThan(1)
+  expect(oven.position.z-.5-(kitchen.position.z+2.2)).toBeGreaterThanOrEqual(.199)
   expect(oven.rotationDegrees).toBe(-90)
-  expect(oven.position.x+.15-pergola.position.x).toBeCloseTo(2.35)
-  expect(oven.position.z-pergola.position.z).toBeCloseTo(-.2)
+  expect(oven.position.x+.15-pergola.position.x).toBeCloseTo(2.15)
+  expect(oven.position.z-pergola.position.z).toBeCloseTo(.8)
   const deck=p.landscape.zones.find(z=>z.ref==='zone/terrace')!
   expect(resolveZoneTexture(deck)?.id).toBe('hinoki')
   expect(p.site.knowledgeBase.caveats.some(c=>c.includes('sauna')&&c.includes('18.R3.1'))).toBe(true)
@@ -188,7 +189,7 @@ it('replaces all remaining flowers with thujas and tall grasses without moving p
 })
 
 it('removes the marked trees, densifies only the existing fence rows and preserves saved deletions across migration',async()=>{
-  const p=parseProject(data),before=parseProject(beforeGardenRefine)
+  const p=parseProject(beforeCompact),before=parseProject(beforeGardenRefine)
   const removed=before.landscape.plants.filter(t=>!p.landscape.plants.some(n=>n.ref===t.ref))
   expect(removed).toHaveLength(16)
   expect(removed.filter(t=>t.species.startsWith('Thuja '))).toHaveLength(11)
@@ -215,4 +216,32 @@ it('removes the marked trees, densifies only the existing fence rows and preserv
   const reloaded=(await loadWorkspace(p.ref))!.project
   expect(reloaded.name).toBe('Mój ogród')
   expect(reloaded.landscape.plants.some(t=>t.ref===deleted||removed.some(r=>r.ref===t.ref))).toBe(false)
+})
+
+it('compacts only the kitchen and spa, preserves real sizes and migrates independent edits and deletions',async()=>{
+  const p=parseProject(data),before=parseProject(beforeCompact)
+  const bySuffix=(project:typeof p,suffix:string)=>project.landscape.fixtures.find(f=>f.ref===`fixture/nowe-mpzp-v2/${suffix}`)!
+  const changed=['pergola','kitchen','pizza','summer-table','hot-tub','sauna'].map(s=>bySuffix(p,s).ref)
+  expect(p.landscape.fixtures.filter(f=>!changed.includes(f.ref))).toEqual(before.landscape.fixtures.filter(f=>!changed.includes(f.ref)))
+  expect(p.landscape.plants.filter(t=>!t.ref.includes('/spa-'))).toEqual(before.landscape.plants.filter(t=>!t.ref.includes('/spa-')))
+  expect(p.landscape.plants.map(t=>({...t,position:null}))).toEqual(before.landscape.plants.map(t=>({...t,position:null})))
+  const deck=p.landscape.zones.find(z=>z.ref.endsWith('/summer-deck'))!
+  expect(polygonArea(deck.footprint)).toBeCloseTo(73.44)
+  expect(polygonArea(deck.footprint)/polygonArea(before.landscape.zones.find(z=>z.ref===deck.ref)!.footprint)).toBeLessThan(.56)
+  for(const suffix of ['hot-tub','sauna','summer-table'])expect(bySuffix(p,suffix).catalogId).toBe(bySuffix(before,suffix).catalogId)
+  for(const suffix of changed.map(ref=>ref.split('/').at(-1)!)){
+    const f=bySuffix(p,suffix),size=gardenFixtureById(f.catalogId),a=f.rotationDegrees*Math.PI/180
+    for(const x of [-size.widthM/2,size.widthM/2])for(const z of [-size.depthM/2,size.depthM/2])expect(pointInPolygon({x:f.position.x+x*Math.cos(a)+z*Math.sin(a),z:f.position.z-x*Math.sin(a)+z*Math.cos(a)},deck.footprint),suffix).toBe(true)
+  }
+  expect(24.3-(bySuffix(p,'sauna').position.z+1.5)).toBeGreaterThanOrEqual(.9)
+  const local=structuredClone(before),deleted=bySuffix(before,'summer-table').ref
+  local.name='Własny ogród';local.landscape.fixtures=local.landscape.fixtures.filter(f=>f.ref!==deleted)
+  const merged=mergeProjects(before,local,p)
+  expect(merged.conflicts).toHaveLength(1)
+  expect(merged.conflicts[0]).toContain(deleted)
+  globalThis.indexedDB=new IDBFactory()
+  await saveWorkspace({version:1,project:merged.project,proposals:[],draftChangeSets:[]})
+  const reloaded=(await loadWorkspace(p.ref))!.project
+  expect(reloaded.name).toBe('Własny ogród')
+  expect(reloaded.landscape.fixtures.some(f=>f.ref===deleted)).toBe(false)
 })

@@ -1,5 +1,18 @@
 # nowe mpzp — wariant 2
 
+## Kompaktowa kuchnia i spa — r7, 21.10.2026
+
+Na podstawie dwóch zdjęć użytkownika zmniejszono podest z 7,8 × 17 m (132,6 m²) do **6,8 × 10,8 m (73,44 m²), o 44,6%**. Wiata ma **6,4 × 9,8 × 3,1 m**, pełny dach z widocznymi drewnianymi belkami, zastrzałami i trzema lampami. Kuchnia murowana L ma obrys 4,4 × 2,5 m, blat głębokości 0,8 m, grill i zlew. Jasne drewno Hinoki pozostaje wspólne z elewacją. Jacuzzi Ø2,4 m, sauna 2,5 × 3 m i stół zachowują oryginalne gabaryty. Model daje ok. 1,87 m pomiędzy zajętym zestawem stołowym a prostym blatem, 1,075 m do poprzecznego blatu i 0,9 m przed sauną.
+
+Nad jacuzzi pozostaje otwierana osłona 2,9 × 3,25 m; pozostała część dachu jest pełna. Komin do 4,2 m z tyłu pieca przechodzi przez osobny otwór z metalowym kołnierzem. Dziewięć promieni w rzeczywistym modelu przechodzi przez odsłonięty otwór, a po użyciu przycisku trafia w osłonę; oś komina nie trafia w drewno. Wymiary siatek 3D zapisano w `tmp/compact-kitchen-20261021/roof-scene-audit.json`. To koncepcja: nośność, spadki i odwodnienie, instalacje oraz przeciwpożarowe oddzielenie pieca/komina od drewna wymagają projektu. Warunkowa lokalizacja w 18.R3.1 pozostaje bez zmian.
+
+Zachowano 283 rośliny; tylko dziesięć traw z rabat spa przesunięto wokół mniejszego podestu, bez zmiany rozmiarów i ref. Cofnięty podest i dawne fragmenty rabat wypełnia trawnik. Płyty dojścia do nieprzesuniętego warzywnika przedłużono. Obrysy trawnika przy nowych przeszkodach przeliczono, sprawdzając brak nakładania na podest, rabaty i płyty; otwory rozcięto na proste kontury obsługiwane przez model. Pozostałe wyposażenie, budynki, ogrodzenia i działki są bez zmian.
+
+Źródło: canonical/shared r6, serverVersion 5. Poprzedni model zachowuje `before-compact-kitchen-r6.json`; niezmienna baza `initial-r1.json` nie jest zastępowana. Kopie rzeczywistych profili Chrome/IAB, wspólnych danych i porównania według ref/bazy: `tmp/compact-kitchen-20261021/`. Publiczny HTTPS r7/baza6 oraz lokalny r11/baza6 były zgodne treściowo z canonical r6. Wcześniejsze konflikty pierwszego MPZP w lokalnym originie zachowano i nie użyto do nadpisania kanonu.
+
+Walidacja: **605 testów / 112 plików** (`npm test -- --maxWorkers=2`), lint, build frontendu/API i kontrola sekretów. Pierwszy pełny przebieg przy domyślnej równoległości przekroczył 5-sekundowy limit dwóch testów i zakłócił następny test zapisu; pełne powtórzenie z dwoma workerami przeszło. Test migracji zachowuje własną nazwę i usunięty stół, zgłaszając konflikt edycja/usunięcie. Budynki są dokładnie identyczne z bazą; przeliczone główne kąty wynoszą 38,809709° i 39,235237°, wspólna kalenica 8,0856938754 m, rozpoznany styk skrzydeł. Garaż: 37°, kalenica 5,7585297202 m. Nie powtarzano testu wnętrz w przeglądarce ani testu na fizycznym iPhonie.
+
+
 ## Gęsty szpaler, otwierany dach jacuzzi i komin — r6, 21.10.2026
 
 **Publikacja potwierdzona:** Mikrus uruchamia kod `64bd3485fe6a05ba27939326c1a7f6d5fb161f4e`, canonical r6, shared serverVersion 5 (expectedVersion=4). Odczyt wspólnego workspace jest identyczny z żądaniem; dwa pozostałe projekty pozostały bez zmian. Health/API poprawne, publiczny plik JS ma identyczny SHA256 jak lokalny build. Świeży origin testowy otrzymał r6, istniejący lokalny r11, a istniejący HTTPS r7 po migracji; treść każdego jest zgodna z canonical przy tolerancji 1e-9 dla normalizacji liczb. Drugi reload zachował publiczny workspace dokładnie, bez błędów konsoli. Build frontendu/API i kontrola sekretów przeszły. Publiczne kadry: `output/garden-refine-20261021/mikrus-ogrod.png` i `mikrus-jacuzzi-komin.png`. Po publikacji VPS ma 561 MB wolnego (99% zajęcia); tym razem nie wykonywano czyszczenia. Main i GitHub Pages bez zmian.
