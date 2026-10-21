@@ -6,9 +6,9 @@ export function fenceGeometry(length: number, height: number, material: 'concret
   const parts: BoxGeometry[] = []
   const box = (x: number, y: number, w: number, h: number, d: number) =>
     parts.push(new BoxGeometry(w, h, d).translate(x, y, 0.1))
-  const count = material === 'gate' ? 2 : Math.ceil(length / 2.5), span = length / count
+  const count = material === 'gate' ? (length <= 1.5 ? 1 : 2) : Math.ceil(length / 2.5), span = length / count
   for (let i = 0; i <= count; i++) {
-    if (material === 'gate' && i === 1) continue
+    if (material === 'gate' && i > 0 && i < count) continue
     // Endpoint posts stay outside the clear gate span.
     const inset = material === 'gate' ? -0.05 : 0.05
     const x = -length / 2 + i * span + (i === 0 ? inset : i === count ? -inset : 0)

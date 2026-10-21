@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp-v2",
   "name": "nowe mpzp — wariant 2",
   "units": "metric",
-  "revision": 9,
-  "updatedAt": "2026-10-21T02:40:00.000Z",
+  "revision": 10,
+  "updatedAt": "2026-10-21T08:30:00.000Z",
   "site": {
     "boundary": [
       {
@@ -213,8 +213,8 @@
           "z": 10.53
         },
         "end": {
-          "x": -19.123274775706903,
-          "z": -2.895921819176678
+          "x": -19.188582477239652,
+          "z": -4.113257375747152
         },
         "material": "concrete",
         "heightM": 1.8,
@@ -224,8 +224,8 @@
         "ref": "fence/nowe-mpzp/8-3",
         "name": "Czarne ogrodzenie betonowe",
         "start": {
-          "x": -19.466129382118357,
-          "z": -9.286731682686215
+          "x": -19.60643652867946,
+          "z": -11.90205689458513
         },
         "end": {
           "x": -19.778,
@@ -290,6 +290,21 @@
         "end": {
           "x": 8.77,
           "z": -15.63
+        },
+        "material": "concrete",
+        "heightM": 1.8,
+        "colorHex": "#15191A"
+      },
+      {
+        "ref": "fence/nowe-mpzp-v2/gate-wicket",
+        "name": "Słupek między bramą i furtką",
+        "start": {
+          "x": -19.252867715922697,
+          "z": -5.311534224799148
+        },
+        "end": {
+          "x": -19.263581922369873,
+          "z": -5.511247032974481
         },
         "material": "concrete",
         "heightM": 1.8,
@@ -1296,6 +1311,24 @@
           "heightM": 1.8,
           "colorHex": "#15191A"
         }
+      },
+      {
+        "ref": "entrance/house-wicket",
+        "name": "Furtka piesza · 1,2 m",
+        "start": {
+          "x": -19.252867715922697,
+          "z": -5.311534224799148
+        },
+        "end": {
+          "x": -19.188582477239652,
+          "z": -4.113257375747152
+        },
+        "connectsTo": "public-road",
+        "geometryConfidence": "user-marked",
+        "gate": {
+          "heightM": 1.8,
+          "colorHex": "#15191A"
+        }
       }
     ],
     "knowledgeBase": {
@@ -1492,6 +1525,15 @@
           "kind": "planning-document",
           "authority": "official",
           "summary": "ELI: https://eli.gov.pl/api/acts/DU/2022/1225/text.html ; art. 2 pkt 4: https://api.sejm.gov.pl/eli/acts/DU/2026/1161/text.pdf . Warunkowe założenia koncepcji, bez potwierdzenia klasyfikacji kampera, okien i ochrony przeciwpożarowej."
+        },
+        {
+          "ref": "source/nowe-mpzp-v2-treatment",
+          "title": "Oczyszczalnia — WT, Wody Polskie i Gmina Zielonki",
+          "date": "2026-10-21",
+          "kind": "planning-document",
+          "authority": "official",
+          "url": "https://www.gov.pl/web/wody-polskie/faq",
+          "summary": "WT §31/37: https://eli.gov.pl/api/acts/DU/2022/1225/text.html ; przepisy przejściowe: https://api.sejm.gov.pl/eli/acts/DU/2026/1161/text.pdf ; kanalizacja: https://zielonki.pl/obowiazki-i-prawa-wlascicieli-nieruchomosci/ . Zgłoszenie wodnoprawne dla wykonania urządzeń wprowadzających oczyszczone ścieki do ziemi w ramach zwykłego korzystania; osobno formalności budowlane i eksploatacyjne."
         }
       ],
       "measurements": [
@@ -2164,7 +2206,11 @@
         "Wariant 2 r7: otwór nad jacuzzi 2,9 × 3,25 m z rozsuwaną osłoną, domyślnie otwartą; przycisk zmienia podgląd. Komin do 4,2 m ma osobne przejście przez dach. Konstrukcja, pokrycie, odwodnienie, instalacje i niepalne oddzielenie pieca od drewna wymagają projektu wykonawczego.",
         "Wariant 2 r9: dom, taras i wiata przesunięte o +0,50 m w osi X i −2,65 m w osi Z; brama na lewym ogrodzeniu przesunięta dla prostego przejazdu. 11 drzew geodezyjnych pozostaje na miejscu. Drzewo 503A ogranicza dalszy ruch w prawo; ochrona korzeni i istniejące zachodzenie korony na obrys dachu wymagają oceny arborysty.",
         "Wariant 2 r9: na doprecyzowanie użytkownika dach wiaty pozostaje 6,6 × 6,4 m. Co najmniej 3 m od górnej granicy na zdjęciu do zewnętrznej krawędzi obramowania; prześwit pionowy 3 m od nawierzchni do dolnej krawędzi belki. Dwa miejsca osobowe zachowane; przejazd możliwy przy wolnym pasie. Kamper to hipotetyczna przyszła opcja, bez projektowania miejsca postojowego ani wydłużania dachu. 2,25 m przyjęto jako wysokość z opisu, pozostałe gabaryty modelu są orientacyjne.",
-        "Wariant 2 r9: 3 m nie jest uniwersalnym potwierdzeniem legalności wiaty. WT §19 przewidują 3 m od granicy dla do 10 miejsc osobowych i 7 m od chronionych okien. Hipotetyczny przejazd kampera nie jest tu odrębnym miejscem postojowym. Odstępy od okien, ppoż., MPZP i przeniesienie zjazdu wymagają weryfikacji w projekcie budowlanym. Art. 102a–102b Pb (Dz.U. 2026 poz. 1161) pozwala na stosowanie wcześniejszych WT w okresie przejściowym; przy pozwoleniu/zgłoszeniu potrzebne jest oświadczenie inwestora. Nie przyjęto wyjątku pozwalającego zbliżyć zadaszony parking do granicy."
+        "Wariant 2 r9: 3 m nie jest uniwersalnym potwierdzeniem legalności wiaty. WT §19 przewidują 3 m od granicy dla do 10 miejsc osobowych i 7 m od chronionych okien. Hipotetyczny przejazd kampera nie jest tu odrębnym miejscem postojowym. Odstępy od okien, ppoż., MPZP i przeniesienie zjazdu wymagają weryfikacji w projekcie budowlanym. Art. 102a–102b Pb (Dz.U. 2026 poz. 1161) pozwala na stosowanie wcześniejszych WT w okresie przejściowym; przy pozwoleniu/zgłoszeniu potrzebne jest oświadczenie inwestora. Nie przyjęto wyjątku pozwalającego zbliżyć zadaszony parking do granicy.",
+        "Wariant 2 r10: oczyszczalnia to koncepcja dla założonych 4–5 osób: rezerwa szczelnego podziemnego zbiornika 3 × 1,5 m przed domem, dwa włazy Ø0,6 m. Przerywane obrysy nie są elementami nawierzchni. Oddzielna rezerwa 2 × 6 m dalej w ogrodzie nie potwierdza wymaganej powierzchni rozsączania ani przepustowości.",
+        "Oczyszczalnia: najpierw potwierdzić możliwość przyłączenia do kanalizacji, MPZP i położenie w aglomeracji, badania gruntu i maksymalny poziom wód, studnie własne i sąsiadów, podziemne instalacje oraz ochronę korzeni drzew 5012/5018. Pokazano jedynie obrysy przestrzenne; głębokość wykopu, strefa fundamentów, spadki rur, ewentualna pompa, wentylacja i dostęp serwisowy wymagają projektu.",
+        "Istniejąca opinia geotechniczna ze stycznia 2026 opisuje gliny pylaste, torfy/namuły i wodę na 1,6–2,3 m p.p.t. w dwóch odwiertach, nie bezpośrednio pod szkicem oczyszczalni. Zwykły drenaż podziemny jest niepotwierdzony; 1,5 m warstwy oddzielającej od najwyższego użytkowego poziomu wodonośnego wymaga weryfikacji. Może być konieczny nasyp z pompą lub inny dopuszczalny odbiornik, większa powierzchnia oraz zabezpieczenie zbiornika przed wyporem. Rezerwa 2 × 6 m nie jest projektem takiego rozwiązania.",
+        "WT §37 dopuszcza bliskie sąsiedztwo domu tylko dla szczelnych przepływowych osadników wstępnych, z odpowietrzeniem co najmniej 0,6 m ponad górną krawędź okien i drzwi; nie jest to automatyczny wyjątek dla każdego reaktora. WT §31 przewiduje 15 m studnia–szczelny zbiornik i 30 m studnia–przewód rozsączający ścieki oczyszczone biologicznie. Przyjęte założenia dawnych WT podlegają przepisom przejściowym art. 102a–102b Pb, nie stanowią zatwierdzenia lokalizacji."
       ]
     }
   },
@@ -3253,9 +3299,8 @@
           "heightM": 2.8,
           "openings": [],
           "finish": {
-            "material": "charred-timber",
-            "colorHex": "#303638",
-            "textureId": "none"
+            "material": "natural-timber",
+            "colorHex": "#AD845B"
           },
           "locked": false
         },
@@ -5436,7 +5481,18 @@
           "thicknessM": 0.3,
           "baseElevationM": 0.2,
           "heightM": 3.75,
-          "openings": [],
+          "openings": [
+            {
+              "ref": "opening/nowe-mpzp-v2/garage-horizontal",
+              "kind": "window",
+              "wallRef": "wall/outbuilding/camper-west",
+              "offsetM": 1.2,
+              "widthM": 1.6,
+              "heightM": 0.6,
+              "sillM": 1.4,
+              "glazed": true
+            }
+          ],
           "finish": {
             "material": "charred-timber",
             "colorHex": "#303638",
@@ -21043,12 +21099,46 @@
             "z": -2.8959753587841988
           },
           {
-            "x": -19.26258335262537,
-            "z": -5.511300601065159
+            "x": -19.187583908438683,
+            "z": -4.113310948014259
+          },
+          {
+            "x": -16.392603166401386,
+            "z": -4.263256266713142
+          },
+          {
+            "x": -16.467602603137493,
+            "z": -5.661245919764042
           },
           {
             "x": -9,
             "z": -6.061868377029896
+          }
+        ]
+      },
+      {
+        "ref": "zone/nowe-mpzp-v2/house-shift-lawn-4-wicket-1",
+        "name": "Trawnik po przesunięciu domu i podjazdu",
+        "kind": "lawn",
+        "textureId": "leafy-grass",
+        "colorHex": "#B7D7A5",
+        "locked": false,
+        "footprint": [
+          {
+            "x": -17.655165247619152,
+            "z": -5.39724787324667
+          },
+          {
+            "x": -19.25186914205551,
+            "z": -5.311587795615196
+          },
+          {
+            "x": -19.26258335262537,
+            "z": -5.511300601065159
+          },
+          {
+            "x": -17.66587945073843,
+            "z": -5.596960678696632
           }
         ]
       },
@@ -21085,6 +21175,39 @@
             "z": -6.37650041282177
           }
         ]
+      },
+      {
+        "ref": "zone/nowe-mpzp-v2/wicket-walk",
+        "name": "Dojście od furtki · 1,2 m",
+        "kind": "path",
+        "footprint": [
+          {
+            "x": -19.252867715922697,
+            "z": -5.311534224799148
+          },
+          {
+            "x": -19.188582477239652,
+            "z": -4.113257375747152
+          },
+          {
+            "x": -16.392603162784994,
+            "z": -4.263256266007596
+          },
+          {
+            "x": -16.483673917585975,
+            "z": -5.960815135497924
+          },
+          {
+            "x": -17.68195076663797,
+            "z": -5.896529896814877
+          },
+          {
+            "x": -17.655165250520035,
+            "z": -5.397247876376545
+          }
+        ],
+        "textureId": "concrete-tiles",
+        "locked": false
       }
     ],
     "plants": [
@@ -30650,6 +30773,28 @@
         "position": {
           "x": 13.85,
           "z": 21.9
+        },
+        "rotationDegrees": 0,
+        "locked": false
+      },
+      {
+        "ref": "fixture/nowe-mpzp-v2/treatment",
+        "catalogId": "biological-treatment-study",
+        "name": "Oczyszczalnia biologiczna · zbiornik 3 × 1,5 m · koncepcja",
+        "position": {
+          "x": -16.1,
+          "z": -1.8
+        },
+        "rotationDegrees": 3.0692708248144527,
+        "locked": false
+      },
+      {
+        "ref": "fixture/nowe-mpzp-v2/infiltration",
+        "catalogId": "infiltration-study",
+        "name": "Warunkowa rezerwa odpływu 2 × 6 m · gliny i wysoka woda",
+        "position": {
+          "x": -15.35,
+          "z": 11.8
         },
         "rotationDegrees": 0,
         "locked": false

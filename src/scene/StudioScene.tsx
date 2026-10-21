@@ -1241,6 +1241,17 @@ function RecyclingBinsFixture({ selected, ghost }: { selected: boolean; ghost: b
 
 function GardenFixtureModel({ catalogId, selected, ghost }: { catalogId: GardenFixtureModel['catalogId']; selected: boolean; ghost: boolean }) {
   switch (catalogId) {
+    case 'biological-treatment-study': case 'infiltration-study': {
+      const tank = catalogId === 'biological-treatment-study', w = tank ? 1.5 : 2, d = tank ? 3 : 6
+      return <group>
+        {/* The dashed ground outline is a planning reserve, not an exposed tank or designed drain. */}
+        {[-1, 1].flatMap(side => [
+          ...Array.from({ length: Math.ceil(d / .4) }, (_, i) => <mesh key={`z${side}-${i}`} position={[side*w/2,.035,-d/2+(i+.5)*d/Math.ceil(d/.4)]}><boxGeometry args={[.035,.025,.2]} />{fixtureMaterial('#489FA5',selected,ghost)}</mesh>),
+          ...Array.from({ length: Math.ceil(w / .4) }, (_, i) => <mesh key={`x${side}-${i}`} position={[-w/2+(i+.5)*w/Math.ceil(w/.4),.035,side*d/2]}><boxGeometry args={[.2,.025,.035]} />{fixtureMaterial('#489FA5',selected,ghost)}</mesh>),
+        ])}
+        {tank && [-.85,.85].map(z => <mesh key={z} position={[0,.06,z]} castShadow={!ghost}><cylinderGeometry args={[.3,.3,.12,32]} />{fixtureMaterial('#40544C',selected,ghost)}</mesh>)}
+      </group>
+    }
     case 'round-hot-tub': case 'garden-sauna': case 'pizza-oven': case 'pizza-oven-tall-flue': case 'kitchen-pergola': case 'kitchen-spa-canopy': case 'kitchen-spa-retractable': case 'compact-kitchen-spa': return <GardenSpaStructure kind={catalogId} selected={selected} ghost={ghost} />
     case 'greenhouse': return <DetailedGreenhouse selected={selected} ghost={ghost} />
     case 'round-fire-lounge': return <RoundFireLounge selected={selected} ghost={ghost} />

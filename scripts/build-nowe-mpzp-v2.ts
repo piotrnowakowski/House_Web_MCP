@@ -14,7 +14,7 @@ const sourceFile = `${dir}/source-nowe-mpzp-r19.json`
 if (!fs.existsSync(sourceFile)) fs.copyFileSync('project-data/nowe-mpzp/project.json', sourceFile, fs.constants.COPYFILE_EXCL)
 const source = parseProject(JSON.parse(fs.readFileSync(sourceFile, 'utf8'))), p = structuredClone(source)
 assert.equal(source.revision, 19)
-p.ref = 'project/nowe-mpzp-v2'; p.name = 'nowe mpzp — wariant 2'; p.revision = 9; p.updatedAt = '2026-10-21T02:40:00.000Z'
+p.ref = 'project/nowe-mpzp-v2'; p.name = 'nowe mpzp — wariant 2'; p.revision = 10; p.updatedAt = '2026-10-21T08:30:00.000Z'
 const pt = (x: number, z: number): Vec2 => ({ x: +x.toFixed(4), z: +z.toFixed(4) })
 const rect = (x: number, z: number, w: number, d: number) => [pt(x-w/2,z-d/2),pt(x+w/2,z-d/2),pt(x+w/2,z+d/2),pt(x-w/2,z+d/2)]
 const circle = (x: number, z: number, r: number) => Array.from({length:48},(_,i)=>pt(x+r*Math.cos(i*Math.PI/24),z+r*Math.sin(i*Math.PI/24)))
@@ -309,6 +309,36 @@ p.site.knowledgeBase.caveats.push(
 p.site.knowledgeBase.sources.push({ref:'source/nowe-mpzp-v2-carport-setbacks',title:'WT §19 i przepisy przejściowe art. 102a–102b Prawa budowlanego',date:'2026-10-21',kind:'planning-document',authority:'official',summary:'ELI: https://eli.gov.pl/api/acts/DU/2022/1225/text.html ; art. 2 pkt 4: https://api.sejm.gov.pl/eli/acts/DU/2026/1161/text.pdf . Warunkowe założenia koncepcji, bez potwierdzenia klasyfikacji kampera, okien i ochrony przeciwpożarowej.'})
 assert.deepEqual(p.site.parcels,source.site.parcels)
 assert.deepEqual(p.site.fences,source.site.fences)
+// Match the moved gate opening and keep the adjacent pedestrian entry independent.
+const tangent={x:(gate.end.x-gate.start.x)/6.4,z:(gate.end.z-gate.start.z)/6.4}
+const along=(metres:number):Vec2=>({x:gate.end.x+tangent.x*metres,z:gate.end.z+tangent.z*metres})
+const wicket={ref:'entrance/house-wicket',name:'Furtka piesza · 1,2 m',start:along(.2),end:along(1.4),connectsTo:'public-road' as const,geometryConfidence:'user-marked' as const,gate:{...gate.gate!}}
+p.site.entrances.push(wicket)
+p.site.fences!.find(f=>f.ref==='fence/nowe-mpzp/8-3')!.start={...gate.start}
+p.site.fences!.find(f=>f.ref==='fence/nowe-mpzp/8-1')!.end={...wicket.end}
+p.site.fences!.push({ref:'fence/nowe-mpzp-v2/gate-wicket',name:'Słupek między bramą i furtką',start:wicket.start,end:gate.end,material:'concrete',heightM:1.8,colorHex:'#15191A'})
+house.walls.find(w=>w.ref==='wall/architekt/correction/0/utility-access/4')!.finish={...house.walls.find(w=>w.ref==='wall/architekt/ground/16')!.finish}
+const garageWall=p.buildings.find(b=>b.ref==='building/garden-outbuilding')!.walls.find(w=>w.ref==='wall/outbuilding/camper-west')!
+garageWall.openings.push({ref:'opening/nowe-mpzp-v2/garage-horizontal',kind:'window',wallRef:garageWall.ref,offsetM:1.2,widthM:1.6,heightM:.6,sillM:1.4,glazed:true})
+const inward=(q:Vec2,d:number):Vec2=>({x:q.x+tangent.z*d,z:q.z-tangent.x*d})
+const walk=[wicket.start,wicket.end,inward(wicket.end,2.8),inward(along(-.3),2.8),inward(along(-.3),1.6),inward(wicket.start,1.6)]
+zone(zref('wicket-walk'),'Dojście od furtki · 1,2 m','path',walk,'concrete-tiles')
+for(const lawn of p.landscape.zones.filter(z=>z.kind==='lawn')){
+  const clipped=cs(lawn.footprint).subtract(cs(walk))
+  if(Math.abs(clipped.area()-polygonArea(lawn.footprint))<1e-7)continue
+  const pieces=clipped.toPolygons().map((poly,i)=>({...lawn,ref:i?`${lawn.ref}-wicket-${i}`:lawn.ref,footprint:poly.map(([x,z])=>({x,z}))}))
+  assert(Math.abs(pieces.reduce((sum,z)=>sum+polygonArea(z.footprint),0)-clipped.area())<1e-6)
+  p.landscape.zones.splice(p.landscape.zones.findIndex(z=>z.ref===lawn.ref),1,...pieces)
+}
+fixture('treatment','biological-treatment-study','Oczyszczalnia biologiczna · zbiornik 3 × 1,5 m · koncepcja',-16.1,-1.8,house.rotationDegrees-270)
+fixture('infiltration','infiltration-study','Warunkowa rezerwa odpływu 2 × 6 m · gliny i wysoka woda',-15.35,11.8,0)
+p.site.knowledgeBase.caveats.push(
+  'Wariant 2 r10: oczyszczalnia to koncepcja dla założonych 4–5 osób: rezerwa szczelnego podziemnego zbiornika 3 × 1,5 m przed domem, dwa włazy Ø0,6 m. Przerywane obrysy nie są elementami nawierzchni. Oddzielna rezerwa 2 × 6 m dalej w ogrodzie nie potwierdza wymaganej powierzchni rozsączania ani przepustowości.',
+  'Oczyszczalnia: najpierw potwierdzić możliwość przyłączenia do kanalizacji, MPZP i położenie w aglomeracji, badania gruntu i maksymalny poziom wód, studnie własne i sąsiadów, podziemne instalacje oraz ochronę korzeni drzew 5012/5018. Pokazano jedynie obrysy przestrzenne; głębokość wykopu, strefa fundamentów, spadki rur, ewentualna pompa, wentylacja i dostęp serwisowy wymagają projektu.',
+  'Istniejąca opinia geotechniczna ze stycznia 2026 opisuje gliny pylaste, torfy/namuły i wodę na 1,6–2,3 m p.p.t. w dwóch odwiertach, nie bezpośrednio pod szkicem oczyszczalni. Zwykły drenaż podziemny jest niepotwierdzony; 1,5 m warstwy oddzielającej od najwyższego użytkowego poziomu wodonośnego wymaga weryfikacji. Może być konieczny nasyp z pompą lub inny dopuszczalny odbiornik, większa powierzchnia oraz zabezpieczenie zbiornika przed wyporem. Rezerwa 2 × 6 m nie jest projektem takiego rozwiązania.',
+  'WT §37 dopuszcza bliskie sąsiedztwo domu tylko dla szczelnych przepływowych osadników wstępnych, z odpowietrzeniem co najmniej 0,6 m ponad górną krawędź okien i drzwi; nie jest to automatyczny wyjątek dla każdego reaktora. WT §31 przewiduje 15 m studnia–szczelny zbiornik i 30 m studnia–przewód rozsączający ścieki oczyszczone biologicznie. Przyjęte założenia dawnych WT podlegają przepisom przejściowym art. 102a–102b Pb, nie stanowią zatwierdzenia lokalizacji.',
+)
+p.site.knowledgeBase.sources.push({ref:'source/nowe-mpzp-v2-treatment',title:'Oczyszczalnia — WT, Wody Polskie i Gmina Zielonki',date:'2026-10-21',kind:'planning-document',authority:'official',url:'https://www.gov.pl/web/wody-polskie/faq',summary:'WT §31/37: https://eli.gov.pl/api/acts/DU/2022/1225/text.html ; przepisy przejściowe: https://api.sejm.gov.pl/eli/acts/DU/2026/1161/text.pdf ; kanalizacja: https://zielonki.pl/obowiazki-i-prawa-wlascicieli-nieruchomosci/ . Zgłoszenie wodnoprawne dla wykonania urządzeń wprowadzających oczyszczone ścieki do ziemi w ramach zwykłego korzystania; osobno formalności budowlane i eksploatacyjne.'})
 for(const tree of source.landscape.plants.filter(t=>t.surveyHandle))assert.deepEqual(p.landscape.plants.find(t=>t.ref===tree.ref),tree)
 for(const f of p.landscape.fixtures){
   const {widthM:w,depthM:d}=gardenFixtureById(f.catalogId),a=f.rotationDegrees*Math.PI/180

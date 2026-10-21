@@ -65,12 +65,16 @@ it('rejects invalid fence dimensions and duplicate refs; generates finite solid,
   expect(() => parseProject(duplicate)).toThrow()
   const wideGate = structuredClone(data); wideGate.site.entrances[0].end.x = 1000
   expect(() => parseProject(wideGate)).toThrow()
-  for (const material of ['concrete', 'panel', 'gate'] as const) {
-    const geometry = fenceGeometry(4, 1.8, material)
+  for (const material of ['concrete', 'panel', 'gate'] as const) for(const width of [1.2,4]) {
+    const geometry = fenceGeometry(width, 1.8, material)
     expect([...geometry.getAttribute('position').array].every(Number.isFinite)).toBe(true)
     geometry.computeBoundingBox()
     expect(geometry.boundingBox!.min.z).toBeGreaterThanOrEqual(-1e-7)
     expect(geometry.boundingBox!.max.y).toBeCloseTo(1.8)
+    if(material==='gate'){
+      expect(geometry.boundingBox!.min.x).toBeCloseTo(-width/2-.1)
+      expect(geometry.boundingBox!.max.x).toBeCloseTo(width/2+.1)
+    }
     geometry.dispose()
   }
 })

@@ -8,6 +8,7 @@ import beforeAllPlants from '../../project-data/nowe-mpzp-v2/before-all-thuja-gr
 import beforeGardenRefine from '../../project-data/nowe-mpzp-v2/before-garden-refine-r5.json'
 import beforeCompact from '../../project-data/nowe-mpzp-v2/before-compact-kitchen-r6.json'
 import beforeShift from '../../project-data/nowe-mpzp-v2/before-house-shift-r7.json'
+import beforeFront from '../../project-data/nowe-mpzp-v2/before-front-services-r9.json'
 import parent from '../../project-data/nowe-mpzp/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
@@ -18,14 +19,57 @@ import { mergeProjects } from '../domain/projectMerge'
 import { loadWorkspace, saveWorkspace, deleteWorkspace, listWorkspaces } from './persistence'
 import { NOWE_MPZP_V2_REF, synchronizePublishedNoweMpzpV2 } from './publishedNoweMpzpV2'
 
+it('closes the moved frontage, separates the wicket, and preserves roof geometry and saved deletions', async()=>{
+  const p=parseProject(data),before=parseProject(beforeFront),gate=p.site.entrances.find(e=>e.ref==='entrance/house-road')!,wicket=p.site.entrances.find(e=>e.ref==='entrance/house-wicket')!
+  const roadA={x:-19.778,z:-15.1},roadB={x:-18.403,z:10.53},length=Math.hypot(roadB.x-roadA.x,roadB.z-roadA.z)
+  const parameter=(q:{x:number,z:number})=>((q.x-roadA.x)*(roadB.x-roadA.x)+(q.z-roadA.z)*(roadB.z-roadA.z))/length
+  const sections=[...p.site.fences!.filter(f=>f.ref.includes('/8-')||f.ref.endsWith('/gate-wicket')),gate,wicket]
+  const intervals=sections.map(s=>{
+    for(const q of [s.start,s.end])expect(distanceToSegment(q,roadA,roadB)).toBeLessThan(1e-8)
+    return [parameter(s.start),parameter(s.end)].sort((a,b)=>a-b)
+  }).sort((a,b)=>a[0]-b[0])
+  expect(intervals[0][0]).toBeCloseTo(0)
+  for(let i=1;i<intervals.length;i++)expect(intervals[i][0]).toBeCloseTo(intervals[i-1][1],8)
+  expect(intervals.at(-1)![1]).toBeCloseTo(length)
+  expect(Math.hypot(wicket.end.x-wicket.start.x,wicket.end.z-wicket.start.z)).toBeCloseTo(1.2)
+  for(const b of p.buildings)expect({...b,walls:null}).toEqual({...before.buildings.find(old=>old.ref===b.ref),walls:null})
+  const garage=p.buildings.find(b=>b.ref==='building/garden-outbuilding')!,wall=garage.walls.find(w=>w.ref==='wall/outbuilding/camper-west')!
+  const window=wall.openings.find(o=>o.kind==='window')!,doorWall=garage.walls.find(w=>w.ref==='wall/outbuilding/workshop-west')!,door=doorWall.openings.find(o=>o.kind==='door')!
+  expect(window.widthM).toBeGreaterThan(window.heightM)
+  expect(window.offsetM-window.widthM/2).toBeGreaterThan(.3)
+  expect((doorWall.start.z-door.offsetM-door.widthM/2)-(wall.start.z-window.offsetM+window.widthM/2)).toBeGreaterThanOrEqual(.849)
+  expect(p.buildings[0].walls.find(w=>w.ref.endsWith('/utility-access/4'))!.finish).toEqual(p.buildings[0].walls.find(w=>w.ref==='wall/architekt/ground/16')!.finish)
+  const bodies=p.buildings.flatMap(buildingFootprintsWorld),walk=p.landscape.zones.find(z=>z.ref.endsWith('/wicket-walk'))!
+  for(const q of walk.footprint)expect(bodies.some(poly=>pointInPolygon(q,poly))).toBe(false)
+  for(const suffix of ['/treatment','/infiltration']){
+    const f=p.landscape.fixtures.find(f=>f.ref.endsWith(suffix))!,size=gardenFixtureById(f.catalogId),a=f.rotationDegrees*Math.PI/180
+    for(const x of [-size.widthM/2,size.widthM/2])for(const z of [-size.depthM/2,size.depthM/2]){
+      const q={x:f.position.x+x*Math.cos(a)+z*Math.sin(a),z:f.position.z-x*Math.sin(a)+z*Math.cos(a)}
+      expect(Math.min(...p.site.boundary.map((v,i)=>distanceToSegment(q,v,p.site.boundary[(i+1)%p.site.boundary.length])))).toBeGreaterThan(2)
+      expect(bodies.some(poly=>pointInPolygon(q,poly))).toBe(false)
+    }
+  }
+  const local=structuredClone(before);local.name='Własny zapis'
+  local.site.fences=local.site.fences!.filter(f=>f.ref!=='fence/nowe-mpzp/8-1')
+  const merged=mergeProjects(before,local,p)
+  expect(merged.conflicts).toEqual([expect.stringContaining('fence/nowe-mpzp/8-1')])
+  globalThis.indexedDB=new IDBFactory()
+  await saveWorkspace({version:1,project:merged.project,proposals:[],draftChangeSets:[]})
+  const saved=(await loadWorkspace(p.ref))!.project
+  expect(saved.name).toBe('Własny zapis')
+  expect(saved.site.fences!.some(f=>f.ref==='fence/nowe-mpzp/8-1')).toBe(false)
+  expect(saved.landscape.fixtures.filter(f=>f.catalogId.endsWith('-study'))).toHaveLength(2)
+})
+
 it('keeps the house, roofs, site and surveyed trees while fitting the reference garden at metre scale', () => {
   const p=parseProject(data), source=parseProject(parent)
   expect(p.ref).toBe(NOWE_MPZP_V2_REF)
-  expect({...p.buildings[0],position:null}).toEqual({...source.buildings[0],position:null})
+  expect({...p.buildings[0],position:null,walls:null}).toEqual({...source.buildings[0],position:null,walls:null})
+  expect(p.buildings[0].walls.filter(w=>!w.ref.endsWith('/utility-access/4'))).toEqual(source.buildings[0].walls.filter(w=>!w.ref.endsWith('/utility-access/4')))
   expect(p.site.boundary).toEqual(source.site.boundary)
   expect(p.site.parcels).toEqual(source.site.parcels)
-  expect(p.site.fences).toEqual(source.site.fences)
-  expect(p.site.entrances.filter(e=>e.ref!=='entrance/house-road')).toEqual(source.site.entrances.filter(e=>e.ref!=='entrance/house-road'))
+  expect(p.site.fences!.filter(f=>!f.ref.includes('/8-')&&!f.ref.endsWith('/gate-wicket'))).toEqual(source.site.fences!.filter(f=>!f.ref.includes('/8-')))
+  expect(p.site.entrances.filter(e=>e.ref==='entrance/field-road')).toEqual(source.site.entrances.filter(e=>e.ref==='entrance/field-road'))
   expect(p.landscape.plants.filter(t=>t.surveyHandle)).toEqual(source.landscape.plants.filter(t=>t.surveyHandle))
   expect(validateProject(p).filter(i=>i.severity==='error')).toEqual([])
   const bodies=p.buildings.flatMap(buildingFootprintsWorld)
