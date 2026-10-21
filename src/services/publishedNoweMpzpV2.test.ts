@@ -247,7 +247,7 @@ it('compacts only the kitchen and spa, preserves real sizes and migrates indepen
   expect(reloaded.landscape.fixtures.some(f=>f.ref===deleted)).toBe(false)
 })
 
-it('moves the attached house and gate while preserving trees, three metres of headroom and a six-metre camper setback',async()=>{
+it('moves the attached house and gate, keeping the original canopy size and three metres of headroom for a hypothetical camper',async()=>{
   const p=parseProject(data),before=parseProject(beforeShift)
   for(const ref of ['house/main','building/south-carport']){
     const b=p.buildings.find(b=>b.ref===ref)!,old=before.buildings.find(b=>b.ref===ref)!
@@ -262,11 +262,10 @@ it('moves the attached house and gate while preserving trees, three metres of he
   const world=(x:number,z:number)=>({x:carport.position.x+x*Math.cos(a)+z*Math.sin(a),z:carport.position.z-x*Math.sin(a)+z*Math.cos(a)})
   const boundaryGap=(q:{x:number,z:number})=>Math.min(...p.site.boundary.map((v,i)=>distanceToSegment(q,v,p.site.boundary[(i+1)%p.site.boundary.length])))
   expect(Math.min(...roof.footprint.map(q=>boundaryGap(world(q.x,q.z))))-.06).toBeGreaterThanOrEqual(3)
-  // The inner 3 m-wide reserved parking strip is farther from the boundary than the roof.
-  for(const x of [-9.995,-6.995])for(const z of [-6.555,1.445])expect(boundaryGap(world(x,z))).toBeGreaterThanOrEqual(6)
-  expect(Math.max(...roof.footprint.map(q=>q.z))-Math.min(...roof.footprint.map(q=>q.z))).toBe(8)
-  expect(Math.max(...canopy.posts.map(q=>q.z))-Math.min(...canopy.posts.map(q=>q.z))-canopy.postWidthM).toBeCloseTo(7.52)
-  expect(carport.furniture!.some(f=>f.ref==='interior/carport/car-2')).toBe(false)
+  expect(roof.footprint).toEqual(before.buildings.find(b=>b.ref===carport.ref)!.roof.segments[0].footprint)
+  expect(Math.max(...roof.footprint.map(q=>q.z))-Math.min(...roof.footprint.map(q=>q.z))).toBeCloseTo(6.4)
+  expect(canopy.posts).toEqual(before.buildings.find(b=>b.ref===carport.ref)!.roof.segments[0].canopy!.posts)
+  expect(carport.furniture).toEqual(before.buildings.find(b=>b.ref===carport.ref)!.furniture)
   const gate=p.site.entrances.find(e=>e.ref==='entrance/house-road')!,drive=p.landscape.zones.find(z=>z.ref==='zone/driveway')!
   expect(Math.hypot(gate.end.x-gate.start.x,gate.end.z-gate.start.z)).toBeCloseTo(6.4,4)
   expect(drive.footprint.slice(2)).toEqual([gate.end,gate.start])
@@ -283,5 +282,5 @@ it('moves the attached house and gate while preserving trees, three metres of he
   const reloaded=(await loadWorkspace(p.ref))!.project
   expect(reloaded.name).toBe('Własna nazwa')
   expect(reloaded.landscape.fixtures.some(f=>f.ref===removed)).toBe(false)
-  expect(reloaded.buildings.find(b=>b.ref===carport.ref)!.furniture!.some(f=>f.ref==='interior/carport/car-2')).toBe(false)
+  expect(reloaded.buildings.find(b=>b.ref===carport.ref)!.furniture).toEqual(carport.furniture)
 })

@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp-v2",
   "name": "nowe mpzp — wariant 2",
   "units": "metric",
-  "revision": 8,
-  "updatedAt": "2026-10-21T02:00:00.000Z",
+  "revision": 9,
+  "updatedAt": "2026-10-21T02:40:00.000Z",
   "site": {
     "boundary": [
       {
@@ -1265,12 +1265,12 @@
         "ref": "entrance/house-road",
         "name": "Brama 6,4 m naprzeciwko przesuniętej wiaty · prosty przejazd",
         "start": {
-          "x": -19.606438912152925,
-          "z": -11.90210132253053
+          "x": -19.60643652867946,
+          "z": -11.90205689458513
         },
         "end": {
-          "x": -19.26358430584334,
-          "z": -5.51129146091988
+          "x": -19.263581922369873,
+          "z": -5.511247032974481
         },
         "connectsTo": "public-road",
         "geometryConfidence": "user-marked",
@@ -2162,9 +2162,9 @@
         "Wariant 2 r6: siedem nieoznaczonych drzew owocowych po prawej zachowano z koronami Ø3,2 m, wysokością 3,5 m i rozstawem 4,2 m. Rzeczywiste odmiany, podkładki i zapylacze należy dobrać do tych gabarytów.",
         "Wariant 2 r7: podest zmniejszony z 7,8 × 17 m (132,6 m²) do 6,8 × 10,8 m (73,44 m²), wiata z 7,4 × 15,2 m do 6,4 × 9,8 m. Pełny dach nad kuchnią, widoczne belki i zastrzały, kuchnia L o obrysie 4,4 × 2,5 m. Jacuzzi Ø2,4 m i sauna 2,5 × 3 m zachowują nominalne rozmiary.",
         "Wariant 2 r7: otwór nad jacuzzi 2,9 × 3,25 m z rozsuwaną osłoną, domyślnie otwartą; przycisk zmienia podgląd. Komin do 4,2 m ma osobne przejście przez dach. Konstrukcja, pokrycie, odwodnienie, instalacje i niepalne oddzielenie pieca od drewna wymagają projektu wykonawczego.",
-        "Wariant 2 r8: dom, taras i wiata przesunięte o +0,50 m w osi X i −2,65 m w osi Z; brama na lewym ogrodzeniu przesunięta dla prostego przejazdu. 11 drzew geodezyjnych pozostaje na miejscu. Drzewo 503A ogranicza dalszy ruch w prawo; ochrona korzeni i istniejące zachodzenie korony na obrys dachu wymagają oceny arborysty.",
-        "Wariant 2 r8: wiata 6,6 × 8 m, co najmniej 3 m od górnej granicy na zdjęciu do zewnętrznej krawędzi obramowania; prześwit pionowy 3 m od nawierzchni do dolnej krawędzi belki. Wewnętrzny pas pozostawiono wolny do przejazdu; zewnętrzny zachowuje jedno auto. Sprinter: 2,25 m przyjęto jako wysokość z opisu użytkownika; 7,4 × 2,35 m to zachowana rezerwa, nie potwierdzony wariant pojazdu ani pomiar z lusterkami.",
-        "Wariant 2 r8: 3 m nie jest uniwersalnym potwierdzeniem legalności wiaty. WT §19 przewidują 3 m od granicy dla do 10 miejsc osobowych, 6 m dla do 4 miejsc innych pojazdów i odpowiednio 7/10 m od chronionych okien. Dla kampera zarejestrowanego jako samochód specjalny zarezerwowano wewnętrzny pas oddalony od granicy o ponad 6 m. Odstępy od okien, ppoż., MPZP i przeniesienie zjazdu wymagają weryfikacji w projekcie budowlanym. Art. 102a–102b Pb (Dz.U. 2026 poz. 1161) pozwala na stosowanie wcześniejszych WT w okresie przejściowym; przy pozwoleniu/zgłoszeniu potrzebne jest oświadczenie inwestora. Nie przyjęto wyjątku pozwalającego zbliżyć zadaszony parking do granicy."
+        "Wariant 2 r9: dom, taras i wiata przesunięte o +0,50 m w osi X i −2,65 m w osi Z; brama na lewym ogrodzeniu przesunięta dla prostego przejazdu. 11 drzew geodezyjnych pozostaje na miejscu. Drzewo 503A ogranicza dalszy ruch w prawo; ochrona korzeni i istniejące zachodzenie korony na obrys dachu wymagają oceny arborysty.",
+        "Wariant 2 r9: na doprecyzowanie użytkownika dach wiaty pozostaje 6,6 × 6,4 m. Co najmniej 3 m od górnej granicy na zdjęciu do zewnętrznej krawędzi obramowania; prześwit pionowy 3 m od nawierzchni do dolnej krawędzi belki. Dwa miejsca osobowe zachowane; przejazd możliwy przy wolnym pasie. Kamper to hipotetyczna przyszła opcja, bez projektowania miejsca postojowego ani wydłużania dachu. 2,25 m przyjęto jako wysokość z opisu, pozostałe gabaryty modelu są orientacyjne.",
+        "Wariant 2 r9: 3 m nie jest uniwersalnym potwierdzeniem legalności wiaty. WT §19 przewidują 3 m od granicy dla do 10 miejsc osobowych i 7 m od chronionych okien. Hipotetyczny przejazd kampera nie jest tu odrębnym miejscem postojowym. Odstępy od okien, ppoż., MPZP i przeniesienie zjazdu wymagają weryfikacji w projekcie budowlanym. Art. 102a–102b Pb (Dz.U. 2026 poz. 1161) pozwala na stosowanie wcześniejszych WT w okresie przejściowym; przy pozwoleniu/zgłoszeniu potrzebne jest oświadczenie inwestora. Nie przyjęto wyjątku pozwalającego zbliżyć zadaszony parking do granicy."
       ]
     }
   },
@@ -5031,17 +5031,32 @@
           "name": "Auto 1 · stanowisko zewnętrzne",
           "position": {
             "x": -11.775,
-            "z": -2.5549999999999997
+            "z": -3.355
           },
           "widthM": 1.9,
           "depthM": 4.7,
           "heightM": 1.5,
           "rotationDegrees": 0,
           "color": "#89969e"
+        },
+        {
+          "ref": "interior/carport/car-2",
+          "catalogId": "car",
+          "storeyRef": "storey/carport",
+          "name": "Auto 2 · stanowisko przejazdowe przy domu",
+          "position": {
+            "x": -8.745,
+            "z": -3.355
+          },
+          "widthM": 1.9,
+          "depthM": 4.7,
+          "heightM": 1.5,
+          "rotationDegrees": 0,
+          "color": "#d1cfc6"
         }
       ],
       "ref": "building/south-carport",
-      "name": "Wiata przejazdowa · prześwit 3 m · dach 6,6 × 8 m",
+      "name": "Wiata na 2 auta · prześwit 3 m · dach 6,6 × 6,4 m",
       "kind": "garage",
       "architecturalStyle": "barn",
       "position": {
@@ -5078,11 +5093,11 @@
             },
             {
               "x": -6.695,
-              "z": 1.445
+              "z": -0.155
             },
             {
               "x": -13.295,
-              "z": 1.445
+              "z": -0.155
             }
           ],
           "topElevationM": 0.45,
@@ -5111,11 +5126,11 @@
           },
           {
             "x": -6.695,
-            "z": 1.445
+            "z": -0.155
           },
           {
             "x": -13.295,
-            "z": 1.445
+            "z": -0.155
           }
         ],
         "finish": {
@@ -5136,11 +5151,11 @@
               },
               {
                 "x": -6.695,
-                "z": 1.445
+                "z": -0.155
               },
               {
                 "x": -13.295,
-                "z": 1.445
+                "z": -0.155
               }
             ],
             "storeyRef": "storey/carport",
@@ -5177,11 +5192,11 @@
                 },
                 {
                   "x": -6.855,
-                  "z": 1.2850000000000001
+                  "z": -0.315
                 },
                 {
                   "x": -13.135,
-                  "z": 1.2850000000000001
+                  "z": -0.315
                 }
               ]
             }
@@ -5206,7 +5221,7 @@
           "ref": "interior/outbuilding/camper",
           "catalogId": "camper",
           "storeyRef": "storey/outbuilding",
-          "name": "Sprinter · wysokość 2,25 m przyjęta z opisu; długość 7,4 m jako rezerwa",
+          "name": "Sprinter · hipotetyczna opcja · wysokość 2,25 m",
           "position": {
             "x": 0,
             "z": -1.8
@@ -5656,20 +5671,20 @@
         "kind": "driveway",
         "footprint": [
           {
-            "x": -8.9618919851453,
-            "z": -12.473160707026647
+            "x": -7.364187136269173,
+            "z": -12.558829930658643
           },
           {
-            "x": -8.619215090617324,
-            "z": -6.082341311522135
+            "x": -7.021510241741195,
+            "z": -6.168010535154129
           },
           {
-            "x": -19.26358430584334,
-            "z": -5.51129146091988
+            "x": -19.263581922369873,
+            "z": -5.511247032974481
           },
           {
-            "x": -19.606438912152925,
-            "z": -11.90210132253053
+            "x": -19.60643652867946,
+            "z": -11.90205689458513
           }
         ],
         "locked": false,
@@ -10396,6 +10411,10 @@
             "z": -13.616840355098248
           },
           {
+            "x": 3.611319027841091,
+            "z": -11.902056895196438
+          },
+          {
             "x": 3.6369578912854195,
             "z": -11.423900000751019
           },
@@ -10408,24 +10427,16 @@
             "z": -13.001363381743431
           },
           {
-            "x": -8.967246308922768,
-            "z": -12.57301726192236
+            "x": -7.3695414662361145,
+            "z": -12.658686481416225
           },
           {
-            "x": -8.905630432069302,
-            "z": -11.423900000751019
+            "x": -7.364187136292458,
+            "z": -12.558829933404922
           },
           {
-            "x": -8.905630439519882,
-            "z": -11.423900000751019
-          },
-          {
-            "x": -8.961891986429691,
-            "z": -12.473160706460476
-          },
-          {
-            "x": -19.356797881424427,
-            "z": -11.915494076907635
+            "x": -19.356795504689217,
+            "z": -11.915449649095535
           },
           {
             "x": -19.51496584713459,
@@ -10656,14 +10667,6 @@
             "z": -5.365099996328354
           },
           {
-            "x": 18.230676144361496,
-            "z": -6.5092804580926895
-          },
-          {
-            "x": 18.208514854311943,
-            "z": -6.884800001978874
-          },
-          {
             "x": 18.198499999940395,
             "z": -7.054499998688698
           },
@@ -10676,8 +10679,12 @@
             "z": -6.884800001978874
           },
           {
-            "x": 16.233035944402218,
-            "z": -6.41083087772131
+            "x": 16.233533218503,
+            "z": -6.402400001883507
+          },
+          {
+            "x": 16.248872093856335,
+            "z": -6.1423404812812805
           },
           {
             "x": 16.302100002765656,
@@ -21036,12 +21043,46 @@
             "z": -2.8959753587841988
           },
           {
-            "x": -19.26258573681116,
-            "z": -5.511345028877258
+            "x": -19.26258335262537,
+            "z": -5.511300601065159
           },
           {
             "x": -9,
-            "z": -6.061912931501865
+            "z": -6.061868377029896
+          }
+        ]
+      },
+      {
+        "ref": "zone/nowe-mpzp-v2/house-shift-lawn-5",
+        "name": "Trawnik po przesunięciu domu i podjazdu",
+        "kind": "lawn",
+        "textureId": "leafy-grass",
+        "colorHex": "#B7D7A5",
+        "locked": false,
+        "footprint": [
+          {
+            "x": -1.2655891925096512,
+            "z": -6.376500405371189
+          },
+          {
+            "x": -7.5,
+            "z": -6.042210169136524
+          },
+          {
+            "x": -7.5,
+            "z": -6.1423404812812805
+          },
+          {
+            "x": -7.0215102434158325,
+            "z": -6.1680105328559875
+          },
+          {
+            "x": -7.016155913472176,
+            "z": -6.068153984844685
+          },
+          {
+            "x": -1.2655891925096512,
+            "z": -6.37650041282177
           }
         ]
       }

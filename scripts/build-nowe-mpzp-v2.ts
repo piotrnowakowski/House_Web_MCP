@@ -14,7 +14,7 @@ const sourceFile = `${dir}/source-nowe-mpzp-r19.json`
 if (!fs.existsSync(sourceFile)) fs.copyFileSync('project-data/nowe-mpzp/project.json', sourceFile, fs.constants.COPYFILE_EXCL)
 const source = parseProject(JSON.parse(fs.readFileSync(sourceFile, 'utf8'))), p = structuredClone(source)
 assert.equal(source.revision, 19)
-p.ref = 'project/nowe-mpzp-v2'; p.name = 'nowe mpzp — wariant 2'; p.revision = 8; p.updatedAt = '2026-10-21T02:00:00.000Z'
+p.ref = 'project/nowe-mpzp-v2'; p.name = 'nowe mpzp — wariant 2'; p.revision = 9; p.updatedAt = '2026-10-21T02:40:00.000Z'
 const pt = (x: number, z: number): Vec2 => ({ x: +x.toFixed(4), z: +z.toFixed(4) })
 const rect = (x: number, z: number, w: number, d: number) => [pt(x-w/2,z-d/2),pt(x+w/2,z-d/2),pt(x+w/2,z+d/2),pt(x-w/2,z+d/2)]
 const circle = (x: number, z: number, r: number) => Array.from({length:48},(_,i)=>pt(x+r*Math.cos(i*Math.PI/24),z+r*Math.sin(i*Math.PI/24)))
@@ -259,16 +259,12 @@ const shift = {x:.5,z:-2.65}, moved = (q:Vec2):Vec2 => ({x:q.x+shift.x,z:q.z+shi
 const house=p.buildings.find(b=>b.ref==='house/main')!, carport=p.buildings.find(b=>b.ref==='building/south-carport')!
 house.position=moved(house.position); carport.position=moved(carport.position)
 const carRoof=carport.roof.segments[0]
-carport.name='Wiata przejazdowa · prześwit 3 m · dach 6,6 × 8 m'
+carport.name='Wiata na 2 auta · prześwit 3 m · dach 6,6 × 6,4 m'
 carport.roof.baseElevationM=3.51;carRoof.baseElevationM=3.51;carport.storeys[0].clearHeightM=3.06
-for(const poly of [carport.roof.footprint,carRoof.footprint,carport.slabs[0].footprint])for(const q of poly)if(q.z>-.2)q.z+=1.6
-for(const q of carRoof.canopy!.posts)if(q.z>-.4)q.z+=1.6
 // Flush paving avoids the old 18 cm slab edge across the driving route.
 carport.slabs[0].thicknessM=.025
-carport.furniture=carport.furniture.filter(f=>f.ref!=='interior/carport/car-2')
-carport.furniture[0].position.z+=.8
 const camper=p.buildings.find(b=>b.ref==='building/garden-outbuilding')!.furniture.find(f=>f.catalogId==='camper')!
-camper.heightM=2.25;camper.name='Sprinter · wysokość 2,25 m przyjęta z opisu; długość 7,4 m jako rezerwa'
+camper.heightM=2.25;camper.name='Sprinter · hipotetyczna opcja · wysokość 2,25 m'
 const a=carport.rotationDegrees*Math.PI/180, world=(q:Vec2):Vec2=>({x:carport.position.x+q.x*Math.cos(a)+q.z*Math.sin(a),z:carport.position.z-q.x*Math.sin(a)+q.z*Math.cos(a)})
 const gate=p.site.entrances.find(e=>e.ref==='entrance/house-road')!
 const roadA=pt(-19.778,-15.1),roadB=pt(-18.403,10.53)
@@ -276,7 +272,7 @@ const projectRoad=(q:Vec2)=>{
   const dx=roadB.x-roadA.x,dz=roadB.z-roadA.z,t=((q.x-roadA.x)*dx+(q.z-roadA.z)*dz)/(dx*dx+dz*dz)
   return {x:roadA.x+t*dx,z:roadA.z+t*dz}
 }
-const entryNorth=world({x:-13.195,z:1.445}),entrySouth=world({x:-6.795,z:1.445})
+const entryNorth=world({x:-13.195,z:-.155}),entrySouth=world({x:-6.795,z:-.155})
 gate.start=projectRoad(entryNorth);gate.end=projectRoad(entrySouth)
 gate.name='Brama 6,4 m naprzeciwko przesuniętej wiaty · prosty przejazd'
 const driveway=p.landscape.zones.find(z=>z.ref==='zone/driveway')!
@@ -306,9 +302,9 @@ assert(Math.min(...carRoof.footprint.map(world).map(q=>edgeDistance(q,p.site.bou
 assert(Math.abs(carRoof.baseElevationM+.24-carRoof.canopy!.fasciaHeightM-carport.slabs[0].topElevationM-3)<1e-9)
 p.site.knowledgeBase.caveats=p.site.knowledgeBase.caveats.filter(c=>!c.startsWith('Wariant 2: ilustracja bez skali.'))
 p.site.knowledgeBase.caveats.push(
-  'Wariant 2 r8: dom, taras i wiata przesunięte o +0,50 m w osi X i −2,65 m w osi Z; brama na lewym ogrodzeniu przesunięta dla prostego przejazdu. 11 drzew geodezyjnych pozostaje na miejscu. Drzewo 503A ogranicza dalszy ruch w prawo; ochrona korzeni i istniejące zachodzenie korony na obrys dachu wymagają oceny arborysty.',
-  'Wariant 2 r8: wiata 6,6 × 8 m, co najmniej 3 m od górnej granicy na zdjęciu do zewnętrznej krawędzi obramowania; prześwit pionowy 3 m od nawierzchni do dolnej krawędzi belki. Wewnętrzny pas pozostawiono wolny do przejazdu; zewnętrzny zachowuje jedno auto. Sprinter: 2,25 m przyjęto jako wysokość z opisu użytkownika; 7,4 × 2,35 m to zachowana rezerwa, nie potwierdzony wariant pojazdu ani pomiar z lusterkami.',
-  'Wariant 2 r8: 3 m nie jest uniwersalnym potwierdzeniem legalności wiaty. WT §19 przewidują 3 m od granicy dla do 10 miejsc osobowych, 6 m dla do 4 miejsc innych pojazdów i odpowiednio 7/10 m od chronionych okien. Dla kampera zarejestrowanego jako samochód specjalny zarezerwowano wewnętrzny pas oddalony od granicy o ponad 6 m. Odstępy od okien, ppoż., MPZP i przeniesienie zjazdu wymagają weryfikacji w projekcie budowlanym. Art. 102a–102b Pb (Dz.U. 2026 poz. 1161) pozwala na stosowanie wcześniejszych WT w okresie przejściowym; przy pozwoleniu/zgłoszeniu potrzebne jest oświadczenie inwestora. Nie przyjęto wyjątku pozwalającego zbliżyć zadaszony parking do granicy.',
+  'Wariant 2 r9: dom, taras i wiata przesunięte o +0,50 m w osi X i −2,65 m w osi Z; brama na lewym ogrodzeniu przesunięta dla prostego przejazdu. 11 drzew geodezyjnych pozostaje na miejscu. Drzewo 503A ogranicza dalszy ruch w prawo; ochrona korzeni i istniejące zachodzenie korony na obrys dachu wymagają oceny arborysty.',
+  'Wariant 2 r9: na doprecyzowanie użytkownika dach wiaty pozostaje 6,6 × 6,4 m. Co najmniej 3 m od górnej granicy na zdjęciu do zewnętrznej krawędzi obramowania; prześwit pionowy 3 m od nawierzchni do dolnej krawędzi belki. Dwa miejsca osobowe zachowane; przejazd możliwy przy wolnym pasie. Kamper to hipotetyczna przyszła opcja, bez projektowania miejsca postojowego ani wydłużania dachu. 2,25 m przyjęto jako wysokość z opisu, pozostałe gabaryty modelu są orientacyjne.',
+  'Wariant 2 r9: 3 m nie jest uniwersalnym potwierdzeniem legalności wiaty. WT §19 przewidują 3 m od granicy dla do 10 miejsc osobowych i 7 m od chronionych okien. Hipotetyczny przejazd kampera nie jest tu odrębnym miejscem postojowym. Odstępy od okien, ppoż., MPZP i przeniesienie zjazdu wymagają weryfikacji w projekcie budowlanym. Art. 102a–102b Pb (Dz.U. 2026 poz. 1161) pozwala na stosowanie wcześniejszych WT w okresie przejściowym; przy pozwoleniu/zgłoszeniu potrzebne jest oświadczenie inwestora. Nie przyjęto wyjątku pozwalającego zbliżyć zadaszony parking do granicy.',
 )
 p.site.knowledgeBase.sources.push({ref:'source/nowe-mpzp-v2-carport-setbacks',title:'WT §19 i przepisy przejściowe art. 102a–102b Prawa budowlanego',date:'2026-10-21',kind:'planning-document',authority:'official',summary:'ELI: https://eli.gov.pl/api/acts/DU/2022/1225/text.html ; art. 2 pkt 4: https://api.sejm.gov.pl/eli/acts/DU/2026/1161/text.pdf . Warunkowe założenia koncepcji, bez potwierdzenia klasyfikacji kampera, okien i ochrony przeciwpożarowej.'})
 assert.deepEqual(p.site.parcels,source.site.parcels)
