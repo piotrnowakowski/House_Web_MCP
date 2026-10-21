@@ -7,6 +7,7 @@ import beforeTerrace from '../../project-data/nowe-mpzp-v2/before-terrace-canopy
 import beforeAllPlants from '../../project-data/nowe-mpzp-v2/before-all-thuja-grass-r4.json'
 import beforeGardenRefine from '../../project-data/nowe-mpzp-v2/before-garden-refine-r5.json'
 import beforeCompact from '../../project-data/nowe-mpzp-v2/before-compact-kitchen-r6.json'
+import beforeShift from '../../project-data/nowe-mpzp-v2/before-house-shift-r7.json'
 import parent from '../../project-data/nowe-mpzp/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
@@ -20,11 +21,11 @@ import { NOWE_MPZP_V2_REF, synchronizePublishedNoweMpzpV2 } from './publishedNow
 it('keeps the house, roofs, site and surveyed trees while fitting the reference garden at metre scale', () => {
   const p=parseProject(data), source=parseProject(parent)
   expect(p.ref).toBe(NOWE_MPZP_V2_REF)
-  expect(p.buildings).toEqual(source.buildings)
+  expect({...p.buildings[0],position:null}).toEqual({...source.buildings[0],position:null})
   expect(p.site.boundary).toEqual(source.site.boundary)
   expect(p.site.parcels).toEqual(source.site.parcels)
   expect(p.site.fences).toEqual(source.site.fences)
-  expect(p.site.entrances).toEqual(source.site.entrances)
+  expect(p.site.entrances.filter(e=>e.ref!=='entrance/house-road')).toEqual(source.site.entrances.filter(e=>e.ref!=='entrance/house-road'))
   expect(p.landscape.plants.filter(t=>t.surveyHandle)).toEqual(source.landscape.plants.filter(t=>t.surveyHandle))
   expect(validateProject(p).filter(i=>i.severity==='error')).toEqual([])
   const bodies=p.buildings.flatMap(buildingFootprintsWorld)
@@ -219,7 +220,7 @@ it('removes the marked trees, densifies only the existing fence rows and preserv
 })
 
 it('compacts only the kitchen and spa, preserves real sizes and migrates independent edits and deletions',async()=>{
-  const p=parseProject(data),before=parseProject(beforeCompact)
+  const p=parseProject(beforeShift),before=parseProject(beforeCompact)
   const bySuffix=(project:typeof p,suffix:string)=>project.landscape.fixtures.find(f=>f.ref===`fixture/nowe-mpzp-v2/${suffix}`)!
   const changed=['pergola','kitchen','pizza','summer-table','hot-tub','sauna'].map(s=>bySuffix(p,s).ref)
   expect(p.landscape.fixtures.filter(f=>!changed.includes(f.ref))).toEqual(before.landscape.fixtures.filter(f=>!changed.includes(f.ref)))
@@ -244,4 +245,43 @@ it('compacts only the kitchen and spa, preserves real sizes and migrates indepen
   const reloaded=(await loadWorkspace(p.ref))!.project
   expect(reloaded.name).toBe('Własny ogród')
   expect(reloaded.landscape.fixtures.some(f=>f.ref===deleted)).toBe(false)
+})
+
+it('moves the attached house and gate while preserving trees, three metres of headroom and a six-metre camper setback',async()=>{
+  const p=parseProject(data),before=parseProject(beforeShift)
+  for(const ref of ['house/main','building/south-carport']){
+    const b=p.buildings.find(b=>b.ref===ref)!,old=before.buildings.find(b=>b.ref===ref)!
+    expect(b.position.x-old.position.x).toBeCloseTo(.5)
+    expect(b.position.z-old.position.z).toBeCloseTo(-2.65)
+    expect(b.rotationDegrees).toBe(old.rotationDegrees)
+  }
+  const carport=p.buildings.find(b=>b.ref==='building/south-carport')!,roof=carport.roof.segments[0],canopy=roof.canopy!
+  expect(roof.baseElevationM+.24-canopy.fasciaHeightM-carport.slabs[0].topElevationM).toBeCloseTo(3)
+  expect(carport.slabs[0].thicknessM).toBe(.025)
+  const a=carport.rotationDegrees*Math.PI/180
+  const world=(x:number,z:number)=>({x:carport.position.x+x*Math.cos(a)+z*Math.sin(a),z:carport.position.z-x*Math.sin(a)+z*Math.cos(a)})
+  const boundaryGap=(q:{x:number,z:number})=>Math.min(...p.site.boundary.map((v,i)=>distanceToSegment(q,v,p.site.boundary[(i+1)%p.site.boundary.length])))
+  expect(Math.min(...roof.footprint.map(q=>boundaryGap(world(q.x,q.z))))-.06).toBeGreaterThanOrEqual(3)
+  // The inner 3 m-wide reserved parking strip is farther from the boundary than the roof.
+  for(const x of [-9.995,-6.995])for(const z of [-6.555,1.445])expect(boundaryGap(world(x,z))).toBeGreaterThanOrEqual(6)
+  expect(Math.max(...roof.footprint.map(q=>q.z))-Math.min(...roof.footprint.map(q=>q.z))).toBe(8)
+  expect(Math.max(...canopy.posts.map(q=>q.z))-Math.min(...canopy.posts.map(q=>q.z))-canopy.postWidthM).toBeCloseTo(7.52)
+  expect(carport.furniture!.some(f=>f.ref==='interior/carport/car-2')).toBe(false)
+  const gate=p.site.entrances.find(e=>e.ref==='entrance/house-road')!,drive=p.landscape.zones.find(z=>z.ref==='zone/driveway')!
+  expect(Math.hypot(gate.end.x-gate.start.x,gate.end.z-gate.start.z)).toBeCloseTo(6.4,4)
+  expect(drive.footprint.slice(2)).toEqual([gate.end,gate.start])
+  const width={x:gate.end.x-gate.start.x,z:gate.end.z-gate.start.z},run={x:drive.footprint[0].x-gate.start.x,z:drive.footprint[0].z-gate.start.z}
+  expect(Math.abs(width.x*run.x+width.z*run.z)).toBeLessThan(.003)
+  expect(p.landscape.plants.filter(t=>t.surveyHandle)).toEqual(before.landscape.plants.filter(t=>t.surveyHandle))
+  for(const t of p.landscape.plants.filter(t=>t.surveyHandle))expect(p.buildings.flatMap(buildingFootprintsWorld).some(poly=>pointInPolygon(t.position,poly)),t.ref).toBe(false)
+  const local=structuredClone(before),removed='fixture/nowe-mpzp-v2/terrace-dining'
+  local.landscape.fixtures=local.landscape.fixtures.filter(f=>f.ref!==removed);local.name='Własna nazwa'
+  const merged=mergeProjects(before,local,p)
+  expect(merged.conflicts).toEqual([expect.stringContaining(removed)])
+  globalThis.indexedDB=new IDBFactory()
+  await saveWorkspace({version:1,project:merged.project,proposals:[],draftChangeSets:[]})
+  const reloaded=(await loadWorkspace(p.ref))!.project
+  expect(reloaded.name).toBe('Własna nazwa')
+  expect(reloaded.landscape.fixtures.some(f=>f.ref===removed)).toBe(false)
+  expect(reloaded.buildings.find(b=>b.ref===carport.ref)!.furniture!.some(f=>f.ref==='interior/carport/car-2')).toBe(false)
 })

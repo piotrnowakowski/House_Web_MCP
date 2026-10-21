@@ -4,7 +4,7 @@ import Module from 'manifold-3d'
 import { CatmullRomCurve3, Vector3 } from 'three'
 import { parseProject } from '../src/domain/schema'
 import { validateProject } from '../src/domain/commands'
-import { buildingFootprintsWorld, distanceToSegment, pointInPolygon, polygonArea } from '../src/domain/geometry'
+import { buildingFootprintsWorld, distanceToSegment, offsetPolygon, pointInPolygon, polygonArea } from '../src/domain/geometry'
 import { gardenFixtureById } from '../src/domain/gardenFixtures'
 import type { GardenFixtureCatalogId, GardenZoneKind, PlantModel, Vec2 } from '../src/domain/types'
 
@@ -14,7 +14,7 @@ const sourceFile = `${dir}/source-nowe-mpzp-r19.json`
 if (!fs.existsSync(sourceFile)) fs.copyFileSync('project-data/nowe-mpzp/project.json', sourceFile, fs.constants.COPYFILE_EXCL)
 const source = parseProject(JSON.parse(fs.readFileSync(sourceFile, 'utf8'))), p = structuredClone(source)
 assert.equal(source.revision, 19)
-p.ref = 'project/nowe-mpzp-v2'; p.name = 'nowe mpzp — wariant 2'; p.revision = 7; p.updatedAt = '2026-10-21T00:20:00.000Z'
+p.ref = 'project/nowe-mpzp-v2'; p.name = 'nowe mpzp — wariant 2'; p.revision = 8; p.updatedAt = '2026-10-21T02:00:00.000Z'
 const pt = (x: number, z: number): Vec2 => ({ x: +x.toFixed(4), z: +z.toFixed(4) })
 const rect = (x: number, z: number, w: number, d: number) => [pt(x-w/2,z-d/2),pt(x+w/2,z-d/2),pt(x+w/2,z+d/2),pt(x-w/2,z+d/2)]
 const circle = (x: number, z: number, r: number) => Array.from({length:48},(_,i)=>pt(x+r*Math.cos(i*Math.PI/24),z+r*Math.sin(i*Math.PI/24)))
@@ -253,6 +253,64 @@ p.site.knowledgeBase.caveats.push(
   'Wariant 2 r7: otwór nad jacuzzi 2,9 × 3,25 m z rozsuwaną osłoną, domyślnie otwartą; przycisk zmienia podgląd. Komin do 4,2 m ma osobne przejście przez dach. Konstrukcja, pokrycie, odwodnienie, instalacje i niepalne oddzielenie pieca od drewna wymagają projektu wykonawczego.',
 )
 assert.deepEqual(p.buildings,source.buildings)
+// Translate the attached group; local rooms, roof slopes and surveyed trees stay fixed.
+const beforeShift = parseProject(JSON.parse(fs.readFileSync(`${dir}/before-house-shift-r7.json`, 'utf8')))
+const shift = {x:.5,z:-2.65}, moved = (q:Vec2):Vec2 => ({x:q.x+shift.x,z:q.z+shift.z})
+const house=p.buildings.find(b=>b.ref==='house/main')!, carport=p.buildings.find(b=>b.ref==='building/south-carport')!
+house.position=moved(house.position); carport.position=moved(carport.position)
+const carRoof=carport.roof.segments[0]
+carport.name='Wiata przejazdowa · prześwit 3 m · dach 6,6 × 8 m'
+carport.roof.baseElevationM=3.51;carRoof.baseElevationM=3.51;carport.storeys[0].clearHeightM=3.06
+for(const poly of [carport.roof.footprint,carRoof.footprint,carport.slabs[0].footprint])for(const q of poly)if(q.z>-.2)q.z+=1.6
+for(const q of carRoof.canopy!.posts)if(q.z>-.4)q.z+=1.6
+// Flush paving avoids the old 18 cm slab edge across the driving route.
+carport.slabs[0].thicknessM=.025
+carport.furniture=carport.furniture.filter(f=>f.ref!=='interior/carport/car-2')
+carport.furniture[0].position.z+=.8
+const camper=p.buildings.find(b=>b.ref==='building/garden-outbuilding')!.furniture.find(f=>f.catalogId==='camper')!
+camper.heightM=2.25;camper.name='Sprinter · wysokość 2,25 m przyjęta z opisu; długość 7,4 m jako rezerwa'
+const a=carport.rotationDegrees*Math.PI/180, world=(q:Vec2):Vec2=>({x:carport.position.x+q.x*Math.cos(a)+q.z*Math.sin(a),z:carport.position.z-q.x*Math.sin(a)+q.z*Math.cos(a)})
+const gate=p.site.entrances.find(e=>e.ref==='entrance/house-road')!
+const roadA=pt(-19.778,-15.1),roadB=pt(-18.403,10.53)
+const projectRoad=(q:Vec2)=>{
+  const dx=roadB.x-roadA.x,dz=roadB.z-roadA.z,t=((q.x-roadA.x)*dx+(q.z-roadA.z)*dz)/(dx*dx+dz*dz)
+  return {x:roadA.x+t*dx,z:roadA.z+t*dz}
+}
+const entryNorth=world({x:-13.195,z:1.445}),entrySouth=world({x:-6.795,z:1.445})
+gate.start=projectRoad(entryNorth);gate.end=projectRoad(entrySouth)
+gate.name='Brama 6,4 m naprzeciwko przesuniętej wiaty · prosty przejazd'
+const driveway=p.landscape.zones.find(z=>z.ref==='zone/driveway')!
+driveway.footprint=[entryNorth,entrySouth,{...gate.end},{...gate.start}]
+driveway.name='Prosty podjazd od przesuniętej bramy do wiaty · 6,4 m'
+const movingZone=(ref:string)=>['zone/terrace','zone/architekt/entry-apron','zone/nowe-mpzp/front-frame'].includes(ref)||/\/terrace-(front|side)-/.test(ref)
+for(const z of p.landscape.zones.filter(z=>movingZone(z.ref)))z.footprint=z.footprint.map(moved)
+for(const f of p.landscape.fixtures.filter(f=>/\/terrace-(lounge|dining)$/.test(f.ref)))f.position=moved(f.position)
+for(const t of p.landscape.plants.filter(t=>/\/terrace-(front|side)-/.test(t.ref)))t.position=moved(t.position)
+p.landscape.zones.find(z=>z.ref==='zone/nowe-mpzp/garden/house-fire-path')!.footprint=curve([[0,7.55],[3.5,9.2],[7.8,10.8],[11.8,8.2]],1.4)
+// Reuse the existing lawn coverage, reclaim vacated ground and cut the new hard surfaces.
+const oldMoved=beforeShift.landscape.zones.filter(z=>movingZone(z.ref)||['zone/driveway','zone/nowe-mpzp/garden/house-fire-path'].includes(z.ref))
+const newBodies=p.buildings.flatMap(buildingFootprintsWorld)
+const occupied=union([...newBodies,...p.landscape.zones.filter(z=>z.kind!=='lawn').map(z=>z.footprint)])
+for(const lawn of p.landscape.zones.filter(z=>z.kind==='lawn')){
+  const clipped=cs(lawn.footprint).subtract(occupied)
+  if(Math.abs(clipped.area()-polygonArea(lawn.footprint))<1e-7)continue
+  const pieces=clipped.toPolygons().map((poly,i)=>({...lawn,ref:i?`${lawn.ref}-shift-${i}`:lawn.ref,footprint:poly.map(([x,z])=>({x,z}))}))
+  assert(Math.abs(pieces.reduce((s,z)=>s+polygonArea(z.footprint),0)-clipped.area())<1e-6,'Lawn hole requires splitting')
+  p.landscape.zones.splice(p.landscape.zones.findIndex(z=>z.ref===lawn.ref),1,...pieces)
+}
+const reclaimed=union([...oldMoved.map(z=>z.footprint),...beforeShift.buildings.filter(b=>b.ref!=='building/garden-outbuilding').flatMap(buildingFootprintsWorld)]).subtract(union([...newBodies,...p.landscape.zones.map(z=>z.footprint)]))
+const reclaimedPolys=reclaimed.intersect(cs(offsetPolygon(p.site.boundary,.001))).toPolygons().filter(poly=>polygonArea(poly.map(([x,z])=>({x,z})))>.01)
+assert(Math.abs(reclaimedPolys.reduce((s,poly)=>s+polygonArea(poly.map(([x,z])=>({x,z}))),0)-reclaimed.area())<.02,'Reclaimed lawn hole requires splitting')
+for(const [i,poly] of reclaimedPolys.entries())p.landscape.zones.push({ref:zref(`house-shift-lawn-${i+1}`),name:'Trawnik po przesunięciu domu i podjazdu',kind:'lawn',textureId:'leafy-grass',colorHex:'#B7D7A5',locked:false,footprint:poly.map(([x,z])=>({x,z}))})
+assert(Math.min(...carRoof.footprint.map(world).map(q=>edgeDistance(q,p.site.boundary)))-.06>=3)
+assert(Math.abs(carRoof.baseElevationM+.24-carRoof.canopy!.fasciaHeightM-carport.slabs[0].topElevationM-3)<1e-9)
+p.site.knowledgeBase.caveats=p.site.knowledgeBase.caveats.filter(c=>!c.startsWith('Wariant 2: ilustracja bez skali.'))
+p.site.knowledgeBase.caveats.push(
+  'Wariant 2 r8: dom, taras i wiata przesunięte o +0,50 m w osi X i −2,65 m w osi Z; brama na lewym ogrodzeniu przesunięta dla prostego przejazdu. 11 drzew geodezyjnych pozostaje na miejscu. Drzewo 503A ogranicza dalszy ruch w prawo; ochrona korzeni i istniejące zachodzenie korony na obrys dachu wymagają oceny arborysty.',
+  'Wariant 2 r8: wiata 6,6 × 8 m, co najmniej 3 m od górnej granicy na zdjęciu do zewnętrznej krawędzi obramowania; prześwit pionowy 3 m od nawierzchni do dolnej krawędzi belki. Wewnętrzny pas pozostawiono wolny do przejazdu; zewnętrzny zachowuje jedno auto. Sprinter: 2,25 m przyjęto jako wysokość z opisu użytkownika; 7,4 × 2,35 m to zachowana rezerwa, nie potwierdzony wariant pojazdu ani pomiar z lusterkami.',
+  'Wariant 2 r8: 3 m nie jest uniwersalnym potwierdzeniem legalności wiaty. WT §19 przewidują 3 m od granicy dla do 10 miejsc osobowych, 6 m dla do 4 miejsc innych pojazdów i odpowiednio 7/10 m od chronionych okien. Dla kampera zarejestrowanego jako samochód specjalny zarezerwowano wewnętrzny pas oddalony od granicy o ponad 6 m. Odstępy od okien, ppoż., MPZP i przeniesienie zjazdu wymagają weryfikacji w projekcie budowlanym. Art. 102a–102b Pb (Dz.U. 2026 poz. 1161) pozwala na stosowanie wcześniejszych WT w okresie przejściowym; przy pozwoleniu/zgłoszeniu potrzebne jest oświadczenie inwestora. Nie przyjęto wyjątku pozwalającego zbliżyć zadaszony parking do granicy.',
+)
+p.site.knowledgeBase.sources.push({ref:'source/nowe-mpzp-v2-carport-setbacks',title:'WT §19 i przepisy przejściowe art. 102a–102b Prawa budowlanego',date:'2026-10-21',kind:'planning-document',authority:'official',summary:'ELI: https://eli.gov.pl/api/acts/DU/2022/1225/text.html ; art. 2 pkt 4: https://api.sejm.gov.pl/eli/acts/DU/2026/1161/text.pdf . Warunkowe założenia koncepcji, bez potwierdzenia klasyfikacji kampera, okien i ochrony przeciwpożarowej.'})
 assert.deepEqual(p.site.parcels,source.site.parcels)
 assert.deepEqual(p.site.fences,source.site.fences)
 for(const tree of source.landscape.plants.filter(t=>t.surveyHandle))assert.deepEqual(p.landscape.plants.find(t=>t.ref===tree.ref),tree)
@@ -261,7 +319,7 @@ for(const f of p.landscape.fixtures){
   for(const v of rect(0,0,w,d)){
     const q=pt(f.position.x+v.x*Math.cos(a)+v.z*Math.sin(a),f.position.z-v.x*Math.sin(a)+v.z*Math.cos(a))
     assert(pointInPolygon(q,p.site.boundary),f.ref+' outside boundary')
-    assert(!bodies.some(poly=>pointInPolygon(q,poly)),f.ref+' inside building')
+    assert(!p.buildings.flatMap(buildingFootprintsWorld).some(poly=>pointInPolygon(q,poly)),f.ref+' inside building')
   }
 }
 assert.deepEqual(validateProject(p).filter(i=>i.severity==='error'),[])
