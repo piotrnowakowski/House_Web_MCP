@@ -7,7 +7,7 @@ const openZielonkiStudy = async (page: import('@playwright/test').Page) => {
   await page.goto(appUrl, { waitUntil: 'domcontentloaded' })
   const startScreen = page.getByRole('dialog', { name: "Który projekt chcesz otworzyć?" })
   await expect(startScreen).toBeVisible()
-  await startScreen.getByRole('button', { name: 'Otwórz projekt: Główny', exact: true }).click()
+  await startScreen.getByRole('button', { name: 'Otwórz projekt: architekt', exact: true }).click()
   await expect(startScreen).toBeHidden()
   // A cold CI Vite server compiles the lazy 3D scene after the launcher closes.
   await expect(page.locator('canvas')).toHaveCount(1, { timeout: 45_000 })

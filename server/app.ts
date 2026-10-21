@@ -5,6 +5,7 @@ import { createHash, timingSafeEqual } from 'node:crypto'
 import type pg from 'pg'
 import { z } from 'zod'
 import { stableJson, validateWorkspace } from '../src/domain/workspaceSync'
+import { isArchivedProject } from '../src/domain/projectArchive'
 
 export function createApi(pool: pg.Pool, keyHash: string, origins: string[], publicAccess = false) {
   if (!publicAccess && !/^[a-f0-9]{64}$/.test(keyHash)) throw new Error('A SHA-256 connection-key hash is required')
@@ -29,7 +30,7 @@ export function createApi(pool: pg.Pool, keyHash: string, origins: string[], pub
   app.get('/api/sync/access', async () => ({ publicAccess }))
   app.get('/api/sync/projects', async () => {
     const result = await pool.query("SELECT ref, workspace->'project'->>'name' AS name, server_version AS \"serverVersion\" FROM house_sync_projects ORDER BY updated_at DESC")
-    return result.rows
+    return result.rows.filter(project => !isArchivedProject(project.ref))
   })
   app.get('/api/sync/workspace', async (request, reply) => {
     const query = z.object({ ref: z.string().min(1).max(512) }).safeParse(request.query)

@@ -5,8 +5,7 @@ import { isModernBarnPreset } from '../domain/presets'
 import { modernBarnProject, sampleProject } from '../domain/sampleProject'
 import { ZIELONKI_PROJECT_REF, createTerrainProject } from '../domain/terrain'
 import { listWorkspaces, loadWorkspace, saveWorkspace } from '../services/persistence'
-import { REAR_CARPORT_STUDY_REF } from '../services/publishedRearCarport'
-import { BATH_ROOM_STUDY_REF } from '../services/publishedBathRoom'
+import archivedProjects from '../../project-data/archived-projects.json'
 import { useStudioStore } from './store'
 
 beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [], history: [], month: 7, sunTime: { month: 7, day: 15, hour: 14 }, sunAnimation: 'none', sunOverlay: { enabled: false, targetRef: null, result: null } }))
@@ -152,13 +151,42 @@ describe('start screen and project switching', () => {
     useStudioStore.setState({ launcherOpen: false, hydrated: true, project: structuredClone(modernBarnProject) })
     await useStudioStore.getState().openLauncher()
     expect(useStudioStore.getState().launcherOpen).toBe(true)
-    expect(useStudioStore.getState().savedWorkspaces.map((item) => item.ref)).toEqual(expect.arrayContaining([terrain.ref, REAR_CARPORT_STUDY_REF, BATH_ROOM_STUDY_REF]))
+    expect(useStudioStore.getState().savedWorkspaces.map((item) => item.ref).sort()).toEqual([terrain.ref, 'project/architekt', 'project/nowe-mpzp', 'project/nowe-mpzp-v2'].sort())
     await useStudioStore.getState().openWorkspace(terrain.ref)
     expect(useStudioStore.getState().project.name).toBe('Saved plot')
     expect(useStudioStore.getState().launcherOpen).toBe(false)
     await useStudioStore.getState().openWorkspace('project/missing')
     expect(useStudioStore.getState().project.name).toBe('Saved plot')
     expect(useStudioStore.getState().toast).toMatch(/not found/i)
+  })
+
+  it('keeps only the three retained designs visible after reopening, without destroying archived workspaces', async () => {
+    globalThis.indexedDB = new IDBFactory()
+    const snapshots = archivedProjects.flatMap(({ ref, name }) => [ref, `${ref}/before-published-1`].map(versionRef => ({
+      version: 1 as const, project: { ...createTerrainProject({ name, widthM: 20, depthM: 20, northDegrees: 0, latitude: 50, longitude: 20, timezone: 'Europe/Warsaw' }), ref: versionRef }, proposals: [], draftChangeSets: [],
+    })))
+    for (const snapshot of snapshots) await saveWorkspace(snapshot)
+    useStudioStore.setState({ hydrated: false })
+    const kept = ['project/architekt', 'project/nowe-mpzp', 'project/nowe-mpzp-v2']
+    await useStudioStore.getState().openLauncher()
+    expect(useStudioStore.getState().savedWorkspaces.map(item => item.ref).sort()).toEqual(kept)
+    const before = await Promise.all(kept.map(ref => loadWorkspace(ref)))
+    await useStudioStore.getState().openWorkspace('project/nowe-mpzp-v2')
+    await useStudioStore.getState().openLauncher()
+    expect(useStudioStore.getState().savedWorkspaces.map(item => item.ref).sort()).toEqual(kept)
+    expect(await Promise.all(kept.map(ref => loadWorkspace(ref)))).toEqual(before)
+    const database = await new Promise<IDBDatabase>((resolve, reject) => {
+      const request = indexedDB.open('house-web-mcp', 2)
+      request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error)
+    })
+    try {
+      const store = database.transaction('projects').objectStore('projects')
+      const raw = await Promise.all(snapshots.map(snapshot => new Promise((resolve, reject) => {
+        const request = store.get(`workspace/${snapshot.project.ref}`)
+        request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error)
+      })))
+      expect(raw).toEqual(snapshots)
+    } finally { database.close() }
   })
 
   it('refocuses on the site when there is no building', () => {

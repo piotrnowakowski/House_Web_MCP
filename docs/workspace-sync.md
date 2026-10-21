@@ -1,5 +1,7 @@
 # Durable local saving and manual Mikrus sync
 
+The project cleanup requested on 2026-10-20 retires the five identities in `project-data/archived-projects.json` from the shared list and local launcher, including their saved versions. Existing data/history remain available for recovery by exact ref; no SQL deletion or history pruning was performed. Fresh installations initialize only architekt and MPZP variants 1 and 2. See `project-data/ARCHIVE.md` for backups and restoration.
+
 ## Behavior
 
 The application subscribes to committed workspace changes before React renders. It captures immutable snapshots immediately and saves them in order. **Saved locally** means the IndexedDB transaction completed; it does not mean the workspace has reached Mikrus. A failed transaction keeps the pending work in memory, prevents project replacement, and offers Retry and recovery export. Browser termination before a transaction completes cannot be guaranteed safe.

@@ -1,6 +1,9 @@
-import { DetailedGardenDining, DetailedGreenhouse, SunkenFireLounge } from './gardenDetails'
+import { DetailedGardenDining, SunkenFireLounge } from './gardenDetails'
 import { FineGardenGravelMaterial, GardenPavingMaterial } from './gardenPaving'
 import { excavatedGroundGeometry, gardenExcavations } from './gardenGround'
+import { metreBoxGeometry } from './metreGeometry'
+import { SiteFence } from './SiteFence'
+import { DetailedGreenhouse, RoundFireLounge, OrnamentalGrass, GardenSpaStructure, FloweringBorderPlant, ThujaPlant, SolarTable } from './GardenStructures'
 import { gableGlazingProfile } from '../domain/gableGlazing'
 import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
 import { CLEAR_MEASUREMENT_EVENT } from './events'
@@ -26,7 +29,7 @@ import { ProductModel } from '../interior/ProductModel'
 import { FinishMaterial } from '../interior/FinishMaterial'
 import { fitVisiblePlot } from './fitVisiblePlot'
 import { resolveGableWallFinish, resolveWallFinish } from '../domain/wallFinishes'
-import { recessSideBattenOffsets, recessSideLayout } from '../domain/gableRecess'
+import { recessSideBattenOffsets, recessSideFaceColors, recessSideLayout } from '../domain/gableRecess'
 import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
 import type { GeneratedSolid } from '../geometry/types'
 import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
@@ -40,6 +43,7 @@ import { TexturedMaterial, TexturePreloader, waitForTextures } from './materials
 import { useStudioStore } from '../state/store'
 import { landUseAreas } from '../domain/zoning'
 import { zielonkiZoningBoundary } from '../../knowledge-bank/zielonki/zoning'
+import { draftZoningBoundary, usesDraftPlan } from '../../knowledge-bank/zielonki/draftPlan'
 import { measurementScreenPoint, siteMeasurementEdges, snapMeasurementPoint, type MeasurementEdge } from './measurementSnapping'
 import { MeasurementPoint } from './MeasurementPoint'
 import { GlazedGable } from './GlazedGable'
@@ -86,13 +90,6 @@ const metrePlaneGeometry = (width: number, depth: number) => {
   return geometry
 }
 
-/** A box whose UVs are in metres per face (three.js face order: +x, -x, +y, -y, +z, -z). */
-const metreBoxGeometry = (width: number, height: number, depth: number) => {
-  const geometry = new BoxGeometry(width, height, depth); const uv = geometry.attributes.uv
-  const spans: Array<[number, number]> = [[depth, height], [depth, height], [width, depth], [width, depth], [width, height], [width, height]]
-  for (let index = 0; index < uv.count; index += 1) { const [u, v] = spans[Math.floor(index / 4)]; uv.setXY(index, uv.getX(index) * u, uv.getY(index) * v) }
-  return geometry
-}
 
 function MeasurementLabel({ position, type, children }: { position: Vector3; type: 'length' | 'area' | 'height'; children: React.ReactNode }) {
   return <Html position={position} center zIndexRange={[18, 0]} style={{ pointerEvents: 'none' }}><div className={`spatial-measurement-label ${type}`} role="status" aria-label={`${type === 'length' ? 'Length' : type === 'area' ? 'Area' : 'Height'} measurement`}>{children}</div></Html>
@@ -812,7 +809,8 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
           </mesh>
           <mesh position={alongZ ? [middle + sign * span / 2, (base + recess.baseElevationM) / 2, lining.center] : [lining.center, (base + recess.baseElevationM) / 2, middle + sign * span / 2]} castShadow receiveShadow>
             <boxGeometry args={alongZ ? [lining.thickness, sideHeight, lining.depth] : [lining.depth, sideHeight, lining.thickness]} />
-            <meshStandardMaterial color={sideColor} roughness={.9} />
+            {recessSideFaceColors(sideColor, recess.sideExteriorColorHex, alongZ, sign).map((color, face) =>
+              <meshStandardMaterial key={face} attach={`material-${face}`} color={color} roughness={.9} />)}
           </mesh>
           {sideBattens.map((offset, battenIndex) => <mesh key={`side-batten-${battenIndex}`} position={alongZ
             ? [middle + sign * span / 2 - sign * (lining.thickness / 2 + .018), (base + recess.baseElevationM) / 2, lining.center + offset]
@@ -1015,7 +1013,7 @@ function ParcelSurface({ boundary, landRole, planning = false, holes }: { bounda
     : '#627b50'
   return <group>
     <mesh geometry={geometry} position={[0, TERRAIN_SURFACE_Y + (planning ? PLANNING_TINT_Y : 0.006), 0]} renderOrder={1} receiveShadow>
-      <meshStandardMaterial color={fill} transparent opacity={construction ? planning ? 0.58 : 0.34 : 0.82} roughness={1} side={DoubleSide} depthWrite={!construction} polygonOffset polygonOffsetFactor={2} polygonOffsetUnits={2} />
+      <meshStandardMaterial color={fill} transparent opacity={construction ? planning ? 0.58 : 0.34 : 0.82} roughness={1} side={DoubleSide} depthWrite={false} />
     </mesh>
     <lineSegments geometry={edges} position={[0, TERRAIN_SURFACE_Y + (planning ? 0.065 : 0.012), 0]} renderOrder={2}>
       <lineBasicMaterial color={construction ? '#526b45' : '#4d6841'} transparent opacity={construction ? 0.95 : 0.88} depthWrite={false} />
@@ -1038,8 +1036,6 @@ function RoadEntranceMarker({ entrance }: { entrance: SiteEntranceModel }) {
 }
 
 function TerrainAndSite({ project }: { project: ProjectV2 }) {
-  const planningVisible = useStudioStore(state => state.planningOverlayVisible)
-  useEffect(() => { useStudioStore.getState().setPlanningOverlayVisible(false) }, [project.ref])
   const holes = useMemo(() => gardenExcavations(project), [project])
   const boundaryGeometry = useMemo(() => excavatedGroundGeometry(project.site.boundary, holes), [project.site.boundary, holes])
   const neighbouringGround = useMemo(() => {
@@ -1054,18 +1050,23 @@ function TerrainAndSite({ project }: { project: ProjectV2 }) {
   return <group userData={{ semanticRef: 'site' }}>
     {neighbouringGround && <mesh geometry={neighbouringGround} position={[0, TERRAIN_SURFACE_Y - 0.01, 0]} receiveShadow userData={{ contextOnly: true }}><TexturedMaterial asset={terrainTexture.asset} color="#727b60" fallbackColor="#727b60" roughness={1} side={DoubleSide} normalScale={0.4} /></mesh>}
     <mesh geometry={boundaryGeometry} position={[0, TERRAIN_SURFACE_Y, 0]} receiveShadow userData={{ semanticRef: 'site/terrain' }}><TexturedMaterial asset={terrainTexture.asset} color={terrainTexture.tint} fallbackColor={REAL.soil} roughness={1} side={DoubleSide} normalScale={0.4} /></mesh>
-    {planningVisible && landUseAreas(project).map((zone) => <ParcelSurface key={zone.ref} holes={holes} boundary={zone.boundary} landRole={zone.landRole} planning={Boolean(zone.code)} />)}
-    {planningVisible && project.site.parcels.some((parcel) => parcel.landUseZones?.some((zone) => zone.sourceRef === 'source/mpzp-boundary-v2')) && <group userData={{ semanticRef: 'site/zoning' }}>
-      <DreiLine points={zielonkiZoningBoundary.map((point) => [point.x, 0.12, point.z] as [number, number, number])} color="#ffc15a" lineWidth={3} dashed dashSize={0.65} gapSize={0.3} depthTest={false} renderOrder={12} />
+    {landUseAreas(project).map((zone) => <ParcelSurface key={zone.ref} holes={holes} boundary={zone.boundary} landRole={zone.landRole} planning={Boolean(zone.code)} />)}
+    {(usesDraftPlan(project) || project.site.parcels.some((parcel) => parcel.landUseZones?.some((zone) => zone.sourceRef === 'source/mpzp-boundary-v2'))) && <group userData={{ semanticRef: 'site/zoning' }}>
+      <DreiLine points={(usesDraftPlan(project) ? draftZoningBoundary : zielonkiZoningBoundary).map((point) => [point.x, 0.12, point.z] as [number, number, number])} color="#ffc15a" lineWidth={3} dashed dashSize={0.65} gapSize={0.3} depthTest={false} renderOrder={12} />
     </group>}
-    {project.site.entrances.map((entrance) => <RoadEntranceMarker key={entrance.ref} entrance={entrance} />)}
+    {project.site.fences?.map(fence => <SiteFence key={fence.ref} {...fence} semanticRef={fence.ref} />)}
+    {project.site.entrances.map((entrance) => {
+      if (!entrance.gate) return <RoadEntranceMarker key={entrance.ref} entrance={entrance} />
+      const { start, end } = entrance, length = Math.hypot(end.x - start.x, end.z - start.z)
+      const inward = pointInPolygon({ x: (start.x + end.x) / 2 - (end.z - start.z) / length * 0.1, z: (start.z + end.z) / 2 + (end.x - start.x) / length * 0.1 }, project.site.boundary)
+      return <SiteFence key={entrance.ref} start={inward ? start : end} end={inward ? end : start} {...entrance.gate} material="gate" semanticRef={entrance.ref} />
+    })}
   </group>
 }
 
 const zoneColor: Record<LandscapeZone['kind'], string> = { lawn: '#738e55', terrace: '#c5b99b', path: '#c1b695', driveway: '#a69f8f', bed: '#684f44', 'rain-garden': '#4f8075', vegetable: '#66834d' }
 
 function ZoneSurface({ zone }: { zone: LandscapeZone }) {
-  const planningVisible = useStudioStore(state => state.planningOverlayVisible)
   const project = useStudioStore(state => state.project)
   const holes = useMemo(() => gardenExcavations(project), [project])
   const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef); const month = useStudioStore((state) => state.month)
@@ -1074,18 +1075,19 @@ function ZoneSurface({ zone }: { zone: LandscapeZone }) {
   useEffect(() => () => geometry.dispose(), [geometry])
   // Finished surfaces are a render skin on the flat visible terrain, not a
   // second elevation model. Ground-bound solids use exact contact at y = 0.
-  // Finished surfaces sit just above the translucent MPZP land-use tint, otherwise paths and terraces vanish under it.
-  const y = groundSurfaceY() + (planningVisible ? PLANNING_TINT_Y + 0.012 : 0)
+  const y = groundSurfaceY() - (zone.kind === 'lawn' ? 0.001 : 0)
+  // Keep coplanar finishes stable in distant garden views without raising physical ground.
+  const surfaceDepth = { polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -4 }
   const selected = selectedRef === zone.ref; const texture = resolveZoneTexture(zone); const grass = texture?.id === 'leafy-grass'; const group = useRef<Group>(null)
   const gardenGravel = texture?.id === 'river-pebbles' && (zone.ref.startsWith('zone/kitchen-garden/') || zone.ref === 'zone/fire-lounge/approach')
   const loungePaving = texture?.id === 'concrete-tiles' && zone.ref === 'zone/fire-lounge/apron'
   return <><group ref={group} position={[0, y, 0]} userData={{ semanticRef: zone.ref }}>
-    <mesh geometry={geometry} receiveShadow onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(zone.ref) }}>{gardenGravel
+    <mesh geometry={geometry} renderOrder={zone.kind === 'lawn' ? 2 : 3} receiveShadow onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(zone.ref) }}>{gardenGravel
       ? <FineGardenGravelMaterial selected={selected} depthOffset={-4} />
       : loungePaving ? <GardenPavingMaterial selected={selected} depthOffset={-4} />
       : texture
-      ? <TexturedMaterial asset={texture.id} color={selected ? '#b9e84d' : zoneTintFor(zone, month)} fallbackColor={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={grass ? 1 : 0.9} side={DoubleSide} normalScale={grass ? 0.5 : 0.7} depthOffset={-4} />
-      : <meshStandardMaterial color={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={0.95} side={DoubleSide} polygonOffset polygonOffsetFactor={-4} polygonOffsetUnits={-4} />}</mesh>
+      ? <TexturedMaterial asset={texture.id} color={selected ? '#b9e84d' : zoneTintFor(zone, month)} fallbackColor={selected ? '#b9e84d' : zoneColor[zone.kind]} transparent roughness={grass ? 1 : 0.9} side={DoubleSide} normalScale={grass ? 0.5 : 0.7} {...surfaceDepth} />
+      : <meshStandardMaterial color={selected ? '#b9e84d' : zoneColor[zone.kind]} roughness={0.95} transparent side={DoubleSide} {...surfaceDepth} />}</mesh>
   </group>{selected && !zone.locked && repositioningRef === zone.ref && group.current && <TransformControls object={group.current} mode="translate" showY={false} userData={{ editorOnly: true }} onMouseUp={() => {
     if (!group.current) return
     try { commitCommand({ type: 'landscape.update', action: 'move', zoneRef: zone.ref, delta: { x: group.current.position.x, z: group.current.position.z } }) }
@@ -1106,7 +1108,7 @@ function Plant({ plant, project, selected, onSelect, ghost = false }: { plant: P
   const y = groundContactY(); const canopy = Math.max(0.25, plant.canopyM / 2); const visibleLeaf = plant.leafMonths.includes(month); const group = useRef<Group>(null)
   if (plant.kind === 'tree' && !treesVisible) return null
   return <><group ref={group} position={[plant.position.x, y, plant.position.z]} userData={{ semanticRef: plant.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) onSelect() }}>
-    {plant.surveyHandle ? <SurveyTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : hasFruitTreeVisual(plant) ? <FruitTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.crownShape === 'conical' ? <>
+    {plant.kind === 'grass' ? <OrnamentalGrass height={plant.matureHeightM} width={plant.canopyM} selected={selected} ghost={ghost} /> : plant.species.startsWith('Thuja ') ? <ThujaPlant plant={plant} selected={selected} ghost={ghost} /> : /^(Hydrangea|Lavandula)/.test(plant.species) ? <FloweringBorderPlant plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.surveyHandle ? <SurveyTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : hasFruitTreeVisual(plant) ? <FruitTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.crownShape === 'conical' ? <>
       <mesh position={[0, plant.matureHeightM * 0.4, 0]} castShadow={!ghost}><cylinderGeometry args={[0.12, 0.24, plant.matureHeightM * 0.8, 10]} /><meshStandardMaterial color="#584434" transparent={ghost} opacity={ghost ? 0.42 : 1} /></mesh>
       <mesh position={[0, plant.matureHeightM * 0.6, 0]} castShadow={!ghost}><coneGeometry args={[canopy, plant.matureHeightM * 0.8, 14]} /><meshStandardMaterial color={selected || ghost ? '#b9e84d' : '#355a3c'} transparent={ghost} opacity={ghost ? 0.38 : 1} depthWrite={!ghost} /></mesh>
     </> : <>
@@ -1165,16 +1167,16 @@ function LoungeSeat({ width, position, rotation = 0, selected, ghost }: { width:
   return <group position={position} rotation={[0, rotation, 0]}>
     <mesh position={[0, 0.28, 0]} castShadow><boxGeometry args={[width, 0.32, 0.78]} />{fixtureMaterial('#343a38', selected, ghost)}</mesh>
     <mesh position={[0, 0.51, -0.02]} castShadow><boxGeometry args={[Math.max(0.42, width - 0.22), 0.16, 0.58]} />{fixtureMaterial('#d8c9aa', selected, ghost)}</mesh>
-    <mesh position={[0, 0.72, 0.31]} rotation={[-Math.PI / 18, 0, 0]} castShadow><boxGeometry args={[Math.max(0.42, width - 0.2), 0.5, 0.14]} />{fixtureMaterial('#c8b894', selected, ghost)}</mesh>
+    <mesh position={[0, 0.72, 0.31]} rotation={[Math.PI / 18, 0, 0]} castShadow><boxGeometry args={[Math.max(0.42, width - 0.2), 0.5, 0.14]} />{fixtureMaterial('#c8b894', selected, ghost)}</mesh>
     {[-width / 2 + 0.07, width / 2 - 0.07].map((x) => <mesh key={x} position={[x, 0.48, 0]} castShadow><boxGeometry args={[0.12, 0.32, 0.8]} />{fixtureMaterial('#343a38', selected, ghost)}</mesh>)}
   </group>
 }
 
 function GardenLoungeSetFixture({ selected, ghost }: { selected: boolean; ghost: boolean }) {
   return <group>
-    <LoungeSeat width={2.25} position={[0, 0, 1.03]} rotation={Math.PI} selected={selected} ghost={ghost} />
-    <LoungeSeat width={0.9} position={[-1.4, 0, -0.55]} rotation={Math.PI / 2} selected={selected} ghost={ghost} />
-    <LoungeSeat width={0.9} position={[1.4, 0, -0.55]} rotation={-Math.PI / 2} selected={selected} ghost={ghost} />
+    <LoungeSeat width={2.25} position={[0, 0, 1.03]} selected={selected} ghost={ghost} />
+    <LoungeSeat width={0.9} position={[-1.4, 0, -0.55]} rotation={-Math.PI / 2} selected={selected} ghost={ghost} />
+    <LoungeSeat width={0.9} position={[1.4, 0, -0.55]} rotation={Math.PI / 2} selected={selected} ghost={ghost} />
     <mesh position={[0, 0.31, -0.45]} castShadow receiveShadow><boxGeometry args={[1.25, 0.1, 0.72]} />{fixtureMaterial('#986f4a', selected, ghost)}</mesh>
     {[-0.5, 0.5].flatMap((x) => [-0.25, 0.25].map((z) => <mesh key={`${x}-${z}`} position={[x, 0.15, z - 0.45]}><boxGeometry args={[0.05, 0.3, 0.05]} />{fixtureMaterial('#343a38', selected, ghost)}</mesh>))}
   </group>
@@ -1236,8 +1238,23 @@ function RecyclingBinsFixture({ selected, ghost }: { selected: boolean; ghost: b
 
 function GardenFixtureModel({ catalogId, selected, ghost }: { catalogId: GardenFixtureModel['catalogId']; selected: boolean; ghost: boolean }) {
   switch (catalogId) {
+    case 'solar-table-20': return <SolarTable selected={selected} ghost={ghost} />
+    case 'biological-treatment-study': case 'infiltration-study': {
+      const tank = catalogId === 'biological-treatment-study', w = tank ? 1.5 : 2, d = tank ? 3 : 6
+      return <group>
+        {/* The dashed ground outline is a planning reserve, not an exposed tank or designed drain. */}
+        {[-1, 1].flatMap(side => [
+          ...Array.from({ length: Math.ceil(d / .4) }, (_, i) => <mesh key={`z${side}-${i}`} position={[side*w/2,.035,-d/2+(i+.5)*d/Math.ceil(d/.4)]}><boxGeometry args={[.035,.025,.2]} />{fixtureMaterial('#489FA5',selected,ghost)}</mesh>),
+          ...Array.from({ length: Math.ceil(w / .4) }, (_, i) => <mesh key={`x${side}-${i}`} position={[-w/2+(i+.5)*w/Math.ceil(w/.4),.035,side*d/2]}><boxGeometry args={[.2,.025,.035]} />{fixtureMaterial('#489FA5',selected,ghost)}</mesh>),
+        ])}
+        {tank && [-.85,.85].map(z => <mesh key={z} position={[0,.06,z]} castShadow={!ghost}><cylinderGeometry args={[.3,.3,.12,32]} />{fixtureMaterial('#40544C',selected,ghost)}</mesh>)}
+      </group>
+    }
+    case 'round-hot-tub': case 'garden-sauna': case 'pizza-oven': case 'pizza-oven-tall-flue': case 'kitchen-pergola': case 'kitchen-spa-canopy': case 'kitchen-spa-retractable': case 'compact-kitchen-spa': return <GardenSpaStructure kind={catalogId} selected={selected} ghost={ghost} />
+    case 'greenhouse': return <DetailedGreenhouse selected={selected} ghost={ghost} />
+    case 'round-fire-lounge': return <RoundFireLounge selected={selected} ghost={ghost} />
     case 'recycling-bins': return <RecyclingBinsFixture selected={selected} ghost={ghost} />
-    case 'jacuzzi': case 'outdoor-kitchen': return <SpaFixture kind={catalogId} selected={selected} ghost={ghost} />
+    case 'jacuzzi': case 'outdoor-kitchen': case 'outdoor-kitchen-l': return <SpaFixture kind={catalogId} selected={selected} ghost={ghost} />
     case 'outdoor-dining-set': return <DetailedGardenDining selected={selected} ghost={ghost} />
     case 'garden-lounge-set': return <GardenLoungeSetFixture selected={selected} ghost={ghost} />
     case 'slatted-bench': return <SlattedBenchFixture selected={selected} ghost={ghost} />
@@ -1248,7 +1265,6 @@ function GardenFixtureModel({ catalogId, selected, ghost }: { catalogId: GardenF
     case 'potato-row': return <PotatoRowFixture selected={selected} ghost={ghost} />
     case 'cucumber-trellis': return <CucumberTrellisFixture selected={selected} ghost={ghost} />
     case 'sunken-fire-lounge': return <SunkenFireLounge selected={selected} ghost={ghost} />
-    case 'greenhouse': return <DetailedGreenhouse selected={selected} ghost={ghost} />
     case 'larch-bed-long': return <LarchBedVisual length={3.6} width={1.2} selected={selected} ghost={ghost} />
     case 'larch-bed-square': return <LarchBedVisual length={1.2} width={1.2} selected={selected} ghost={ghost} />
     case 'tomato-bed': return <TomatoBedVisual length={3.3} selected={selected} ghost={ghost} />

@@ -71,7 +71,7 @@ def sync_compose(current, revision, project, remote_dir, has_ca):
     if 'networks' in web:
         api['networks'] = web['networks']
     services['house-sync-api'] = api
-    backup = {'image': 'postgres:17-alpine', 'profiles': ['backup'], 'environment': {k: v for k, v in runtime.items() if k.startswith('PG')},
+    backup = {'image': 'postgres:18-alpine', 'profiles': ['backup'], 'environment': {k: v for k, v in runtime.items() if k.startswith('PG')},
               'entrypoint': ['pg_dump'], 'command': ['--format=custom', '--no-owner', '--no-acl', '--table=house_sync_*'], 'read_only': True,
               'tmpfs': ['/tmp']}
     if has_ca: backup['volumes'] = api['volumes']

@@ -1,10 +1,12 @@
 import { parseProject } from '../domain/schema'
+import { isArchivedProject } from '../domain/projectArchive'
 import { calculateMetrics, validateProject } from '../domain/commands'
 import { isZielonkiProject } from '../domain/terrain'
 import { mergeProjects, sameProject } from '../domain/projectMerge'
 import { stableJson } from '../domain/workspaceSync'
 import type { PersistedWorkspace, Polygon2, ProjectV2, ProposalRecord } from '../domain/types'
 import { zielonkiKnowledgeBase, zielonkiPlot } from '../../knowledge-bank/zielonki/data'
+import { usesDraftPlan } from '../../knowledge-bank/zielonki/draftPlan'
 
 const DB_NAME = 'house-web-mcp'
 const STORE_NAME = 'projects'
@@ -49,6 +51,8 @@ const allEntries = async () => {
 }
 
 const refreshZielonkiKnowledge = (project: ProjectV2) => {
+  // This independent planning study must not migrate back to the adopted 2007 map.
+  if (usesDraftPlan(project)) return project
   const usesZielonkiLand = isZielonkiProject(project) || (project.site.knowledgeBase.cadastralDistrict === '120617_2.0018 Zielonki' && ['54/3', '55/3', '58/3'].every((number) => project.site.parcels.some((parcel) => parcel.cadastralNumber === number)))
   if (usesZielonkiLand && project.site.knowledgeBase.datasetVersion !== zielonkiKnowledgeBase.datasetVersion) {
     if (project.site.knowledgeBase.datasetVersion !== 'zielonki-knowledge-bank-2026-09-03-outline-v4') {
@@ -221,13 +225,14 @@ const loadWorkspaceImpl = async (ref?: string): Promise<PersistedWorkspace | nul
 }
 
 /** Every saved project, newest first, with just enough to draw a card. */
-const listWorkspacesImpl = async (): Promise<WorkspaceSummary[]> => {
+const listWorkspacesImpl = async (includeArchived: boolean): Promise<WorkspaceSummary[]> => {
   await migrateLegacyRecord()
   const summaries: WorkspaceSummary[] = []
   const entries = await allEntries()
   const entriesMap = new Map(entries)
   for (const [key, value] of entries) {
     if (!key.startsWith(WORKSPACE_PREFIX)) continue
+    if (!includeArchived && isArchivedProject(key.slice(WORKSPACE_PREFIX.length))) continue
     try {
       const workspace = toWorkspace(value)
       if (knowledgeChanged(value, workspace)) {
@@ -356,7 +361,7 @@ export const loadEditHistory = (project: ProjectV2): Promise<LocalEditHistory | 
     return { history: parse(value.history), future: parse(value.future) }
   } catch { return undefined }
 })
-export const listWorkspaces = () => enqueue(listWorkspacesImpl)
+export const listWorkspaces = (options: { includeArchived?: boolean } = {}) => enqueue(() => listWorkspacesImpl(options.includeArchived ?? true))
 export const renameWorkspace = (ref: string, name: string) => enqueue(() => renameWorkspaceImpl(ref, name))
 export const deleteWorkspace = (ref: string) => enqueue(() => deleteWorkspaceImpl(ref))
 export const synchronizePublishedProject = (published: ProjectV2, base: ProjectV2) => enqueue(() => synchronizePublishedProjectImpl(published, base))

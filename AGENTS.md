@@ -22,11 +22,8 @@
 # Deployment
 
 - The working house branch is `codex/deploy-furnished-zielonki`, local preview port 5173, public deployment on Mikrus port 20203. Follow `docs/mikrus-deployment.md`.
-- GitHub Pages/main is the separate competition submission. Do not overwrite it when deploying the working house.
-- During the hackathon, treat `main` as frozen and protected: do not commit, merge, rebase, reset or push changes to it, and do not trigger its GitHub Pages deployment. Commit and push house changes only to `codex/deploy-furnished-zielonki` and deploy that branch to Mikrus. Lift this freeze only on the user's explicit instruction; routine requests to commit, push, merge or redeploy do not lift it.
+- GitHub Pages deploys from `main` on every push. The hackathon freeze was lifted on 2026-10-21; merge the house branch into `main` when the user asks. Deploying the house to Mikrus does not update Pages, and pushing `main` does not update Mikrus.
 - Never commit browser profiles, credentials, `.env`, or unrelated browser data. Raw recovery backups belong in ignored `tmp/`; only extracted house project data belongs in Git.
-- On 2026-10-05, the user explicitly authorized consolidating `codex/deploy-furnished-zielonki`, `zielonki_v3`, and `codex/zielonki-v3-garden` through r82 into local `main`. This lifts the main freeze for this consolidation only. The user prohibited deployment; do not push this merge to `main` because its push workflow deploys GitHub Pages.
-- On 2026-10-14, the user explicitly requested deploying and pushing the latest changes to `main`. For this release, that authorization supersedes the earlier local-only restriction and permits the GitHub Pages deployment. Preserve the separately approved garden in the main integration and keep Mikrus on the house branch.
 
 # Images in chat
 

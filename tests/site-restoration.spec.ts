@@ -8,7 +8,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
     const errors: string[] = []
     page.on('pageerror', error => errors.push(error.message))
     await page.goto(appUrl)
-    await page.getByRole('button', { name: /Zielonki house study/ }).click()
+    await page.getByRole('button', { name: 'Otwórz projekt' }).first().click()
     await expect(page.locator('canvas')).toBeVisible()
     await page.getByRole('button', { name: "Wnętrze domu", exact: true }).click()
     const floors = page.getByRole('navigation', { name: "Kondygnacje domu" })
@@ -35,7 +35,7 @@ for (const viewport of [{ width: 1440, height: 1000 }, { width: 390, height: 844
 
 test('hardware Automatic uses detailed assets and explicit quality persists on reload', async ({ page }) => {
   await page.goto(appUrl)
-  await page.getByRole('button', { name: /Zielonki house study/ }).click()
+  await page.getByRole('button', { name: 'Otwórz projekt' }).first().click()
   await expect.poll(() => page.evaluate(async () => {
     const { useRenderingPreferences } = await import('/src/scene/renderingPreferences.ts')
     return useRenderingPreferences.getState().software
@@ -48,6 +48,21 @@ test('hardware Automatic uses detailed assets and explicit quality persists on r
   await expect.poll(() => page.evaluate(() => performance.getEntriesByType('resource').some(r => r.name.includes('conifer-realistic.glb')))).toBe(true)
   await page.getByLabel("Jakość widoku", { exact: true }).selectOption('fast')
   await page.reload()
-  await page.getByRole('button', { name: /Zielonki house study/ }).click()
+  await page.getByRole('button', { name: 'Otwórz projekt' }).first().click()
   await expect(page.getByLabel("Jakość widoku", { exact: true })).toHaveValue('fast')
+})
+
+test.describe('touch device', () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 390, height: 844 } })
+  test('hardware Automatic stays fast on touch devices', async ({ page }) => {
+    await page.goto(appUrl)
+    await page.getByRole('button', { name: 'Otwórz projekt' }).first().click()
+    await expect(page.locator('canvas')).toBeVisible()
+    await page.evaluate(async () => {
+      const { useRenderingPreferences } = await import('/src/scene/renderingPreferences.ts')
+      useRenderingPreferences.getState().setSoftware(false)
+    })
+    await page.waitForTimeout(3000)
+    expect(await page.evaluate(() => performance.getEntriesByType('resource').some(r => r.name.includes('conifer-realistic.glb')))).toBe(false)
+  })
 })

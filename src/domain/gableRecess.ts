@@ -26,6 +26,12 @@ export function recessSideBattenOffsets(depth: number, spacing = .34) {
   return Array.from({ length: count }, (_, index) => (index - (count - 1) / 2) * spacing)
 }
 
+/** BoxGeometry material order: +X, -X, +Y, -Y, +Z, -Z. */
+export function recessSideFaceColors(inside: string, outside: string | undefined, alongZ: boolean, sign: number) {
+  const exteriorFace = alongZ ? (sign > 0 ? 0 : 1) : (sign > 0 ? 4 : 5)
+  return Array.from({ length: 6 }, (_, face) => face === exteriorFace ? outside ?? inside : inside)
+}
+
 export function gableFrameBottom(segment: RoofSegmentModel, side: 'min' | 'max', wallBottom: number) {
   return segment.gableRecess?.[side]?.baseElevationM ?? wallBottom
 }

@@ -41,7 +41,7 @@ describe('texture choices in the command bus', () => {
     const flat = applyCommand(surfaced, { type: 'landscape.update', action: 'set-surface', zoneRef: terrace.ref, textureId: 'none' })
     expect(flat.landscape.zones.find((zone) => zone.ref === terrace.ref)!.textureId).toBe('none')
     expect(() => applyCommand(base, { type: 'landscape.update', action: 'set-surface', zoneRef: terrace.ref })).toThrow(/textureId/)
-    expect(() => applyCommand(base, { type: 'landscape.update', action: 'set-surface', zoneRef: terrace.ref, textureId: 'hinoki' })).toThrow(/ground/)
+    expect(() => applyCommand(base, { type: 'landscape.update', action: 'set-surface', zoneRef: terrace.ref, textureId: 'rusty-painted-metal' })).toThrow(/ground/)
   })
 
   it('accepts a surface when adding a zone and refuses to resurface a locked zone', () => {

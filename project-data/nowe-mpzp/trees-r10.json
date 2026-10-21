@@ -1,0 +1,901 @@
+{
+  "projectRef": "project/nowe-mpzp",
+  "revision": 10,
+  "source": {
+    "pdfSha256": "2f3e37e8ef694014184c32d173a8cef4b5385fb7f249bff2b1c22642fcf6a204",
+    "sourceMessageId": "19f27717889d2f98",
+    "sourceDate": "2026-07-03",
+    "forwardMessageId": "1a011cb195c5e7ff",
+    "forwardDate": "2026-08-18",
+    "cadInsertsMatched": 17,
+    "pdfGrid": {
+      "easting": 7421600,
+      "northing": 5556050,
+      "pointX": 844.8,
+      "pointY": 831,
+      "pointsPer50m": 283.38
+    },
+    "reviewedOn": "2026-10-20"
+  },
+  "method": "Signed minimum distance from original CAD insertion point to all building slab outlines and paved zones in model metres. Negative means inside. No measured trunk/root/crown envelope is available.",
+  "counts": {
+    "source": 17,
+    "shownBefore": 10,
+    "shownAfter": 11,
+    "shownOnOwnedParcels": 9,
+    "shownOnNeighbour": 2,
+    "centresInsideHouse": 6
+  },
+  "restored": [
+    "plant/survey-503a"
+  ],
+  "trees": [
+    {
+      "handle": "5012",
+      "ref": "plant/survey-5012",
+      "category": "conifer",
+      "easting": 7421512.825,
+      "northing": 5556073.167,
+      "position": {
+        "x": -14.626261665760946,
+        "z": 2.7750464291987584
+      },
+      "inProject": true,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": 0.621510690389975
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 9.429174678504491
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 21.608346737338326
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 2.043202811385498
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 5.903618181277479
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 7.722028226136675
+        }
+      ],
+      "nearestBuildingM": 0.621510690389975,
+      "nearestHardM": 2.043202811385498,
+      "previouslyShown": true,
+      "decision": "retained-close-review"
+    },
+    {
+      "handle": "5015",
+      "ref": "plant/survey-5015",
+      "category": "conifer",
+      "easting": 7421512.391,
+      "northing": 5556070.68,
+      "position": {
+        "x": -12.78724945800227,
+        "z": 4.50465884338965
+      },
+      "inProject": false,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": -0.12078376467262832
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 9.516059594392436
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 21.086398733410874
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 0.12078376467262843
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 7.7292162368509665
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 8.193040543949644
+        }
+      ],
+      "nearestBuildingM": -0.12078376467262832,
+      "nearestHardM": 0.12078376467262843,
+      "previouslyShown": false,
+      "decision": "centre-inside-house"
+    },
+    {
+      "handle": "5018",
+      "ref": "plant/survey-5018",
+      "category": "conifer",
+      "easting": 7421510.981,
+      "northing": 5556071.786,
+      "position": {
+        "x": -14.486225008990504,
+        "z": 5.074586978259177
+      },
+      "inProject": true,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": 0.7024867645357493
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 10.986742565067708
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 22.782350782466768
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 0.6047998203935732
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 8.207358129456635
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 9.49006821417818
+        }
+      ],
+      "nearestBuildingM": 0.7024867645357493,
+      "nearestHardM": 0.6047998203935732,
+      "previouslyShown": true,
+      "decision": "retained-close-review"
+    },
+    {
+      "handle": "501B",
+      "ref": "plant/survey-501b",
+      "category": "conifer",
+      "easting": 7421514.652,
+      "northing": 5556069.099,
+      "position": {
+        "x": -10.223691645184829,
+        "z": 3.484926850225678
+      },
+      "inProject": false,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": -1.0017917287178733
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 7.4150707822926645
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 18.457250498048413
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 1.0017917287178733
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 6.848208272805722
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 6.525182438069318
+        }
+      ],
+      "nearestBuildingM": -1.0017917287178733,
+      "nearestHardM": 1.0017917287178733,
+      "previouslyShown": false,
+      "decision": "centre-inside-house"
+    },
+    {
+      "handle": "501E",
+      "ref": "plant/survey-501e",
+      "category": "conifer",
+      "easting": 7421517.643,
+      "northing": 5556064.906,
+      "position": {
+        "x": -5.076869551593135,
+        "z": 3.291142591360065
+      },
+      "inProject": false,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": -3.299720351902536
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 6.830279648097465
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 14.7738276634197
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 3.4417128052676476
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 7.234696567608311
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 6.937086328079532
+        }
+      ],
+      "nearestBuildingM": -3.299720351902536,
+      "nearestHardM": 3.4417128052676476,
+      "previouslyShown": false,
+      "decision": "centre-inside-house"
+    },
+    {
+      "handle": "5021",
+      "ref": "plant/survey-5021",
+      "category": "conifer",
+      "easting": 7421519.511,
+      "northing": 5556063.76,
+      "position": {
+        "x": -3.0927244952683925,
+        "z": 2.360600600829528
+      },
+      "inProject": false,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": -2.2923272439256475
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 6.007310095719412
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 12.879575170552956
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 5.62446193057979
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 7.360177449958789
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 7.2675574769624465
+        }
+      ],
+      "nearestBuildingM": -2.2923272439256475,
+      "nearestHardM": 5.62446193057979,
+      "previouslyShown": false,
+      "decision": "centre-inside-house"
+    },
+    {
+      "handle": "5024",
+      "ref": "plant/survey-5024",
+      "category": "conifer",
+      "easting": 7421521.025,
+      "northing": 5556062.894,
+      "position": {
+        "x": -1.537071658784723,
+        "z": 1.5718698148785841
+      },
+      "inProject": false,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": -0.6966747226100659
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 5.30300545170114
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 11.416368222307145
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 7.361898411893928
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 7.856232376100594
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 7.916529312007984
+        }
+      ],
+      "nearestBuildingM": -0.6966747226100659,
+      "nearestHardM": 7.361898411893928,
+      "previouslyShown": false,
+      "decision": "centre-inside-house"
+    },
+    {
+      "handle": "5027",
+      "ref": "plant/survey-5027",
+      "category": "conifer",
+      "easting": 7421524.421,
+      "northing": 5556060.763,
+      "position": {
+        "x": 2.109831257906325,
+        "z": -0.09368598260453916
+      },
+      "inProject": true,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": 3.034176118304889
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 4.890221081240191
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 8.596744061260445
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 11.36945167417782
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 10.22197327995028
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 10.519284634947812
+        }
+      ],
+      "nearestBuildingM": 3.034176118304889,
+      "nearestHardM": 10.22197327995028,
+      "previouslyShown": true,
+      "decision": "retained-no-centre-collision"
+    },
+    {
+      "handle": "502A",
+      "ref": "plant/survey-502a",
+      "category": "conifer",
+      "easting": 7421526.001,
+      "northing": 5556059.6,
+      "position": {
+        "x": 3.94986912448064,
+        "z": -0.7742957469324286
+      },
+      "inProject": true,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": 4.90801657558476
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 5.8887268923113325
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 7.751459176505139
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 13.329170600281945
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 11.794936007164548
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 12.155374593748183
+        }
+      ],
+      "nearestBuildingM": 4.90801657558476,
+      "nearestHardM": 11.794936007164548,
+      "previouslyShown": true,
+      "decision": "retained-no-centre-collision"
+    },
+    {
+      "handle": "502D",
+      "ref": "plant/survey-502d",
+      "category": "conifer",
+      "easting": 7421527.97,
+      "northing": 5556058.318,
+      "position": {
+        "x": 6.103142929220196,
+        "z": -1.7144536694493244
+      },
+      "inProject": true,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": 7.1085406993996525
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 7.512561135750057
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 6.923656606419775
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 15.678544756475139
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 13.743507245406105
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 14.161612544128086
+        }
+      ],
+      "nearestBuildingM": 6.923656606419775,
+      "nearestHardM": 13.743507245406105,
+      "previouslyShown": true,
+      "decision": "retained-no-centre-collision"
+    },
+    {
+      "handle": "5030",
+      "ref": "plant/survey-5030",
+      "category": "conifer",
+      "easting": 7421530.17,
+      "northing": 5556056.895,
+      "position": {
+        "x": 8.501181069997724,
+        "z": -2.7700776921881314
+      },
+      "inProject": true,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": 9.559660484265569
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 9.677367037494507
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 5.997945635195031
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 18.298394847842037
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 16.040138416290276
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 16.502782825101974
+        }
+      ],
+      "nearestBuildingM": 5.997945635195031,
+      "nearestHardM": 16.040138416290276,
+      "previouslyShown": true,
+      "decision": "retained-no-centre-collision"
+    },
+    {
+      "handle": "5033",
+      "ref": "plant/survey-5033",
+      "category": "deciduous",
+      "easting": 7421527.441,
+      "northing": 5556056.848,
+      "position": {
+        "x": 7.040360253871311,
+        "z": -0.4645077963373664
+      },
+      "inProject": true,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": 7.97748743159608
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 8.805926961344845
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 8.221991145720398
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 16.126867681597492
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 14.878573564647203
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 15.252578709223759
+        }
+      ],
+      "nearestBuildingM": 7.97748743159608,
+      "nearestHardM": 14.878573564647203,
+      "previouslyShown": true,
+      "decision": "retained-no-centre-collision"
+    },
+    {
+      "handle": "503A",
+      "ref": "plant/survey-503a",
+      "category": "deciduous",
+      "easting": 7421524.316,
+      "northing": 5556061.791,
+      "position": {
+        "x": 1.19335044016006,
+        "z": -0.5710452924112609
+      },
+      "inProject": true,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": 2.1445693402108144
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 3.9434808597702906
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 8.367033691652532
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 10.745095660208378
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 9.199641343947704
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 9.50881240150991
+        }
+      ],
+      "nearestBuildingM": 2.1445693402108144,
+      "nearestHardM": 9.199641343947704,
+      "previouslyShown": false,
+      "decision": "restored-conditional"
+    },
+    {
+      "handle": "50F5",
+      "ref": "plant/apple",
+      "category": "deciduous",
+      "easting": 7421515.533,
+      "northing": 5556071.951,
+      "position": {
+        "x": -12.121907201465316,
+        "z": 1.181268303102935
+      },
+      "inProject": false,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": -1.9645874381187698
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 6.509042192823678
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 18.640327142533216
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 3.4037824061464153
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 4.446217595377179
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 4.935321873558904
+        }
+      ],
+      "nearestBuildingM": -1.9645874381187698,
+      "nearestHardM": 3.4037824061464153,
+      "previouslyShown": false,
+      "decision": "centre-inside-house"
+    },
+    {
+      "handle": "50C3",
+      "ref": "plant/orchard-sour-cherry",
+      "category": "fruit",
+      "easting": 7421541.665,
+      "northing": 5556070.565,
+      "position": {
+        "x": 3.4002222700594436,
+        "z": -19.88685730598602
+      },
+      "inProject": true,
+      "onOwned": false,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": 16.74901223238205
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 10.711197052269064
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 6.267402468729001
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 26.96377614773566
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 15.048187585376876
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 19.553958751810864
+        }
+      ],
+      "nearestBuildingM": 6.267402468729001,
+      "nearestHardM": 15.048187585376876,
+      "previouslyShown": true,
+      "decision": "neighbour-context"
+    },
+    {
+      "handle": "50CA",
+      "ref": "plant/orchard-pear",
+      "category": "fruit",
+      "easting": 7421542.483,
+      "northing": 5556067.695,
+      "position": {
+        "x": 6.24738501887793,
+        "z": -18.99260438743719
+      },
+      "inProject": true,
+      "onOwned": false,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": 16.922291427903588
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 11.591539021423982
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 5.221985939771307
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 27.55696681454949
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 16.782473807424324
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 20.682508701662577
+        }
+      ],
+      "nearestBuildingM": 5.221985939771307,
+      "nearestHardM": 16.782473807424324,
+      "previouslyShown": true,
+      "decision": "neighbour-context"
+    },
+    {
+      "handle": "50D1",
+      "ref": "plant/orchard-plum",
+      "category": "fruit",
+      "easting": 7421539.135,
+      "northing": 5556065.796,
+      "position": {
+        "x": 5.993422861388536,
+        "z": -15.151926293024406
+      },
+      "inProject": true,
+      "onOwned": true,
+      "buildings": [
+        {
+          "ref": "house/main",
+          "name": "Dom · nowe mpzp",
+          "clearanceM": 13.432564532216022
+        },
+        {
+          "ref": "building/south-carport",
+          "name": "Wiata przy końcu domu · 2 auta",
+          "clearanceM": 8.881348666348153
+        },
+        {
+          "ref": "building/garden-outbuilding",
+          "name": "Garaż kampera + warsztat stolarski",
+          "clearanceM": 1.4004151438015502
+        }
+      ],
+      "hard": [
+        {
+          "ref": "zone/terrace",
+          "name": "Dojście we wnęce · architekt",
+          "clearanceM": 24.23230743507833
+        },
+        {
+          "ref": "zone/driveway",
+          "name": "Prosty podjazd od bramy do wiaty · bez dojazdu do garażu",
+          "clearanceM": 14.816322564183357
+        },
+        {
+          "ref": "zone/architekt/entry-apron",
+          "name": "Dojście piesze do wejścia",
+          "clearanceM": 17.893611804850366
+        }
+      ],
+      "nearestBuildingM": 1.4004151438015502,
+      "nearestHardM": 14.816322564183357,
+      "previouslyShown": true,
+      "decision": "retained-close-review"
+    }
+  ]
+}

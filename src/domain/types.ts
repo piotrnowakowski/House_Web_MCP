@@ -10,7 +10,7 @@ export type BuildingKind = 'house' | 'garage'
 export type ArchitecturalStyle = 'classic' | 'futuristic' | 'barn'
 export type GardenZoneKind = 'lawn' | 'terrace' | 'path' | 'driveway' | 'bed' | 'rain-garden' | 'vegetable'
 export type PlantKind = 'tree' | 'hedge' | 'shrub' | 'perennial' | 'grass' | 'crop' | 'wetland'
-export type GardenFixtureCatalogId = 'raised-bed-2x1' | 'tomato-row' | 'potato-row' | 'cucumber-trellis' | 'outdoor-dining-set' | 'garden-lounge-set' | 'slatted-bench' | 'sun-lounger' | 'cantilever-parasol' | 'jacuzzi' | 'outdoor-kitchen' | 'recycling-bins' | 'greenhouse' | 'larch-bed-long' | 'larch-bed-square' | 'leafy-greens' | 'flower-mix' | 'flower-clump' | 'hydrangea' | 'timber-fence' | 'festoon-lights' | 'sunken-fire-lounge' | 'water-butt' | 'tomato-bed'
+export type GardenFixtureCatalogId = 'raised-bed-2x1' | 'tomato-row' | 'potato-row' | 'cucumber-trellis' | 'greenhouse' | 'round-fire-lounge' | 'outdoor-dining-set' | 'garden-lounge-set' | 'slatted-bench' | 'sun-lounger' | 'cantilever-parasol' | 'jacuzzi' | 'outdoor-kitchen' | 'recycling-bins' | 'round-hot-tub' | 'garden-sauna' | 'pizza-oven' | 'kitchen-pergola' | 'kitchen-spa-canopy' | 'kitchen-spa-retractable' | 'pizza-oven-tall-flue' | 'compact-kitchen-spa' | 'outdoor-kitchen-l' | 'solar-table-20' | 'biological-treatment-study' | 'infiltration-study' | 'larch-bed-long' | 'larch-bed-square' | 'leafy-greens' | 'flower-mix' | 'flower-clump' | 'hydrangea' | 'timber-fence' | 'festoon-lights' | 'sunken-fire-lounge' | 'water-butt' | 'tomato-bed'
 
 export type ClimateDayPart = 'night' | 'morning' | 'day' | 'evening'
 export type TemperatureByDayPartC = Record<ClimateDayPart, number>
@@ -25,7 +25,9 @@ export type ParcelLandRole = 'construction' | 'agricultural' | 'mixed'
 export type GeometryConfidence = 'surveyed' | 'derived' | 'context-only'
 export interface LandUseZone { ref: string; code: string; landRole: 'construction' | 'agricultural'; boundary: Polygon2; sourceRef: string; geometryConfidence: GeometryConfidence }
 export interface PlotParcelModel { ref: string; cadastralNumber: string; landRole: ParcelLandRole; officialAreaM2: number; boundary: Polygon2; geometryConfidence: GeometryConfidence; landUseZones?: LandUseZone[] }
-export interface SiteEntranceModel { ref: string; name: string; start: Vec2; end: Vec2; connectsTo: 'public-road'; geometryConfidence: 'user-marked' | 'surveyed' }
+export interface SiteEntranceModel { ref: string; name: string; start: Vec2; end: Vec2; connectsTo: 'public-road'; geometryConfidence: 'user-marked' | 'surveyed'; gate?: { heightM: number; colorHex: string } }
+/** Endpoints follow the enclosure counterclockwise in x/z; the fence thickness lies inside. */
+export interface SiteFenceModel { ref: string; name: string; start: Vec2; end: Vec2; material: 'concrete' | 'panel'; heightM: number; colorHex: string }
 export interface TerrainModel { boundary: Polygon2; elevationPoints: Array<Vec2 & { elevation: number }> }
 /** Source-data shape used by the bundled Zielonki evidence module before it is nested into SiteModel. */
 export interface PlotModel { boundary: Polygon2; northDegrees: number; elevationPoints: TerrainModel['elevationPoints']; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[] }
@@ -52,7 +54,7 @@ export interface NeighborBuilding {
   roofType: 'gable' | 'hip' | 'flat'; footprintSource: string; footprintConfidence: 'map-derived' | 'approximate'
   heightConfidence: 'estimated'; sourceDate: string
 }
-export interface SiteModel { boundary: Polygon2; northDegrees: number; terrain: TerrainModel; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[]; knowledgeBase: SiteKnowledgeBase; neighbors?: NeighborBuilding[] }
+export interface SiteModel { boundary: Polygon2; northDegrees: number; terrain: TerrainModel; parcels: PlotParcelModel[]; entrances: SiteEntranceModel[]; fences?: SiteFenceModel[]; knowledgeBase: SiteKnowledgeBase; neighbors?: NeighborBuilding[] }
 
 export interface OpeningModel { finish?: InteriorFinish; ref: string; kind: 'door' | 'window'; glazed?: boolean; mullionFractions?: number[]; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number; hinge?: 'left' | 'right'; swing?: 'in' | 'out' }
 export interface InteriorFinish { presetId: string; color: string; rotationDegrees: number; tileM: number }
@@ -75,7 +77,7 @@ export interface RoofSegmentModel {
   /** Fractions across the gable, with a vertical inset below the roof slopes. */
   gableGlazing?: Partial<Record<'min' | 'max', { from: number; to: number; roofInsetM: number; hostOpeningRefs?: string[]; shape?: 'roof-following' | 'triangle'; continuousWithHost?: boolean; transomElevationsM?: number[] }>>
   /** Recessed facade below a roof extension, measured inward from the gable end. */
-  gableRecess?: Partial<Record<'min' | 'max', { depthM: number; baseElevationM: number; soffitColorHex: string; sideColorHex?: string }>>
+  gableRecess?: Partial<Record<'min' | 'max', { depthM: number; baseElevationM: number; soffitColorHex: string; sideColorHex?: string; sideExteriorColorHex?: string }>>
   gableFrame?: { widthM: number; depthM: number; colorHex: string }
   /** Glass guard and optional fascia around connected flat decks. Open edge indices refer to their merged perimeter. */
   terrace?: { railingHeightM: number; openEdgeIndex: number; frameColorHex: string; connectedSegmentRefs?: string[]; openEdgeIndices?: number[]; fasciaHeightM?: number }
@@ -119,7 +121,7 @@ export type InteriorCommand = { type: 'interior.update'; buildingRef: string; st
 )
 
 /** `textureId` picks a ground scan from the texture library; omit for the kind default, `none` for a flat colour. */
-export interface LandscapeZone { ref: string; name: string; kind: GardenZoneKind; footprint: Polygon2; locked: boolean; textureId?: string }
+export interface LandscapeZone { ref: string; name: string; kind: GardenZoneKind; footprint: Polygon2; locked: boolean; textureId?: string; colorHex?: string }
 export interface SurfaceAttachment { hostRef: string; hostFace: 'top' | 'bottom' | 'inside' | 'outside' | 'terrain'; localPosition: Vec3; rotationDegrees: number }
 export interface PlantModel { ref: string; name: string; species: string; kind: PlantKind; position: Vec2; matureHeightM: number; canopyM: number; sunNeed: 'shade' | 'partial' | 'sun'; waterNeed: number; hardinessMinC: number; leafMonths: number[]; bloomMonths: number[]; locked: boolean; attachment?: SurfaceAttachment; crownShape?: 'rounded' | 'conical'; placementRole?: 'site' | 'context'; surveyHandle?: string }
 export interface GardenFixtureModel { ref: string; catalogId: GardenFixtureCatalogId; name: string; position: Vec2; rotationDegrees: number; locked: boolean }

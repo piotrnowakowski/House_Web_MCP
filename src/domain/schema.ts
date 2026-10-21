@@ -46,7 +46,17 @@ const ParcelSchema = z.object({
 const SiteEntranceSchema = z.object({
   ref: z.string().min(1), name: z.string().min(1), start: Vec2Schema, end: Vec2Schema,
   connectsTo: z.literal('public-road'), geometryConfidence: z.enum(['user-marked', 'surveyed']),
+  gate: z.object({ heightM: z.number().positive().max(3), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/) }).optional(),
 }).refine((entrance) => Math.hypot(entrance.end.x - entrance.start.x, entrance.end.z - entrance.start.z) > 0.5, { message: 'Site entrance must have length.' })
+  .refine(entrance => !entrance.gate || Math.hypot(entrance.end.x - entrance.start.x, entrance.end.z - entrance.start.z) <= 20, 'Modeled gate width must not exceed 20 m.')
+const SiteFenceSchema = z.object({
+  ref: z.string().min(1), name: z.string().min(1), start: Vec2Schema, end: Vec2Schema,
+  material: z.enum(['concrete', 'panel']), heightM: z.number().positive().max(3),
+  colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+}).refine(fence => {
+  const length = Math.hypot(fence.end.x - fence.start.x, fence.end.z - fence.start.z)
+  return length > 0.1 && length <= 500
+}, 'Fence segment length must be between 0.1 and 500 m.')
 const OpeningSchema = z.object({
   finish: InteriorFinishSchema.optional(),
   mullionFractions: z.array(z.number().gt(0).lt(1)).optional(),
@@ -102,8 +112,8 @@ const RoofSegmentSchema = z.object({
     slats: z.object({ direction: z.enum(['x', 'z']), spacingM: z.number().min(0.15), widthM: z.number().positive() }).optional(),
   }).optional(),
   gableRecess: z.object({
-    min: z.object({ depthM: z.number().positive(), baseElevationM: z.number().finite(), soffitColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), sideColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional() }).optional(),
-    max: z.object({ depthM: z.number().positive(), baseElevationM: z.number().finite(), soffitColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), sideColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional() }).optional(),
+    min: z.object({ depthM: z.number().positive(), baseElevationM: z.number().finite(), soffitColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), sideColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(), sideExteriorColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional() }).optional(),
+    max: z.object({ depthM: z.number().positive(), baseElevationM: z.number().finite(), soffitColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/), sideColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(), sideExteriorColorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional() }).optional(),
   }).optional(),
   gableGlazing: z.object({
     min: GableGlazingSchema.optional(),
@@ -138,7 +148,7 @@ const PlantSchema = z.object({
   attachment: z.object({ hostRef: z.string().min(1), hostFace: z.enum(['top', 'bottom', 'inside', 'outside', 'terrain']), localPosition: Vec3Schema, rotationDegrees: z.number().finite() }).optional(),
 })
 const GardenFixtureSchema = z.object({
-  ref: z.string().min(1), catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'jacuzzi', 'outdoor-kitchen', 'recycling-bins', 'greenhouse', 'larch-bed-long', 'larch-bed-square', 'leafy-greens', 'flower-mix', 'flower-clump', 'hydrangea', 'timber-fence', 'festoon-lights', 'sunken-fire-lounge', 'water-butt', 'tomato-bed']), name: z.string().min(1),
+  ref: z.string().min(1), catalogId: z.enum(['raised-bed-2x1', 'tomato-row', 'potato-row', 'cucumber-trellis', 'greenhouse', 'round-fire-lounge', 'outdoor-dining-set', 'garden-lounge-set', 'slatted-bench', 'sun-lounger', 'cantilever-parasol', 'jacuzzi', 'outdoor-kitchen', 'recycling-bins', 'round-hot-tub', 'garden-sauna', 'pizza-oven', 'kitchen-pergola', 'kitchen-spa-canopy', 'kitchen-spa-retractable', 'pizza-oven-tall-flue', 'compact-kitchen-spa', 'outdoor-kitchen-l', 'solar-table-20', 'biological-treatment-study', 'infiltration-study', 'larch-bed-long', 'larch-bed-square', 'leafy-greens', 'flower-mix', 'flower-clump', 'hydrangea', 'timber-fence', 'festoon-lights', 'sunken-fire-lounge', 'water-butt', 'tomato-bed']), name: z.string().min(1),
   position: Vec2Schema, rotationDegrees: z.number().finite(), locked: z.boolean(),
 })
 const TemperatureByDayPartSchema = z.object({ night: z.number(), morning: z.number(), day: z.number(), evening: z.number() }).strict()
@@ -148,6 +158,7 @@ export const ProjectSchema = z.object({
   schemaVersion: z.literal(2), ref: z.string().min(1), name: z.string().min(1), units: z.literal('metric'), revision: z.number().int().positive(), updatedAt: z.string(),
   site: z.object({
     boundary: PolygonSchema, northDegrees: z.number().finite(),
+    fences: z.array(SiteFenceSchema).max(500).refine(items => new Set(items.map(item => item.ref)).size === items.length, 'Fence references must be unique').optional(),
     neighbors: z.array(z.object({
       ref: z.string().min(1), name: z.string().min(1), footprint: PolygonSchema,
       groundElevationM: z.number().finite(), eavesHeightM: z.number().positive().max(100), ridgeHeightM: z.number().positive().max(100),
@@ -159,7 +170,7 @@ export const ProjectSchema = z.object({
     parcels: z.array(ParcelSchema).min(1), entrances: z.array(SiteEntranceSchema).default([]), knowledgeBase: z.custom<SiteKnowledgeBase>((value) => Boolean(value) && typeof value === 'object').transform(hydrateKnowledgeBase),
   }),
   buildings: z.array(BuildingSchema),
-  landscape: z.object({ zones: z.array(z.object({ ref: z.string().min(1), name: z.string().min(1), kind: z.enum(['lawn', 'terrace', 'path', 'driveway', 'bed', 'rain-garden', 'vegetable']), footprint: PolygonSchema, locked: z.boolean(), textureId: z.string().optional() })), plants: z.array(PlantSchema), fixtures: z.array(GardenFixtureSchema).default([]), fixtureCatalogVersion: z.number().int().nonnegative().default(0), orchardCatalogVersion: z.number().int().nonnegative().default(0) }),
+  landscape: z.object({ zones: z.array(z.object({ ref: z.string().min(1), name: z.string().min(1), kind: z.enum(['lawn', 'terrace', 'path', 'driveway', 'bed', 'rain-garden', 'vegetable']), footprint: PolygonSchema, locked: z.boolean(), textureId: z.string().optional(), colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional() })), plants: z.array(PlantSchema), fixtures: z.array(GardenFixtureSchema).default([]), fixtureCatalogVersion: z.number().int().nonnegative().default(0), orchardCatalogVersion: z.number().int().nonnegative().default(0) }),
   climateProfile: z.object({
     ref: z.string().min(1), name: z.string().min(1), latitude: z.number().min(-90).max(90), longitude: z.number().min(-180).max(180), timezone: z.string().min(1), provenance: z.string().min(1),
     soil: z.object({ texture: z.enum(['sandy', 'loam', 'clay']), ph: z.number().min(0).max(14).nullable(), drainage: z.enum(['fast', 'balanced', 'slow']) }), irrigationMm: z.number().min(0), months: z.array(ClimateMonthSchema).length(12),

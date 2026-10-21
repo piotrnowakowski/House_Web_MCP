@@ -12,7 +12,16 @@ export interface GardenFixtureDefinition {
 
 export const GARDEN_FIXTURE_CATALOG_VERSION = 1
 
+export const solarTable = { columns: 10, rows: 2, moduleWidthM: 1.134, moduleLengthM: 1.903, modulePowerW: 500, gapM: .02, tiltDegrees: 25, lowEdgeM: .8 }
+export const solarTableWidthM = solarTable.columns * (solarTable.moduleWidthM + solarTable.gapM) - solarTable.gapM
+export const solarTableSlopeM = solarTable.rows * (solarTable.moduleLengthM + solarTable.gapM) - solarTable.gapM
+export const solarTableDepthM = solarTableSlopeM * Math.cos(solarTable.tiltDegrees * Math.PI / 180)
+export const solarTableRiseM = solarTableSlopeM * Math.sin(solarTable.tiltDegrees * Math.PI / 180)
+
 export const gardenFixtureCatalog: GardenFixtureDefinition[] = [
+  { id: 'solar-table-20', name: 'Stół PV · 20 × 500 W · koncepcja', category: 'structure', description: '10 kWp, dwa rzędy po 10 modułów, nachylenie 25°. Dolna krawędź 0,8 m. Gabaryt koncepcyjny: lokalizacja, konstrukcja, elektryka i zacienienie wymagają projektu.', widthM: solarTableWidthM, depthM: solarTableDepthM + .03, heightM: solarTable.lowEdgeM + solarTableRiseM + .04 },
+  { id: 'biological-treatment-study', name: 'Oczyszczalnia biologiczna · koncepcja', category: 'structure', description: 'Rezerwa zbiornika 1,5 × 3 m, dwa włazy Ø0,6 m. Gabaryt orientacyjny dla 4–5 osób; producent, odpowietrzenie, grunt i odpływ wymagają projektu.', widthM: 1.5, depthM: 3, heightM: .12 },
+  { id: 'infiltration-study', name: 'Rezerwa rozsączania · do badań gruntu', category: 'structure', description: 'Przerywany obrys 2 × 6 m oznacza wyłącznie rezerwę terenu, nie dobrany drenaż. Wymaga badań chłonności, poziomu wód, studni i korzeni.', widthM: 2, depthM: 6, heightM: .04 },
   { id: 'recycling-bins', name: 'Kosze do segregacji', category: 'furniture', description: 'Five bins: paper, plastic and metal, glass, bio and mixed waste.', widthM: 3.6, depthM: 1.1, heightM: 1.2 },
   { id: 'jacuzzi', name: 'Jacuzzi ogrodowe', category: 'furniture', description: 'Four-seat spa with timber cladding, water and an entry step.', widthM: 2.6, depthM: 3.1, heightM: 1.05 },
   { id: 'outdoor-kitchen', name: 'Kuchnia zewnętrzna', category: 'furniture', description: 'Timber and graphite worktop with grill, sink and storage.', widthM: 3.6, depthM: 0.8, heightM: 1.35 },
@@ -25,8 +34,18 @@ export const gardenFixtureCatalog: GardenFixtureDefinition[] = [
   { id: 'tomato-row', name: 'Tomato row', category: 'crop', description: 'Four staked tomato plants for a raised bed.', widthM: 2.15, depthM: 0.72, heightM: 1.55 },
   { id: 'potato-row', name: 'Potato row', category: 'crop', description: 'Five compact potato plants in a productive row.', widthM: 2.1, depthM: 0.78, heightM: 0.58 },
   { id: 'cucumber-trellis', name: 'Cucumber trellis', category: 'crop', description: 'Climbing cucumber row on a simple timber frame.', widthM: 2.15, depthM: 0.78, heightM: 1.45 },
+  { id: 'greenhouse', name: 'Szklarnia', category: 'structure', description: 'Szklarnia 4 × 3 m z czarną ramą i przesuwnymi drzwiami. Lokalizacja wymaga sprawdzenia MPZP.', widthM: 4.14, depthM: 3.2, heightM: 2.64 },
+  { id: 'round-fire-lounge', name: 'Palenisko z siedziskami', category: 'structure', description: 'Okrągły placyk 6 m, misa paleniskowa i trzy siedziska. Koncepcja do sprawdzenia pod kątem ochrony przeciwpożarowej.', widthM: 6, depthM: 6, heightM: 0.9 },
+  { id: 'round-hot-tub', name: 'Jacuzzi okrągłe Ø2,4 m', category: 'furniture', description: 'Balia Ø2,4 m, wysokość 1,15 m; obrys ze schodkiem 2,4 × 2,9 m. Gabaryt koncepcyjny, bez wskazania producenta.', widthM: 2.4, depthM: 2.9, heightM: 1.15 },
+  { id: 'garden-sauna', name: 'Sauna ogrodowa 2,5 × 3 m', category: 'structure', description: 'Kabina 2,5 × 3 × 2,5 m z przeszklonym wejściem. Lokalizacja i instalacje wymagają projektu.', widthM: 2.5, depthM: 3, heightM: 2.5 },
+  { id: 'pizza-oven', name: 'Piec do pizzy', category: 'furniture', description: 'Kopuła na podstawie 1 × 1,05 m, wysokość z kominem 2,1 m. Dobór urządzenia i odstępy pożarowe wymagają sprawdzenia.', widthM: 1, depthM: 1.05, heightM: 2.1 },
+  { id: 'kitchen-pergola', name: 'Pergola kuchni letniej 5 × 7 m', category: 'structure', description: 'Otwarta pergola 5 × 7 × 2,7 m z sześcioma słupami, bez szczelnego dachu. Wyposażenie ustawiane osobno.', widthM: 5, depthM: 7, heightM: 2.7 },
+  { id: 'kitchen-spa-canopy', name: 'Wiata kuchni i spa 7,4 × 15,2 m', category: 'structure', description: 'Wspólny pełny dach nad kuchnią, przejściem, jacuzzi i sauną. Naturalne jasne drewno, grafitowe pokrycie, wysokość 3,1 m. Koncepcja bez obliczeń konstrukcji.', widthM: 7.4, depthM: 15.2, heightM: 3.1 },
+  { id: 'kitchen-spa-retractable', name: 'Wiata z rozsuwanym dachem nad jacuzzi', category: 'structure', description: 'Wiata 7,4 × 15,2 m z rozsuwaną osłoną 2,9 × 3,85 m nad jacuzzi i przejściem kominowym przy kuchni. Wybierz wiatę, aby zasłonić lub odsłonić dach w podglądzie. Koncepcja wymaga projektu konstrukcji i instalacji.', widthM: 7.4, depthM: 15.2, heightM: 3.1 },
+  { id: 'pizza-oven-tall-flue', name: 'Piec do pizzy z wysokim kominem', category: 'furniture', description: 'Piec 1 × 1,05 m z pionowym izolowanym kominem z tyłu kopuły, do wysokości 4,2 m. Gabaryt koncepcyjny; średnica, odległości i wylot wymagają doboru do urządzenia.', widthM: 1, depthM: 1.05, heightM: 4.2 },
+  { id: 'compact-kitchen-spa', name: 'Kompaktowa wiata kuchni i spa', category: 'structure', description: 'Drewniana wiata 6,4 × 9,8 m z widocznymi belkami, zastrzałami, pełnym dachem nad kuchnią i rozsuwaną osłoną nad jacuzzi. Koncepcja konstrukcji i komina.', widthM: 6.4, depthM: 9.8, heightM: 3.1 },
+  { id: 'outdoor-kitchen-l', name: 'Kuchnia letnia L', category: 'furniture', description: 'Murowana kuchnia z grillem, zlewem i narożnym blatem; obrys 4,4 × 2,5 m, głębokość blatu 0,8 m.', widthM: 4.4, depthM: 2.5, heightM: 1.35 },
   { id: 'sunken-fire-lounge', name: 'Sunken fire lounge', category: 'structure', description: 'Concept: a 54 cm sunken stone court, three steps, built-in benches, a corten fire bowl and a noncombustible wind screen with outward-facing log storage. Drainage and fire clearances require site review.', widthM: 9.2, depthM: 9.2, heightM: 1.8 },
-  { id: 'greenhouse', name: 'Glass greenhouse', category: 'structure', description: 'Black aluminium greenhouse, 4.0 × 3.0 m, with a glazed gable roof and a door on one long side.', widthM: 4, depthM: 3, heightM: 2.6 },
   { id: 'larch-bed-long', name: 'Larch raised bed, long', category: 'structure', description: 'Natural larch bed 3.6 × 1.2 m, four boards high (about 0.6 m), with corner posts and a capping rail.', widthM: 3.6, depthM: 1.2, heightM: 0.6 },
   { id: 'larch-bed-square', name: 'Larch raised bed, square', category: 'structure', description: 'Natural larch bed 1.2 × 1.2 m, about 0.6 m high, for herbs, flowers or a feature plant.', widthM: 1.2, depthM: 1.2, heightM: 0.6 },
   { id: 'leafy-greens', name: 'Leafy greens', category: 'crop', description: 'Lettuce, chard and cabbage rosettes filling a long raised bed.', widthM: 3.3, depthM: 0.9, heightM: 0.35 },

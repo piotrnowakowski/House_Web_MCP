@@ -1,0 +1,92 @@
+{
+  "sourceRef": "project/architekt",
+  "sourceRevision": 10,
+  "projectRevision": 9,
+  "allClearDimensionsEqual": true,
+  "rooms": [
+    {
+      "ref": "space/reference-pantry",
+      "name": "Kotłownia",
+      "widthM": 4.33,
+      "depthM": 1.700000000000001,
+      "areaM2": 7.361000000000004
+    },
+    {
+      "ref": "space/reference-wc",
+      "name": "Łazienka",
+      "widthM": 2.21,
+      "depthM": 2.55,
+      "areaM2": 5.635499999999999
+    },
+    {
+      "ref": "space/reference-office",
+      "name": "Gabinet",
+      "widthM": 2.4000000000000004,
+      "depthM": 4.37,
+      "areaM2": 10.487999999999996
+    },
+    {
+      "ref": "space/reference-utility-access",
+      "name": "Pomieszczenie przy kotłowni",
+      "widthM": 2,
+      "depthM": 2.55,
+      "areaM2": 5.099999999999999
+    },
+    {
+      "ref": "space/reference-kitchen-pantry",
+      "name": "Kuchnia · część przy schodach",
+      "widthM": 1.6,
+      "depthM": 3.8850000000000002,
+      "areaM2": 6.2159999999999975
+    },
+    {
+      "ref": "space/reference-understairs",
+      "name": "Schowek pod schodami",
+      "widthM": 3.09,
+      "depthM": 2.0650000000000004,
+      "areaM2": 6.233950000000001
+    },
+    {
+      "ref": "space/reference-living",
+      "name": "Salon · jadalnia · kuchnia · hol",
+      "widthM": 9.23,
+      "depthM": 7.82,
+      "areaM2": 55.01280000000001
+    },
+    {
+      "ref": "space/reference-child-one",
+      "name": "Pokój 1",
+      "widthM": 3.62,
+      "depthM": 3.45,
+      "areaM2": 12.488999999999999
+    },
+    {
+      "ref": "space/reference-bathroom",
+      "name": "Łazienka piętro",
+      "widthM": 2.3000000000000003,
+      "depthM": 2.55,
+      "areaM2": 5.865000000000002
+    },
+    {
+      "ref": "space/reference-parents",
+      "name": "Sypialnia",
+      "widthM": 5.1000000000000005,
+      "depthM": 3.95,
+      "areaM2": 20.144999999999996
+    },
+    {
+      "ref": "space/reference-child-two",
+      "name": "Pokój 2",
+      "widthM": 3.11,
+      "depthM": 5.285000000000001,
+      "areaM2": 13.720550000000001
+    },
+    {
+      "ref": "space/reference-landing",
+      "name": "Komunikacja",
+      "widthM": 5.1000000000000005,
+      "depthM": 4.67,
+      "areaM2": 11.035600000000002
+    }
+  ]
+}

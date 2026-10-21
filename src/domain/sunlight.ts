@@ -146,7 +146,7 @@ export const collectOccluders = (project: ProjectV2, includeNeighbors = false): 
     const definition = gardenFixtureById(fixture.catalogId)
     const lift = definition.category === 'crop' ? 0.43 : 0
     const baseY = elevationAt(project, fixture.position.x, fixture.position.z) + lift
-    const frame: Frame = { position: fixture.position, yaw: rad(fixture.rotationDegrees), offsetY: 0 }
+    const frame: Frame = { position: fixture.position, yaw: -rad(fixture.rotationDegrees), offsetY: 0 }
     occluders.push(boxOccluder(fixture.ref, { x: 0, y: baseY + definition.heightM / 2, z: 0 }, { x: definition.widthM / 2, y: definition.heightM / 2, z: definition.depthM / 2 }, 0, frame))
   }
   return occluders

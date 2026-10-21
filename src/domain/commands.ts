@@ -542,7 +542,7 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
   const constructionParcels = project.site.parcels.filter((parcel) => parcel.landRole !== 'agricultural')
   if (polygonSelfIntersects(project.site.boundary)) issues.push({ severity: 'error', code: 'site.self-intersection', message: 'Site boundary self-intersects.', subjectRef: 'site' })
   project.buildings.forEach((building) => {
-    if (buildingCrossesAgriculturalZone(project, building)) issues.push({ severity: 'warning', code: 'building.zoning', message: `${building.name} overlaps agricultural zone 06.R.21. New house mass must stay within 06.MNU.8; review its placement.`, subjectRef: building.ref })
+    if (buildingCrossesAgriculturalZone(project, building)) issues.push({ severity: 'warning', code: 'building.zoning', message: `${building.name} overlaps an agricultural zone shown in this project's planning map; review its placement.`, subjectRef: building.ref })
     const refs = [...allRefs(building), ...(building.furniture ?? []).map((item) => item.ref), ...(building.stairs ?? []).map((item) => item.ref)]; const duplicates = refs.filter((ref, index) => refs.indexOf(ref) !== index)
     if (duplicates.length) issues.push({ severity: 'error', code: 'ref.duplicate', message: `Duplicate reference: ${duplicates[0]}`, subjectRef: duplicates[0] })
     for (const stairs of building.stairs ?? []) {
@@ -666,7 +666,7 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
     if (plant.attachment && !hostRefs.has(plant.attachment.hostRef)) issues.push({ severity: 'error', code: 'plant.support', message: `${plant.name} has an unknown support surface.`, subjectRef: plant.ref })
   })
   project.landscape.fixtures.forEach((fixture) => {
-    const definition = gardenFixtureById(fixture.catalogId); const radians = fixture.rotationDegrees * Math.PI / 180; const c = Math.cos(radians); const s = Math.sin(radians)
+    const definition = gardenFixtureById(fixture.catalogId); const radians = -fixture.rotationDegrees * Math.PI / 180; const c = Math.cos(radians); const s = Math.sin(radians)
     const corners = [[-definition.widthM / 2, -definition.depthM / 2], [definition.widthM / 2, -definition.depthM / 2], [definition.widthM / 2, definition.depthM / 2], [-definition.widthM / 2, definition.depthM / 2]]
       .map(([x, z]) => ({ x: fixture.position.x + x * c + z * s, z: fixture.position.z - x * s + z * c }))
     if (!corners.every((corner) => project.site.parcels.some((parcel) => pointInPolygon(corner, parcel.boundary)))) issues.push({ severity: 'error', code: 'fixture.site', message: `${fixture.name} extends outside the owned parcels.`, subjectRef: fixture.ref })

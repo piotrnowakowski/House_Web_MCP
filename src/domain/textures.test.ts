@@ -57,13 +57,17 @@ describe('texture library', () => {
     expect(resolveZoneTexture(zone('terrace'))).toEqual({ id: 'concrete-tiles', rotation: 0 })
     expect(resolveZoneTexture(zone('terrace', 'brick-pavement'))).toEqual({ id: 'brick-pavement', rotation: 0 })
     expect(resolveZoneTexture(zone('terrace', 'none'))).toBeUndefined()
-    expect(resolveZoneTexture(zone('terrace', 'hinoki'))).toEqual({ id: 'concrete-tiles', rotation: 0 })
+    expect(resolveZoneTexture(zone('terrace', 'hinoki'))).toEqual({ id: 'hinoki', rotation: 0 })
   })
 
   it('keeps the seasonal lawn tint only while the lawn wears grass', () => {
     expect(zoneTintFor(zone('lawn'), 1)).not.toBe(zoneTintFor(zone('lawn'), 7))
     expect(zoneTintFor(zone('lawn', 'river-pebbles'), 1)).toBe(zoneTintFor(zone('lawn', 'river-pebbles'), 7))
     expect(zoneTintFor(zone('terrace'), 1)).toBe(zoneTintFor(zone('terrace'), 7))
+    const greener = { ...zone('lawn'), colorHex: '#B7D7A5' }
+    expect(zoneTintFor(greener, 7)).toBe('#B7D7A5')
+    expect(zoneTintFor(greener, 1)).toBe(zoneTintFor(zone('lawn'), 1))
+    expect(zoneTintFor({ ...greener, textureId: 'river-pebbles' }, 7)).toBe('#FFFFFF')
   })
 
   it('rejects scans that do not fit the surface and accepts none', () => {

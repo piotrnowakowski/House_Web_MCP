@@ -1,0 +1,32 @@
+{
+  "revision": 17,
+  "mu": {
+    "area": 888.8064518367655,
+    "buildingM2": 237.76069994467906,
+    "coveragePct": 26.75055963571529,
+    "pavingAndExcludedFixturesM2": 121.60206619661606,
+    "greenM2": 529.4436856242529,
+    "greenPct": 59.56793906368811,
+    "greenSurplusM2": 85.04045970587015,
+    "floorAreaUpperBoundM2": 358.3213997291088,
+    "intensityUpperBound": 0.4031489634088712
+  },
+  "threeParcels": {
+    "area": 1200.004323834804,
+    "buildingM2": 237.76069994467906,
+    "coveragePct": 19.813320270786782,
+    "pavingAndExcludedFixturesM2": 180.94124804222346,
+    "greenM2": 781.3023757769271,
+    "greenPct": 65.10829671681111,
+    "greenSurplusM2": 181.30021385952512,
+    "floorAreaUpperBoundM2": 358.3213997291088,
+    "intensityUpperBound": 0.29860009052637076
+  },
+  "assumptions": [
+    "Conservatively exclude a continuous 0.20 m strip inside every fence, including open mesh panels; actual foundations require design.",
+    "Model estimate, not formal approval.",
+    "Gravel, stepping stones, greenhouse and raised beds excluded from PBC conservatively.",
+    "Natural lawn, soil-based ornamental beds and orchard counted green.",
+    "Greenhouse in R3 remains a hypothetical placement, not approved construction."
+  ]
+}

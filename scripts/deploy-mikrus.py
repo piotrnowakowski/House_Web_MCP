@@ -71,6 +71,27 @@ def run(client, command):
     return output
 
 
+def prune_unused_images(client, project):
+    """Remove this app's images (frontend and sync) that no container uses; other services are untouched."""
+    used = set(run(client, "docker ps -aq | xargs -r docker inspect --format '{{.Image}}'").split())
+    listing = run(client, "docker images --no-trunc --format '{{.Repository}}:{{.Tag}} {{.ID}}' --filter "
+                  + shlex.quote("reference=" + project) + " --filter " + shlex.quote("reference=" + project + "-sync"))
+    removed = 0
+    for line in listing.splitlines():
+        ref, image_id = line.rsplit(" ", 1)
+        if image_id in used:
+            continue
+        try:
+            run(client, "docker rmi " + shlex.quote(image_id if ref.endswith(":<none>") else ref))
+            removed += 1
+        except RuntimeError as error:
+            LOG.warning("Kept image %s: %s", ref, str(error).strip()[:200])
+    # Removed images' layers stay pinned by the build cache until it is pruned; cache only, no data.
+    run(client, "docker builder prune -f --filter until=24h")
+    LOG.info("Removed %d unused %s images; free disk: %s", removed, project,
+             run(client, "df -h / | tail -1 | awk '{print $4}'").strip())
+
+
 def write_remote(sftp, path, text):
     with sftp.open(path, "w") as target:
         target.write(text)
@@ -171,6 +192,8 @@ def main() -> None:
         for path in entries:
             if path.is_file() and path.suffix in {".js", ".css", ".json", ".wasm", ".svg"}:
                 path.with_name(path.name + ".gz").write_bytes(gzip.compress(path.read_bytes(), compresslevel=6, mtime=0))
+        # Running images stay, so the previous release remains available for rollback until the next deploy.
+        prune_unused_images(client, project)
         archive = Path("tmp") / ("dist-" + args.revision + ".tar.gz")
         archive.parent.mkdir(exist_ok=True)
         files = sorted(path for path in args.dist.rglob("*") if path.is_file())

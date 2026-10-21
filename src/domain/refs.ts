@@ -5,7 +5,7 @@ import { resolveGableWallFinish } from './wallFinishes'
 /** Lower-case, hyphenated, at most 30 characters; used for variant refs and terrain refs. */
 export const slugify = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 30)
 
-export type ProjectObjectKind = 'building' | 'storey' | 'slab' | 'wall' | 'opening' | 'space' | 'roof' | 'roof-segment' | 'platform' | 'ceiling-finish' | 'zone' | 'plant' | 'fixture' | 'parcel' | 'entrance'
+export type ProjectObjectKind = 'building' | 'storey' | 'slab' | 'wall' | 'opening' | 'space' | 'roof' | 'roof-segment' | 'platform' | 'ceiling-finish' | 'zone' | 'plant' | 'fixture' | 'parcel' | 'entrance' | 'fence'
 export interface ProjectObjectLookup { kind: ProjectObjectKind; buildingRef?: string; storeyRef?: string; wallRef?: string; object: unknown }
 
 /** Compact building card: identity, placement and child references, without the child geometry. */
@@ -41,6 +41,7 @@ export const findProjectObject = (project: ProjectV2, ref: string): ProjectObjec
   const fixture = project.landscape.fixtures.find((item) => item.ref === ref); if (fixture) return { kind: 'fixture', object: fixture }
   const parcel = project.site.parcels.find((item) => item.ref === ref); if (parcel) return { kind: 'parcel', object: parcel }
   const entrance = project.site.entrances.find((item) => item.ref === ref); if (entrance) return { kind: 'entrance', object: entrance }
+  const fence = project.site.fences?.find((item) => item.ref === ref); if (fence) return { kind: 'fence', object: fence }
   return null
 }
 
