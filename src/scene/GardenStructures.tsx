@@ -6,6 +6,7 @@ import { TexturedMaterial } from './materials'
 import type { TextureId } from '../domain/textures'
 import type { PlantModel } from '../domain/types'
 import { pergolaMembers } from '../domain/pergola'
+import { solarTable, solarTableWidthM, solarTableSlopeM, solarTableRiseM } from '../domain/gardenFixtures'
 
 type GardenVisualProps = { selected: boolean; ghost: boolean }
 type Triple = [number, number, number]
@@ -152,6 +153,27 @@ function GardenBox({ size, at = [0, 0, 0], rotation = [0, 0, 0], asset, color = 
     {asset ? <TexturedMaterial asset={asset} color={selected ? '#bedb84' : color} roughness={roughness} transparent={ghost} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />
       : <meshStandardMaterial color={selected ? '#bedb84' : color} roughness={roughness} transparent={ghost} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />}
   </mesh>
+}
+
+export function SolarTable(props: GardenVisualProps) {
+  const t = solarTable, tilt = t.tiltDegrees * Math.PI / 180, centreY = t.lowEdgeM + solarTableRiseM / 2
+  return <group>
+    <group position-y={centreY} rotation-x={tilt}>
+      {Array.from({ length: t.rows * t.columns }, (_, i) => {
+        const x = (i % t.columns - (t.columns - 1) / 2) * (t.moduleWidthM + t.gapM)
+        const z = (Math.floor(i / t.columns) - (t.rows - 1) / 2) * (t.moduleLengthM + t.gapM)
+        return <group key={i} position={[x, 0, z]} userData={{ solarModulePowerW: t.modulePowerW }}>
+          <GardenBox size={[t.moduleWidthM, .035, t.moduleLengthM]} color="#a9b3b5" {...props} />
+          <GardenBox size={[t.moduleWidthM - .035, .008, t.moduleLengthM - .035]} at={[0, .022, 0]} color="#142d43" roughness={.28} {...props} />
+        </group>
+      })}
+      {[-1.4, -.5, .5, 1.4].map(z => <GardenBox key={z} size={[solarTableWidthM, .08, .06]} at={[0, -.06, z]} color="#747e83" {...props} />)}
+    </group>
+    {[-4.6, 0, 4.6].flatMap(x => [-1, 1].map(side => {
+      const z = side * solarTableSlopeM * .35 * Math.cos(tilt), height = centreY - z * Math.tan(tilt) - .1
+      return <GardenBox key={`${x}/${side}`} size={[.09, height, .09]} at={[x, height / 2, z]} color="#747e83" {...props} />
+    }))}
+  </group>
 }
 
 export function DetailedGreenhouse(props: GardenVisualProps) {

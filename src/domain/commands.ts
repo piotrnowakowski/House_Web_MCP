@@ -666,7 +666,7 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
     if (plant.attachment && !hostRefs.has(plant.attachment.hostRef)) issues.push({ severity: 'error', code: 'plant.support', message: `${plant.name} has an unknown support surface.`, subjectRef: plant.ref })
   })
   project.landscape.fixtures.forEach((fixture) => {
-    const definition = gardenFixtureById(fixture.catalogId); const radians = fixture.rotationDegrees * Math.PI / 180; const c = Math.cos(radians); const s = Math.sin(radians)
+    const definition = gardenFixtureById(fixture.catalogId); const radians = -fixture.rotationDegrees * Math.PI / 180; const c = Math.cos(radians); const s = Math.sin(radians)
     const corners = [[-definition.widthM / 2, -definition.depthM / 2], [definition.widthM / 2, -definition.depthM / 2], [definition.widthM / 2, definition.depthM / 2], [-definition.widthM / 2, definition.depthM / 2]]
       .map(([x, z]) => ({ x: fixture.position.x + x * c + z * s, z: fixture.position.z - x * s + z * c }))
     if (!corners.every((corner) => project.site.parcels.some((parcel) => pointInPolygon(corner, parcel.boundary)))) issues.push({ severity: 'error', code: 'fixture.site', message: `${fixture.name} extends outside the owned parcels.`, subjectRef: fixture.ref })

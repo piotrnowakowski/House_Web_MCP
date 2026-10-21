@@ -9,15 +9,68 @@ import beforeGardenRefine from '../../project-data/nowe-mpzp-v2/before-garden-re
 import beforeCompact from '../../project-data/nowe-mpzp-v2/before-compact-kitchen-r6.json'
 import beforeShift from '../../project-data/nowe-mpzp-v2/before-house-shift-r7.json'
 import beforeFront from '../../project-data/nowe-mpzp-v2/before-front-services-r9.json'
+import beforePv from '../../project-data/nowe-mpzp-v2/before-pv-r10.json'
 import parent from '../../project-data/nowe-mpzp/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
-import { gardenFixtureById } from '../domain/gardenFixtures'
+import { gardenFixtureById, solarTable, solarTableWidthM, solarTableDepthM } from '../domain/gardenFixtures'
+import { Matrix4, Vector3 } from 'three'
+import { sunDirectionModel } from '../domain/solar'
+import { collectOccluders } from '../domain/sunlight'
 import { buildingFootprintsWorld, distanceToSegment, pointInPolygon, polygonArea } from '../domain/geometry'
 import { resolveZoneTexture } from '../domain/textures'
 import { mergeProjects } from '../domain/projectMerge'
 import { loadWorkspace, saveWorkspace, deleteWorkspace, listWorkspaces } from './persistence'
 import { NOWE_MPZP_V2_REF, synchronizePublishedNoweMpzpV2 } from './publishedNoweMpzpV2'
+
+it('fits 30 kWp facing south without moving existing objects and preserves a deleted table on migration', async()=>{
+  const p=parseProject(data),before=parseProject(beforePv),tables=p.landscape.fixtures.filter(f=>f.catalogId==='solar-table-20')
+  expect(tables).toHaveLength(3)
+  expect(tables.length*solarTable.rows*solarTable.columns*solarTable.modulePowerW).toBe(30000)
+  expect(p.buildings).toEqual(before.buildings)
+  expect({...p.site,knowledgeBase:null}).toEqual({...before.site,knowledgeBase:null})
+  expect({...p.landscape,fixtures:null}).toEqual({...before.landscape,fixtures:null})
+  expect(p.landscape.fixtures.filter(f=>f.catalogId!=='solar-table-20')).toEqual(before.landscape.fixtures)
+  const south=sunDirectionModel(180,0,p.site.northDegrees)
+  for(const [i,f] of tables.entries()){
+    // Use Three's actual rendered clockwise fixture rotation, also used by validation and shadow volumes.
+    const rotation=new Matrix4().makeRotationY(-f.rotationDegrees*Math.PI/180)
+    const facing=new Vector3(0,0,1).applyMatrix4(rotation)
+    expect(facing.x).toBeCloseTo(south.x,10);expect(facing.z).toBeCloseTo(south.z,10)
+    const w=solarTableWidthM/2,d=gardenFixtureById(f.catalogId).depthM/2
+    const corners=[[-w,-d],[w,-d],[w,d],[-w,d]].map(([x,z])=>new Vector3(x,0,z).applyMatrix4(rotation).add(new Vector3(f.position.x,0,f.position.z)))
+    const narrow=structuredClone(p)
+    narrow.landscape.fixtures=[f]
+    narrow.site.parcels=[{...p.site.parcels[0],boundary:corners.map(q=>({x:f.position.x+(q.x-f.position.x)*1.05,z:f.position.z+(q.z-f.position.z)*1.05}))}]
+    expect(validateProject(narrow).filter(issue=>issue.code==='fixture.site')).toEqual([])
+    for(const q of corners){
+      expect(pointInPolygon(q,p.site.boundary)).toBe(true)
+      expect(Math.min(...p.site.fences!.map(e=>distanceToSegment(q,e.start,e.end)))).toBeGreaterThan(5)
+    }
+    for(const t of p.landscape.plants){
+      expect(pointInPolygon(t.position,corners)).toBe(false)
+      expect(Math.min(...corners.map((q,j)=>distanceToSegment(t.position,q,corners[(j+1)%4])))-t.canopyM/2,t.ref).toBeGreaterThan(1.9)
+    }
+    const shadow=collectOccluders(p).find(o=>o.ref===f.ref)!
+    expect(shadow.kind).toBe('convex')
+    if(shadow.kind==='convex'){
+      expect(shadow.planes[0].normal.x).toBeCloseTo(rotation.elements[0],10)
+      expect(shadow.planes[0].normal.z).toBeCloseTo(rotation.elements[2],10)
+    }
+    if(i)expect(Math.hypot(f.position.x-tables[i-1].position.x,f.position.z-tables[i-1].position.z)-solarTableDepthM).toBeGreaterThan(5.5)
+  }
+  const local=structuredClone(before);local.name='Własny ogród'
+  const incoming=mergeProjects(before,local,p)
+  expect(incoming.conflicts).toEqual([])
+  globalThis.indexedDB=new IDBFactory()
+  const edited=structuredClone(incoming.project);edited.landscape.fixtures=edited.landscape.fixtures.filter(f=>f.ref!==tables[1].ref)
+  await saveWorkspace({version:1,project:edited,proposals:[],draftChangeSets:[]})
+  const saved=(await loadWorkspace(p.ref))!.project
+  const next=mergeProjects(p,saved,{...p,revision:p.revision+1})
+  expect(next.conflicts).toEqual([])
+  expect(next.project.landscape.fixtures.filter(f=>f.catalogId==='solar-table-20')).toHaveLength(2)
+  expect(next.project.name).toBe('Własny ogród')
+})
 
 it('closes the moved frontage, separates the wicket, and preserves roof geometry and saved deletions', async()=>{
   const p=parseProject(data),before=parseProject(beforeFront),gate=p.site.entrances.find(e=>e.ref==='entrance/house-road')!,wicket=p.site.entrances.find(e=>e.ref==='entrance/house-wicket')!
@@ -42,7 +95,7 @@ it('closes the moved frontage, separates the wicket, and preserves roof geometry
   const bodies=p.buildings.flatMap(buildingFootprintsWorld),walk=p.landscape.zones.find(z=>z.ref.endsWith('/wicket-walk'))!
   for(const q of walk.footprint)expect(bodies.some(poly=>pointInPolygon(q,poly))).toBe(false)
   for(const suffix of ['/treatment','/infiltration']){
-    const f=p.landscape.fixtures.find(f=>f.ref.endsWith(suffix))!,size=gardenFixtureById(f.catalogId),a=f.rotationDegrees*Math.PI/180
+    const f=p.landscape.fixtures.find(f=>f.ref.endsWith(suffix))!,size=gardenFixtureById(f.catalogId),a=-f.rotationDegrees*Math.PI/180
     for(const x of [-size.widthM/2,size.widthM/2])for(const z of [-size.depthM/2,size.depthM/2]){
       const q={x:f.position.x+x*Math.cos(a)+z*Math.sin(a),z:f.position.z-x*Math.sin(a)+z*Math.cos(a)}
       expect(Math.min(...p.site.boundary.map((v,i)=>distanceToSegment(q,v,p.site.boundary[(i+1)%p.site.boundary.length])))).toBeGreaterThan(2)
@@ -74,7 +127,7 @@ it('keeps the house, roofs, site and surveyed trees while fitting the reference 
   expect(validateProject(p).filter(i=>i.severity==='error')).toEqual([])
   const bodies=p.buildings.flatMap(buildingFootprintsWorld)
   for(const f of p.landscape.fixtures){
-    const {widthM:w,depthM:d}=gardenFixtureById(f.catalogId),a=f.rotationDegrees*Math.PI/180
+    const {widthM:w,depthM:d}=gardenFixtureById(f.catalogId),a=-f.rotationDegrees*Math.PI/180
     for(const x of [-w/2,w/2])for(const z of [-d/2,d/2]){
       const q={x:f.position.x+x*Math.cos(a)+z*Math.sin(a),z:f.position.z-x*Math.sin(a)+z*Math.cos(a)}
       expect(pointInPolygon(q,p.site.boundary),f.ref).toBe(true)
@@ -182,7 +235,7 @@ it('swaps terrace sets, covers the kitchen-to-sauna route, and preserves plants 
   const deck=p.landscape.zones.find(z=>z.ref.endsWith('/summer-deck'))!
   expect(resolveZoneTexture(deck)?.id).toBe('hinoki')
   for(const suffix of ['kitchen','summer-table','hot-tub','sauna']){
-    const f=fixture(p,suffix),s=gardenFixtureById(f.catalogId),a=f.rotationDegrees*Math.PI/180
+    const f=fixture(p,suffix),s=gardenFixtureById(f.catalogId),a=-f.rotationDegrees*Math.PI/180
     for(const x of [-s.widthM/2,s.widthM/2])for(const z of [-s.depthM/2,s.depthM/2]){
       const q={x:f.position.x+x*Math.cos(a)+z*Math.sin(a),z:f.position.z-x*Math.sin(a)+z*Math.cos(a)}
       expect(Math.abs(q.x-canopy.position.x)).toBeLessThan(size.widthM/2)
@@ -275,7 +328,7 @@ it('compacts only the kitchen and spa, preserves real sizes and migrates indepen
   expect(polygonArea(deck.footprint)/polygonArea(before.landscape.zones.find(z=>z.ref===deck.ref)!.footprint)).toBeLessThan(.56)
   for(const suffix of ['hot-tub','sauna','summer-table'])expect(bySuffix(p,suffix).catalogId).toBe(bySuffix(before,suffix).catalogId)
   for(const suffix of changed.map(ref=>ref.split('/').at(-1)!)){
-    const f=bySuffix(p,suffix),size=gardenFixtureById(f.catalogId),a=f.rotationDegrees*Math.PI/180
+    const f=bySuffix(p,suffix),size=gardenFixtureById(f.catalogId),a=-f.rotationDegrees*Math.PI/180
     for(const x of [-size.widthM/2,size.widthM/2])for(const z of [-size.depthM/2,size.depthM/2])expect(pointInPolygon({x:f.position.x+x*Math.cos(a)+z*Math.sin(a),z:f.position.z-x*Math.sin(a)+z*Math.cos(a)},deck.footprint),suffix).toBe(true)
   }
   expect(24.3-(bySuffix(p,'sauna').position.z+1.5)).toBeGreaterThanOrEqual(.9)

@@ -1,6 +1,6 @@
 import { metreBoxGeometry } from './metreGeometry'
 import { SiteFence } from './SiteFence'
-import { DetailedGreenhouse, RoundFireLounge, OrnamentalGrass, GardenSpaStructure, FloweringBorderPlant, ThujaPlant } from './GardenStructures'
+import { DetailedGreenhouse, RoundFireLounge, OrnamentalGrass, GardenSpaStructure, FloweringBorderPlant, ThujaPlant, SolarTable } from './GardenStructures'
 import { gableGlazingProfile } from '../domain/gableGlazing'
 import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
 import { CLEAR_MEASUREMENT_EVENT } from './events'
@@ -1241,6 +1241,7 @@ function RecyclingBinsFixture({ selected, ghost }: { selected: boolean; ghost: b
 
 function GardenFixtureModel({ catalogId, selected, ghost }: { catalogId: GardenFixtureModel['catalogId']; selected: boolean; ghost: boolean }) {
   switch (catalogId) {
+    case 'solar-table-20': return <SolarTable selected={selected} ghost={ghost} />
     case 'biological-treatment-study': case 'infiltration-study': {
       const tank = catalogId === 'biological-treatment-study', w = tank ? 1.5 : 2, d = tank ? 3 : 6
       return <group>

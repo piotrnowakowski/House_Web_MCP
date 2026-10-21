@@ -12,7 +12,14 @@ export interface GardenFixtureDefinition {
 
 export const GARDEN_FIXTURE_CATALOG_VERSION = 1
 
+export const solarTable = { columns: 10, rows: 2, moduleWidthM: 1.134, moduleLengthM: 1.903, modulePowerW: 500, gapM: .02, tiltDegrees: 25, lowEdgeM: .8 }
+export const solarTableWidthM = solarTable.columns * (solarTable.moduleWidthM + solarTable.gapM) - solarTable.gapM
+export const solarTableSlopeM = solarTable.rows * (solarTable.moduleLengthM + solarTable.gapM) - solarTable.gapM
+export const solarTableDepthM = solarTableSlopeM * Math.cos(solarTable.tiltDegrees * Math.PI / 180)
+export const solarTableRiseM = solarTableSlopeM * Math.sin(solarTable.tiltDegrees * Math.PI / 180)
+
 export const gardenFixtureCatalog: GardenFixtureDefinition[] = [
+  { id: 'solar-table-20', name: 'Stół PV · 20 × 500 W · koncepcja', category: 'structure', description: '10 kWp, dwa rzędy po 10 modułów, nachylenie 25°. Dolna krawędź 0,8 m. Gabaryt koncepcyjny: lokalizacja, konstrukcja, elektryka i zacienienie wymagają projektu.', widthM: solarTableWidthM, depthM: solarTableDepthM + .03, heightM: solarTable.lowEdgeM + solarTableRiseM + .04 },
   { id: 'biological-treatment-study', name: 'Oczyszczalnia biologiczna · koncepcja', category: 'structure', description: 'Rezerwa zbiornika 1,5 × 3 m, dwa włazy Ø0,6 m. Gabaryt orientacyjny dla 4–5 osób; producent, odpowietrzenie, grunt i odpływ wymagają projektu.', widthM: 1.5, depthM: 3, heightM: .12 },
   { id: 'infiltration-study', name: 'Rezerwa rozsączania · do badań gruntu', category: 'structure', description: 'Przerywany obrys 2 × 6 m oznacza wyłącznie rezerwę terenu, nie dobrany drenaż. Wymaga badań chłonności, poziomu wód, studni i korzeni.', widthM: 2, depthM: 6, heightM: .04 },
   { id: 'recycling-bins', name: 'Kosze do segregacji', category: 'furniture', description: 'Five bins: paper, plastic and metal, glass, bio and mixed waste.', widthM: 3.6, depthM: 1.1, heightM: 1.2 },
