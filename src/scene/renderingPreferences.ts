@@ -28,5 +28,8 @@ export const useRenderingPreferences = create<{
   setSoftware: software => set({ software }),
 }))
 
+// Phones and tablets stutter with detailed trees, grass and shadows (~30x the geometry of fast mode).
+const touchDevice = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches
+
 export const useRenderQuality = () => useRenderingPreferences(state =>
-  state.quality === 'auto' ? (state.software === false ? 'detailed' : 'fast') : state.quality)
+  state.quality === 'auto' ? (state.software === false && !touchDevice ? 'detailed' : 'fast') : state.quality)
