@@ -69,7 +69,7 @@ The default command only inspects the service. Publishing packages `dist/` only,
 builds an immutable revision-tagged Nginx image and probes its health and 64-entry catalogue in a separate container.
 It then backs up Compose and replaces only the `house-web-mcp` service in the existing project.
 If the new service fails its health/revision check, the script restores the previous Compose configuration.
-Previous images and release directories remain available; other VPS services are not restarted.
+Before uploading, it removes this app's frontend/sync images that no container uses, so the previous release stays available for rollback until the next deploy; release directories and other services' images are untouched. Build with PowerShell, not Git Bash: Git Bash rewrites `BASE_PATH=/` to `/Program Files/Git/` and produces a blank page. Other VPS services are not restarted.
 The script checks the pinned SSH fingerprint and does not log or upload the password.
 
 Check `/health` for the deployed revision and use `scripts/audit-interior-production.mjs --url <public-url>`
