@@ -86,6 +86,8 @@ def prune_unused_images(client, project):
             removed += 1
         except RuntimeError as error:
             LOG.warning("Kept image %s: %s", ref, str(error).strip()[:200])
+    # Removed images' layers stay pinned by the build cache until it is pruned; cache only, no data.
+    run(client, "docker builder prune -f --filter until=24h")
     LOG.info("Removed %d unused %s images; free disk: %s", removed, project,
              run(client, "df -h / | tail -1 | awk '{print $4}'").strip())
 
