@@ -13,15 +13,11 @@
 .site-plan-drawing { position:relative; min-height:0; min-width:0; overflow:hidden; }
 .site-plan-drawing svg { display:block; touch-action:none; cursor:grab; }
 .site-plan-drawing svg:active { cursor:grabbing; }
-.site-plan-object,.site-plan-label { cursor:pointer; }
-.site-plan-label rect { fill:#fffffff0; stroke:#c2cec1; stroke-width:.7; }
-.site-plan-label text { fill:#50644f; font:11px system-ui; pointer-events:none; }
-.site-plan-label .site-plan-label-value { fill:#293f33; font-size:11px; font-weight:650; }
-.site-plan-label line { stroke:#94a48f; stroke-width:.7; }
-.site-plan-label.selected rect { stroke:#bd4c29; fill:#fff3e5; }
-.site-plan-selected { pointer-events:none; }
-.site-plan-dimension path { stroke:#bd4c29; fill:none; stroke-width:1; }
-.site-plan-dimension text { font:600 12px system-ui; text-anchor:middle; fill:#9a3c1f; stroke:#fffaf1; stroke-width:4; paint-order:stroke; }
+.site-plan-object { cursor:pointer; }
+.site-plan-selected,.site-plan-dimension { pointer-events:none; }
+.site-plan-dimension path { stroke:#596d60; fill:none; stroke-width:.9; }
+.site-plan-dimension text { font:600 11px system-ui; text-anchor:middle; fill:#354c3c; stroke:#f7f8f1; stroke-width:3; paint-order:stroke; }
+.site-plan-dimension.selected path { stroke:#bd4c29; stroke-width:1.2; }.site-plan-dimension.selected text { fill:#9a3c1f; }
 .site-plan-north { pointer-events:none; }.site-plan-north circle { fill:#f7f8f1; stroke:#d1dacb; }.site-plan-north path { stroke:#354f3e; stroke-width:2; }.site-plan-north text { fill:#354f3e; text-anchor:middle; font:700 12px system-ui; }
 .site-plan-scale { pointer-events:none; }.site-plan-scale path { fill:none; stroke:#476047; stroke-width:2; }.site-plan-scale text { fill:#476047; font:11px system-ui; stroke:#f7f8f1; stroke-width:3; paint-order:stroke; }
 .site-plan-hint { position:absolute; right:15px; bottom:12px; margin:0; color:#67795e; font-size:10px; pointer-events:none; }
@@ -37,8 +33,9 @@ body:has(.site-plan) .workspace-save-bar { bottom:10px; top:auto; left:auto; rig
 @media(max-width:900px) {
  .site-plan { grid-template-columns:minmax(0,1fr); grid-template-rows:68px auto minmax(0,1fr); padding-top:env(safe-area-inset-top,0px); }
  .site-plan-header { padding:8px; gap:10px; }.site-plan-header h1 { font-size:17px; }.site-plan-header p { max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }.site-plan-header button { min-height:44px; padding:7px; }.site-plan-header .site-plan-list-toggle { display:inline-flex; font-size:11px; }
- .site-plan-tools { gap:5px; padding:6px 8px; }.site-plan-tools button { min-height:44px; padding:6px 8px; font-size:11px; }.site-plan-tools label { margin-left:0; font-size:11px; min-height:30px; }
- .site-plan-sidebar { display:none; }.site-plan-list-open { grid-template-rows:68px auto minmax(120px,1fr) minmax(0,42%); }.site-plan-list-open .site-plan-sidebar { display:flex; grid-column:1; grid-row:4; border-top:1px solid #b4c4af; padding:12px 12px 60px; gap:7px; }.site-plan-sidebar h2,.site-plan-sidebar > .site-plan-note { display:none; }.site-plan-detail { padding:9px; }.site-plan-detail p { font-size:11px; }.site-plan-elements { min-height:120px; overflow:visible; }
+ .site-plan-tools { grid-column:1/-1; gap:5px; padding:6px 8px; }.site-plan-tools button { min-height:44px; padding:6px 8px; font-size:11px; }.site-plan-tools label { margin-left:0; font-size:11px; min-height:30px; }
+ .site-plan-sidebar { display:none; }.site-plan-list-open { grid-template-columns:minmax(0,1fr) clamp(140px,38vw,240px); }.site-plan-list-open .site-plan-sidebar { display:flex; grid-column:2; grid-row:3; padding:10px 8px 72px; gap:8px; }.site-plan-sidebar h2 { font-size:12px; }.site-plan-sidebar > .site-plan-note { font-size:10px; }.site-plan-sidebar input,.site-plan-sidebar select { padding:8px 5px; font-size:11px; min-height:40px; }.site-plan-detail { padding:8px; overflow-wrap:anywhere; }.site-plan-detail p { font-size:11px; }.site-plan-detail button { font-size:11px; }.site-plan-elements { min-height:120px; overflow:visible; }.site-plan-elements button { padding:8px 4px; }.site-plan-elements strong { margin-left:0; font-size:11px; }
+ .site-plan-elements { flex:none; }.site-plan-sidebar > .site-plan-note:first-of-type { line-height:1.4; }
  .site-plan-hint { display:none; }
  body:has(.site-plan) .workspace-save-bar { right:8px; bottom:8px; }
 }
