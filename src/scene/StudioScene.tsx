@@ -3,6 +3,7 @@ import { FineGardenGravelMaterial, GardenPavingMaterial } from './gardenPaving'
 import { excavatedGroundGeometry, gardenExcavations } from './gardenGround'
 import { metreBoxGeometry } from './metreGeometry'
 import { SiteFence } from './SiteFence'
+import { plantVisualSeed } from './vegetationGeometry'
 import { DetailedGreenhouse, RoundFireLounge, OrnamentalGrass, GardenSpaStructure, FloweringBorderPlant, ThujaPlant, SolarTable } from './GardenStructures'
 import { gableGlazingProfile } from '../domain/gableGlazing'
 import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
@@ -1105,16 +1106,10 @@ function Landscape({ project }: { project: ProjectV2 }) {
 function Plant({ plant, project, selected, onSelect, ghost = false }: { plant: PlantModel; project: ProjectV2; selected: boolean; onSelect: () => void; ghost?: boolean }) {
   const month = useStudioStore((state) => state.month); const repositioningRef = useStudioStore((state) => state.repositioningRef); const commitCommand = useStudioStore((state) => state.commitCommand); const endReposition = useStudioStore((state) => state.endReposition); const setToast = useStudioStore((state) => state.setToast)
   const treesVisible = useStudioStore(state => state.treesVisible)
-  const y = groundContactY(); const canopy = Math.max(0.25, plant.canopyM / 2); const visibleLeaf = plant.leafMonths.includes(month); const group = useRef<Group>(null)
+  const y = groundContactY(); const group = useRef<Group>(null)
   if (plant.kind === 'tree' && !treesVisible) return null
   return <><group ref={group} position={[plant.position.x, y, plant.position.z]} userData={{ semanticRef: plant.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) onSelect() }}>
-    {plant.kind === 'grass' ? <OrnamentalGrass height={plant.matureHeightM} width={plant.canopyM} selected={selected} ghost={ghost} /> : plant.species.startsWith('Thuja ') ? <ThujaPlant plant={plant} selected={selected} ghost={ghost} /> : /^(Hydrangea|Lavandula)/.test(plant.species) ? <FloweringBorderPlant plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.surveyHandle ? <SurveyTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : hasFruitTreeVisual(plant) ? <FruitTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.crownShape === 'conical' ? <>
-      <mesh position={[0, plant.matureHeightM * 0.4, 0]} castShadow={!ghost}><cylinderGeometry args={[0.12, 0.24, plant.matureHeightM * 0.8, 10]} /><meshStandardMaterial color="#584434" transparent={ghost} opacity={ghost ? 0.42 : 1} /></mesh>
-      <mesh position={[0, plant.matureHeightM * 0.6, 0]} castShadow={!ghost}><coneGeometry args={[canopy, plant.matureHeightM * 0.8, 14]} /><meshStandardMaterial color={selected || ghost ? '#b9e84d' : '#355a3c'} transparent={ghost} opacity={ghost ? 0.38 : 1} depthWrite={!ghost} /></mesh>
-    </> : <>
-      <mesh position={[0, plant.matureHeightM * (plant.kind === 'tree' ? 0.36 : 0.28), 0]} castShadow={!ghost}><cylinderGeometry args={[0.1, 0.15, plant.matureHeightM * (plant.kind === 'tree' ? 0.72 : 0.56), 8]} /><meshStandardMaterial color="#584434" transparent={ghost} opacity={ghost ? 0.42 : 1} /></mesh>
-      <mesh position={[0, plant.matureHeightM * 0.72, 0]} scale={[1, plant.kind === 'tree' ? plant.matureHeightM * 0.28 / canopy : 1, 1]} castShadow={!ghost}><sphereGeometry args={[canopy, 12, 9]} /><meshStandardMaterial color={selected ? '#b9e84d' : ghost ? '#b9e84d' : visibleLeaf ? '#477348' : '#756955'} transparent opacity={ghost ? 0.38 : visibleLeaf ? 0.92 : 0.52} depthWrite={!ghost} /></mesh>
-    </>}
+    {plant.kind === 'grass' ? <OrnamentalGrass height={plant.matureHeightM} width={plant.canopyM} seed={plantVisualSeed(plant.ref)} selected={selected} ghost={ghost} /> : plant.species.startsWith('Thuja ') ? <ThujaPlant plant={plant} selected={selected} ghost={ghost} /> : /^(Hydrangea|Lavandula)/.test(plant.species) ? <FloweringBorderPlant plant={plant} month={month} selected={selected} ghost={ghost} /> : plant.surveyHandle ? <SurveyTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : hasFruitTreeVisual(plant) ? <FruitTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} /> : <SurveyTreeVisual plant={plant} month={month} selected={selected} ghost={ghost} />}
   </group>{selected && !ghost && repositioningRef === plant.ref && group.current && <TransformControls object={group.current} mode="translate" showY={false} userData={{ editorOnly: true }} onMouseUp={() => {
     if (!group.current) return
     try { commitCommand({ type: 'plant.update', action: 'move', plantRef: plant.ref, position: { x: group.current.position.x, z: group.current.position.z } }) }

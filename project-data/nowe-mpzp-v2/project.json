@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp-v2",
   "name": "nowe mpzp — wariant 2",
   "units": "metric",
-  "revision": 12,
-  "updatedAt": "2026-10-24T12:01:22.089Z",
+  "revision": 13,
+  "updatedAt": "2026-10-24T12:35:43.803Z",
   "site": {
     "boundary": [
       {
@@ -2211,7 +2211,8 @@
         "Oczyszczalnia: najpierw potwierdzić możliwość przyłączenia do kanalizacji, MPZP i położenie w aglomeracji, badania gruntu i maksymalny poziom wód, studnie własne i sąsiadów, podziemne instalacje oraz ochronę korzeni drzew 5012/5018. Pokazano jedynie obrysy przestrzenne; głębokość wykopu, strefa fundamentów, spadki rur, ewentualna pompa, wentylacja i dostęp serwisowy wymagają projektu.",
         "Istniejąca opinia geotechniczna ze stycznia 2026 opisuje gliny pylaste, torfy/namuły i wodę na 1,6–2,3 m p.p.t. w dwóch odwiertach, nie bezpośrednio pod szkicem oczyszczalni. Zwykły drenaż podziemny jest niepotwierdzony; 1,5 m warstwy oddzielającej od najwyższego użytkowego poziomu wodonośnego wymaga weryfikacji. Może być konieczny nasyp z pompą lub inny dopuszczalny odbiornik, większa powierzchnia oraz zabezpieczenie zbiornika przed wyporem. Rezerwa 2 × 6 m nie jest projektem takiego rozwiązania.",
         "WT §37 dopuszcza bliskie sąsiedztwo domu tylko dla szczelnych przepływowych osadników wstępnych, z odpowietrzeniem co najmniej 0,6 m ponad górną krawędź okien i drzwi; nie jest to automatyczny wyjątek dla każdego reaktora. WT §31 przewiduje 15 m studnia–szczelny zbiornik i 30 m studnia–przewód rozsączający ścieki oczyszczone biologicznie. Przyjęte założenia dawnych WT podlegają przepisom przejściowym art. 102a–102b Pb, nie stanowią zatwierdzenia lokalizacji.",
-        "PV r12: koncepcja na wyraźne życzenie użytkownika mimo zastrzeżeń planistycznych. 3 stoły po 20 modułów 500 W = 30 kWp DC, na gruncie za szklarnią, skierowane na południe, nachylenie 25°, rozstaw osi 6,5 m i około 3 m między stołami. Układ przesunięty do prawej części ogrodu, obrys około 190 m² zamiast 247 m²; mniejszy rozstaw zwiększa ryzyko wzajemnego cienia zimą. Projekt MPZP udostępniony w BIP (https://bip.malopolska.pl/api/files/4273429), §17 ust. 1 pkt 7, dopuszcza na terenach rolnych instalacje inne niż wolnostojące; lokalizacja w 18.R3.1 nie jest potwierdzona jako dopuszczalna. To nie jest projekt wykonawczy ani potwierdzenie przyłączenia. Moduł 1,903 × 1,134 m jest założeniem gabarytowym. Brak projektu konstrukcji, fundamentów, instalacji i analizy rocznego uzysku; niski zimowy poziom słońca oraz tuje i drzewa nadal mogą powodować cień. Nie usunięto żadnej rośliny."
+        "PV r12: koncepcja na wyraźne życzenie użytkownika mimo zastrzeżeń planistycznych. 3 stoły po 20 modułów 500 W = 30 kWp DC, na gruncie za szklarnią, skierowane na południe, nachylenie 25°, rozstaw osi 6,5 m i około 3 m między stołami. Układ przesunięty do prawej części ogrodu, obrys około 190 m² zamiast 247 m²; mniejszy rozstaw zwiększa ryzyko wzajemnego cienia zimą. Projekt MPZP udostępniony w BIP (https://bip.malopolska.pl/api/files/4273429), §17 ust. 1 pkt 7, dopuszcza na terenach rolnych instalacje inne niż wolnostojące; lokalizacja w 18.R3.1 nie jest potwierdzona jako dopuszczalna. To nie jest projekt wykonawczy ani potwierdzenie przyłączenia. Moduł 1,903 × 1,134 m jest założeniem gabarytowym. Brak projektu konstrukcji, fundamentów, instalacji i analizy rocznego uzysku; niski zimowy poziom słońca oraz tuje i drzewa nadal mogą powodować cień. Nie usunięto żadnej rośliny.",
+        "24.10.2026: według wskazania właściciela drzewa 5012/5018 od strony bramy są wysokimi sosnami (Pinus sp.), a 5027/502A/502D/5030/5033/503A po drugiej stronie domu świerkami (Picea sp.). Pozycje z mapy, wysokości modelowe 15 m i szerokości koron pozostawiono bez zmian; wysokości i gatunków botanicznych nie potwierdzono pomiarem dendrologicznym."
       ]
     }
   },
@@ -21243,8 +21244,8 @@
       },
       {
         "ref": "plant/survey-5012",
-        "name": "Mapped conifer tree 5012",
-        "species": "Unidentified conifer",
+        "name": "Wysoka sosna od strony bramy · 5012",
+        "species": "Pinus sp.",
         "kind": "tree",
         "position": {
           "x": -14.626261665760946,
@@ -21271,14 +21272,14 @@
         ],
         "bloomMonths": [],
         "locked": true,
-        "crownShape": "conical",
+        "crownShape": "rounded",
         "placementRole": "site",
         "surveyHandle": "5012"
       },
       {
         "ref": "plant/survey-5018",
-        "name": "Mapped conifer tree 5018",
-        "species": "Unidentified conifer",
+        "name": "Wysoka sosna od strony bramy · 5018",
+        "species": "Pinus sp.",
         "kind": "tree",
         "position": {
           "x": -14.486225008990504,
@@ -21305,14 +21306,14 @@
         ],
         "bloomMonths": [],
         "locked": true,
-        "crownShape": "conical",
+        "crownShape": "rounded",
         "placementRole": "site",
         "surveyHandle": "5018"
       },
       {
         "ref": "plant/survey-5027",
-        "name": "Mapped conifer tree 5027",
-        "species": "Unidentified conifer",
+        "name": "Świerk po przeciwnej stronie domu · 5027",
+        "species": "Picea sp.",
         "kind": "tree",
         "position": {
           "x": 2.109831257906325,
@@ -21345,8 +21346,8 @@
       },
       {
         "ref": "plant/survey-502a",
-        "name": "Mapped conifer tree 502A",
-        "species": "Unidentified conifer",
+        "name": "Świerk po przeciwnej stronie domu · 502A",
+        "species": "Picea sp.",
         "kind": "tree",
         "position": {
           "x": 3.94986912448064,
@@ -21379,8 +21380,8 @@
       },
       {
         "ref": "plant/survey-502d",
-        "name": "Mapped conifer tree 502D",
-        "species": "Unidentified conifer",
+        "name": "Świerk po przeciwnej stronie domu · 502D",
+        "species": "Picea sp.",
         "kind": "tree",
         "position": {
           "x": 6.103142929220196,
@@ -21413,8 +21414,8 @@
       },
       {
         "ref": "plant/survey-5030",
-        "name": "Mapped conifer tree 5030",
-        "species": "Unidentified conifer",
+        "name": "Świerk po przeciwnej stronie domu · 5030",
+        "species": "Picea sp.",
         "kind": "tree",
         "position": {
           "x": 8.501181069997724,
@@ -21447,8 +21448,8 @@
       },
       {
         "ref": "plant/survey-5033",
-        "name": "Mapped deciduous tree 5033",
-        "species": "Unidentified deciduous",
+        "name": "Świerk po przeciwnej stronie domu · 5033",
+        "species": "Picea sp.",
         "kind": "tree",
         "position": {
           "x": 7.040360253871311,
@@ -21460,17 +21461,22 @@
         "waterNeed": 1,
         "hardinessMinC": -25,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
         "bloomMonths": [],
         "locked": true,
-        "crownShape": "rounded",
+        "crownShape": "conical",
         "placementRole": "site",
         "surveyHandle": "5033"
       },
@@ -21534,8 +21540,8 @@
       },
       {
         "ref": "plant/survey-503a",
-        "name": "Mapped deciduous tree 503A",
-        "species": "Unidentified deciduous",
+        "name": "Świerk po przeciwnej stronie domu · 503A",
+        "species": "Picea sp.",
         "kind": "tree",
         "position": {
           "x": 1.19335044016006,
@@ -21547,17 +21553,22 @@
         "waterNeed": 1,
         "hardinessMinC": -25,
         "leafMonths": [
+          1,
+          2,
+          3,
           4,
           5,
           6,
           7,
           8,
           9,
-          10
+          10,
+          11,
+          12
         ],
         "bloomMonths": [],
         "locked": true,
-        "crownShape": "rounded",
+        "crownShape": "conical",
         "placementRole": "site",
         "surveyHandle": "503A"
       },

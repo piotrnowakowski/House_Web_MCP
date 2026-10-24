@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="1000" viewBox="0 0 600 1000">
+  <defs>
+    <linearGradient id="cell" x2="1" y2="1"><stop stop-color="#18232e"/><stop offset=".5" stop-color="#101a25"/><stop offset="1" stop-color="#202c37"/></linearGradient>
+    <pattern id="cells" width="100" height="50" patternUnits="userSpaceOnUse">
+      <rect width="100" height="50" fill="#070d12"/>
+      <rect x="1" y="1" width="98" height="48" rx="2.5" fill="url(#cell)" stroke="#54606b" stroke-width=".45"/>
+      <path d="M10 2V48M26 2V48M42 2V48M58 2V48M74 2V48M90 2V48" stroke="#a4adb0" stroke-width=".38" opacity=".62"/>
+      <path d="M2 9H98M2 17H98M2 25H98M2 33H98M2 41H98" stroke="#6e7c87" stroke-width=".24" opacity=".45"/>
+    </pattern>
+  </defs>
+  <rect width="600" height="1000" fill="url(#cells)"/>
+  <path d="M0 500H600" stroke="#070d12" stroke-width="4"/>
+</svg>

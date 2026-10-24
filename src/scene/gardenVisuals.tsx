@@ -5,14 +5,17 @@ import { useGLTF } from '@react-three/drei'
 import { Component, useEffect, useMemo, type ErrorInfo, type ReactNode } from 'react'
 import { Box3, DoubleSide, Mesh, MeshStandardMaterial } from 'three'
 import type { PlantModel } from '../domain/types'
+import { plantVisualSeed } from './vegetationGeometry'
 
 const gardenAsset = (filename: string) => staticAssetUrl(`models/garden/${filename}`)
 const treeAsset = gardenAsset('orchard-tree-realistic.glb')
 const coniferAsset = gardenAsset('conifer-realistic.glb')
+const mobileTreeAsset = gardenAsset('orchard-tree-mobile.glb')
+const mobileConiferAsset = gardenAsset('conifer-mobile.glb')
 export const tomatoFoliageAsset = gardenAsset('crop-tomato-foliage.glb')
 export const potatoFoliageAsset = gardenAsset('crop-potato-foliage.glb')
 
-class AssetErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
+export class AssetErrorBoundary extends Component<{ children: ReactNode; fallback: ReactNode }, { failed: boolean }> {
   state = { failed: false }
 
   static getDerivedStateFromError() {
@@ -59,7 +62,13 @@ function usePreparedScene(path: string, selected: boolean, ghost: boolean, leave
       const sourceMaterials = Array.isArray(object.material) ? object.material : [object.material]
       const materials = sourceMaterials.map((material) => {
         const copy = material.clone() as MeshStandardMaterial
-        const leafMaterial = /leav|twig/.test(copy.name.toLowerCase())
+        const leafMaterial = /leav|twig|foliage|needle/.test(copy.name.toLowerCase())
+        if (leafMaterial) {
+          // A small diffuse contribution approximates light scattered through foliage.
+          copy.emissive.copy(copy.color)
+          copy.emissiveMap = copy.map
+          copy.emissiveIntensity = .1
+        }
         if (leafMaterial && !leavesVisible) {
           copy.transparent = true
           copy.opacity = 0
@@ -202,10 +211,8 @@ export function FruitTreeVisual({ plant, month, selected, ghost }: { plant: Plan
   const shape = speciesShape[kind]
   const hasFruit = visibleLeaf && harvestMonths[kind].includes(month)
   const hasBlossom = visibleLeaf && plant.bloomMonths.includes(month)
-  return <group rotation={[0, shape.rotation, 0]}>
-    <AssetBoundary fallback={<FallbackTree plant={plant} visibleLeaf={visibleLeaf} selected={selected} ghost={ghost} />}>
-      <ImportedTree plant={plant} visibleLeaf={visibleLeaf} selected={selected} ghost={ghost} shape={shape} />
-    </AssetBoundary>
+  return <group rotation={[0, shape.rotation + plantVisualSeed(plant.ref) * 2.399963, 0]}>
+    <TreeModel plant={plant} visibleLeaf={visibleLeaf} selected={selected} ghost={ghost} shape={shape} />
     {hasFruit && fruitPoints.map(([x, y, z], index) => <Fruit key={index} kind={kind} position={[x * plant.canopyM, y * plant.matureHeightM, z * plant.canopyM]} selected={selected} ghost={ghost} />)}
     {hasBlossom && blossomPoints.map(([x, y, z], index) => <mesh key={index} position={[x * plant.canopyM, y * plant.matureHeightM, z * plant.canopyM]} castShadow={!ghost}><sphereGeometry args={[0.03, 8, 6]} /><AccentMaterial color={kind === 'cherry' ? '#e7b7c0' : '#eee1d9'} selected={selected} ghost={ghost} /></mesh>)}
     {(selected || ghost) && <mesh position={[0, 0.025, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[plant.canopyM * 0.45, plant.canopyM * 0.5, 40]} /><meshBasicMaterial color="#b9e84d" transparent opacity={ghost ? 0.35 : 0.78} side={DoubleSide} /></mesh>}
@@ -214,13 +221,20 @@ export function FruitTreeVisual({ plant, month, selected, ghost }: { plant: Plan
 
 export function SurveyTreeVisual({ plant, month, selected, ghost }: { plant: PlantModel; month: number; selected: boolean; ghost: boolean }) {
   const visibleLeaf = plant.leafMonths.includes(month)
-  const rotation = parseInt(plant.surveyHandle ?? '0', 16) * 2.399963
+  const rotation = plantVisualSeed(plant.ref) * 2.399963
   return <group rotation={[0, rotation, 0]}>
-    <AssetBoundary fallback={<FallbackTree plant={plant} visibleLeaf={visibleLeaf} selected={selected} ghost={ghost} />}>
-      <ImportedTree plant={plant} visibleLeaf={visibleLeaf} selected={selected} ghost={ghost} shape={{ x: 1, z: 1 }} path={plant.crownShape === 'conical' ? coniferAsset : treeAsset} />
-    </AssetBoundary>
+    <TreeModel plant={plant} visibleLeaf={visibleLeaf} selected={selected} ghost={ghost} shape={{ x: 1, z: 1 }} />
     {(selected || ghost) && <mesh position={[0, 0.025, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[plant.canopyM * 0.46, plant.canopyM * 0.5, 40]} /><meshBasicMaterial color="#b9e84d" transparent opacity={ghost ? 0.35 : 0.78} side={DoubleSide} /></mesh>}
   </group>
+}
+
+function TreeModel(props: { plant: PlantModel; visibleLeaf: boolean; selected: boolean; ghost: boolean; shape: { x: number; z: number } }) {
+  const detailed = useRenderQuality() === 'detailed', conical = props.plant.crownShape === 'conical'
+  const species = props.plant.species
+  const mature = species.startsWith('Pinus ') ? 'pine' : species.startsWith('Picea ') ? 'spruce' : null
+  const path = mature ? gardenAsset(`mature-${mature}.glb`) : conical ? (detailed ? coniferAsset : mobileConiferAsset) : (detailed ? treeAsset : mobileTreeAsset)
+  const fallback = <FallbackTree {...props} />
+  return <AssetErrorBoundary fallback={fallback}><Suspense fallback={fallback}><ImportedTree {...props} path={path} /></Suspense></AssetErrorBoundary>
 }
 
 function ImportedTree({ plant, visibleLeaf, selected, ghost, shape, path = treeAsset }: { plant: PlantModel; visibleLeaf: boolean; selected: boolean; ghost: boolean; shape: { x: number; z: number }; path?: string }) {
@@ -238,7 +252,7 @@ function ImportedTree({ plant, visibleLeaf, selected, ghost, shape, path = treeA
 }
 
 function FallbackTree({ plant, visibleLeaf, selected, ghost }: { plant: PlantModel; visibleLeaf: boolean; selected: boolean; ghost: boolean }) {
-  return <group>
+  return <group userData={{ loadingVegetation: true }}>
     <mesh position={[0, plant.matureHeightM * 0.34, 0]} castShadow={!ghost}><cylinderGeometry args={[plant.canopyM * 0.06, plant.canopyM * 0.1, plant.matureHeightM * 0.68, 9]} /><AccentMaterial color="#68503b" selected={selected} ghost={ghost} /></mesh>
     {visibleLeaf && [[0, 0.7, 0], [-0.22, 0.61, 0.08], [0.21, 0.63, -0.06]].map(([x, y, z], index) => <mesh key={index} position={[x * plant.canopyM, y * plant.matureHeightM, z * plant.canopyM]} scale={[plant.canopyM * 0.48, plant.matureHeightM * 0.2, plant.canopyM * 0.45]} castShadow={!ghost}>
       <sphereGeometry args={[1, 14, 10]} /><AccentMaterial color={index === 0 ? '#486f38' : '#567d42'} selected={selected} ghost={ghost} />

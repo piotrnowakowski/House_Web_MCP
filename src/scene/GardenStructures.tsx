@@ -1,32 +1,29 @@
-import { useEffect, useMemo, useState } from 'react'
+import { Suspense, useEffect, useMemo, useState } from 'react'
 import { Html } from '@react-three/drei'
-import { BufferGeometry, DoubleSide, Float32BufferAttribute, LatheGeometry, Vector2 } from 'three'
+import { DoubleSide, LatheGeometry, MeshStandardMaterial, Vector2 } from 'three'
 import { metreBoxGeometry } from './metreGeometry'
 import { TexturedMaterial } from './materials'
 import type { TextureId } from '../domain/textures'
 import type { PlantModel } from '../domain/types'
 import { pergolaMembers } from '../domain/pergola'
 import { solarTable, solarTableWidthM, solarTableSlopeM, solarTableRiseM } from '../domain/gardenFixtures'
+import { useRenderQuality } from './renderingPreferences'
+import { plantVisualSeed, sharedVegetationGeometry } from './vegetationGeometry'
+import { SolarCellMaterial } from './SolarCellMaterial'
+import { AssetErrorBoundary, ImportedPlant } from './gardenVisuals'
+import { staticAssetUrl } from '../services/staticAssets'
 
 type GardenVisualProps = { selected: boolean; ghost: boolean }
 type Triple = [number, number, number]
 
+const foliageMaterials = [false, true].flatMap(selected => [false, true].map(ghost => new MeshStandardMaterial({ vertexColors: true, color: selected ? '#d6f0aa' : '#ffffff', side: DoubleSide, roughness: .92, transparent: ghost, opacity: ghost ? .35 : 1, depthWrite: !ghost })))
+
 export function ThujaPlant({ plant, selected, ghost }: GardenVisualProps & { plant: PlantModel }) {
-  const geometry = useMemo(() => {
-    const result = new LatheGeometry([[0,0],[.32,.04],[.48,.16],[.5,.35],[.42,.58],[.28,.78],[.08,.94],[0,1]].map(([r,y]) => new Vector2(r,y)), 32)
-    const positions = result.getAttribute('position')
-    for (let i = 0; i < positions.count; i++) {
-      const angle = Math.atan2(positions.getZ(i), positions.getX(i))
-      const ripple = .94 + .06 * Math.cos(angle * 12 + positions.getY(i) * 15)
-      positions.setXYZ(i, positions.getX(i) * ripple, positions.getY(i), positions.getZ(i) * ripple)
-    }
-    result.computeVertexNormals()
-    return result
-  }, [])
-  useEffect(() => () => geometry.dispose(), [geometry])
-  return <mesh geometry={geometry} scale={[plant.canopyM, plant.matureHeightM, plant.canopyM]} castShadow={!ghost} receiveShadow>
-    <meshStandardMaterial color={selected ? '#bedb84' : '#416b38'} roughness={.95} transparent={ghost} opacity={ghost ? .35 : 1} depthWrite={!ghost} />
-  </mesh>
+  const quality = useRenderQuality(), seed = plantVisualSeed(plant.ref)
+  const fallback = <mesh position-y={plant.matureHeightM / 2} userData={{ loadingVegetation: true }}><coneGeometry args={[plant.canopyM / 2, plant.matureHeightM, 12]} /><meshStandardMaterial color={selected ? '#bedb84' : '#416b38'} transparent={ghost} opacity={ghost ? .35 : 1} /></mesh>
+  return <AssetErrorBoundary fallback={fallback}><Suspense fallback={fallback}>
+    <ImportedPlant path={staticAssetUrl(`models/garden/columnar-evergreen${quality === 'detailed' ? '' : '-mobile'}.glb`)} width={plant.canopyM} height={plant.matureHeightM} depth={plant.canopyM} rotation={seed * 2.399963} selected={selected} ghost={ghost} />
+  </Suspense></AssetErrorBoundary>
 }
 
 export function FloweringBorderPlant({ plant, month, ...props }: GardenVisualProps & { plant: PlantModel; month: number }) {
@@ -163,8 +160,12 @@ export function SolarTable(props: GardenVisualProps) {
         const x = (i % t.columns - (t.columns - 1) / 2) * (t.moduleWidthM + t.gapM)
         const z = (Math.floor(i / t.columns) - (t.rows - 1) / 2) * (t.moduleLengthM + t.gapM)
         return <group key={i} position={[x, 0, z]} userData={{ solarModulePowerW: t.modulePowerW }}>
-          <GardenBox size={[t.moduleWidthM, .035, t.moduleLengthM]} color="#a9b3b5" {...props} />
-          <GardenBox size={[t.moduleWidthM - .035, .008, t.moduleLengthM - .035]} at={[0, .022, 0]} color="#142d43" roughness={.28} {...props} />
+          <mesh castShadow={!props.ghost} receiveShadow><boxGeometry args={[t.moduleWidthM,.035,t.moduleLengthM]} /><meshStandardMaterial color={props.selected ? '#bedb84' : '#8b9499'} metalness={.8} roughness={.32} transparent={props.ghost} opacity={props.ghost ? .35 : 1} depthWrite={!props.ghost} /></mesh>
+          <mesh position-y={.022} rotation-x={-Math.PI/2} receiveShadow>
+            <planeGeometry args={[t.moduleWidthM - .035,t.moduleLengthM - .035]} />
+            <AssetErrorBoundary fallback={<meshStandardMaterial color="#15212b" roughness={.24} transparent={props.ghost} opacity={props.ghost ? .35 : 1} />}><Suspense fallback={<meshStandardMaterial color="#15212b" roughness={.24} transparent={props.ghost} opacity={props.ghost ? .35 : 1} />}><SolarCellMaterial {...props} /></Suspense></AssetErrorBoundary>
+          </mesh>
+          <GardenBox size={[.12,.025,.16]} at={[0,-.03,0]} color="#202522" {...props} />
         </group>
       })}
       {[-1.4, -.5, .5, 1.4].map(z => <GardenBox key={z} size={[solarTableWidthM, .08, .06]} at={[0, -.06, z]} color="#747e83" {...props} />)}
@@ -250,28 +251,8 @@ export function RoundFireLounge(props: GardenVisualProps) {
   </group>
 }
 
-export function OrnamentalGrass({ height, width, selected, ghost }: GardenVisualProps & { height: number; width: number }) {
-  const geometry = useMemo(() => {
-    const positions: number[] = []
-    for (let leaf = 0; leaf < 32; leaf++) {
-      const angle = leaf * 2.39996, reach = width * (0.3 + (leaf % 5) * 0.045)
-      const h = height * (0.64 + (leaf % 7) * 0.055)
-      const point = (t: number, side: number) => {
-        const spread = reach * t * t, half = 0.018 * Math.sin(Math.PI * t)
-        return [Math.cos(angle) * spread - Math.sin(angle) * half * side, h * Math.sin(t * 1.8), Math.sin(angle) * spread + Math.cos(angle) * half * side]
-      }
-      for (let step = 0; step < 7; step++) {
-        const a = point(step / 7, -1), b = point(step / 7, 1), c = point((step + 1) / 7, -1), d = point((step + 1) / 7, 1)
-        positions.push(...a, ...b, ...c, ...b, ...d, ...c)
-      }
-    }
-    const result = new BufferGeometry()
-    result.setAttribute('position', new Float32BufferAttribute(positions, 3)); result.computeVertexNormals()
-    return result
-  }, [height, width])
-  useEffect(() => () => geometry.dispose(), [geometry])
-  return <mesh geometry={geometry} castShadow={!ghost} receiveShadow>
-    <meshStandardMaterial color={selected ? '#bedb84' : '#7d874d'} side={DoubleSide} roughness={0.9} transparent={ghost} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />
-  </mesh>
+export function OrnamentalGrass({ height, width, seed = 0, selected, ghost }: GardenVisualProps & { height: number; width: number; seed?: number }) {
+  const quality = useRenderQuality(), geometry = sharedVegetationGeometry(seed, quality === 'detailed')
+  return <mesh geometry={geometry} material={foliageMaterials[Number(selected) * 2 + Number(ghost)]} dispose={null} scale={[width, height, width]} rotation-y={seed * 2.399963} castShadow={!ghost} receiveShadow />
 }
 

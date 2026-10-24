@@ -11,6 +11,7 @@ import beforeShift from '../../project-data/nowe-mpzp-v2/before-house-shift-r7.j
 import beforeFront from '../../project-data/nowe-mpzp-v2/before-front-services-r9.json'
 import beforePv from '../../project-data/nowe-mpzp-v2/before-pv-r10.json'
 import beforePvRight from '../../project-data/nowe-mpzp-v2/before-pv-right-r11.json'
+import beforeTreeSpecies from '../../project-data/nowe-mpzp-v2/before-tree-species-r12.json'
 import parent from '../../project-data/nowe-mpzp/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
@@ -23,6 +24,37 @@ import { resolveZoneTexture } from '../domain/textures'
 import { mergeProjects } from '../domain/projectMerge'
 import { loadWorkspace, saveWorkspace, deleteWorkspace, listWorkspaces } from './persistence'
 import { NOWE_MPZP_V2_REF, synchronizePublishedNoweMpzpV2 } from './publishedNoweMpzpV2'
+
+it('identifies tall gate-side pines and opposite spruces without moving trees or losing saved edits', async()=>{
+  const p=parseProject(data),before=parseProject(beforeTreeSpecies)
+  expect(validateProject(p).filter(i=>i.severity==='error')).toEqual([])
+  const pines=['5012','5018'],spruces=['5027','502A','502D','5030','5033','503A']
+  const changed=new Set([...pines,...spruces])
+  expect({...p,revision:0,updatedAt:'',site:null,landscape:null}).toEqual({...before,revision:0,updatedAt:'',site:null,landscape:null})
+  expect({...p.site,knowledgeBase:null}).toEqual({...before.site,knowledgeBase:null})
+  expect({...p.landscape,plants:null}).toEqual({...before.landscape,plants:null})
+  expect(p.landscape.plants.map(t=>t.ref)).toEqual(before.landscape.plants.map(t=>t.ref))
+  for(const tree of p.landscape.plants){
+    const old=before.landscape.plants.find(t=>t.ref===tree.ref)!
+    if(!changed.has(tree.surveyHandle??'')){expect(tree).toEqual(old);continue}
+    const pine=pines.includes(tree.surveyHandle!)
+    expect(tree.species).toBe(pine?'Pinus sp.':'Picea sp.')
+    expect(tree.position.x<p.buildings[0].position.x).toBe(pine)
+    expect(tree.leafMonths).toEqual([1,2,3,4,5,6,7,8,9,10,11,12])
+    expect(tree.crownShape).toBe(pine?'rounded':'conical')
+    expect({...tree,name:null,species:null,crownShape:null,leafMonths:null}).toEqual({...old,name:null,species:null,crownShape:null,leafMonths:null})
+  }
+  const local=structuredClone(before),deleted='plant/survey-5012'
+  local.name='Mój ogród';local.landscape.plants=local.landscape.plants.filter(t=>t.ref!==deleted)
+  const merged=mergeProjects(before,local,p)
+  expect(merged.conflicts).toEqual([expect.stringContaining(deleted)])
+  globalThis.indexedDB=new IDBFactory()
+  await saveWorkspace({version:1,project:merged.project,proposals:[],draftChangeSets:[]})
+  const saved=(await loadWorkspace(p.ref))!.project
+  expect(saved.name).toBe('Mój ogród')
+  expect(saved.landscape.plants.some(t=>t.ref===deleted)).toBe(false)
+  expect(saved.landscape.plants.find(t=>t.surveyHandle==='503A')?.species).toBe('Picea sp.')
+})
 
 it('fits 30 kWp facing south without moving existing objects and preserves a deleted table on migration', async()=>{
   const p=parseProject(beforePvRight),before=parseProject(beforePv),tables=p.landscape.fixtures.filter(f=>f.catalogId==='solar-table-20')
@@ -74,7 +106,7 @@ it('fits 30 kWp facing south without moving existing objects and preserves a del
 })
 
 it('moves and compacts only the PV tables to the right while preserving trees, dimensions and saved deletions',async()=>{
-  const p=parseProject(data),before=parseProject(beforePvRight),tables=p.landscape.fixtures.filter(f=>f.catalogId==='solar-table-20')
+  const p=parseProject(beforeTreeSpecies),before=parseProject(beforePvRight),tables=p.landscape.fixtures.filter(f=>f.catalogId==='solar-table-20')
   expect(tables).toHaveLength(3)
   expect(p.buildings).toEqual(before.buildings)
   expect({...p.site,knowledgeBase:null}).toEqual({...before.site,knowledgeBase:null})
@@ -151,7 +183,7 @@ it('closes the moved frontage, separates the wicket, and preserves roof geometry
 })
 
 it('keeps the house, roofs, site and surveyed trees while fitting the reference garden at metre scale', () => {
-  const p=parseProject(data), source=parseProject(parent)
+  const p=parseProject(beforeTreeSpecies), source=parseProject(parent)
   expect(p.ref).toBe(NOWE_MPZP_V2_REF)
   expect({...p.buildings[0],position:null,walls:null}).toEqual({...source.buildings[0],position:null,walls:null})
   expect(p.buildings[0].walls.filter(w=>!w.ref.endsWith('/utility-access/4'))).toEqual(source.buildings[0].walls.filter(w=>!w.ref.endsWith('/utility-access/4')))
@@ -381,7 +413,7 @@ it('compacts only the kitchen and spa, preserves real sizes and migrates indepen
 })
 
 it('moves the attached house and gate, keeping the original canopy size and three metres of headroom for a hypothetical camper',async()=>{
-  const p=parseProject(data),before=parseProject(beforeShift)
+  const p=parseProject(beforeTreeSpecies),before=parseProject(beforeShift)
   for(const ref of ['house/main','building/south-carport']){
     const b=p.buildings.find(b=>b.ref===ref)!,old=before.buildings.find(b=>b.ref===ref)!
     expect(b.position.x-old.position.x).toBeCloseTo(.5)
