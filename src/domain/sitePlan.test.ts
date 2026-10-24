@@ -4,7 +4,7 @@ import data from '../../project-data/nowe-mpzp-v2/project.json'
 import architect from '../../project-data/architekt/project.json'
 import parent from '../../project-data/nowe-mpzp/project.json'
 import { parseProject } from './schema'
-import { gardenFixtureById, solarTableDepthM, solarTableWidthM } from './gardenFixtures'
+import { gardenFixtureById, solarTableDepthM, solarTable10WidthM } from './gardenFixtures'
 import { polygonArea } from './geometry'
 import { sitePlanBounds, sitePlanEdges, sitePlanElements } from './sitePlan'
 
@@ -34,9 +34,9 @@ it('projects fixtures with the same negative Y rotation as the 3D scene', () => 
     expect(plan.points[0].x).toBeCloseTo(corner.x + f.position.x, 9)
     expect(plan.points[0].z).toBeCloseTo(corner.z + f.position.z, 9)
     expect(polygonArea(plan.points)).toBeCloseTo(d.widthM * d.depthM, 7)
-    if (f.catalogId === 'solar-table-20') {
+    if (f.catalogId === 'solar-table-10') {
       const edges = sitePlanEdges(plan).map(([a, b]) => Math.hypot(b.x - a.x, b.z - a.z))
-      expect(edges[0]).toBeCloseTo(solarTableWidthM, 9)
+      expect(edges[0]).toBeCloseTo(solarTable10WidthM, 9)
       expect(edges[1]).toBeCloseTo(solarTableDepthM + .03, 9)
     }
   }

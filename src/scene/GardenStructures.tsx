@@ -6,7 +6,7 @@ import { TexturedMaterial } from './materials'
 import type { TextureId } from '../domain/textures'
 import type { PlantModel } from '../domain/types'
 import { pergolaMembers } from '../domain/pergola'
-import { solarTable, solarTableWidthM, solarTableSlopeM, solarTableRiseM } from '../domain/gardenFixtures'
+import { solarTable, solarTableWidthM, solarTable10WidthM, solarTableSlopeM, solarTableRiseM } from '../domain/gardenFixtures'
 import { useRenderQuality } from './renderingPreferences'
 import { plantVisualSeed, sharedVegetationGeometry } from './vegetationGeometry'
 import { SolarCellMaterial } from './SolarCellMaterial'
@@ -152,8 +152,9 @@ function GardenBox({ size, at = [0, 0, 0], rotation = [0, 0, 0], asset, color = 
   </mesh>
 }
 
-export function SolarTable(props: GardenVisualProps) {
-  const t = solarTable, tilt = t.tiltDegrees * Math.PI / 180, centreY = t.lowEdgeM + solarTableRiseM / 2
+export function SolarTable({ columns = 10, ...props }: GardenVisualProps & { columns?: 5 | 10 }) {
+  const t = { ...solarTable, columns }, width = columns === 5 ? solarTable10WidthM : solarTableWidthM
+  const tilt = t.tiltDegrees * Math.PI / 180, centreY = t.lowEdgeM + solarTableRiseM / 2
   return <group>
     <group position-y={centreY} rotation-x={tilt}>
       {Array.from({ length: t.rows * t.columns }, (_, i) => {
@@ -168,9 +169,9 @@ export function SolarTable(props: GardenVisualProps) {
           <GardenBox size={[.12,.025,.16]} at={[0,-.03,0]} color="#202522" {...props} />
         </group>
       })}
-      {[-1.4, -.5, .5, 1.4].map(z => <GardenBox key={z} size={[solarTableWidthM, .08, .06]} at={[0, -.06, z]} color="#747e83" {...props} />)}
+      {[-1.4, -.5, .5, 1.4].map(z => <GardenBox key={z} size={[width, .08, .06]} at={[0, -.06, z]} color="#747e83" {...props} />)}
     </group>
-    {[-4.6, 0, 4.6].flatMap(x => [-1, 1].map(side => {
+    {(columns === 5 ? [-2.3, 0, 2.3] : [-4.6, 0, 4.6]).flatMap(x => [-1, 1].map(side => {
       const z = side * solarTableSlopeM * .35 * Math.cos(tilt), height = centreY - z * Math.tan(tilt) - .1
       return <GardenBox key={`${x}/${side}`} size={[.09, height, .09]} at={[x, height / 2, z]} color="#747e83" {...props} />
     }))}

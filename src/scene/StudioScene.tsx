@@ -1234,6 +1234,7 @@ function RecyclingBinsFixture({ selected, ghost }: { selected: boolean; ghost: b
 function GardenFixtureModel({ catalogId, selected, ghost }: { catalogId: GardenFixtureModel['catalogId']; selected: boolean; ghost: boolean }) {
   switch (catalogId) {
     case 'solar-table-20': return <SolarTable selected={selected} ghost={ghost} />
+    case 'solar-table-10': return <SolarTable columns={5} selected={selected} ghost={ghost} />
     case 'biological-treatment-study': case 'infiltration-study': {
       const tank = catalogId === 'biological-treatment-study', w = tank ? 1.5 : 2, d = tank ? 3 : 6
       return <group>

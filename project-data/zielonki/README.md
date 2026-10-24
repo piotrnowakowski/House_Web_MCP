@@ -648,3 +648,7 @@ Pierwsza próba wdrożenia przerwała połączenie podczas pobierania kopii bazy
 ### 24.10.2026 — wariant nowe-mpzp-v2: plan 2D i PV r14
 
 Plan 2D został opublikowany kodem 819e01d bez zmiany canonical r13. Następnie użytkownik zlecił przeliczenie PV dla 500 W/moduł i dosunięcie do granicy: zachowano 60 modułów/30 kWp i przesunięto trzy stoły o +1,2 m X/Z; najbliższy narożnik 3,83 m od prawej granicy, ograniczony istniejącymi nasadzeniami. Canonical tej niezależnej tożsamości to project-data/nowe-mpzp-v2/project.json r14; poprzedni r13 w before-pv-boundary-r13.json. Kopie rzeczywistych originów/profili, shared r13/version11 i scalania bez konfliktów: tmp/pv-boundary-20261024. Szczegółowe źródła, decyzje i weryfikacja znajdują się w README wariantu. Dane innych projektów i dachy pozostają bez zmian.
+
+### 24.10.2026 — nowe-mpzp-v2 r15, dwa rzędy PV
+
+Wariant 2 zachowuje 60 modułów/30 kWp w sześciu stołach po 10, dwa rzędy po trzy, przerwy 0,20 m i 1,00 m. Źródła: canonical r14/shared12 oraz rzeczywiste Chrome/IAB; kopie i bezkonfliktowe scalania w tmp/pv-two-rows-20261024. Poprzednia publikacja: project-data/nowe-mpzp-v2/before-pv-two-rows-r14.json. Zachowano istniejące ref trzech stołów, dodano trzy nowe; pozostałe dane i dachy bez zmian. Szczegóły geometrii, odstępów, ograniczeń i testów w README wariantu.

@@ -13,6 +13,7 @@ import beforePv from '../../project-data/nowe-mpzp-v2/before-pv-r10.json'
 import beforePvRight from '../../project-data/nowe-mpzp-v2/before-pv-right-r11.json'
 import beforeTreeSpecies from '../../project-data/nowe-mpzp-v2/before-tree-species-r12.json'
 import beforePvBoundary from '../../project-data/nowe-mpzp-v2/before-pv-boundary-r13.json'
+import beforePvTwoRows from '../../project-data/nowe-mpzp-v2/before-pv-two-rows-r14.json'
 import parent from '../../project-data/nowe-mpzp/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
@@ -28,8 +29,52 @@ import { mergeProjects } from '../domain/projectMerge'
 import { loadWorkspace, saveWorkspace, deleteWorkspace, listWorkspaces } from './persistence'
 import { NOWE_MPZP_V2_REF, synchronizePublishedNoweMpzpV2 } from './publishedNoweMpzpV2'
 
+it('fits six 5 kWp tables in two tighter rows of three and preserves other objects and saved deletions',async()=>{
+  const p=parseProject(data),before=parseProject(beforePvTwoRows),tables=p.landscape.fixtures.filter(f=>f.catalogId==='solar-table-10')
+  expect(tables).toHaveLength(6)
+  expect(tables.length*5*solarTable.rows*solarTable.modulePowerW).toBe(30000)
+  expect({...p,revision:0,updatedAt:'',site:null,landscape:null}).toEqual({...before,revision:0,updatedAt:'',site:null,landscape:null})
+  expect({...p.site,knowledgeBase:null}).toEqual({...before.site,knowledgeBase:null})
+  expect({...p.landscape,fixtures:null}).toEqual({...before.landscape,fixtures:null})
+  expect(p.landscape.fixtures.filter(f=>!f.catalogId.startsWith('solar-table-'))).toEqual(before.landscape.fixtures.filter(f=>!f.catalogId.startsWith('solar-table-')))
+  expect(tables.slice(0,3).map(f=>f.ref)).toEqual(before.landscape.fixtures.filter(f=>f.catalogId==='solar-table-20').map(f=>f.ref))
+  expect(validateProject(p).filter(i=>i.severity==='error')).toEqual([])
+  const size=gardenFixtureById('solar-table-10'),inverse=new Matrix4().makeRotationY(-Math.PI/4)
+  const centres=tables.map(f=>new Vector3(f.position.x,0,f.position.z).applyMatrix4(inverse))
+  const right=p.site.fences!.find(f=>f.ref==='fence/nowe-mpzp/4-1')!,rightGaps:number[]=[]
+  for(const [i,f] of tables.entries()){
+    expect(f.rotationDegrees).toBe(-45)
+    expect(centres[i].z).toBeCloseTo(centres[Math.floor(i/3)*3].z,10)
+    if(i%3)expect(centres[i].x-centres[i-1].x-size.widthM).toBeCloseTo(.2,10)
+    if(i>=3){expect(centres[i].x).toBeCloseTo(centres[i-3].x,10);expect(centres[i].z-centres[i-3].z-size.depthM).toBeCloseTo(1,10)}
+    const corners=interiorCorners({...f,...size,rotationDegrees:-f.rotationDegrees})
+    for(const q of corners){
+      expect(pointInPolygon(q,p.site.boundary)).toBe(true)
+      expect(Math.min(...p.site.fences!.map(e=>distanceToSegment(q,e.start,e.end)))).toBeGreaterThan(3.5)
+      rightGaps.push(distanceToSegment(q,right.start,right.end))
+    }
+    for(const t of p.landscape.plants){
+      expect(pointInPolygon(t.position,corners)).toBe(false)
+      expect(Math.min(...corners.map((q,j)=>distanceToSegment(t.position,q,corners[(j+1)%4])))-t.canopyM/2,t.ref).toBeGreaterThan(.5)
+    }
+    for(const other of p.landscape.fixtures.filter(o=>o.ref!==f.ref))
+      expect(footprintsOverlap(corners,interiorCorners({...other,...gardenFixtureById(other.catalogId),rotationDegrees:-other.rotationDegrees})),other.ref).toBe(false)
+  }
+  expect(Math.min(...rightGaps)).toBeCloseTo(3.583066155,8)
+  const local=structuredClone(before),deleted=tables[1].ref
+  local.name='Mój ogród';local.landscape.fixtures=local.landscape.fixtures.filter(f=>f.ref!==deleted)
+  const merged=mergeProjects(before,local,p)
+  expect(merged.conflicts).toEqual([expect.stringContaining(deleted)])
+  globalThis.indexedDB=new IDBFactory()
+  await saveWorkspace({version:1,project:merged.project,proposals:[],draftChangeSets:[]})
+  const saved=(await loadWorkspace(p.ref))!.project
+  expect(saved.name).toBe('Mój ogród')
+  expect(saved.landscape.fixtures.some(f=>f.ref===deleted)).toBe(false)
+  expect(saved.landscape.fixtures.find(f=>f.ref===tables[0].ref)).toEqual(tables[0])
+})
+
 it('moves 60 modules of 500 W closer to the boundary without crossing plant crowns or losing saved deletions',async()=>{
-  const p=parseProject(data),before=parseProject(beforePvBoundary),tables=p.landscape.fixtures.filter(f=>f.catalogId==='solar-table-20')
+  const p=parseProject(beforePvTwoRows),before=parseProject(beforePvBoundary),tables=p.landscape.fixtures.filter(f=>f.catalogId==='solar-table-20')
   expect(solarTable.modulePowerW).toBe(500)
   expect(tables.length*solarTable.rows*solarTable.columns).toBe(60)
   expect(tables.length*solarTable.rows*solarTable.columns*solarTable.modulePowerW).toBe(30000)
