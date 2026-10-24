@@ -10,6 +10,7 @@ import beforeCompact from '../../project-data/nowe-mpzp-v2/before-compact-kitche
 import beforeShift from '../../project-data/nowe-mpzp-v2/before-house-shift-r7.json'
 import beforeFront from '../../project-data/nowe-mpzp-v2/before-front-services-r9.json'
 import beforePv from '../../project-data/nowe-mpzp-v2/before-pv-r10.json'
+import beforePvRight from '../../project-data/nowe-mpzp-v2/before-pv-right-r11.json'
 import parent from '../../project-data/nowe-mpzp/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
@@ -24,7 +25,7 @@ import { loadWorkspace, saveWorkspace, deleteWorkspace, listWorkspaces } from '.
 import { NOWE_MPZP_V2_REF, synchronizePublishedNoweMpzpV2 } from './publishedNoweMpzpV2'
 
 it('fits 30 kWp facing south without moving existing objects and preserves a deleted table on migration', async()=>{
-  const p=parseProject(data),before=parseProject(beforePv),tables=p.landscape.fixtures.filter(f=>f.catalogId==='solar-table-20')
+  const p=parseProject(beforePvRight),before=parseProject(beforePv),tables=p.landscape.fixtures.filter(f=>f.catalogId==='solar-table-20')
   expect(tables).toHaveLength(3)
   expect(tables.length*solarTable.rows*solarTable.columns*solarTable.modulePowerW).toBe(30000)
   expect(p.buildings).toEqual(before.buildings)
@@ -70,6 +71,41 @@ it('fits 30 kWp facing south without moving existing objects and preserves a del
   expect(next.conflicts).toEqual([])
   expect(next.project.landscape.fixtures.filter(f=>f.catalogId==='solar-table-20')).toHaveLength(2)
   expect(next.project.name).toBe('Własny ogród')
+})
+
+it('moves and compacts only the PV tables to the right while preserving trees, dimensions and saved deletions',async()=>{
+  const p=parseProject(data),before=parseProject(beforePvRight),tables=p.landscape.fixtures.filter(f=>f.catalogId==='solar-table-20')
+  expect(tables).toHaveLength(3)
+  expect(p.buildings).toEqual(before.buildings)
+  expect({...p.site,knowledgeBase:null}).toEqual({...before.site,knowledgeBase:null})
+  expect({...p.landscape,fixtures:null}).toEqual({...before.landscape,fixtures:null})
+  expect(p.landscape.fixtures.filter(f=>f.catalogId!=='solar-table-20')).toEqual(before.landscape.fixtures.filter(f=>f.catalogId!=='solar-table-20'))
+  for(const [i,f] of tables.entries()){
+    const old=before.landscape.fixtures.find(t=>t.ref===f.ref)!
+    expect({...f,position:null}).toEqual({...old,position:null})
+    expect(f.position.x).toBeGreaterThan(old.position.x+2)
+    const rotation=new Matrix4().makeRotationY(-f.rotationDegrees*Math.PI/180),size=gardenFixtureById(f.catalogId)
+    const corners=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([x,z])=>new Vector3(x*size.widthM/2,0,z*size.depthM/2).applyMatrix4(rotation).add(new Vector3(f.position.x,0,f.position.z)))
+    for(const q of corners){
+      expect(pointInPolygon(q,p.site.boundary)).toBe(true)
+      expect(Math.min(...p.site.fences!.map(e=>distanceToSegment(q,e.start,e.end)))).toBeGreaterThan(4.8)
+    }
+    for(const t of p.landscape.plants){
+      expect(pointInPolygon(t.position,corners)).toBe(false)
+      expect(Math.min(...corners.map((q,j)=>distanceToSegment(t.position,q,corners[(j+1)%4])))-t.canopyM/2,t.ref).toBeGreaterThan(1)
+    }
+    if(i)expect(Math.hypot(f.position.x-tables[i-1].position.x,f.position.z-tables[i-1].position.z)).toBeCloseTo(6.5)
+  }
+  expect(solarTableWidthM*(13+solarTableDepthM)/(solarTableWidthM*(18+solarTableDepthM))).toBeLessThan(.77)
+  const local=structuredClone(before),deleted=tables[1].ref
+  local.name='Własny ogród';local.landscape.fixtures=local.landscape.fixtures.filter(f=>f.ref!==deleted)
+  const merged=mergeProjects(before,local,p)
+  expect(merged.conflicts).toEqual([expect.stringContaining(deleted)])
+  globalThis.indexedDB=new IDBFactory()
+  await saveWorkspace({version:1,project:merged.project,proposals:[],draftChangeSets:[]})
+  const saved=(await loadWorkspace(p.ref))!.project
+  expect(saved.landscape.fixtures.some(f=>f.ref===deleted)).toBe(false)
+  expect(saved.name).toBe('Własny ogród')
 })
 
 it('closes the moved frontage, separates the wicket, and preserves roof geometry and saved deletions', async()=>{
