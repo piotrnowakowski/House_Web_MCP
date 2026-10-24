@@ -136,3 +136,7 @@ Rear-carport r114 moves the stairs and opening 70 cm toward the shortened kitche
 ## Joined floors and facade corrections — 2026-09-14
 
 Authorized house-branch release: original r54, front r72, rear r119, bathroom alternative r7. All current house designs use a 0.50 m upper slab with preserved living/dining voids, 3.75 m upper-floor elevation and aligned compliant main ridges. Slab contour winding, roof-edge cladding and recessed facade lining are corrected. Three-origin backup/comparison evidence, browser regressions and live audits are retained under ignored `tmp/ceilings-release/`. Earlier project baselines remain immutable and historical conflicts remain recoverable.
+
+## Exterior 2D dimensions — 2026-10-24
+
+The desktop `2D · wymiary` button and mobile `2D` button open a read-only SVG site plan. The plan uses current saved geometry, adaptive measurement labels, zoom/pan and a searchable complete element list. Selection adds edge dimensions and height/diameter details. This is a code-only update: canonical nowe-mpzp-v2 stays r13 and shared version stays 11. Actual Chrome/IAB recovery and baseline-merge comparisons are retained under `tmp/site-plan-20261024/`; UI evidence is under `output/site-plan-20261024/`. Physical phone interaction and survey accuracy are not certified by browser emulation.
