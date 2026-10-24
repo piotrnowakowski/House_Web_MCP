@@ -12,11 +12,14 @@ import beforeFront from '../../project-data/nowe-mpzp-v2/before-front-services-r
 import beforePv from '../../project-data/nowe-mpzp-v2/before-pv-r10.json'
 import beforePvRight from '../../project-data/nowe-mpzp-v2/before-pv-right-r11.json'
 import beforeTreeSpecies from '../../project-data/nowe-mpzp-v2/before-tree-species-r12.json'
+import beforePvBoundary from '../../project-data/nowe-mpzp-v2/before-pv-boundary-r13.json'
 import parent from '../../project-data/nowe-mpzp/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
 import { gardenFixtureById, solarTable, solarTableWidthM, solarTableDepthM } from '../domain/gardenFixtures'
 import { Matrix4, Vector3 } from 'three'
+import { interiorCorners } from '../domain/interior'
+import { footprintsOverlap } from '../domain/interiorPlacement'
 import { sunDirectionModel } from '../domain/solar'
 import { collectOccluders } from '../domain/sunlight'
 import { buildingFootprintsWorld, distanceToSegment, pointInPolygon, polygonArea } from '../domain/geometry'
@@ -25,8 +28,51 @@ import { mergeProjects } from '../domain/projectMerge'
 import { loadWorkspace, saveWorkspace, deleteWorkspace, listWorkspaces } from './persistence'
 import { NOWE_MPZP_V2_REF, synchronizePublishedNoweMpzpV2 } from './publishedNoweMpzpV2'
 
+it('moves 60 modules of 500 W closer to the boundary without crossing plant crowns or losing saved deletions',async()=>{
+  const p=parseProject(data),before=parseProject(beforePvBoundary),tables=p.landscape.fixtures.filter(f=>f.catalogId==='solar-table-20')
+  expect(solarTable.modulePowerW).toBe(500)
+  expect(tables.length*solarTable.rows*solarTable.columns).toBe(60)
+  expect(tables.length*solarTable.rows*solarTable.columns*solarTable.modulePowerW).toBe(30000)
+  expect({...p,revision:0,updatedAt:'',site:null,landscape:null}).toEqual({...before,revision:0,updatedAt:'',site:null,landscape:null})
+  expect({...p.site,knowledgeBase:null}).toEqual({...before.site,knowledgeBase:null})
+  expect({...p.landscape,fixtures:null}).toEqual({...before.landscape,fixtures:null})
+  expect(p.landscape.fixtures.filter(f=>f.catalogId!=='solar-table-20')).toEqual(before.landscape.fixtures.filter(f=>f.catalogId!=='solar-table-20'))
+  expect(validateProject(p).filter(i=>i.severity==='error')).toEqual([])
+  const right=p.site.fences!.find(f=>f.ref==='fence/nowe-mpzp/4-1')!,rightGaps:number[]=[]
+  for(const [i,f] of tables.entries()){
+    const old=before.landscape.fixtures.find(t=>t.ref===f.ref)!
+    expect({...f,position:null}).toEqual({...old,position:null})
+    expect(f.position.x-old.position.x).toBeCloseTo(1.2,10)
+    expect(f.position.z-old.position.z).toBeCloseTo(1.2,10)
+    const corners=interiorCorners({...f,...gardenFixtureById(f.catalogId),rotationDegrees:-f.rotationDegrees})
+    for(const q of corners){
+      expect(pointInPolygon(q,p.site.boundary)).toBe(true)
+      expect(Math.min(...p.site.fences!.map(e=>distanceToSegment(q,e.start,e.end)))).toBeGreaterThan(3.8)
+      rightGaps.push(distanceToSegment(q,right.start,right.end))
+    }
+    for(const t of p.landscape.plants){
+      expect(pointInPolygon(t.position,corners)).toBe(false)
+      expect(Math.min(...corners.map((q,j)=>distanceToSegment(t.position,q,corners[(j+1)%4])))-t.canopyM/2,t.ref).toBeGreaterThan(.5)
+    }
+    for(const other of p.landscape.fixtures.filter(o=>o.ref!==f.ref))
+      expect(footprintsOverlap(corners,interiorCorners({...other,...gardenFixtureById(other.catalogId),rotationDegrees:-other.rotationDegrees})),other.ref).toBe(false)
+    if(i)expect(Math.hypot(f.position.x-tables[i-1].position.x,f.position.z-tables[i-1].position.z)).toBeCloseTo(6.5,10)
+  }
+  expect(Math.min(...rightGaps)).toBeCloseTo(3.8277711875,8)
+  const local=structuredClone(before),deleted=tables[1].ref
+  local.name='Mój ogród';local.landscape.fixtures=local.landscape.fixtures.filter(f=>f.ref!==deleted)
+  const merged=mergeProjects(before,local,p)
+  expect(merged.conflicts).toEqual([expect.stringContaining(deleted)])
+  globalThis.indexedDB=new IDBFactory()
+  await saveWorkspace({version:1,project:merged.project,proposals:[],draftChangeSets:[]})
+  const saved=(await loadWorkspace(p.ref))!.project
+  expect(saved.name).toBe('Mój ogród')
+  expect(saved.landscape.fixtures.some(f=>f.ref===deleted)).toBe(false)
+  expect(saved.landscape.fixtures.find(f=>f.ref===tables[0].ref)?.position).toEqual(tables[0].position)
+})
+
 it('identifies tall gate-side pines and opposite spruces without moving trees or losing saved edits', async()=>{
-  const p=parseProject(data),before=parseProject(beforeTreeSpecies)
+  const p=parseProject(beforePvBoundary),before=parseProject(beforeTreeSpecies)
   expect(validateProject(p).filter(i=>i.severity==='error')).toEqual([])
   const pines=['5012','5018'],spruces=['5027','502A','502D','5030','5033','503A']
   const changed=new Set([...pines,...spruces])
