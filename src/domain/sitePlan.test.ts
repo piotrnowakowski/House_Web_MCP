@@ -6,7 +6,28 @@ import parent from '../../project-data/nowe-mpzp/project.json'
 import { parseProject } from './schema'
 import { gardenFixtureById, solarTableDepthM, solarTable10WidthM } from './gardenFixtures'
 import { polygonArea } from './geometry'
-import { sitePlanBounds, sitePlanEdges, sitePlanElements } from './sitePlan'
+import { sitePlanBounds, sitePlanEdges, sitePlanElements, sitePlanZoningBoundaries } from './sitePlan'
+import { zielonkiZoningBoundary } from '../../knowledge-bank/zielonki/zoning'
+import { draftZoningBoundary } from '../../knowledge-bank/zielonki/draftPlan'
+
+it('compares the two source planning traces without mutating either project or cadastral geometry', () => {
+  for (const source of [data, architect]) {
+    const project = parseProject(source), before = structuredClone(project)
+    const boundaries = sitePlanZoningBoundaries(project)
+    expect(boundaries.map(z => [z.code, z.proposed])).toEqual([['06.MNU.8', false], ['18.1.MU.1', true]])
+    expect(boundaries.map(z => z.points)).toEqual([zielonkiZoningBoundary, draftZoningBoundary])
+    expect(boundaries.map(z => z.points.length)).toEqual([3, 2])
+    expect(draftZoningBoundary[1].z).toBeGreaterThan(zielonkiZoningBoundary[2].z)
+    expect(project).toEqual(before)
+  }
+})
+
+it('does not draw the Zielonki planning overlay on an unrelated site with the same parcel numbers', () => {
+  const project = parseProject(data)
+  project.site.knowledgeBase.datasetVersion = 'custom-site'
+  for (const parcel of project.site.parcels) for (const zone of parcel.landUseZones ?? []) zone.sourceRef = 'custom-zoning'
+  expect(sitePlanZoningBoundaries(project)).toEqual([])
+})
 
 it('covers every outdoor object without modifying the saved project', () => {
   const project = parseProject(data), original = structuredClone(project)

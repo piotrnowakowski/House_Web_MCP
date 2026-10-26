@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ArrowLeft, Focus, List, Minus, Plus } from 'lucide-react'
 import { polygonCentroid } from '../domain/geometry'
-import { planMetres, sitePlanBounds, sitePlanCategories, sitePlanEdges, sitePlanElements, type SitePlanElement } from '../domain/sitePlan'
+import { planMetres, sitePlanBounds, sitePlanCategories, sitePlanEdges, sitePlanElements, sitePlanZoningBoundaries, type SitePlanElement } from '../domain/sitePlan'
 import { layoutPlanLabels } from '../interior/labelLayout'
 import { useStudioStore } from '../state/store'
 import type { Vec2 } from '../domain/types'
@@ -11,6 +11,7 @@ import './site-plan.css'
 export default function SitePlan({ onBack }: { onBack: () => void }) {
   const project = useStudioStore(s => s.project)
   const elements = useMemo(() => sitePlanElements(project), [project])
+  const zoning = useMemo(() => sitePlanZoningBoundaries(project), [project])
   const [selectedRef, setSelectedRef] = useState<string | null>(null)
   const [query, setQuery] = useState(''), [category, setCategory] = useState('')
   const [listOpen, setListOpen] = useState(true), [dimensions, setDimensions] = useState(true)
@@ -92,6 +93,11 @@ export default function SitePlan({ onBack }: { onBack: () => void }) {
         <defs><pattern id="site-plan-grid" width={5 * view.scale} height={5 * view.scale} patternUnits="userSpaceOnUse" x={screen({ x: 0, z: 0 }).x} y={screen({ x: 0, z: 0 }).y}><path d={`M ${5 * view.scale} 0 H 0 V ${5 * view.scale}`} fill="none" stroke="#dae0d7" strokeWidth=".7" /></pattern></defs>
         <rect width="100%" height="100%" fill="url(#site-plan-grid)" />
         {elements.map(e => <g key={e.ref} className="site-plan-object"><title>{e.name}: {e.summary}{e.heightM !== undefined ? `; wysokość ${planMetres(e.heightM)}` : ''}</title>{drawShape(e)}</g>)}
+        {zoning.map(zone => <g key={zone.ref} className={`site-plan-zoning${zone.proposed ? ' proposed' : ''}`} data-zoning-ref={zone.ref}>
+          <title>{zone.name} · {zone.code} — część budowlana od strony drogi{zone.proposed ? '; projekt wyłożony 19.10.2026, nieuchwalony' : ''}</title>
+          <polyline className="site-plan-zoning-halo" points={zone.points.map(screen).map(p => `${p.x},${p.y}`).join(' ')} />
+          <polyline points={zone.points.map(screen).map(p => `${p.x},${p.y}`).join(' ')} />
+        </g>)}
         {selected && <g className="site-plan-selected">{drawShape(selected, true)}</g>}
         {dimensionCandidates.map(d => {
           const placement = dimensionLayout.get(d.id)
@@ -106,6 +112,13 @@ export default function SitePlan({ onBack }: { onBack: () => void }) {
     </div>
     <aside ref={sidebar} id="site-plan-descriptions" className="site-plan-sidebar" aria-label="Wymiary wszystkich elementów">
       <h2>Opisy i wymiary <span>{elements.length}</span></h2>
+      {zoning.length > 0 && <section className="site-plan-zoning-legend" aria-label="Granice części budowlanej">
+        <h3>Część budowlana</h3>
+        {zoning.map(zone => <div key={zone.ref}><i className={zone.proposed ? 'proposed' : ''} aria-hidden="true" /><p><strong>{zone.proposed ? 'Nowy MPZP' : zone.name}</strong><span>{zone.code}</span></p></div>)}
+        <p>Część budowlana: od drogi do linii.</p>
+        <p>Nowy: projekt z 19.10.2026, nieuchwalony.</p>
+        <p>Przebieg orientacyjny. Odsunięcia budynków ustala się osobno.</p>
+      </section>}
       <p className="site-plan-note">Opisy obok rysunku. Powiększ lub wybierz element, aby zobaczyć więcej linii wymiarowych.</p>
       {selected && <section className="site-plan-detail" aria-label="Wymiary wybranego elementu"><div><strong>{selected.name}</strong><button aria-label="Zamknij szczegóły elementu" onClick={() => setSelectedRef(null)}>×</button></div><b>{selected.summary}</b>{selected.heightM !== undefined && <p>Wysokość: {planMetres(selected.heightM)}</p>}<p>{selected.note}</p><p>Boki / odcinki: {sitePlanEdges(selected).map(([a, b]) => planMetres(Math.hypot(b.x - a.x, b.z - a.z))).join(' · ')}</p><button onClick={() => setCamera(fit([selected]))}>Powiększ wybrany element</button></section>}
       <input type="search" aria-label="Szukaj elementu na planie" placeholder="Szukaj: sosna, PV, furtka…" value={query} onChange={event => setQuery(event.target.value)} />

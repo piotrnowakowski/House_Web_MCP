@@ -14,6 +14,13 @@
 .site-plan-drawing svg { display:block; touch-action:none; cursor:grab; }
 .site-plan-drawing svg:active { cursor:grabbing; }
 .site-plan-object { cursor:pointer; }
+.site-plan-zoning { pointer-events:none; fill:none; stroke:#126b37; stroke-width:3; stroke-linejoin:round; }
+.site-plan-zoning.proposed { stroke:#32a852; stroke-dasharray:9 5; }
+.site-plan-zoning .site-plan-zoning-halo { stroke:#fff; stroke-width:6; stroke-opacity:.85; }
+.site-plan-zoning-legend { border:1px solid #c3d9c0; background:#f3f8ef; border-radius:7px; padding:10px; flex-shrink:0; }
+.site-plan-zoning-legend h3 { margin:0 0 8px; font-size:12px; }.site-plan-zoning-legend > div { display:flex; gap:8px; align-items:flex-start; margin:8px 0; }
+.site-plan-zoning-legend i { flex:0 0 25px; margin-top:7px; border-top:3px solid #126b37; }.site-plan-zoning-legend i.proposed { border-color:#32a852; border-top-style:dashed; }
+.site-plan-zoning-legend p { margin:0; font-size:11px; line-height:1.45; }.site-plan-zoning-legend span { display:block; color:#63765e; }.site-plan-zoning-legend > p { margin-top:8px; color:#586c52; }
 .site-plan-selected,.site-plan-dimension { pointer-events:none; }
 .site-plan-dimension path { stroke:#596d60; fill:none; stroke-width:.9; }
 .site-plan-dimension text { font:600 11px system-ui; text-anchor:middle; fill:#354c3c; stroke:#f7f8f1; stroke-width:3; paint-order:stroke; }

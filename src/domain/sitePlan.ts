@@ -5,6 +5,8 @@ import { transformedPoint } from './precisionEdits'
 import { highestRoofElevation } from './roofs'
 import { isExteriorWall } from './zielonkiInterior'
 import type { Polygon2, ProjectV2, Vec2 } from './types'
+import { zielonkiZoningBoundary } from '../../knowledge-bank/zielonki/zoning'
+import { draftZoningBoundary, usesDraftPlan } from '../../knowledge-bank/zielonki/draftPlan'
 
 export const sitePlanCategories = ['Działka', 'Budynki', 'Dachy', 'Nawierzchnie', 'Wyposażenie', 'Ogrodzenie', 'Bramy i furtki', 'Rośliny', 'Okna i drzwi'] as const
 export type SitePlanCategory = typeof sitePlanCategories[number]
@@ -18,6 +20,15 @@ export const planMetres = (value: number) => `${planNumber(value)} m`
 const size = (width: number, depth: number) => `${planNumber(width)} × ${planNumber(depth)} m`
 const areaSummary = (points: Polygon2) => `${planNumber(polygonArea(points))} m² · obw. ${planMetres(polygonPerimeter(points))}`
 const zoneColors = { lawn: '#e1ebd8', terrace: '#ddc9ad', path: '#e4ddcd', driveway: '#c9cecb', bed: '#c4b29d', 'rain-garden': '#b8d7d2', vegetable: '#c6d9b0' }
+
+/** Compare the recorded planning traces without replacing the project's land-use data. */
+export function sitePlanZoningBoundaries(project: ProjectV2) {
+  if (!usesDraftPlan(project) && !project.site.parcels.some(p => p.landUseZones?.some(z => z.sourceRef === 'source/mpzp-boundary-v2'))) return []
+  return [
+    { ref: 'zoning/existing', name: 'Stary MPZP', code: '06.MNU.8', proposed: false, points: zielonkiZoningBoundary },
+    { ref: 'zoning/proposed', name: 'Projekt nowego MPZP', code: '18.1.MU.1', proposed: true, points: draftZoningBoundary },
+  ]
+}
 
 /** Read-only projections of the same semantic objects used by the 3D scene. */
 export function sitePlanElements(project: ProjectV2): SitePlanElement[] {
