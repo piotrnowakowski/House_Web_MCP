@@ -2,6 +2,8 @@
 
 The active launcher contains **architekt**, **architekt 7.11**, **nowe mpzp** and **nowe mpzp — wariant 2**. The independent architekt 7.11 r1 follows the architect's 6 November revisions while preserving the original architekt garden and other buildings; see [project provenance and roof checks](../project-data/architekt-7-11/README.md). The five older designs named below are retired from those lists with recovery data preserved; see [project archive](../project-data/ARCHIVE.md). Their historical release descriptions are not the active project catalogue.
 
+8 November 2026 release: code `6abe6af619011f97e34c2783e221cd9095757e5f`, architekt 7.11 canonical r1/shared version 1. HTTP/HTTPS health, API, asset hashes, fresh browser and captured-existing-profile reload checks passed; all three older shared projects are unchanged. Actual Chrome/IAB backups and release evidence are in `tmp/architekt-release-20261108/`. The project README records the pre-existing mobile furniture mesh-probe test failure separately from the successful new-house checks.
+
 For the new runtime API, persistent server `.env`, database backups and manual synchronization, see [workspace-sync.md](workspace-sync.md). API-enabled releases use `--sync-api`; a static-only redeployment is rejected once sync is present.
 
 The working house branch is `codex/deploy-furnished-zielonki`, previewed locally at `http://127.0.0.1:5173/`.
