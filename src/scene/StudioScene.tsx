@@ -22,12 +22,14 @@ import { acceleratedRaycast, computeBoundsTree, disposeBoundsTree } from 'three-
 import { buildingGroundOffset, buildingLocalBounds, elevationAt, pointInPolygon, polygonBounds, polygonCentroid, spaceFootprint } from '../domain/geometry'
 import { gardenFixtureById, raisedBedSoilHeightM } from '../domain/gardenFixtures'
 import { SpaFixture } from './SpaFixtures'
+import { RoofWindows, roofWindowCutouts } from './RoofWindows'
 import { measureHeight } from '../domain/heightMeasurements'
-import type { BuildingModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, RoofSegmentModel, SiteEntranceModel, SlabModel, StructureReport, WallModel, WallMaterial } from '../domain/types'
+import type { BuildingModel, CeilingFinishModel, GardenFixtureModel, LandscapeZone, PlantModel, Polygon2, ProjectV2, RoofSegmentModel, SiteEntranceModel, SlabModel, StoreyModel, StructureReport, WallModel, WallMaterial } from '../domain/types'
 import { inferWallOpeningLayout } from '../domain/wallOpeningLayouts'
 import { isExteriorWall, livingVoidPartitions } from '../domain/zielonkiInterior'
 import { ProductModel } from '../interior/ProductModel'
 import { FinishMaterial } from '../interior/FinishMaterial'
+import { ceilingGeometry } from '../interior/ceilingGeometry'
 import { fitVisiblePlot } from './fitVisiblePlot'
 import { resolveGableWallFinish, resolveWallFinish } from '../domain/wallFinishes'
 import { recessSideBattenOffsets, recessSideFaceColors, recessSideLayout } from '../domain/gableRecess'
@@ -719,7 +721,7 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
   const roofMaterial = roofSurfaceMaterial(segment, selected, ghost)
   const junction = useMemo(() => gableRoofJunction(building, wing), [building, wing])
   const junctionPlanes = useMemo(() => roofJunctionPlanes(junction), [junction])
-  const junctionCutouts = useMemo(() => roofJunctionCutouts(building, wing), [building, wing])
+  const junctionCutouts = useMemo(() => [...roofJunctionCutouts(building, wing), ...roofWindowCutouts(segment)], [building, wing, segment])
   const gables = useMemo(() => {
     const value = new BufferGeometry()
     const positions = alongZ ? [bounds.minX, base, 0, bounds.maxX, base, 0, cx, ridge, 0] : [0, base, bounds.minZ, 0, base, bounds.maxZ, 0, ridge, cz]
@@ -738,6 +740,7 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
   const seamMaterial = <meshStandardMaterial color="#151b1c" metalness={0.7} roughness={0.35} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />
   const frameMaterial = <meshStandardMaterial color="#111716" roughness={0.48} />
   return <group>
+    <RoofWindows segment={segment} />
     {alongZ ? <>
       <RoofPanel position={[cx - half / 2, midY, cz]} rotation={[0, 0, pitch]} size={[slope, 0.2, depth + over * 2]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
       <RoofPanel position={[cx + half / 2, midY, cz]} rotation={[0, 0, -pitch]} size={[slope, 0.2, depth + over * 2]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
@@ -876,11 +879,19 @@ function FinishSurface({ footprint, y, refValue, buildingRef, color }: { footpri
   return <mesh geometry={geometry} position={[0, y, 0]} userData={{ semanticRef: refValue, buildingRef }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(refValue) }}><meshStandardMaterial color={selectedRef === refValue ? '#b9e84d' : color} side={DoubleSide} roughness={0.75} /></mesh>
 }
 
+function AtticCeilingSurface({ building, storey, finish, footprint, explodeOffset }: { building: BuildingModel; storey: StoreyModel; finish: CeilingFinishModel; footprint: Polygon2; explodeOffset: number }) {
+  const geometry = useMemo(() => ceilingGeometry(building, storey, footprint, storey.clearHeightM, false, finish.elevationM - storey.elevationM - finish.thicknessM), [building, storey, footprint, finish])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  const selectedRef = useStudioStore((state) => state.selectedRef); const setSelectedRef = useStudioStore((state) => state.setSelectedRef)
+  return <mesh geometry={geometry} position={[0, storey.elevationM + storey.level * explodeOffset, 0]} userData={{ semanticRef: finish.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); setSelectedRef(finish.ref) }}><meshStandardMaterial color={selectedRef === finish.ref ? '#b9e84d' : '#d8d5c8'} side={DoubleSide} roughness={0.75} /></mesh>
+}
+
 function PlatformsAndFinishes({ building, explodeOffset }: { building: BuildingModel; explodeOffset: number }) {
   return <>{building.platforms.map((platform) => {
     const storey = building.storeys.find((item) => item.platformRefs.includes(platform.ref)); return <FinishSurface key={platform.ref} footprint={platform.footprint} y={platform.elevationM + (storey?.level ?? 0) * explodeOffset} refValue={platform.ref} buildingRef={building.ref} color="#a18a66" />
   })}{building.ceilingFinishes.map((finish) => {
     const space = building.spaces.find((item) => item.ref === finish.spaceRef); const storey = building.storeys.find((item) => item.ceilingFinishRefs.includes(finish.ref)); if (!space) return null
+    if (storey?.kneeWallHeightM !== undefined) return <AtticCeilingSurface key={finish.ref} building={building} storey={storey} finish={finish} footprint={spaceFootprint(building, space)} explodeOffset={explodeOffset} />
     return <FinishSurface key={finish.ref} footprint={spaceFootprint(building, space)} y={finish.elevationM + (storey?.level ?? 0) * explodeOffset} refValue={finish.ref} buildingRef={building.ref} color="#d8d5c8" />
   })}</>
 }

@@ -652,3 +652,7 @@ Plan 2D został opublikowany kodem 819e01d bez zmiany canonical r13. Następnie 
 ### 24.10.2026 — nowe-mpzp-v2 r15, dwa rzędy PV
 
 Wariant 2 zachowuje 60 modułów/30 kWp w sześciu stołach po 10, dwa rzędy po trzy, przerwy 0,20 m i 1,00 m. Źródła: canonical r14/shared12 oraz rzeczywiste Chrome/IAB; kopie i bezkonfliktowe scalania w tmp/pv-two-rows-20261024. Poprzednia publikacja: project-data/nowe-mpzp-v2/before-pv-two-rows-r14.json. Zachowano istniejące ref trzech stołów, dodano trzy nowe; pozostałe dane i dachy bez zmian. Szczegóły geometrii, odstępów, ograniczeń i testów w README wariantu.
+
+### 08.11.2026 — niezależny architekt 7.11
+
+Na zlecenie użytkownika utworzono project/architekt-7-11 r1 na podstawie architekt r10 i sześciu PDF z wiadomości architekta z 06.11.2026. Zachowano całą działkę, ogród, położenie domu i inne budynki. Źródła, niemodyfikowalny baseline initial-r1, przeliczone kąty 40° / 40,403794° i wspólna kalenica 8,351511 m oraz decyzje scalania są opisane w ../architekt-7-11/README.md. Kopie rzeczywistych Chrome/IAB i shared przed wdrożeniem: tmp/architekt-release-20261108. Historyczny konflikt niezależnego nowe-mpzp r1 pozostawiono w kopii odzyskiwania; żadnych danych użytkownika nie nadpisano.

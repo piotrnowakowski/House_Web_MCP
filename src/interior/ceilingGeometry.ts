@@ -1,13 +1,15 @@
 import { BufferGeometry, Float32BufferAttribute } from 'three'
 import { atticClearanceAt } from '../domain/attic'
+import { roofWindowLayout } from '../domain/roofWindows'
 import type { BuildingModel, Polygon2, StoreyModel } from '../domain/types'
 import { floorGeometry } from './floorGeometry'
 
 /** A ceiling skin respects the holes in its host slab, including a hole crossing a room edge. */
-export function ceilingGeometry(building: BuildingModel, storey: StoreyModel, footprint: Polygon2, flatHeight: number, overVoid = false) {
+export function ceilingGeometry(building: BuildingModel, storey: StoreyModel, footprint: Polygon2, flatHeight: number, overVoid = false, capHeight = Infinity) {
   const host = building.slabs.find(slab => slab.ref === storey.topBoundaryRef)
   const mask = host ?? (!overVoid && storey.kneeWallHeightM !== undefined ? building.slabs.find(s => s.ref === storey.baseSlabRef) : undefined)
-  const source = floorGeometry(footprint, mask?.holes, mask?.footprint)
+  const roofHoles = storey.kneeWallHeightM === undefined ? [] : building.roof.segments.filter(s => s.storeyRef === storey.ref).flatMap(s => (s.windows ?? []).map(w => roofWindowLayout(s,w).footprint))
+  const source = floorGeometry(footprint, [...(mask?.holes ?? []), ...roofHoles], mask?.footprint)
   const flat = source.index ? source.toNonIndexed() : source
   const points = flat.getAttribute('position'), vertices: number[] = [], uv: number[] = []
   type P = [number, number]
@@ -20,7 +22,7 @@ export function ceilingGeometry(building: BuildingModel, storey: StoreyModel, fo
       return
     }
     for (const [x, z] of [a, b, c]) {
-      vertices.push(x, (storey.kneeWallHeightM === undefined ? flatHeight : atticClearanceAt(building, storey, { x, z })) - .015, z)
+      vertices.push(x, Math.min(capHeight, storey.kneeWallHeightM === undefined ? flatHeight : atticClearanceAt(building, storey, { x, z })) - .015, z)
       uv.push(x, z)
     }
   }

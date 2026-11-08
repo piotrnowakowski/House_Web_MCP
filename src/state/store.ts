@@ -16,6 +16,7 @@ import { createTerrainProject, isZielonkiProject, type TerrainInput } from '../d
 import { listWorkspaces, loadWorkspace, loadEditHistory, normalizeWorkspaceName, renameWorkspace, saveWorkspace, type WorkspaceSummary, type LocalEditHistory } from '../services/persistence'
 import { stableJson } from '../domain/workspaceSync'
 import { ARCHITEKT_REF, synchronizePublishedArchitekt } from '../services/publishedArchitekt'
+import { ARCHITEKT_711_REF, synchronizePublishedArchitekt711 } from '../services/publishedArchitekt711'
 import { NOWE_MPZP_REF, synchronizePublishedNoweMpzp } from '../services/publishedNoweMpzp'
 import { NOWE_MPZP_V2_REF, synchronizePublishedNoweMpzpV2 } from '../services/publishedNoweMpzpV2'
 import type { DraftChangeSetModel, HeightMeasureKind, PersistedWorkspace, ProjectCommand, ProjectV2, ProposalRecord, StructureReport, TransformMode, VariantModel, ViewerMode } from '../domain/types'
@@ -231,6 +232,8 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
       set({ projectSyncConflicts: [] })
       const architektConflicts = await synchronizePublishedArchitekt()
       if (architektConflicts.length) set((state) => ({ projectSyncConflicts: [...state.projectSyncConflicts, ...architektConflicts] }))
+      const architekt711Conflicts = await synchronizePublishedArchitekt711()
+      if (architekt711Conflicts.length) set((state) => ({ projectSyncConflicts: [...state.projectSyncConflicts, ...architekt711Conflicts] }))
       const noweMpzpConflicts = await synchronizePublishedNoweMpzp()
       if (noweMpzpConflicts.length) set((state) => ({ projectSyncConflicts: [...state.projectSyncConflicts, ...noweMpzpConflicts] }))
       const noweMpzpV2Conflicts = await synchronizePublishedNoweMpzpV2()
@@ -309,6 +312,7 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
     await flushAutosave()
     try {
       if (ref === ARCHITEKT_REF) set({ projectSyncConflicts: await synchronizePublishedArchitekt() })
+      if (ref === ARCHITEKT_711_REF) set({ projectSyncConflicts: await synchronizePublishedArchitekt711() })
       if (ref === NOWE_MPZP_REF) set({ projectSyncConflicts: await synchronizePublishedNoweMpzp() })
       if (ref === NOWE_MPZP_V2_REF) set({ projectSyncConflicts: await synchronizePublishedNoweMpzpV2() })
       const saved = await loadWorkspace(ref)

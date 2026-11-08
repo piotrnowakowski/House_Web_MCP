@@ -1,6 +1,6 @@
 # Durable local saving and manual Mikrus sync
 
-The project cleanup requested on 2026-10-20 retires the five identities in `project-data/archived-projects.json` from the shared list and local launcher, including their saved versions. Existing data/history remain available for recovery by exact ref; no SQL deletion or history pruning was performed. Fresh installations initialize only architekt and MPZP variants 1 and 2. See `project-data/ARCHIVE.md` for backups and restoration.
+The project cleanup requested on 2026-10-20 retires the five identities in `project-data/archived-projects.json` from the shared list and local launcher, including their saved versions. Existing data/history remain available for recovery by exact ref; no SQL deletion or history pruning was performed. Fresh installations initialize architekt, the independent architekt 7.11 revision requested on 7 November, and MPZP variants 1 and 2. See `project-data/ARCHIVE.md` for backups and restoration.
 
 ## Behavior
 

@@ -95,6 +95,7 @@ const GableGlazingSchema = z.object({
   hostOpeningRefs: z.array(z.string().min(1)).min(1).refine((refs) => new Set(refs).size === refs.length).optional(),
 }).refine((g) => g.from < g.to)
 const RoofSegmentSchema = z.object({
+  windows: z.array(z.object({ ref: z.string().min(1), position: Vec2Schema, widthM: z.number().positive(), lengthM: z.number().positive() })).optional(),
   ref: z.string().min(1), footprint: PolygonSchema, storeyRef: z.string().min(1).optional(), spaceRef: z.string().min(1).optional(), baseElevationM: z.number().finite(),
   type: z.enum(['flat', 'gable', 'hip']), pitchDegrees: z.number().min(0).max(70), overhangM: z.number().min(0).max(3), ridgeDirection: z.enum(['x', 'z']),
   finish: RoofFinishSchema, adjacentSegmentRefs: z.array(z.string().min(1)).default([]),

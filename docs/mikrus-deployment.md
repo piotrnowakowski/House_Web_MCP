@@ -1,6 +1,6 @@
 # Current house deployment
 
-The active launcher and shared-project list now retain only **architekt**, **nowe mpzp** and **nowe mpzp — wariant 2**. The five older designs named below are retired from those lists with recovery data preserved; see [project archive](../project-data/ARCHIVE.md). Their historical release descriptions are not the active project catalogue.
+The active launcher contains **architekt**, **architekt 7.11**, **nowe mpzp** and **nowe mpzp — wariant 2**. The independent architekt 7.11 r1 follows the architect's 6 November revisions while preserving the original architekt garden and other buildings; see [project provenance and roof checks](../project-data/architekt-7-11/README.md). The five older designs named below are retired from those lists with recovery data preserved; see [project archive](../project-data/ARCHIVE.md). Their historical release descriptions are not the active project catalogue.
 
 For the new runtime API, persistent server `.env`, database backups and manual synchronization, see [workspace-sync.md](workspace-sync.md). API-enabled releases use `--sync-api`; a static-only redeployment is rejected once sync is present.
 

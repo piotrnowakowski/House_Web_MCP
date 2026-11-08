@@ -18,6 +18,7 @@ import { TexturedMaterial } from '../scene/materials'
 import { ProductModel } from './ProductModel'
 import { FinishMaterial } from './FinishMaterial'
 import { RoomCeiling } from './RoomCeiling'
+import { RoofWindows } from '../scene/RoofWindows'
 import { GlazedGable } from '../scene/GlazedGable'
 import { polygonBounds } from '../domain/geometry'
 import { Staircase } from './Staircase'
@@ -149,7 +150,7 @@ function UpperRoomContext({ building, storey }: { building: BuildingModel; store
     }))}
     {building.walls.filter(wall => storey.wallRefs.includes(wall.ref)).map(wall =>
       <CutawayWall key={wall.ref} wall={wall} profile={atticWallProfile(building, wall)} plan={false} fullHeight />)}
-    {rooms.map(room => room.ceilingFinish && <RoomCeiling key={room.ref} building={building} storey={storey} footprint={spaceFootprint(building, room)} finish={room.ceilingFinish} flatHeight={storey.clearHeightM} />)}
+    {rooms.map(room => room.ceilingFinish && <RoomCeiling key={room.ref} building={building} storey={storey} footprint={spaceFootprint(building, room)} finish={room.ceilingFinish} flatHeight={storey.clearHeightM} capHeight={Math.min(Infinity, ...building.ceilingFinishes.filter(c => c.spaceRef === room.ref).map(c => c.elevationM - storey.elevationM - c.thicknessM))} />)}
     <VoidCeilings building={building} storey={storey} />
   </group>
 }
@@ -314,6 +315,7 @@ export function InteriorScene(props: Props) {
       const rise = upper.elevationM - lower.elevationM; const base = lower.elevationM - storey.elevationM
       return <Staircase key={stairs.ref} stairs={stairs} rise={rise} base={base} plan={plan} />
     })}
+    {!plan && building.roof.segments.filter(s => s.storeyRef === storey.ref).map(s => <RoofWindows key={s.ref} segment={s} elevationOffset={-storey.elevationM} />)}
     {building.walls.filter((wall) => storey.wallRefs.includes(wall.ref)).map((wall) => <CutawayWall key={wall.ref} wall={wall} profile={atticWallProfile(building, wall)} plan={plan} fullHeight={props.view === 'room'} selected={props.selectedRefs?.includes(wall.ref) ? wall.ref : selected} onPick={mode === 'partition' ? onPick : undefined} onSelect={mode === 'select' && !placing ? onSelect : undefined} />)}
     {building.spaces.filter((room) => storey.spaceRefs.includes(room.ref)).map((room) => {
       const footprint = spaceFootprint(building, room); const centre = polygonCentroid(footprint); const sizes = roomDimensions(building, room)
@@ -327,7 +329,7 @@ export function InteriorScene(props: Props) {
       const vertical = edges.find(({ p, q }) => Math.abs(q.x - p.x) < 0.03 && Math.abs(q.z - p.z) > 1)
       return <group key={room.ref}>
         {room.floorFinish && <Floor points={footprint} holes={slab.holes} slab={slab.footprint} elevation={0.008} finish={room.floorFinish} onPick={onFloor} onHover={props.onHover} />}
-        {room.ceilingFinish && props.view === 'room' && <RoomCeiling building={building} storey={storey} footprint={footprint} finish={room.ceilingFinish} flatHeight={Math.min(storey.clearHeightM, ...building.ceilingFinishes.filter(c => c.spaceRef === room.ref).map(c => c.elevationM - storey.elevationM - c.thicknessM))} />}
+        {room.ceilingFinish && props.view === 'room' && <RoomCeiling building={building} storey={storey} footprint={footprint} finish={room.ceilingFinish} flatHeight={storey.clearHeightM} capHeight={Math.min(Infinity, ...building.ceilingFinishes.filter(c => c.spaceRef === room.ref).map(c => c.elevationM - storey.elevationM - c.thicknessM))} />}
         {selected === room.ref && <Line points={[...footprint, footprint[0]].map((p) => [p.x, 0.06, p.z] as [number, number, number])} color='#287466' lineWidth={2.5} />}
         {labels && <RoomLabel centre={centre} name={room.name} area={sizes.area} width={sizes.width} depth={sizes.depth} plan={plan} selected={selected === room.ref} />}
         {plan && props.dimensions && [horizontal, vertical].map((edge, i) => {

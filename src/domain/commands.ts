@@ -7,6 +7,7 @@ import { gardenFixtureById, groundPlantingIds, groupedGardenFixtures, raisedBedS
 import { buildingFootprintsWorld, mergeAdjacentPolygons, pointInPolygon, pointOnSegment, polygonArea, polygonBounds, polygonSelfIntersects, rectangle, spaceFootprint, splitPolygonEdges, wallLength } from './geometry'
 import { decomposeOrthogonalLFootprint, defaultRoofFinish, ridgeDirectionForFootprint, roofSegmentRidgeElevation, segmentContainsFootprint, supportingWallRefs } from './roofs'
 import { gableWallsForBuilding } from './roofWings'
+import { roofWindowLayout } from './roofWindows'
 import { roofTerraceOutline } from './roofTerrace'
 import { atticWallProfile, wallProfileHeightAt } from './attic'
 import { sunMismatchIssues } from './sunlight'
@@ -535,7 +536,7 @@ export const applyCommand = (source: ProjectV2, command: ProjectCommand): Projec
 }
 export const applyCommands = (source: ProjectV2, commands: ProjectCommand[]) => commands.reduce(applyCommand, source)
 
-const allRefs = (building: BuildingModel) => [building.ref, building.roof.ref, ...building.roof.segments.map((item) => item.ref), ...building.storeys.map((item) => item.ref), ...building.slabs.map((item) => item.ref), ...building.walls.map((item) => item.ref), ...building.spaces.map((item) => item.ref), ...building.platforms.map((item) => item.ref), ...building.ceilingFinishes.map((item) => item.ref), ...building.walls.flatMap((wall) => wall.openings.map((item) => item.ref))]
+const allRefs = (building: BuildingModel) => [building.ref, building.roof.ref, ...building.roof.segments.map((item) => item.ref), ...building.roof.segments.flatMap(s => (s.windows ?? []).map(w => w.ref)), ...building.storeys.map((item) => item.ref), ...building.slabs.map((item) => item.ref), ...building.walls.map((item) => item.ref), ...building.spaces.map((item) => item.ref), ...building.platforms.map((item) => item.ref), ...building.ceilingFinishes.map((item) => item.ref), ...building.walls.flatMap((wall) => wall.openings.map((item) => item.ref))]
 
 export const validateProject = (project: ProjectV2): ProjectIssue[] => {
   const issues: ProjectIssue[] = []
@@ -589,6 +590,7 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
     }))
     if (!building.roof.segments.length) issues.push({ severity: 'error', code: 'roof.segments', message: `${building.name} must have at least one semantic roof segment.`, subjectRef: building.roof.ref })
     building.roof.segments.forEach((segment) => {
+      for (const window of segment.windows ?? []) if (!roofWindowLayout(segment, window).fits) issues.push({ severity: 'error', code: 'roof.window', message: `${window.ref} must fit within one gable slope.`, subjectRef: window.ref })
       const storey = segment.storeyRef ? building.storeys.find((item) => item.ref === segment.storeyRef) : undefined
       if (segment.storeyRef && !storey) issues.push({ severity: 'error', code: 'roof.storey', message: `${segment.ref} references a missing supporting storey.`, subjectRef: segment.ref })
       if (segment.spaceRef && !building.spaces.some((space) => space.ref === segment.spaceRef)) issues.push({ severity: 'error', code: 'roof.space', message: `${segment.ref} references a missing supporting space.`, subjectRef: segment.ref })

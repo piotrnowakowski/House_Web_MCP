@@ -72,6 +72,8 @@ export interface RoofFinish { material: RoofMaterial; colorHex: string }
 export type RoofJunctionType = 'valley' | 'intersection'
 export interface RoofJunctionModel { ref: string; type: RoofJunctionType; segmentRefs: [string, string] }
 export interface RoofSegmentModel {
+  /** Roof-light dimensions on the slope; position is in building-local plan coordinates. */
+  windows?: Array<{ ref: string; position: Vec2; widthM: number; lengthM: number }>
   ref: string; footprint: Polygon2; storeyRef?: string; spaceRef?: string; baseElevationM: number; type: RoofType; pitchDegrees: number; overhangM: number
   ridgeDirection: 'x' | 'z'; finish: RoofFinish; adjacentSegmentRefs: string[]; gableWallFinishes?: Partial<Record<'min' | 'max', WallFinish>>
   /** Fractions across the gable, with a vertical inset below the roof slopes. */
