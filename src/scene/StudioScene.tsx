@@ -28,6 +28,8 @@ import type { BuildingModel, CeilingFinishModel, GardenFixtureModel, LandscapeZo
 import { inferWallOpeningLayout } from '../domain/wallOpeningLayouts'
 import { isExteriorWall, livingVoidPartitions } from '../domain/zielonkiInterior'
 import { ProductModel } from '../interior/ProductModel'
+import { Staircase } from '../interior/Staircase'
+import { ConcealedDoor } from '../interior/ConcealedDoor'
 import { FinishMaterial } from '../interior/FinishMaterial'
 import { ceilingGeometry } from '../interior/ceilingGeometry'
 import { fitVisiblePlot } from './fitVisiblePlot'
@@ -993,6 +995,12 @@ function Building({ project, building, ghost }: { project: ProjectV2; building: 
       {detailedBarn && <BarnGlazing building={building} ghost={ghost} />}
       {detailedBarn && <BarnCladding building={building} ghost={ghost} />}
       {isLShapedBarn(building) && !building.interiorSource && <BarnInteriorWarmth ghost={ghost} />}
+      {!ghost && building.walls.filter(wall => wall.openings.some(opening => opening.concealed)).map(wall => <group key={`concealed/${wall.ref}`} position={[wall.start.x,wall.baseElevationM,wall.start.z]} rotation={[0,-Math.atan2(wall.end.z-wall.start.z,wall.end.x-wall.start.x),0]}>{wall.openings.filter(opening => opening.concealed).map(opening => <ConcealedDoor key={opening.ref} opening={opening} wallHeight={wall.heightM} />)}</group>)}
+      {!ghost && building.stairs?.filter(stair => stair.finish).map(stair => {
+        const lower = building.storeys.find(s => s.ref === stair.fromStoreyRef)!
+        const upper = building.storeys.find(s => s.ref === stair.toStoreyRef)!
+        return <Staircase key={stair.ref} stairs={stair} rise={upper.elevationM-lower.elevationM} base={lower.elevationM} plan={false} />
+      })}
       {!ghost && building.furniture?.map((item) => <group key={item.ref} userData={{ semanticRef: item.ref, buildingRef: building.ref }} onClick={event => { if (event.delta < 5 && viewerMode === 'edit') { event.stopPropagation(); useStudioStore.getState().setSelectedRef(item.ref) } }} position={[item.position.x, (item.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.level ?? 0) * explodedOffset, item.position.z]} rotation={[0, item.rotationDegrees * Math.PI / 180, 0]}><ProductModel item={item} mobile={window.innerWidth <= 900} />{selectedRef === item.ref && <mesh position-y={item.heightM / 2}><boxGeometry args={[item.widthM + 0.025, item.heightM + 0.025, item.depthM + 0.025]} /><meshBasicMaterial color='#b9e84d' wireframe depthTest={false} /></mesh>}</group>)}
       <Roof building={building} selected={selectedRef === building.roof.ref} yOffset={roofOffset} ghost={ghost} />
       {livingVoidPartitions(building).map(({ wall, wing }) => <LivingVoidWall key={wall.ref} building={building} wall={wall} wing={wing} yOffset={offsetFor(wall.ref)} ghost={ghost} />)}

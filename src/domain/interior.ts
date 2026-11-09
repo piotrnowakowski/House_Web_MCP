@@ -49,6 +49,7 @@ export const InteriorItemSchema = z.object({
   rotationDegrees: z.number().finite(), color: z.string().regex(/^#[0-9a-fA-F]{6}$/),
   productId: z.string().optional(), variantId: z.string().optional(), elevationM: z.number().min(0).max(8).optional(),
   groupRef: z.string().min(1).optional(), locked: z.boolean().optional(),
+  cabinetry: z.enum(['tall', 'oven-tower', 'base', 'sink', 'island', 'hob']).optional(),
 })
 
 /** Catalogue dimensions remain the reference even when a placed object is enlarged. */

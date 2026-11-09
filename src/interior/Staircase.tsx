@@ -1,6 +1,7 @@
 import { Line } from '@react-three/drei'
 import { uStairSurfaces } from '../domain/stairs'
 import type { StairModel } from '../domain/types'
+import { GlassStairRails } from './GlassStairRails'
 
 export function Staircase({ stairs, rise, base, plan }: { stairs: StairModel; rise: number; base: number; plan: boolean }) {
   if (!stairs.uTurn) return <group position={[stairs.start.x, plan ? .03 : base, stairs.start.z]}>
@@ -15,15 +16,22 @@ export function Staircase({ stairs, rise, base, plan }: { stairs: StairModel; ri
   const { landingDepthM: landing, gapM: gap } = stairs.uTurn
   const width = stairs.widthM, depth = width * 2 + gap, length = landing + stairs.runM
   const tread = stairs.runM / (stairs.steps / 2 - 1)
+  const color = stairs.finish?.treadColor
   const flightRails = [0, width, width + gap, depth].map((z, index) => {
     const returning = index >= 2
     return surfaces.slice(1).filter(surface => (surface.z > width) === returning).map(surface => [surface.x, surface.top + .9, z] as [number, number, number])
   })
   return <group position={[stairs.start.x, plan ? .03 : base, stairs.start.z]}>
     {surfaces.map((surface, i) => <mesh key={i} position={[surface.x, plan ? .02 : surface.top - .04, surface.z]} castShadow receiveShadow>
-      <boxGeometry args={[surface.width - (i ? .008 : 0), plan ? .035 : .08, surface.depth]} /><meshStandardMaterial color={i ? '#bd9365' : '#c49c6b'} roughness={.8} />
+      <boxGeometry args={[surface.width - (i && !stairs.finish?.closedRisers ? .008 : 0), plan ? .035 : .08, surface.depth]} /><meshStandardMaterial color={color ?? (i ? '#bd9365' : '#c49c6b')} roughness={.8} />
     </mesh>)}
-    {!plan && <>
+    {!plan && stairs.finish?.closedRisers && <group name='closed-stair-risers'>
+      {surfaces.slice(1).map((s,i) => <mesh key={i} position={[s.x + (s.z > width ? -1 : 1) * (s.width / 2 - .04), s.top - rise / stairs.steps / 2, s.z]} castShadow receiveShadow><boxGeometry args={[.08,rise/stairs.steps,s.depth]} /><meshStandardMaterial color={color} roughness={.8} /></mesh>)}
+      <mesh position={[landing-.04,rise/2-rise/stairs.steps/2,width/2]}><boxGeometry args={[.08,rise/stairs.steps,width]} /><meshStandardMaterial color={color} /></mesh>
+      <mesh position={[length-.04,rise-rise/stairs.steps/2,width*1.5+gap]}><boxGeometry args={[.08,rise/stairs.steps,width]} /><meshStandardMaterial color={color} /></mesh>
+    </group>}
+    {!plan && stairs.finish?.railing === 'glass' && <GlassStairRails stairs={stairs} rise={rise} />}
+    {!plan && stairs.finish?.railing !== 'glass' && <>
       {flightRails.map((points, i) => <group key={i}>
         <Line points={points} color='#343b39' lineWidth={3} />
         {points.map(([x, y, z], j) => <mesh key={j} position={[x, y - .45, z]}><boxGeometry args={[.025, .9, .025]} /><meshStandardMaterial color='#343b39' /></mesh>)}

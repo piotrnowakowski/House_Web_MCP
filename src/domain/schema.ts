@@ -58,6 +58,7 @@ const SiteFenceSchema = z.object({
   return length > 0.1 && length <= 500
 }, 'Fence segment length must be between 0.1 and 500 m.')
 const OpeningSchema = z.object({
+  concealed: z.object({ faceOffsetM: z.number().min(-1).max(1), startFillerM: z.number().min(0).max(.5).optional(), endFillerM: z.number().min(0).max(.5).optional() }).optional(),
   finish: InteriorFinishSchema.optional(),
   mullionFractions: z.array(z.number().gt(0).lt(1)).optional(),
   hinge: z.enum(['left', 'right']).optional(), swing: z.enum(['in', 'out']).optional(),
@@ -129,7 +130,7 @@ const BuildingSchema = z.object({
   designStatus: z.literal('concept').optional(),
   interiorSource: z.object({ id: z.string().min(1), notes: z.array(z.string()) }).optional(),
   furniture: z.array(InteriorItemSchema).optional(),
-  stairs: z.array(z.object({ ref: z.string().min(1), fromStoreyRef: z.string().min(1), toStoreyRef: z.string().min(1), start: Vec2Schema, runM: z.number().positive(), widthM: z.number().positive(), steps: z.number().int().min(2).max(40), uTurn: z.object({ landingDepthM: z.number().positive(), gapM: z.number().nonnegative() }).optional() })).optional(),
+  stairs: z.array(z.object({ ref: z.string().min(1), fromStoreyRef: z.string().min(1), toStoreyRef: z.string().min(1), start: Vec2Schema, runM: z.number().positive(), widthM: z.number().positive(), steps: z.number().int().min(2).max(40), uTurn: z.object({ landingDepthM: z.number().positive(), gapM: z.number().nonnegative() }).optional(), finish: z.object({ treadColor: z.string().regex(/^#[0-9a-fA-F]{6}$/), closedRisers: z.boolean(), railing: z.enum(['metal', 'glass']) }).optional() })).optional(),
   ref: z.string().min(1), name: z.string().min(1), kind: z.enum(['house', 'garage']), architecturalStyle: z.enum(['classic', 'futuristic', 'barn']),
   garageMode: z.enum(['integrated', 'attached']).optional(), position: Vec2Schema, rotationDegrees: z.number().finite(), storeys: z.array(StoreySchema).min(1),
   slabs: z.array(SlabSchema).min(1), walls: z.array(WallSchema), spaces: z.array(SpaceSchema),

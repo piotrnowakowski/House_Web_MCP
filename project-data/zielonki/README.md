@@ -656,3 +656,7 @@ Wariant 2 zachowuje 60 modułów/30 kWp w sześciu stołach po 10, dwa rzędy po
 ### 08.11.2026 — niezależny architekt 7.11
 
 Na zlecenie użytkownika utworzono project/architekt-7-11 r1 na podstawie architekt r10 i sześciu PDF z wiadomości architekta z 06.11.2026. Zachowano całą działkę, ogród, położenie domu i inne budynki. Źródła, niemodyfikowalny baseline initial-r1, przeliczone kąty 40° / 40,403794° i wspólna kalenica 8,351511 m oraz decyzje scalania są opisane w ../architekt-7-11/README.md. Kopie rzeczywistych Chrome/IAB i shared przed wdrożeniem: tmp/architekt-release-20261108. Historyczny konflikt niezależnego nowe-mpzp r1 pozostawiono w kopii odzyskiwania; żadnych danych użytkownika nie nadpisano.
+
+### 9 November 2026 — independent architekt 7.11 interior correction
+
+Captured current Chrome Default/Profile 1 project workspaces under ignored `tmp/interior-711-20261109/`; the current Codex browser partition has no IndexedDB directory. Compared the target shared r1 to its canonical baseline before applying r2. Only `project/architekt-7-11` changes: open white/glass U stairs attached visually at the pantry wall, and black fitted kitchen cabinetry to the existing 2.92 m ceiling. All Zielonki data and unrelated shared projects are preserved. See `../architekt-7-11/README.md` for detailed source, geometry, migration and browser evidence.

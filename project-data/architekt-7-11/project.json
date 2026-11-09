@@ -3,8 +3,8 @@
   "ref": "project/architekt-7-11",
   "name": "architekt 7.11",
   "units": "metric",
-  "revision": 1,
-  "updatedAt": "2026-11-07T14:00:00.000Z",
+  "revision": 2,
+  "updatedAt": "2026-11-09T14:00:00.000Z",
   "site": {
     "boundary": [
       {
@@ -1822,7 +1822,11 @@
           "PRZEKRÓJ A-A.pdf: 8abb2ad7b625d9e084702fb9b81d95ef84eb00e00f4aae19a2f1be519bb4b090",
           "RZUT PARTERU.pdf: f070879c21ad1930b0f03542ba605f57f08ed6d435ab6f36d7ba38ce694f270c",
           "RZUT PIĘTRA.pdf: 757e0a71385322d45c5dd615fd75ccc6dcf5b5cf793615c3fea3eb4d45cc81fc",
-          "ZAGOSPODAROWANIE TERENU.pdf: 5f0ca4327e5f597c724361933d06707a875ecd40c95930b93a5c3ce33f986ec0"
+          "ZAGOSPODAROWANIE TERENU.pdf: 5f0ca4327e5f597c724361933d06707a875ecd40c95930b93a5c3ce33f986ec0",
+          "2026-11-09 interior correction: architect ground/upper plans and section A-A rechecked. Open U stair in 3.16 x 2.00 m aperture; 18 risers at 0.180556 m, 8 treads per flight at 0.27 m, landing 1.00 m. Removed erroneous hall-side stair enclosure and storage door; retained boundary refs as 0.01 m room separators.",
+          "User photos: pale closed folded stair with glass guards; matte black flat-front kitchen and island. Full-height cabinet bank and integrated fridge reach the existing 2.92 m ceiling. Sink niche has upper cabinetry to ceiling. Pantry access and kitchen glazing remain clear; island remains 2.00 x 0.90 m. Finish/panel details are visualization assumptions, not fabrication or structural documentation.",
+          "User clarification: stair visually supported only from the pantry wall, with no hall enclosure, under-stair furniture or columns. A 0.03 m separation is left from the west exterior wall. Landing depth is 0.97 m and flight going remains 2.16 m, keeping the existing upper exit and slab aperture. Structural anchoring must be designed separately by the structural engineer.",
+          "User clarification: pantry entrance is a concealed, handleless black door flush with the cabinet fronts. Closed leaf face is 0.66 m east of the pantry partition axis, aligned at x=-2.295 m with the cabinetry; leaf height 2.18 m and matching top panel to 2.92 m align the cabinet divisions. The original 0.799 m clear opening and passage remain."
         ]
       },
       "furniture": [
@@ -1830,16 +1834,17 @@
           "ref": "interior/reference-cabinet-one",
           "catalogId": "kitchen-counter",
           "storeyRef": "storey/reference-ground",
-          "name": "Zabudowa kuchenna",
+          "name": "Czarna szafa przy spiżarni · 292 cm",
           "position": {
             "x": -2.595,
-            "z": -4.245
+            "z": -2.625
           },
-          "widthM": 0.6,
-          "depthM": 1.98,
-          "heightM": 0.9,
-          "rotationDegrees": 0,
-          "color": "#B99A72"
+          "widthM": 0.54,
+          "depthM": 0.6,
+          "heightM": 2.92,
+          "rotationDegrees": 90,
+          "color": "#202427",
+          "cabinetry": "tall"
         },
         {
           "ref": "interior/reference-sink",
@@ -1850,56 +1855,60 @@
             "x": -2.595,
             "z": -5.655
           },
-          "widthM": 0.6,
-          "depthM": 0.8,
+          "widthM": 0.8,
+          "depthM": 0.6,
           "heightM": 0.92,
-          "rotationDegrees": 0,
-          "color": "#B99A72"
+          "rotationDegrees": 90,
+          "color": "#202427",
+          "cabinetry": "sink"
         },
         {
           "ref": "interior/reference-counter",
           "catalogId": "kitchen-counter",
           "storeyRef": "storey/reference-ground",
-          "name": "Blat kuchenny",
+          "name": "Czarny słupek z piekarnikiem · 292 cm",
           "position": {
-            "x": -1.915,
-            "z": -5.835
+            "x": -2.595,
+            "z": -4.055
           },
-          "widthM": 0.76,
+          "widthM": 0.6,
           "depthM": 0.6,
-          "heightM": 0.9,
-          "rotationDegrees": 0,
-          "color": "#B99A72"
+          "heightM": 2.92,
+          "rotationDegrees": 90,
+          "color": "#202427",
+          "cabinetry": "oven-tower"
         },
         {
           "ref": "interior/architekt/fridge",
           "catalogId": "fridge",
           "storeyRef": "storey/reference-ground",
-          "name": "Lodówka",
+          "name": "Lodówka w czarnej zabudowie do sufitu",
           "position": {
             "x": -2.595,
-            "z": -2.655
+            "z": -4.805
           },
-          "widthM": 0.6,
+          "widthM": 0.9,
           "depthM": 0.6,
-          "heightM": 1.9,
-          "rotationDegrees": 0,
-          "color": "#B99A72"
+          "heightM": 2.92,
+          "rotationDegrees": 90,
+          "color": "#202427",
+          "cabinetry": "tall"
         },
         {
           "ref": "interior/reference-island",
           "catalogId": "kitchen-island",
           "storeyRef": "storey/reference-ground",
-          "name": "Wyspa 0,90 × 2,00",
+          "name": "Czarna wyspa 200 × 90 cm",
           "position": {
             "x": -0.745,
             "z": -4.435
           },
-          "widthM": 0.9,
-          "depthM": 2,
+          "widthM": 2,
+          "depthM": 0.9,
           "heightM": 0.92,
-          "rotationDegrees": 0,
-          "color": "#B99A72"
+          "rotationDegrees": 90,
+          "color": "#202427",
+          "cabinetry": "island"
         },
         {
           "ref": "interior/architekt/cooker",
@@ -1912,10 +1921,11 @@
           },
           "widthM": 0.58,
           "depthM": 0.6,
-          "heightM": 0.04,
-          "rotationDegrees": 0,
-          "color": "#B99A72",
-          "elevationM": 0.92
+          "heightM": 0.015,
+          "rotationDegrees": 90,
+          "color": "#202427",
+          "elevationM": 0.92,
+          "cabinetry": "hob"
         },
         {
           "ref": "interior/reference-stool-one",
@@ -1930,7 +1940,7 @@
           "depthM": 0.42,
           "heightM": 0.75,
           "rotationDegrees": 0,
-          "color": "#B99A72"
+          "color": "#202427"
         },
         {
           "ref": "interior/reference-stool-two",
@@ -1945,7 +1955,7 @@
           "depthM": 0.42,
           "heightM": 0.75,
           "rotationDegrees": 0,
-          "color": "#B99A72"
+          "color": "#202427"
         },
         {
           "ref": "interior/reference-sofa",
@@ -2351,6 +2361,23 @@
           "heightM": 2.1,
           "rotationDegrees": 0,
           "color": "#B99A72"
+        },
+        {
+          "ref": "interior/architekt-711/kitchen-upper",
+          "catalogId": "kitchen-counter",
+          "storeyRef": "storey/reference-ground",
+          "name": "Czarne szafki nad zlewem do sufitu",
+          "position": {
+            "x": -2.71,
+            "z": -5.655
+          },
+          "widthM": 0.8,
+          "depthM": 0.37,
+          "heightM": 1.37,
+          "rotationDegrees": 90,
+          "color": "#202427",
+          "cabinetry": "tall",
+          "elevationM": 1.55
         }
       ],
       "stairs": [
@@ -2359,15 +2386,20 @@
           "fromStoreyRef": "storey/reference-ground",
           "toStoreyRef": "storey/reference-upper",
           "start": {
-            "x": -4.615,
+            "x": -4.585,
             "z": -2.085
           },
-          "runM": 2.2,
+          "runM": 2.16,
           "widthM": 0.95,
           "steps": 18,
           "uTurn": {
-            "landingDepthM": 0.95,
+            "landingDepthM": 0.97,
             "gapM": 0.1
+          },
+          "finish": {
+            "treadColor": "#F0EEE9",
+            "closedRisers": true,
+            "railing": "glass"
           }
         }
       ],
@@ -2980,8 +3012,19 @@
               "wallRef": "wall/architekt/correction/0/kitchen-pantry/3",
               "offsetM": 0.3999999999999999,
               "widthM": 0.799,
-              "heightM": 2.1,
-              "sillM": 0
+              "heightM": 2.18,
+              "sillM": 0,
+              "finish": {
+                "presetId": "warm-white",
+                "color": "#202427",
+                "rotationDegrees": 0,
+                "tileM": 1
+              },
+              "concealed": {
+                "faceOffsetM": -0.65,
+                "startFillerM": 0.0405,
+                "endFillerM": 0.0205
+              }
             }
           ],
           "finish": {
@@ -2989,7 +3032,21 @@
             "colorHex": "#E9E5DC",
             "textureId": "none"
           },
-          "locked": false
+          "locked": false,
+          "faceFinishes": {
+            "left": {
+              "presetId": "warm-white",
+              "color": "#202427",
+              "rotationDegrees": 0,
+              "tileM": 1
+            },
+            "right": {
+              "presetId": "warm-white",
+              "color": "#202427",
+              "rotationDegrees": 0,
+              "tileM": 1
+            }
+          }
         },
         {
           "ref": "wall/architekt/correction/0/kitchen-pantry/4",
@@ -3107,20 +3164,8 @@
           },
           "thicknessM": 0.12,
           "baseElevationM": 0.45,
-          "heightM": 2.92,
-          "openings": [
-            {
-              "hinge": "left",
-              "swing": "in",
-              "ref": "opening/architekt/storage",
-              "kind": "door",
-              "wallRef": "wall/architekt/ground/14",
-              "offsetM": 0.49,
-              "widthM": 0.85,
-              "heightM": 2.1,
-              "sillM": 0
-            }
-          ],
+          "heightM": 0.01,
+          "openings": [],
           "finish": {
             "material": "light-render",
             "colorHex": "#E9E5DC",
@@ -3140,7 +3185,7 @@
           },
           "thicknessM": 0.25,
           "baseElevationM": 0.45,
-          "heightM": 2.92,
+          "heightM": 0.01,
           "openings": [],
           "finish": {
             "material": "light-render",
@@ -4640,7 +4685,7 @@
             "tileM": 1
           },
           "ref": "space/reference-understairs",
-          "name": "Schowek pod schodami",
+          "name": "Przestrzeń pod otwartymi schodami",
           "usage": "storage",
           "boundary": [
             {

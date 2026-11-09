@@ -1,9 +1,11 @@
 import { RoundedBox } from '@react-three/drei'
 import type { InteriorItem } from '../domain/types'
 import { isOakBedroomFurniture, OakBedroomFurniture } from './OakBedroomFurniture'
+import { FittedKitchen } from './FittedKitchen'
 
 /** Metre-sized, editable furnishings with separate upholstery, joinery, glass and metal. */
 export function FurnitureModel({ item }: { item: InteriorItem }) {
+  if (item.cabinetry) return <FittedKitchen item={item} />
   if (isOakBedroomFurniture(item)) return <OakBedroomFurniture item={item} />
   const color = item.color
   const box = (key: string, size: [number, number, number], pos: [number, number, number], shade = color, radius = 0.025) => <RoundedBox key={key} args={size} position={pos} radius={radius} smoothness={3} castShadow receiveShadow><meshStandardMaterial color={shade} roughness={item.catalogId === 'car' ? 0.3 : 0.72} metalness={item.catalogId === 'car' && shade === color ? 0.45 : 0} /></RoundedBox>
