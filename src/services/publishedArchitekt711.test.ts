@@ -6,6 +6,7 @@ import data from '../../project-data/architekt-7-11/project.json'
 import previousInterior from '../../project-data/architekt-7-11/before-interior-r1.json'
 import previousDirection from '../../project-data/architekt-7-11/before-stair-direction-r2.json'
 import previousJoinery from '../../project-data/architekt-7-11/before-under-stair-r4.json'
+import previousLiving from '../../project-data/architekt-7-11/before-living-r5.json'
 import previousWindow from '../../project-data/architekt-7-11/before-fireplace-window-r3.json'
 import source from '../../project-data/architekt/project.json'
 import { parseProject } from '../domain/schema'
@@ -42,7 +43,7 @@ it('widens the kitchen window towards the living room and leaves the new firepla
     expect(other.maxX<=bounds.minX||other.minX>=bounds.maxX||other.maxZ<=bounds.minZ||other.minZ>=bounds.maxZ).toBe(true)
   }
   // The approved change must not roll back r3's stairs, island sink, roof or landscape.
-  const revisedRefs=['interior/reference-island','interior/architekt-711/stair-junction-filler','interior/architekt-711/under-stair-cabinet',fireplace.ref]
+  const revisedRefs=['interior/reference-sofa','interior/reference-coffee','interior/architekt/lounge-chair','interior/architekt-711/living-tv','interior/reference-island','interior/architekt-711/stair-junction-filler','interior/architekt-711/under-stair-cabinet',fireplace.ref]
   expect(h.furniture!.filter(f=>!revisedRefs.includes(f.ref))).toEqual(old.furniture!.filter(f=>!revisedRefs.includes(f.ref)))
   expect(h.walls.filter(w=>w.ref!==wall.ref&&w.ref!=='wall/architekt/ground/12')).toEqual(old.walls.filter(w=>w.ref!==wall.ref&&w.ref!=='wall/architekt/ground/12'))
   expect({...wall,openings:[]}).toEqual({...old.walls.find(w=>w.ref===wall.ref),openings:[]})
@@ -107,7 +108,7 @@ it('fits ceiling-height black cabinetry, a clear pantry approach and one island 
   expect(tall).toHaveLength(5)
   for(const item of tall){expect((item.elevationM??0)+item.heightM).toBeCloseTo(ceiling);expect(item.color).toBe('#202427')}
   const island=items.find(f=>f.catalogId==='kitchen-island')!, b=polygonBounds(interiorCorners(island))
-  expect(b.maxX-b.minX).toBeCloseTo(.9);expect(b.maxZ-b.minZ).toBeCloseTo(2.45)
+  expect(b.maxX-b.minX).toBeCloseTo(.9);expect(b.maxZ-b.minZ).toBeCloseTo(2.8)
   const cabinet=items.find(f=>f.ref==='interior/reference-cabinet-one')!, c=polygonBounds(interiorCorners(cabinet))
   expect(b.minX-c.maxX).toBeGreaterThan(1)
   expect(items.filter(f=>f.cabinetry==='hob')).toHaveLength(1)
@@ -158,15 +159,15 @@ it('fits the flush cabinet extension below the actual folded stair and leaves th
   expect(island.minZ).toBeCloseTo(polygonBounds(interiorCorners(old.furniture!.find(f=>f.ref==='interior/reference-island')!)).minZ)
   const at240=upper.filter(s=>s.top-rise/stairs.steps<=2.4&&s.top>=2.4)
   expect(at240.length).toBeGreaterThan(0)
-  for(const s of at240)expect(stairs.start.z+s.z-s.depth/2-island.maxZ).toBeCloseTo(.9)
+  for(const s of at240)expect(stairs.start.z+s.z-s.depth/2-island.maxZ).toBeCloseTo(.55)
 })
 
 it('migrates the wall removal and fitted extension from r4 while retaining independent saved deletions',async()=>{
   const before=parseProject(previousJoinery), local=structuredClone(before)
-  local.landscape.plants.pop();local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/reference-coffee')
+  local.landscape.plants.pop();local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/reference-stool-two')
   const result=mergeProjects(before,local,parseProject(data));expect(result.conflicts).toEqual([])
   expect(result.project.landscape).toEqual(local.landscape)
-  expect(result.project.buildings[0].furniture!.some(f=>f.ref==='interior/reference-coffee')).toBe(false)
+  expect(result.project.buildings[0].furniture!.some(f=>f.ref==='interior/reference-stool-two')).toBe(false)
   expect(result.project.buildings[0].furniture!.find(f=>f.cabinetry==='under-stair')?.cabinetBackHeightM).toBe(1.995)
   expect(result.project.buildings[0].walls.find(w=>w.ref==='wall/architekt/ground/12')?.heightM).toBe(.01)
   await saveWorkspace({version:1,project:result.project,proposals:[],draftChangeSets:[]})
@@ -186,12 +187,12 @@ it('merges the reversed flights and relocated sink into r2 without losing unrela
 
 it('migrates saved r1 while preserving independent edits and deletions, and reports conflicting stair edits',async()=>{
   const old=parseProject(previousInterior), local=structuredClone(old)
-  local.landscape.plants.pop();local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.catalogId!=='coffee-table')
+  local.landscape.plants.pop();local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/reference-dining')
   await saveWorkspace({version:1,project:local,proposals:[],draftChangeSets:[]})
   expect(await synchronizePublishedArchitekt711()).toEqual([])
   const saved=(await loadWorkspace(ARCHITEKT_711_REF))!
   expect(saved.project.landscape).toEqual(local.landscape)
-  expect(saved.project.buildings[0].furniture!.some(f=>f.catalogId==='coffee-table')).toBe(false)
+  expect(saved.project.buildings[0].furniture!.some(f=>f.ref==='interior/reference-dining')).toBe(false)
   expect(saved.project.buildings[0].stairs).toEqual(data.buildings[0].stairs)
   await synchronizePublishedArchitekt711();expect(await loadWorkspace(ARCHITEKT_711_REF)).toEqual(saved)
   local.buildings[0].stairs![0].runM=2.3
@@ -255,4 +256,35 @@ it('saves independently, survives reload and preserves deletion without changing
   await deleteWorkspace(ARCHITEKT_711_REF);await synchronizePublishedArchitekt711()
   expect(await loadWorkspace(ARCHITEKT_711_REF)).toBeNull()
   expect(await loadWorkspace(original.project.ref)).toEqual(original)
+})
+
+
+it('turns the lounge towards the low TV console while preserving dining circulation and the kitchen',()=>{
+  const p=parseProject(data),before=parseProject(previousLiving),h=p.buildings[0],old=before.buildings[0],items=h.furniture!,get=(ref:string)=>items.find(f=>f.ref===ref)!
+  const sofa=get('interior/reference-sofa'),table=get('interior/reference-coffee'),tv=get('interior/architekt-711/living-tv')
+  expect(sofa.rotationDegrees).toBe(0);expect(table.catalogId).toBe('oak-side-table');expect(tv.catalogId).toBe('tv-unit');expect(tv.rotationDegrees).toBe(0)
+  const sb=polygonBounds(interiorCorners(sofa)),db=polygonBounds(interiorCorners(get('interior/reference-dining'))),tb=polygonBounds(interiorCorners(tv))
+  expect(db.minZ-sb.maxZ).toBeCloseTo(.945)
+  expect(tv.position.z).toBeLessThan(sofa.position.z);expect(tv.heightM*.34).toBeCloseTo(.459)
+  expect(tb.minZ).toBeGreaterThan(-6.155);expect(tb.maxX).toBeLessThan(4.615)
+  const changed=['interior/reference-island','interior/reference-sofa','interior/reference-coffee','interior/architekt/lounge-chair',tv.ref]
+  expect(items.filter(f=>!changed.includes(f.ref))).toEqual(old.furniture!.filter(f=>!changed.includes(f.ref)))
+  for(const key of ['walls','stairs','storeys','slabs','roof','spaces'] as const)expect(h[key]).toEqual(old[key])
+  expect(p.landscape).toEqual(before.landscape);expect(p.site).toEqual(before.site)
+  const local=structuredClone(before);local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/reference-stool-two')
+  expect(mergeProjects(before,local,p).conflicts).toEqual([])
+  local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!==sofa.ref)
+  expect(mergeProjects(before,local,p).conflicts.some(path=>path.endsWith(sofa.ref))).toBe(true)
+})
+
+it('distinguishes the 2.80 m island study from floor circulation and reports the lowest protruding soffit',()=>{
+  const h=parseProject(data).buildings[0],s=h.stairs![0],rise=h.storeys[1].elevationM-h.storeys[0].elevationM
+  const cabinet=polygonBounds(interiorCorners(h.furniture!.find(f=>f.cabinetry==='under-stair')!))
+  const exposed=uStairSurfaces(s,rise).filter(t=>t.top>rise/2&&s.start.x+t.x+t.width/2>cabinet.maxX)
+  const bottoms=exposed.flatMap(t=>{const left=s.start.x+t.x-t.width/2;return [t.top-.08,...(left+.08>cabinet.maxX?[t.top-rise/s.steps]:[])]})
+  expect(Math.min(...bottoms)).toBeCloseTo(2.4477777778)
+  const island=structuredClone(h.furniture!.find(f=>f.ref==='interior/reference-island')!),old=polygonBounds(interiorCorners(island));island.widthM=2.8;island.position.z=old.minZ+1.4
+  const b=polygonBounds(interiorCorners(island));expect(b.minX-cabinet.maxX).toBeCloseTo(1.1)
+  expect(s.start.z-b.maxZ).toBeCloseTo(.55)
+  expect(s.start.z+s.widthM+s.uTurn!.gapM-b.maxZ).toBeCloseTo(1.6)
 })

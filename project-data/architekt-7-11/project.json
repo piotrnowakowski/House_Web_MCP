@@ -3,8 +3,8 @@
   "ref": "project/architekt-7-11",
   "name": "architekt 7.11",
   "units": "metric",
-  "revision": 5,
-  "updatedAt": "2026-11-09T20:13:17.572Z",
+  "revision": 6,
+  "updatedAt": "2026-11-09T20:34:21.493Z",
   "site": {
     "boundary": [
       {
@@ -1832,7 +1832,9 @@
           "2026-11-09 approved window/fireplace study: kitchen opening widens from 2.16 to 3.00 m towards the living room, keeping local x=-2.265 m cabinet-side jamb; new centre x=-0.765 m (wall offset 2.19 m). Fireplace enclosure added at local x=1.43, z=-5.905 m, approximately 0.50 m towards the living room from the inferred ground-plan symbol. Enclosure 0.65 x 0.50 x 2.92 m is a visualization allowance; 0.37 m wall strip between opening and enclosure is not a certified structural or fire clearance. Appliance, air supply and flue routing through the upper floor/roof require separate design and are not modeled.",
           "2026-11-09 r4: the user-marked wall/architekt/ground/12 is the redundant 1.49 m extension beyond the pantry, not the pantry wall itself. Its physical wall is removed, retaining a 10 mm nonphysical room boundary for stable room references. Actual pantry wall kitchen-pantry/5 remains 2.92 m; the upper bedroom wall is unchanged.",
           "The black kitchen face extends 1.20 m towards the stairs in the same x=-2.295 m plane: a 0.25 m full-height junction panel followed by 0.95 m under-stair cabinetry. Depth remains 0.60 m, front height is 2.40 m and back height 1.995 m; the sloping top clears the folded upper flight. The end is 20 mm inside the upper-flight edge, leaving the lower flight and approach open. The clipped upper volume is a nonstandard infill/storage proposal, not a full-height appliance cabinet. Pantry concealed door and island sink remain unchanged.",
-          "User confirmed that 240 cm means stair height, not island length. Island extends 450 mm towards the stairs to 2450 x 900 mm. Its window-side end stays z=-5.435 m; its stair-side end is z=-2.985 m, giving 900 mm in plan to the upper-flight edge z=-2.085 m at 2.40 m above the ground floor. The corner-to-corner distance is 937 mm because the island is east of the stair. Sink, hob and seating positions are unchanged."
+          "User confirmed that 240 cm means stair height, not island length. Island extends 450 mm towards the stairs to 2450 x 900 mm. Its window-side end stays z=-5.435 m; its stair-side end is z=-2.985 m, giving 900 mm in plan to the upper-flight edge z=-2.085 m at 2.40 m above the ground floor. The corner-to-corner distance is 937 mm because the island is east of the stair. Sink, hob and seating positions are unchanged.",
+          "2026-11-09 r6: corrected the living area against the supplied architect-plan crop. The L sofa now opens towards the north TV wall and east armchair, with its long back separating dining from lounge. Stable sofa/table/chair refs retained. Added a TV on a 1.80 x 0.40 m low console on the solid north wall east of the fireplace; rendered console top is approximately 0.46 m and the total TV envelope is 1.35 m. The coffee table is round, 0.70 m; armchair angles towards it. Dining remains in its existing position with 0.945 m to the sofa envelope.",
+          "User explicitly approved a 2.80 m island after the clearance assessment. The window-side end stays z=-5.435 m; the new stair-side end is z=-2.635 m. Work aisle to cabinet fronts remains 1.10 m, and the gap to the lower stair flight is 1.60 m. The 0.55 m gap to the projected upper flight is an overhead projection, not a floor-level obstruction: the lowest tread underside protruding east of the cabinet face x=-2.295 m is 2.44778 m above the lower-floor datum. Following tread undersides are 2.62833, 2.80889 and 2.98944 m. This assessment uses modeled 80 mm tread thickness and includes vertical risers when finding the lowest exposed point. Sink, hob, cabinetry and stairs remain unchanged."
         ]
       },
       "furniture": [
@@ -1905,12 +1907,12 @@
           "ref": "interior/reference-island",
           "catalogId": "kitchen-island",
           "storeyRef": "storey/reference-ground",
-          "name": "Czarna wyspa 245 × 90 cm",
+          "name": "Czarna wyspa 280 × 90 cm",
           "position": {
             "x": -0.745,
-            "z": -4.21
+            "z": -4.035
           },
-          "widthM": 2.45,
+          "widthM": 2.8,
           "depthM": 0.9,
           "heightM": 0.92,
           "rotationDegrees": 90,
@@ -1970,26 +1972,26 @@
           "storeyRef": "storey/reference-ground",
           "name": "Narożnik",
           "position": {
-            "x": 2.075,
-            "z": -3.705
+            "x": 2.9,
+            "z": -3.65
           },
           "widthM": 2.5,
           "depthM": 1.8,
           "heightM": 0.86,
-          "rotationDegrees": 90,
+          "rotationDegrees": 0,
           "color": "#C8BCAE"
         },
         {
           "ref": "interior/reference-coffee",
-          "catalogId": "coffee-table",
+          "catalogId": "oak-side-table",
           "storeyRef": "storey/reference-ground",
-          "name": "Stolik kawowy",
+          "name": "Okrągły stolik kawowy",
           "position": {
-            "x": 3.485,
-            "z": -3.755
+            "x": 3.2,
+            "z": -4.35
           },
-          "widthM": 0.75,
-          "depthM": 0.75,
+          "widthM": 0.7,
+          "depthM": 0.7,
           "heightM": 0.4,
           "rotationDegrees": 0,
           "color": "#B99A72"
@@ -2000,13 +2002,13 @@
           "storeyRef": "storey/reference-ground",
           "name": "Fotel",
           "position": {
-            "x": 3.985,
-            "z": -4.715
+            "x": 4.015,
+            "z": -4.97
           },
-          "widthM": 0.8,
-          "depthM": 0.8,
+          "widthM": 0.75,
+          "depthM": 0.75,
           "heightM": 0.85,
-          "rotationDegrees": 0,
+          "rotationDegrees": 315,
           "color": "#C8BCAE"
         },
         {
@@ -2432,6 +2434,21 @@
           "heightM": 2.92,
           "rotationDegrees": 0,
           "color": "#E6E2DA"
+        },
+        {
+          "ref": "interior/architekt-711/living-tv",
+          "catalogId": "tv-unit",
+          "storeyRef": "storey/reference-ground",
+          "name": "TV na niskiej szafce 180 cm",
+          "position": {
+            "x": 3.15,
+            "z": -5.905
+          },
+          "widthM": 1.8,
+          "depthM": 0.4,
+          "heightM": 1.35,
+          "rotationDegrees": 0,
+          "color": "#B99A72"
         }
       ],
       "stairs": [
