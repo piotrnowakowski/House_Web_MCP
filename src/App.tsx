@@ -35,6 +35,7 @@ import { runWorkspaceActivity } from './services/workspaceLock'
 import { groupWorkspaces, workspaceVersionKind } from './services/workspaceGroups'
 import { ARCHITEKT_REF } from './services/publishedArchitekt'
 import { ARCHITEKT_711_REF } from './services/publishedArchitekt711'
+import { ARCHITEKT_711_V2_REF } from './services/publishedArchitekt711V2'
 import { NOWE_MPZP_REF } from './services/publishedNoweMpzp'
 import { NOWE_MPZP_V2_REF } from './services/publishedNoweMpzpV2'
 import { showStructureViews } from './services/structureViews'
@@ -436,7 +437,7 @@ function StartScreen() {
   }
   const [showOtherVersions, setShowOtherVersions] = useState(false)
   const projectGroups = groupWorkspaces(saved, favoriteRef).filter((item) => item.ref !== REFERENCE_HOUSE_REF)
-  const featuredRefs = [ARCHITEKT_REF, ARCHITEKT_711_REF, NOWE_MPZP_REF, NOWE_MPZP_V2_REF]
+  const featuredRefs = [ARCHITEKT_REF, ARCHITEKT_711_REF, ARCHITEKT_711_V2_REF, NOWE_MPZP_REF, NOWE_MPZP_V2_REF]
   const hasMainProject = projectGroups.some((item) => featuredRefs.includes(item.ref))
   const showHistory = showOtherVersions || !hasMainProject
   const visibleProjects = showHistory
