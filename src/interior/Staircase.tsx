@@ -3,7 +3,7 @@ import { uStairExitGuards, uStairLayout, uStairSurfaces } from '../domain/stairs
 import type { Polygon2, StairModel } from '../domain/types'
 import { GlassStairRails } from './GlassStairRails'
 
-export function Staircase({ stairs, rise, base, plan, opening }: { stairs: StairModel; rise: number; base: number; plan: boolean; opening?: Polygon2 }) {
+export function Staircase({ stairs, rise, base, plan, opening, upperPlan = false }: { stairs: StairModel; rise: number; base: number; plan: boolean; opening?: Polygon2; upperPlan?: boolean }) {
   if (!stairs.uTurn) return <group position={[stairs.start.x, plan ? .03 : base, stairs.start.z]}>
     {Array.from({ length: stairs.steps }, (_, i) => {
       const h = plan ? .035 : rise * (stairs.steps - i) / stairs.steps
@@ -20,14 +20,19 @@ export function Staircase({ stairs, rise, base, plan, opening }: { stairs: Stair
   const { landingDepthM: landing, gapM: gap } = stairs.uTurn
   const width = stairs.widthM, depth = width * 2 + gap
   const { lowerLength: length, upperLength, landingHeight, tread } = layout
+  // The extended foot lies under the upper slab. Preserve actual elevations in
+  // its upper-floor plan so the floor occludes it outside the L-shaped opening.
+  const belowSlabPlan = plan && upperPlan && stairs.uTurn.lowerSteps !== undefined
+  const arrowY = belowSlabPlan ? rise + .16 : .16
+  const arrowStart = belowSlabPlan && opening ? Math.min(length, Math.max(...opening.map(p => p.x-stairs.start.x))) : length
   const color = stairs.finish?.treadColor
   const flightRails = [0, width, width + gap, depth].map((z, index) => {
     const returning = index >= 2
     return surfaces.slice(1).filter(surface => (surface.z > width) === returning).map(surface => [surface.x, surface.top + .9, z] as [number, number, number])
   })
-  return <group position={[stairs.start.x, plan ? .03 : base, stairs.start.z]}>
+  return <group position={[stairs.start.x, plan && !belowSlabPlan ? .03 : base, stairs.start.z]}>
     <group position-z={mirrored ? depth : 0} scale-z={mirrored ? -1 : 1}>
-    {surfaces.map((surface, i) => <mesh key={i} position={[surface.x, plan ? .02 : surface.top - .04, surface.z]} castShadow receiveShadow>
+    {surfaces.map((surface, i) => <mesh key={i} position={[surface.x, plan ? belowSlabPlan ? surface.top-.0175 : .02 : surface.top-.04, surface.z]} castShadow receiveShadow>
       <boxGeometry args={[surface.width - (i && !stairs.finish?.closedRisers ? .008 : 0), plan ? .035 : .08, surface.depth]} /><meshStandardMaterial color={color ?? (i ? '#bd9365' : '#c49c6b')} roughness={.8} />
     </mesh>)}
     {!plan && stairs.finish?.closedRisers && <group name='closed-stair-risers'>
@@ -49,7 +54,7 @@ export function Staircase({ stairs, rise, base, plan, opening }: { stairs: Stair
       {[0, length / 2, length].flatMap(x => [0, depth].map(z => <mesh key={`${x}/${z}`} position={[x, rise + .45, z]}><boxGeometry args={[.025, .9, .025]} /><meshStandardMaterial color='#343b39' /></mesh>))}
       </>}
     </>}
-    {plan && <Line points={[[length, .16, width / 2], [landing / 2, .16, width / 2], [landing / 2, .16, depth - width / 2], [upperLength, .16, depth - width / 2], [upperLength - .2, .16, depth - width / 2 - .14], [upperLength, .16, depth - width / 2], [upperLength - .2, .16, depth - width / 2 + .14]]} color='#675d4b' lineWidth={1.5} />}
+    {plan && <Line points={[[arrowStart, arrowY, width / 2], [landing / 2, arrowY, width / 2], [landing / 2, arrowY, depth - width / 2], [upperLength, arrowY, depth - width / 2], [upperLength - .2, arrowY, depth - width / 2 - .14], [upperLength, arrowY, depth - width / 2], [upperLength - .2, arrowY, depth - width / 2 + .14]]} color='#675d4b' lineWidth={1.5} />}
     </group>
     {!plan && (stairs.finish?.railing === 'glass' || stairs.uTurn.lowerSteps) && <group name='upper-stair-opening-guards'>
       {uStairExitGuards(stairs, opening).map(({ start, end }, i) => <mesh key={i}
