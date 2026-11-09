@@ -178,3 +178,5 @@ Published code `073cd7d0cc649175951ecaf9544fbaaab3f96176`; canonical r6/shared v
 ## Independent 12 + 6 stair study — 9 November 2026
 
 `project/architekt-7-11-stairs-12-6` is an independent fork of original architekt 7.11 r6 with its cabinetry retained. It redistributes 18 equal risers as 12 lower / 6 upper and fills only the upper-flight end of the slab opening. Original architekt 7.11, version 2 and other projects remain independent. See [variant geometry and preservation evidence](../project-data/architekt-7-11-stairs-12-6/README.md).
+
+Published on Mikrus: code `73a9eef36d709832f936e11713c7a1a9c883ba2c`, new stair variant canonical r1/shared version 1. HTTP/HTTPS health, API, exact assets and fresh/mobile/captured-project replay with save/reload pass; all five prior shared projects are unchanged. A complete off-host database backup was verified by SHA256 before activation after a disconnected SFTP download was recovered through SSH chunks. Detailed recovery and final browser evidence are in the variant README. Main/Pages are unchanged.
