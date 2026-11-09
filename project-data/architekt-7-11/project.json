@@ -3,8 +3,8 @@
   "ref": "project/architekt-7-11",
   "name": "architekt 7.11",
   "units": "metric",
-  "revision": 3,
-  "updatedAt": "2026-11-09T19:47:37.873Z",
+  "revision": 4,
+  "updatedAt": "2026-11-09T20:03:30.636Z",
   "site": {
     "boundary": [
       {
@@ -1828,7 +1828,8 @@
           "User clarification: stair visually supported only from the pantry wall, with no hall enclosure, under-stair furniture or columns. A 0.03 m separation is left from the west exterior wall. Landing depth is 0.97 m and flight going remains 2.16 m, keeping the existing upper exit and slab aperture. Structural anchoring must be designed separately by the structural engineer.",
           "User clarification: pantry entrance is a concealed, handleless black door flush with the cabinet fronts. Closed leaf face is 0.66 m east of the pantry partition axis, aligned at x=-2.295 m with the cabinetry; leaf height 2.18 m and matching top panel to 2.92 m align the cabinet divisions. The original 0.799 m clear opening and passage remain.",
           "2026-11-09 r3 user correction: stair first tread is now on the hall/entrance (max-z) side; the upper flight and upper exit are beside the pantry/kitchen (min-z). Entire stair geometry, risers, plan arrow and upper guard are reflected consistently within the unchanged slab opening. The exposed lower-flight outer edge receives glass protection.",
-          "The existing sink ref moves to the 2.00 x 0.90 m island as a 0.56 x 0.44 m inset fixture, with tap facing the seating side. The 0.58 x 0.60 m hob is shifted towards the kitchen window; 0.52 m clear worktop separates the fixtures, with 0.165/0.175 m end margins. The former wall sink niche becomes full-height black cabinetry. Pantry concealed door, island envelope, garden, house/roof/storey/slab geometry and unrelated buildings are unchanged."
+          "The existing sink ref moves to the 2.00 x 0.90 m island as a 0.56 x 0.44 m inset fixture, with tap facing the seating side. The 0.58 x 0.60 m hob is shifted towards the kitchen window; 0.52 m clear worktop separates the fixtures, with 0.165/0.175 m end margins. The former wall sink niche becomes full-height black cabinetry. Pantry concealed door, island envelope, garden, house/roof/storey/slab geometry and unrelated buildings are unchanged.",
+          "2026-11-09 approved window/fireplace study: kitchen opening widens from 2.16 to 3.00 m towards the living room, keeping local x=-2.265 m cabinet-side jamb; new centre x=-0.765 m (wall offset 2.19 m). Fireplace enclosure added at local x=1.43, z=-5.905 m, approximately 0.50 m towards the living room from the inferred ground-plan symbol. Enclosure 0.65 x 0.50 x 2.92 m is a visualization allowance; 0.37 m wall strip between opening and enclosure is not a certified structural or fire clearance. Appliance, air supply and flue routing through the upper floor/roof require separate design and are not modeled."
         ]
       },
       "furniture": [
@@ -2380,6 +2381,21 @@
           "rotationDegrees": 90,
           "color": "#202427",
           "cabinetry": "tall"
+        },
+        {
+          "ref": "interior/architekt-711/fireplace",
+          "catalogId": "fireplace",
+          "storeyRef": "storey/reference-ground",
+          "name": "Kominek przy salonie",
+          "position": {
+            "x": 1.43,
+            "z": -5.905
+          },
+          "widthM": 0.65,
+          "depthM": 0.5,
+          "heightM": 2.92,
+          "rotationDegrees": 0,
+          "color": "#E6E2DA"
         }
       ],
       "stairs": [
@@ -3240,8 +3256,8 @@
               "ref": "opening/reference-kitchen",
               "kind": "window",
               "wallRef": "wall/architekt/ground/18",
-              "offsetM": 1.77,
-              "widthM": 2.16,
+              "offsetM": 2.19,
+              "widthM": 3.0,
               "heightM": 2.4,
               "sillM": 0,
               "glazed": true

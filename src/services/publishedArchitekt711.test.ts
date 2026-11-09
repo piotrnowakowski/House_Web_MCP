@@ -5,6 +5,7 @@ import { DoubleSide, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three'
 import data from '../../project-data/architekt-7-11/project.json'
 import previousInterior from '../../project-data/architekt-7-11/before-interior-r1.json'
 import previousDirection from '../../project-data/architekt-7-11/before-stair-direction-r2.json'
+import previousWindow from '../../project-data/architekt-7-11/before-fireplace-window-r3.json'
 import source from '../../project-data/architekt/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
@@ -22,6 +23,50 @@ import { interiorCorners } from '../domain/interior'
 import { mergeProjects } from '../domain/projectMerge'
 
 beforeEach(()=>{globalThis.indexedDB=new IDBFactory()})
+
+it('widens the kitchen window towards the living room and leaves the new fireplace clear of glazing and furniture',()=>{
+  const p=parseProject(data), before=parseProject(previousWindow), h=p.buildings[0], old=before.buildings[0]
+  const wall=h.walls.find(w=>w.ref==='wall/architekt/ground/18')!, opening=wall.openings.find(o=>o.ref==='opening/reference-kitchen')!
+  const prior=old.walls.find(w=>w.ref===wall.ref)!.openings.find(o=>o.ref===opening.ref)!
+  expect(opening.offsetM-opening.widthM/2).toBeCloseTo(prior.offsetM-prior.widthM/2)
+  expect(opening.widthM).toBe(3);expect(opening.heightM).toBe(prior.heightM)
+  expect(opening.offsetM+opening.widthM/2).toBeLessThan(Math.hypot(wall.end.x-wall.start.x,wall.end.z-wall.start.z))
+  const fireplace=h.furniture!.find(f=>f.catalogId==='fireplace')!, bounds=polygonBounds(interiorCorners(fireplace))
+  expect(bounds.minX-(wall.start.x+opening.offsetM+opening.widthM/2)).toBeCloseTo(.37)
+  expect(bounds.minZ).toBeCloseTo(wall.start.z+wall.thicknessM/2)
+  expect(fireplace.heightM).toBe(h.storeys[0].clearHeightM)
+  for(const item of h.furniture!.filter(f=>f.ref!==fireplace.ref&&f.storeyRef===fireplace.storeyRef)){
+    const other=polygonBounds(interiorCorners(item))
+    expect(other.maxX<=bounds.minX||other.minX>=bounds.maxX||other.maxZ<=bounds.minZ||other.minZ>=bounds.maxZ).toBe(true)
+  }
+  // The approved change must not roll back r3's stairs, island sink, roof or landscape.
+  expect(h.furniture!.filter(f=>f.ref!==fireplace.ref)).toEqual(old.furniture)
+  expect(h.walls.filter(w=>w.ref!==wall.ref)).toEqual(old.walls.filter(w=>w.ref!==wall.ref))
+  expect({...wall,openings:[]}).toEqual({...old.walls.find(w=>w.ref===wall.ref),openings:[]})
+  for(const key of ['stairs','roof','storeys','slabs','spaces'] as const) expect(h[key]).toEqual(old[key])
+  expect(p.site).toEqual(before.site);expect(p.landscape).toEqual(before.landscape);expect(p.buildings.slice(1)).toEqual(before.buildings.slice(1))
+  expect(validateProject(p).filter(i=>i.severity==='error')).toEqual([])
+})
+
+it('migrates the fireplace and window from r3 while retaining deletions and exposing competing window edits',async()=>{
+  const old=parseProject(previousWindow), local=structuredClone(old)
+  local.landscape.plants.pop()
+  local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/reference-stool-two')
+  await saveWorkspace({version:1,project:local,proposals:[],draftChangeSets:[]})
+  // Recreate the already acknowledged published baseline, as an existing r3 browser has it.
+  const db=await new Promise<IDBDatabase>((resolve,reject)=>{const request=indexedDB.open('house-web-mcp',2);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})
+  await new Promise<void>((resolve,reject)=>{const tx=db.transaction('projects','readwrite');tx.objectStore('projects').put(old,'published-base/'+old.ref);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error)})
+  db.close()
+  expect(await synchronizePublishedArchitekt711()).toEqual([])
+  const saved=(await loadWorkspace(old.ref))!
+  expect(saved.project.landscape).toEqual(local.landscape)
+  expect(saved.project.buildings[0].furniture!.some(f=>f.ref==='interior/reference-stool-two')).toBe(false)
+  expect(saved.project.buildings[0].furniture!.some(f=>f.catalogId==='fireplace')).toBe(true)
+  expect(saved.project.buildings[0].walls).toEqual(parseProject(data).buildings[0].walls)
+  await synchronizePublishedArchitekt711();expect(await loadWorkspace(old.ref)).toEqual(saved)
+  local.buildings[0].walls.flatMap(w=>w.openings).find(o=>o.ref==='opening/reference-kitchen')!.widthM=2.7
+  expect(mergeProjects(old,local,parseProject(data)).conflicts.some(p=>p.endsWith('/widthM'))).toBe(true)
+})
 
 it('opens the stair to the hall, leaves only the pantry attachment and fits the original floor aperture',()=>{
   const h=parseProject(data).buildings[0], before=parseProject(previousInterior).buildings[0], s=h.stairs![0]

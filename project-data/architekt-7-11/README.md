@@ -1,6 +1,6 @@
 # architekt 7.11
 
-Independent project `project/architekt-7-11`, canonical revision 1. Requested on 7 November 2026; deployment authorized on 8 November. `source-architekt-r10.json` preserves the parent, and `initial-r1.json` is the immutable first-publication migration baseline. Existing entity refs are retained inside the new project.
+Independent project `project/architekt-7-11`, canonical revision 4. Requested on 7 November 2026; deployment authorized on 8 November. `source-architekt-r10.json` preserves the parent, and `initial-r1.json` is the immutable first-publication migration baseline. Existing entity refs are retained inside the new project.
 
 ## Source and scope
 
@@ -68,3 +68,15 @@ Validation: 643 tests, TypeScript and frontend build pass. Checks include revers
 Published on Mikrus on 9 November: code `23957ab1c033f472d52b08ee8ce6c793f49f3600`, canonical r3, shared server version 3. HTTP/HTTPS health and API readiness, published HTML/main/interior/project asset hashes, fresh desktop/mobile and captured-project replay with previous r2 migration all passed. The stored project matches canonical data and remains unchanged on reload, with no page errors. Live kitchen and staircase screenshots were visually inspected. Other shared project snapshots remain exactly unchanged; main and GitHub Pages were not changed.
 
 Before activation, the database backup was downloaded through bounded SSH chunks and verified at 2,042,901 bytes with SHA256 `4343eca188a5ff023c5d7aff2f20342b7726e235449971d117c42d28cc086c15`. Recovery file: primary `tmp/house-sync-20261109T195511Z.dump`; rollback configuration: `compose.yaml.before-20261109T195316Z`. Publication, browser, backup and comparison reports are retained in primary `tmp/interior-711-r3-20261109/`; live screenshots are in `output/interior-711-r3-20261109/`.
+
+## Kitchen window and fireplace, 9 November 2026 — canonical r4
+
+The user approved the 3.00 m kitchen window and moving the fireplace towards the living room. The existing opening ref is retained. Its cabinet-side jamb remains at local x=-2.265 m; its other jamb moves 0.84 m to x=0.735 m. The centre moves 0.42 m to x=-0.765 m (wall offset 2.19 m). Height 2.40 m and floor-level sill are unchanged. The living-room gable windows are unchanged.
+
+The source ground-plan symbol was rechecked visually. Previous project data contained no explicit fireplace or chimney. An editable fireplace enclosure is now represented at x=1.43, z=-5.905 m, approximately 0.50 m towards the living room from the inferred source-plan position. Its 0.65 x 0.50 x 2.92 m envelope is a visualization assumption, with a 0.37 m strip between it and the kitchen opening. That strip is not a certified lintel bearing or fire clearance. Device choice, combustion-air supply and flue routing through the upper floor and roof are separate design work; no chimney penetration or structural detail is asserted by this model.
+
+`before-fireplace-window-r3.json` preserves the previous published model. `initial-r1.json` remains immutable. Stairs, island sink and hob, all existing furniture, other openings, room geometry, storeys, slabs, roof, site, landscape and other projects are preserved. This change does not alter roof geometry.
+
+Actual Chrome Default and Profile 1 house databases were captured read-only under primary `tmp/fireplace-window-20261109/`; neither contains this project. The current Codex web profile has IndexedDB but no known house-origin database; the legacy Codex browser partition has no IndexedDB. Shared server version 3 matches the r3 baseline and merges without conflicts. Recovery captures and other shared-project snapshots are retained independently; no actual browser working copy is reset.
+
+Validation: 645 unit tests, TypeScript, frontend and API builds pass. Checks cover the fixed cabinet-side jamb, window/enclosure separation, furniture overlap, preservation of r3 and unrelated project data, migration with local deletions and conflicting window edits, and repeat save/reload. Fresh desktop/mobile browsers and a replay of captured Chrome projects with the previous shared r3 all preserve the new project after reload, without page errors. Evidence: tmp/fireplace-window-20261109/ and output/fireplace-window-20261109/.

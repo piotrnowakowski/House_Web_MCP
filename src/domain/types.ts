@@ -107,7 +107,7 @@ export interface StairModel {
   uTurn?: { landingDepthM: number; gapM: number; entrySide?: 'min-z' | 'max-z' }
   finish?: { treadColor: string; closedRisers: boolean; railing: 'metal' | 'glass' }
 }
-export type InteriorCatalogId = 'oak-platform-bed' | 'oak-nightstand' | 'wool-rug' | 'brass-sconce' | 'oak-side-table' | 'boucle-chair' | 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'thermal-buffer' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'compact-freestanding-bathtub' | 'bathroom-step-cabinet' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car' | 'camper'
+export type InteriorCatalogId = 'fireplace' | 'oak-platform-bed' | 'oak-nightstand' | 'wool-rug' | 'brass-sconce' | 'oak-side-table' | 'boucle-chair' | 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'thermal-buffer' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'compact-freestanding-bathtub' | 'bathroom-step-cabinet' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car' | 'camper'
 export interface InteriorItem { ref: string; catalogId: InteriorCatalogId; storeyRef: string; name: string; position: Vec2; widthM: number; depthM: number; heightM: number; rotationDegrees: number; color: string; productId?: string; variantId?: string; elevationM?: number; groupRef?: string; locked?: boolean; cabinetry?: 'tall' | 'oven-tower' | 'base' | 'sink' | 'sink-insert' | 'island' | 'hob' }
 export type InteriorCommand = { type: 'interior.update'; buildingRef: string; storeyRef: string } & (
   { action: 'put'; item: InteriorItem } | { action: 'remove'; itemRef: string } |

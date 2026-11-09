@@ -15,6 +15,7 @@ export const interiorCatalog: { id: InteriorCatalogId; name: string; category: s
   { id: 'oak-side-table', name: 'Round oak pedestal table', category: 'Living', size: [.38, .38, .45], color: '#C39C70' },
   { id: 'boucle-chair', name: 'Rounded cream lounge chair', category: 'Living', size: [.72, .75, .76], color: '#E5D9C5' },
   { id: 'corner-sofa', name: 'Corner sofa', category: 'Living', size: [3.45, 2.52, 0.85], color: '#20798a' },
+  { id: 'fireplace', name: 'Built-in fireplace', category: 'Living', size: [.65, .5, 2.92], color: '#E6E2DA' },
   { id: 'tv-unit', name: 'TV & media unit', category: 'Living', size: [3.2, 0.45, 1.2], color: '#374248' },
   { id: 'bar-stool', name: 'Bar stool', category: 'Kitchen', size: [0.45, 0.45, 0.75], color: '#b18c60' },
   { id: 'sofa', name: 'Linen sofa', category: 'Living', size: [2.4, 0.95, 0.85], color: '#64827e' },

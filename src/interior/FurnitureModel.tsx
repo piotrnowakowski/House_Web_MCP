@@ -2,9 +2,11 @@ import { RoundedBox } from '@react-three/drei'
 import type { InteriorItem } from '../domain/types'
 import { isOakBedroomFurniture, OakBedroomFurniture } from './OakBedroomFurniture'
 import { FittedKitchen } from './FittedKitchen'
+import { FireplaceModel } from './FireplaceModel'
 
 /** Metre-sized, editable furnishings with separate upholstery, joinery, glass and metal. */
 export function FurnitureModel({ item }: { item: InteriorItem }) {
+  if (item.catalogId === 'fireplace') return <FireplaceModel item={item} />
   if (item.cabinetry) return <FittedKitchen item={item} />
   if (isOakBedroomFurniture(item)) return <OakBedroomFurniture item={item} />
   const color = item.color
