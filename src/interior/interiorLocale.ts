@@ -104,6 +104,7 @@ Brass dome reading lamp|Mosiężna lampa do czytania
 Round oak pedestal table|Okrągły stolik dębowy
 Rounded cream lounge chair|Zaokrąglony kremowy fotel
 Corner sofa|Narożnik
+Built-in fireplace|Kominek w zabudowie
 TV & media unit|Szafka RTV
 Bar stool|Hoker
 Linen sofa|Lniana sofa
