@@ -12,7 +12,9 @@ export function Staircase({ stairs, rise, base, plan }: { stairs: StairModel; ri
     {plan && <Line points={[[stairs.runM - .12, .16, stairs.widthM / 2], [.14, .16, stairs.widthM / 2], [.35, .16, stairs.widthM / 2 - .17], [.14, .16, stairs.widthM / 2], [.35, .16, stairs.widthM / 2 + .17]]} color='#675d4b' lineWidth={1} />}
   </group>
 
-  const surfaces = uStairSurfaces(stairs, rise)
+  // Reflect the entire assembly once, including risers, arrow and exit guard.
+  const surfaces = uStairSurfaces({ ...stairs, uTurn: { ...stairs.uTurn, entrySide: 'min-z' } }, rise)
+  const mirrored = stairs.uTurn.entrySide === 'max-z'
   const { landingDepthM: landing, gapM: gap } = stairs.uTurn
   const width = stairs.widthM, depth = width * 2 + gap, length = landing + stairs.runM
   const tread = stairs.runM / (stairs.steps / 2 - 1)
@@ -22,6 +24,7 @@ export function Staircase({ stairs, rise, base, plan }: { stairs: StairModel; ri
     return surfaces.slice(1).filter(surface => (surface.z > width) === returning).map(surface => [surface.x, surface.top + .9, z] as [number, number, number])
   })
   return <group position={[stairs.start.x, plan ? .03 : base, stairs.start.z]}>
+    <group position-z={mirrored ? depth : 0} scale-z={mirrored ? -1 : 1}>
     {surfaces.map((surface, i) => <mesh key={i} position={[surface.x, plan ? .02 : surface.top - .04, surface.z]} castShadow receiveShadow>
       <boxGeometry args={[surface.width - (i && !stairs.finish?.closedRisers ? .008 : 0), plan ? .035 : .08, surface.depth]} /><meshStandardMaterial color={color ?? (i ? '#bd9365' : '#c49c6b')} roughness={.8} />
     </mesh>)}
@@ -43,5 +46,6 @@ export function Staircase({ stairs, rise, base, plan }: { stairs: StairModel; ri
       {[0, length / 2, length].flatMap(x => [0, depth].map(z => <mesh key={`${x}/${z}`} position={[x, rise + .45, z]}><boxGeometry args={[.025, .9, .025]} /><meshStandardMaterial color='#343b39' /></mesh>))}
     </>}
     {plan && <Line points={[[length, .16, width / 2], [landing / 2, .16, width / 2], [landing / 2, .16, depth - width / 2], [length, .16, depth - width / 2], [length - .2, .16, depth - width / 2 - .14], [length, .16, depth - width / 2], [length - .2, .16, depth - width / 2 + .14]]} color='#675d4b' lineWidth={1.5} />}
+    </group>
   </group>
 }

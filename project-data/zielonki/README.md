@@ -660,3 +660,7 @@ Na zlecenie użytkownika utworzono project/architekt-7-11 r1 na podstawie archit
 ### 9 November 2026 — independent architekt 7.11 interior correction
 
 Captured current Chrome Default/Profile 1 project workspaces under ignored `tmp/interior-711-20261109/`; the current Codex browser partition has no IndexedDB directory. Compared the target shared r1 to its canonical baseline before applying r2. Only `project/architekt-7-11` changes: open white/glass U stairs attached visually at the pantry wall, and black fitted kitchen cabinetry to the existing 2.92 m ceiling. All Zielonki data and unrelated shared projects are preserved. See `../architekt-7-11/README.md` for detailed source, geometry, migration and browser evidence.
+
+### 9 November 2026 — architekt 7.11 r3 follow-up
+
+Captured current Chrome Default/Profile 1 workspaces under `tmp/interior-711-r3-20261109/` and compared the shared architekt 7.11 r2 against its canonical baseline. Only the independent architekt 7.11 project changes: lower stair flight towards the entrance, upper flight towards the kitchen, and sink on the island. Pantry wall remains 2.92 m; upper bedroom wall is explicitly retained. All Zielonki project data, garden and unrelated shared workspaces are preserved. See `../architekt-7-11/README.md`.

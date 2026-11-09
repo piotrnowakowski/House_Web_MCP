@@ -4,6 +4,12 @@ import type { InteriorItem } from '../domain/types'
 export function FittedKitchen({ item }: { item: InteriorItem }) {
   const { widthM: w, heightM: h, depthM: d, cabinetry: kind } = item
   const box = (key: string, size: [number, number, number], position: [number, number, number], color = item.color) => <mesh key={key} position={position} castShadow receiveShadow><boxGeometry args={size} /><meshStandardMaterial color={color} roughness={.62} /></mesh>
+  if (kind === 'sink-insert') return <group name={`island-sink/${item.ref}`}>
+    {box('rim', [w,.014,d], [0,.007,0], '#454E50')}
+    {box('basin', [w-.04,.008,d-.04], [0,.018,0], '#111A1D')}
+    {box('tap', [.028,h-.02,.028], [0,(h-.02)/2,-d/2+.035], '#161B1D')}
+    {box('spout', [.028,.028,.18], [0,h-.034,-d/2+.115], '#161B1D')}
+  </group>
   if (kind === 'hob') return <group>
     {box('glass', [w, h, d], [0, h / 2, 0], '#111516')}
     {[-1, 1].flatMap(x => [-1, 1].map(z => <mesh key={`${x}/${z}`} position={[x * w * .25, h + .001, z * d * .25]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[.075, .078, 32]} /><meshStandardMaterial color='#667074' /></mesh>))}

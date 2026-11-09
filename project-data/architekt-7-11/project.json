@@ -3,8 +3,8 @@
   "ref": "project/architekt-7-11",
   "name": "architekt 7.11",
   "units": "metric",
-  "revision": 2,
-  "updatedAt": "2026-11-09T14:00:00.000Z",
+  "revision": 3,
+  "updatedAt": "2026-11-09T19:47:37.873Z",
   "site": {
     "boundary": [
       {
@@ -1826,7 +1826,9 @@
           "2026-11-09 interior correction: architect ground/upper plans and section A-A rechecked. Open U stair in 3.16 x 2.00 m aperture; 18 risers at 0.180556 m, 8 treads per flight at 0.27 m, landing 1.00 m. Removed erroneous hall-side stair enclosure and storage door; retained boundary refs as 0.01 m room separators.",
           "User photos: pale closed folded stair with glass guards; matte black flat-front kitchen and island. Full-height cabinet bank and integrated fridge reach the existing 2.92 m ceiling. Sink niche has upper cabinetry to ceiling. Pantry access and kitchen glazing remain clear; island remains 2.00 x 0.90 m. Finish/panel details are visualization assumptions, not fabrication or structural documentation.",
           "User clarification: stair visually supported only from the pantry wall, with no hall enclosure, under-stair furniture or columns. A 0.03 m separation is left from the west exterior wall. Landing depth is 0.97 m and flight going remains 2.16 m, keeping the existing upper exit and slab aperture. Structural anchoring must be designed separately by the structural engineer.",
-          "User clarification: pantry entrance is a concealed, handleless black door flush with the cabinet fronts. Closed leaf face is 0.66 m east of the pantry partition axis, aligned at x=-2.295 m with the cabinetry; leaf height 2.18 m and matching top panel to 2.92 m align the cabinet divisions. The original 0.799 m clear opening and passage remain."
+          "User clarification: pantry entrance is a concealed, handleless black door flush with the cabinet fronts. Closed leaf face is 0.66 m east of the pantry partition axis, aligned at x=-2.295 m with the cabinetry; leaf height 2.18 m and matching top panel to 2.92 m align the cabinet divisions. The original 0.799 m clear opening and passage remain.",
+          "2026-11-09 r3 user correction: stair first tread is now on the hall/entrance (max-z) side; the upper flight and upper exit are beside the pantry/kitchen (min-z). Entire stair geometry, risers, plan arrow and upper guard are reflected consistently within the unchanged slab opening. The exposed lower-flight outer edge receives glass protection.",
+          "The existing sink ref moves to the 2.00 x 0.90 m island as a 0.56 x 0.44 m inset fixture, with tap facing the seating side. The 0.58 x 0.60 m hob is shifted towards the kitchen window; 0.52 m clear worktop separates the fixtures, with 0.165/0.175 m end margins. The former wall sink niche becomes full-height black cabinetry. Pantry concealed door, island envelope, garden, house/roof/storey/slab geometry and unrelated buildings are unchanged."
         ]
       },
       "furniture": [
@@ -1850,17 +1852,18 @@
           "ref": "interior/reference-sink",
           "catalogId": "sink",
           "storeyRef": "storey/reference-ground",
-          "name": "Zlew",
+          "name": "Zlew na wyspie",
           "position": {
-            "x": -2.595,
-            "z": -5.655
+            "x": -0.87,
+            "z": -3.89
           },
-          "widthM": 0.8,
-          "depthM": 0.6,
-          "heightM": 0.92,
-          "rotationDegrees": 90,
+          "widthM": 0.56,
+          "depthM": 0.44,
+          "heightM": 0.32,
+          "rotationDegrees": 270,
           "color": "#202427",
-          "cabinetry": "sink"
+          "cabinetry": "sink-insert",
+          "elevationM": 0.92
         },
         {
           "ref": "interior/reference-counter",
@@ -1916,8 +1919,8 @@
           "storeyRef": "storey/reference-ground",
           "name": "Płyta na wyspie",
           "position": {
-            "x": -0.745,
-            "z": -4.435
+            "x": -0.87,
+            "z": -4.98
           },
           "widthM": 0.58,
           "depthM": 0.6,
@@ -2366,18 +2369,17 @@
           "ref": "interior/architekt-711/kitchen-upper",
           "catalogId": "kitchen-counter",
           "storeyRef": "storey/reference-ground",
-          "name": "Czarne szafki nad zlewem do sufitu",
+          "name": "Czarna zabudowa do sufitu · dawna wnęka zlewu",
           "position": {
-            "x": -2.71,
+            "x": -2.595,
             "z": -5.655
           },
           "widthM": 0.8,
-          "depthM": 0.37,
-          "heightM": 1.37,
+          "depthM": 0.6,
+          "heightM": 2.92,
           "rotationDegrees": 90,
           "color": "#202427",
-          "cabinetry": "tall",
-          "elevationM": 1.55
+          "cabinetry": "tall"
         }
       ],
       "stairs": [
@@ -2394,7 +2396,8 @@
           "steps": 18,
           "uTurn": {
             "landingDepthM": 0.97,
-            "gapM": 0.1
+            "gapM": 0.1,
+            "entrySide": "max-z"
           },
           "finish": {
             "treadColor": "#F0EEE9",

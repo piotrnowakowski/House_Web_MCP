@@ -15,8 +15,10 @@ function Panel({ x1, x2, z, bottom1, bottom2 }: { x1: number; x2: number; z: num
 export function GlassStairRails({ stairs, rise }: { stairs: StairModel; rise: number }) {
   const { landingDepthM: landing, gapM: gap } = stairs.uTurn!
   const length = landing + stairs.runM, width = stairs.widthM, riser = rise / stairs.steps
+  const lowerOuter = stairs.uTurn!.entrySide === 'max-z'
   return <group name='glass-stair-rails'>
-    {[width, width + gap, width * 2 + gap].map((z,i) => <Panel key={z} x1={landing} x2={length} z={z} bottom1={rise / 2 + (i ? 0 : -riser)} bottom2={i ? rise - riser : 0} />)}
+    {[width, width + gap].map((z,i) => <Panel key={z} x1={landing} x2={length} z={z} bottom1={rise / 2 + (i ? 0 : -riser)} bottom2={i ? rise - riser : 0} />)}
+    <Panel x1={landing} x2={length} z={lowerOuter ? 0 : width*2+gap} bottom1={rise/2-(lowerOuter ? riser : 0)} bottom2={lowerOuter ? 0 : rise-riser} />
     {/* Guard the hole beside the upper exit, leaving the return flight unobstructed. */}
     <mesh position={[length, rise + .5, (width + gap) / 2]}><boxGeometry args={[.012,1,width+gap]} /><meshPhysicalMaterial color='#D2E1DF' transparent opacity={.2} roughness={.08} depthWrite={false} /></mesh>
   </group>

@@ -10,11 +10,13 @@ export function uStairSurfaces(stairs: StairModel, rise: number): StairSurface[]
   const count = stairs.steps / 2
   const tread = stairs.runM / (count - 1)
   const { landingDepthM: landing, gapM: gap } = stairs.uTurn
+  const depth = stairs.widthM * 2 + gap
+  const side = (z: number) => stairs.uTurn?.entrySide === 'max-z' ? depth - z : z
   const surfaces: StairSurface[] = [{ x: landing / 2, z: (2 * stairs.widthM + gap) / 2, width: landing, depth: 2 * stairs.widthM + gap, top: rise / 2 }]
   for (let i = 0; i < count - 1; i++) {
     const x = landing + (i + .5) * tread
-    surfaces.push({ x, z: stairs.widthM / 2, width: tread, depth: stairs.widthM, top: (count - 1 - i) * rise / stairs.steps })
-    surfaces.push({ x, z: stairs.widthM * 1.5 + gap, width: tread, depth: stairs.widthM, top: (count + 1 + i) * rise / stairs.steps })
+    surfaces.push({ x, z: side(stairs.widthM / 2), width: tread, depth: stairs.widthM, top: (count - 1 - i) * rise / stairs.steps })
+    surfaces.push({ x, z: side(stairs.widthM * 1.5 + gap), width: tread, depth: stairs.widthM, top: (count + 1 + i) * rise / stairs.steps })
   }
   return surfaces
 }

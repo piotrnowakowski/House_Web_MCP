@@ -4,6 +4,7 @@ import { beforeEach, expect, it } from 'vitest'
 import { DoubleSide, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three'
 import data from '../../project-data/architekt-7-11/project.json'
 import previousInterior from '../../project-data/architekt-7-11/before-interior-r1.json'
+import previousDirection from '../../project-data/architekt-7-11/before-stair-direction-r2.json'
 import source from '../../project-data/architekt/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
@@ -25,6 +26,11 @@ beforeEach(()=>{globalThis.indexedDB=new IDBFactory()})
 it('opens the stair to the hall, leaves only the pantry attachment and fits the original floor aperture',()=>{
   const h=parseProject(data).buildings[0], before=parseProject(previousInterior).buildings[0], s=h.stairs![0]
   const rise=h.storeys[1].elevationM-h.storeys[0].elevationM
+  const surfaces=uStairSurfaces(s,rise), first=surfaces.find(t=>Math.abs(t.top-rise/s.steps)<1e-8)!, last=surfaces.find(t=>Math.abs(t.top-(rise-rise/s.steps))<1e-8)!
+  expect(s.uTurn?.entrySide).toBe('max-z')
+  expect(first.z).toBeGreaterThan(last.z) // Entrance/hol is south; pantry and kitchen are north.
+  const previous=uStairSurfaces(parseProject(previousDirection).buildings[0].stairs![0],rise)
+  surfaces.forEach((surface,i)=>{expect(surface.top).toBe(previous[i].top);expect(surface.x).toBe(previous[i].x);expect(surface.z+previous[i].z).toBeCloseTo(2)})
   expect(s.finish).toEqual({treadColor:'#F0EEE9',closedRisers:true,railing:'glass'})
   expect(rise/s.steps).toBeCloseTo(3.25/18)
   expect(s.runM/(s.steps/2-1)).toBeCloseTo(.27)
@@ -43,6 +49,7 @@ it('opens the stair to the hall, leaves only the pantry attachment and fits the 
     expect(wall.heightM).toBeLessThan(.02);expect(wall.openings).toEqual([])
   }
   expect(h.walls.find(w=>w.ref==='wall/architekt/ground/12')!.heightM).toBe(2.92)
+  expect(h.walls.find(w=>w.ref==='wall/architekt/upper/16')).toEqual(parseProject(previousDirection).buildings[0].walls.find(w=>w.ref==='wall/architekt/upper/16'))
   expect(h.roof).toEqual(before.roof);expect(h.storeys).toEqual(before.storeys);expect(h.slabs).toEqual(before.slabs)
 })
 
@@ -56,6 +63,17 @@ it('fits ceiling-height black cabinetry, a clear pantry approach and one island 
   const cabinet=items.find(f=>f.ref==='interior/reference-cabinet-one')!, c=polygonBounds(interiorCorners(cabinet))
   expect(b.minX-c.maxX).toBeGreaterThan(1)
   expect(items.filter(f=>f.cabinetry==='hob')).toHaveLength(1)
+  const sink=items.find(f=>f.ref==='interior/reference-sink')!, hob=items.find(f=>f.cabinetry==='hob')!
+  expect(sink.cabinetry).toBe('sink-insert');expect(sink.elevationM).toBe(island.heightM)
+  expect(items.filter(f=>f.catalogId==='sink')).toHaveLength(1)
+  for(const fixture of [sink,hob]){
+    const bounds=polygonBounds(interiorCorners(fixture))
+    expect(bounds.minX).toBeGreaterThan(b.minX);expect(bounds.maxX).toBeLessThan(b.maxX)
+    expect(bounds.minZ).toBeGreaterThan(b.minZ);expect(bounds.maxZ).toBeLessThan(b.maxZ)
+  }
+  expect(polygonBounds(interiorCorners(sink)).minZ-polygonBounds(interiorCorners(hob)).maxZ).toBeCloseTo(.52)
+  const formerNiche=items.find(f=>f.ref==='interior/architekt-711/kitchen-upper')!
+  expect(formerNiche.heightM).toBe(2.92);expect(formerNiche.elevationM??0).toBe(0)
   const door=h.walls.flatMap(w=>w.openings).find(o=>o.ref==='opening/architekt-711/pantry')!
   expect(door.widthM).toBe(.799)
   expect(door.heightM).toBe(2.18)
@@ -66,6 +84,17 @@ it('fits ceiling-height black cabinetry, a clear pantry approach and one island 
     const bounds=polygonBounds(interiorCorners(item))
     expect(bounds.maxZ<=-3.715||bounds.minZ>=-2.915).toBe(true)
   }
+})
+
+it('merges the reversed flights and relocated sink into r2 without losing unrelated edits or resurrecting a deletion',()=>{
+  const before=parseProject(previousDirection), local=structuredClone(before)
+  local.landscape.plants.pop();local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/reference-stool-two')
+  const merged=mergeProjects(before,local,parseProject(data))
+  expect(merged.conflicts).toEqual([])
+  expect(merged.project.buildings[0].stairs![0].uTurn?.entrySide).toBe('max-z')
+  expect(merged.project.buildings[0].furniture!.find(f=>f.ref==='interior/reference-sink')?.cabinetry).toBe('sink-insert')
+  expect(merged.project.buildings[0].furniture!.some(f=>f.ref==='interior/reference-stool-two')).toBe(false)
+  expect(merged.project.landscape).toEqual(local.landscape)
 })
 
 it('migrates saved r1 while preserving independent edits and deletions, and reports conflicting stair edits',async()=>{
