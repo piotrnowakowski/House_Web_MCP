@@ -12,7 +12,7 @@ import { roofTerraceOutline } from './roofTerrace'
 import { atticWallProfile, wallProfileHeightAt } from './attic'
 import { sunMismatchIssues } from './sunlight'
 import { buildingCrossesAgriculturalZone } from './zoning'
-import { uStairHeadroom } from './stairs'
+import { uStairHeadroom, uStairLayout } from './stairs'
 import { roomDimensions } from './roomDimensions'
 import type { BuildingModel, LandscapeZone, OpeningModel, Polygon2, ProjectCommand, ProjectIssue, ProjectMetrics, ProjectV2, RoofJunctionModel, RoofSegmentDefinition, RoofSegmentModel, SpaceBoundaryUse, StoreyModel, Vec2, WallModel } from './types'
 
@@ -551,8 +551,8 @@ export const validateProject = (project: ProjectV2): ProjectIssue[] => {
       if (!lower || !upper || upper.elevationM <= lower.elevationM) issues.push({ severity: 'error', code: 'stairs.connection', message: 'Stairs must connect an existing lower floor to an upper floor.', subjectRef: stairs.ref })
       if (stairs.uTurn && lower && upper) {
         const riser = (upper.elevationM - lower.elevationM) / stairs.steps
-        const tread = stairs.runM / (stairs.steps / 2 - 1)
-        if (stairs.steps < 4 || stairs.steps % 2 || riser <= 0 || riser > .19 || stairs.widthM - .04 < .8 || stairs.uTurn.landingDepthM - .04 < .8 || 2 * riser + tread < .6 || 2 * riser + tread > .65) issues.push({ severity: 'error', code: 'stairs.dimensions', message: 'U stairs need equal flights, at least 0.80 m clear width/landing, risers up to 0.19 m and 2h+s between 0.60 and 0.65 m.', subjectRef: stairs.ref })
+        const layout = uStairLayout(stairs, upper.elevationM - lower.elevationM)
+        if (!layout || riser <= 0 || riser > .19 || stairs.widthM - .04 < .8 || stairs.uTurn.landingDepthM - .04 < .8 || 2 * riser + layout.tread < .6 || 2 * riser + layout.tread > .65) issues.push({ severity: 'error', code: 'stairs.dimensions', message: 'U stairs need at least two risers per flight, equal riser/going dimensions, at least 0.80 m clear width/landing, risers up to 0.19 m and 2h+s between 0.60 and 0.65 m.', subjectRef: stairs.ref })
         if (uStairHeadroom(building, stairs) < 2) issues.push({ severity: 'error', code: 'stairs.headroom', message: 'Keep at least 2.00 m model clearance above the stair walking surfaces; adjust the slab opening or roof clearance.', subjectRef: stairs.ref })
       }
     }

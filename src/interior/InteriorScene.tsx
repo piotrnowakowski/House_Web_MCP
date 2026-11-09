@@ -1,3 +1,4 @@
+import { uStairOpening } from '../domain/stairs'
 import { interiorMessage } from './interiorLocale'
 import { useRenderQuality } from '../scene/renderingPreferences'
 import { floorGeometry } from './floorGeometry'
@@ -315,7 +316,7 @@ export function InteriorScene(props: Props) {
     {(building.stairs ?? []).filter((stairs) => stairs.fromStoreyRef === storey.ref || stairs.toStoreyRef === storey.ref).map((stairs) => {
       const lower = building.storeys.find((s) => s.ref === stairs.fromStoreyRef)!; const upper = building.storeys.find((s) => s.ref === stairs.toStoreyRef)!
       const rise = upper.elevationM - lower.elevationM; const base = lower.elevationM - storey.elevationM
-      return <Staircase key={stairs.ref} stairs={stairs} rise={rise} base={base} plan={plan} />
+      return <Staircase key={stairs.ref} stairs={stairs} rise={rise} base={base} plan={plan} opening={uStairOpening(building, stairs)} />
     })}
     {!plan && building.roof.segments.filter(s => s.storeyRef === storey.ref).map(s => <RoofWindows key={s.ref} segment={s} elevationOffset={-storey.elevationM} />)}
     {building.walls.filter((wall) => wall.heightM >= .02 && storey.wallRefs.includes(wall.ref)).map((wall) => <CutawayWall key={wall.ref} wall={wall} profile={atticWallProfile(building, wall)} plan={plan} fullHeight={props.view === 'room'} selected={props.selectedRefs?.includes(wall.ref) ? wall.ref : selected} onPick={mode === 'partition' ? onPick : undefined} onSelect={mode === 'select' && !placing ? onSelect : undefined} />)}

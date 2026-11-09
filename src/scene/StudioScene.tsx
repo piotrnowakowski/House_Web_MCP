@@ -1,3 +1,4 @@
+import { uStairOpening } from '../domain/stairs'
 import { DetailedGardenDining, SunkenFireLounge } from './gardenDetails'
 import { FineGardenGravelMaterial, GardenPavingMaterial } from './gardenPaving'
 import { excavatedGroundGeometry, gardenExcavations } from './gardenGround'
@@ -999,7 +1000,7 @@ function Building({ project, building, ghost }: { project: ProjectV2; building: 
       {!ghost && building.stairs?.filter(stair => stair.finish).map(stair => {
         const lower = building.storeys.find(s => s.ref === stair.fromStoreyRef)!
         const upper = building.storeys.find(s => s.ref === stair.toStoreyRef)!
-        return <Staircase key={stair.ref} stairs={stair} rise={upper.elevationM-lower.elevationM} base={lower.elevationM} plan={false} />
+        return <Staircase key={stair.ref} stairs={stair} rise={upper.elevationM-lower.elevationM} base={lower.elevationM} plan={false} opening={uStairOpening(building, stair)} />
       })}
       {!ghost && building.furniture?.map((item) => <group key={item.ref} userData={{ semanticRef: item.ref, buildingRef: building.ref }} onClick={event => { if (event.delta < 5 && viewerMode === 'edit') { event.stopPropagation(); useStudioStore.getState().setSelectedRef(item.ref) } }} position={[item.position.x, (item.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.level ?? 0) * explodedOffset, item.position.z]} rotation={[0, item.rotationDegrees * Math.PI / 180, 0]}><ProductModel item={item} mobile={window.innerWidth <= 900} />{selectedRef === item.ref && <mesh position-y={item.heightM / 2}><boxGeometry args={[item.widthM + 0.025, item.heightM + 0.025, item.depthM + 0.025]} /><meshBasicMaterial color='#b9e84d' wireframe depthTest={false} /></mesh>}</group>)}
       <Roof building={building} selected={selectedRef === building.roof.ref} yOffset={roofOffset} ghost={ghost} />

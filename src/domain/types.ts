@@ -103,8 +103,8 @@ export interface BuildingModel {
 
 export interface StairModel {
   ref: string; fromStoreyRef: string; toStoreyRef: string; start: Vec2; runM: number; widthM: number; steps: number
-  /** Two equal flights: runM is one flight's horizontal going, steps counts all risers. */
-  uTurn?: { landingDepthM: number; gapM: number; entrySide?: 'min-z' | 'max-z' }
+  /** runM is the lower flight's horizontal going; steps counts all risers. Omitted lowerSteps means equal flights. */
+  uTurn?: { landingDepthM: number; gapM: number; lowerSteps?: number; entrySide?: 'min-z' | 'max-z' }
   finish?: { treadColor: string; closedRisers: boolean; railing: 'metal' | 'glass' }
 }
 export type InteriorCatalogId = 'fireplace' | 'oak-platform-bed' | 'oak-nightstand' | 'wool-rug' | 'brass-sconce' | 'oak-side-table' | 'boucle-chair' | 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'thermal-buffer' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'compact-freestanding-bathtub' | 'bathroom-step-cabinet' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car' | 'camper'

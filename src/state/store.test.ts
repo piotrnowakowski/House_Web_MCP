@@ -151,7 +151,7 @@ describe('start screen and project switching', () => {
     useStudioStore.setState({ launcherOpen: false, hydrated: true, project: structuredClone(modernBarnProject) })
     await useStudioStore.getState().openLauncher()
     expect(useStudioStore.getState().launcherOpen).toBe(true)
-    expect(useStudioStore.getState().savedWorkspaces.map((item) => item.ref).sort()).toEqual([terrain.ref, 'project/architekt', 'project/architekt-7-11', 'project/architekt-7-11-v2', 'project/nowe-mpzp', 'project/nowe-mpzp-v2'].sort())
+    expect(useStudioStore.getState().savedWorkspaces.map((item) => item.ref).sort()).toEqual([terrain.ref, 'project/architekt', 'project/architekt-7-11', 'project/architekt-7-11-stairs-12-6', 'project/architekt-7-11-v2', 'project/nowe-mpzp', 'project/nowe-mpzp-v2'].sort())
     await useStudioStore.getState().openWorkspace(terrain.ref)
     expect(useStudioStore.getState().project.name).toBe('Saved plot')
     expect(useStudioStore.getState().launcherOpen).toBe(false)
@@ -167,7 +167,7 @@ describe('start screen and project switching', () => {
     })))
     for (const snapshot of snapshots) await saveWorkspace(snapshot)
     useStudioStore.setState({ hydrated: false })
-    const kept = ['project/architekt', 'project/architekt-7-11', 'project/architekt-7-11-v2', 'project/nowe-mpzp', 'project/nowe-mpzp-v2']
+    const kept = ['project/architekt', 'project/architekt-7-11', 'project/architekt-7-11-stairs-12-6', 'project/architekt-7-11-v2', 'project/nowe-mpzp', 'project/nowe-mpzp-v2']
     await useStudioStore.getState().openLauncher()
     expect(useStudioStore.getState().savedWorkspaces.map(item => item.ref).sort()).toEqual(kept)
     const before = await Promise.all(kept.map(ref => loadWorkspace(ref)))

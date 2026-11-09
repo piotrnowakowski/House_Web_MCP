@@ -47,7 +47,7 @@ it('fits sixteen equal risers, two flights and storage below the return flight',
   expect(validateProject(project).filter(i => i.severity === 'error')).toEqual([])
 })
 
-it('rejects unequal flights, excessive risers and a missing slab opening', () => {
+it('rejects an implicit fractional flight split, excessive risers and a missing slab opening', () => {
   const project = parseProject(current), house = project.buildings[0], stair = house.stairs![0]
   stair.steps = 15
   expect(validateProject(project).some(i => i.code === 'stairs.dimensions')).toBe(true)
@@ -56,6 +56,18 @@ it('rejects unequal flights, excessive risers and a missing slab opening', () =>
   stair.steps = 16
   house.slabs[1].holes!.shift()
   expect(validateProject(project).some(i => i.code === 'stairs.headroom')).toBe(true)
+})
+
+it('accepts an explicit odd riser split and rejects flights with fewer than two risers', () => {
+  const project = parseProject(current), house = project.buildings[0], stair = house.stairs![0]
+  stair.steps = 17; stair.uTurn!.lowerSteps = 9; stair.runM = 2.16
+  const heights = [...uStairSurfaces(stair,3).map(s=>s.top),3].sort((a,b)=>a-b)
+  expect(heights).toHaveLength(17)
+  heights.forEach((height,i)=>expect(height).toBeCloseTo((i+1)*3/17,10))
+  expect(validateProject(project).some(i=>i.code==='stairs.dimensions')).toBe(false)
+  stair.uTurn!.lowerSteps=16
+  expect(uStairSurfaces(stair,3)).toEqual([])
+  expect(validateProject(project).some(i=>i.code==='stairs.dimensions')).toBe(true)
 })
 
 it('preserves independent saved edits and reports conflicting stair edits', () => {

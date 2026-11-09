@@ -174,3 +174,7 @@ Published code `f35eaacba23ef54dd9adb6e5bcb841bd2005d42b`; canonical r5/shared v
 ## 9 November 2026 — architekt 7.11 living room and 2.80 m island
 
 Published code `073cd7d0cc649175951ecaf9544fbaaab3f96176`; canonical r6/shared version 6. The approved island is now 2.80 x 0.90 m, retaining a 1.10 m work aisle and 1.60 m to the lower stair flight. The lowest exposed upper-flight underside is 2.4477778 m. The living room follows the supplied architect-plan orientation with a round table, repositioned armchair and TV on a 1.80 m low console. The previous joinery, walls, bedroom partition, window/fireplace, garden and all other projects are preserved. All 649 tests, TypeScript, frontend/API builds, secret scan, live health/assets and fresh/mobile/migrated browser save/reload checks pass. Live screenshots were inspected. A complete 2,116,573-byte off-host database backup was verified by SHA256 before activation; recovery and rollback details are in the project README. Evidence: `tmp/interior-711-living-r6-20261109/` and `output/interior-711-living-r6-20261109/`. Main/Pages are unchanged.
+
+## Independent 12 + 6 stair study — 9 November 2026
+
+`project/architekt-7-11-stairs-12-6` is an independent fork of original architekt 7.11 r6 with its cabinetry retained. It redistributes 18 equal risers as 12 lower / 6 upper and fills only the upper-flight end of the slab opening. Original architekt 7.11, version 2 and other projects remain independent. See [variant geometry and preservation evidence](../project-data/architekt-7-11-stairs-12-6/README.md).

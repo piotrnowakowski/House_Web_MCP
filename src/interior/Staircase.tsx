@@ -1,9 +1,9 @@
 import { Line } from '@react-three/drei'
-import { uStairSurfaces } from '../domain/stairs'
-import type { StairModel } from '../domain/types'
+import { uStairExitGuards, uStairLayout, uStairSurfaces } from '../domain/stairs'
+import type { Polygon2, StairModel } from '../domain/types'
 import { GlassStairRails } from './GlassStairRails'
 
-export function Staircase({ stairs, rise, base, plan }: { stairs: StairModel; rise: number; base: number; plan: boolean }) {
+export function Staircase({ stairs, rise, base, plan, opening }: { stairs: StairModel; rise: number; base: number; plan: boolean; opening?: Polygon2 }) {
   if (!stairs.uTurn) return <group position={[stairs.start.x, plan ? .03 : base, stairs.start.z]}>
     {Array.from({ length: stairs.steps }, (_, i) => {
       const h = plan ? .035 : rise * (stairs.steps - i) / stairs.steps
@@ -14,10 +14,12 @@ export function Staircase({ stairs, rise, base, plan }: { stairs: StairModel; ri
 
   // Reflect the entire assembly once, including risers, arrow and exit guard.
   const surfaces = uStairSurfaces({ ...stairs, uTurn: { ...stairs.uTurn, entrySide: 'min-z' } }, rise)
+  const layout = uStairLayout(stairs, rise)
+  if (!layout) return null
   const mirrored = stairs.uTurn.entrySide === 'max-z'
   const { landingDepthM: landing, gapM: gap } = stairs.uTurn
-  const width = stairs.widthM, depth = width * 2 + gap, length = landing + stairs.runM
-  const tread = stairs.runM / (stairs.steps / 2 - 1)
+  const width = stairs.widthM, depth = width * 2 + gap
+  const { lowerLength: length, upperLength, landingHeight, tread } = layout
   const color = stairs.finish?.treadColor
   const flightRails = [0, width, width + gap, depth].map((z, index) => {
     const returning = index >= 2
@@ -30,8 +32,8 @@ export function Staircase({ stairs, rise, base, plan }: { stairs: StairModel; ri
     </mesh>)}
     {!plan && stairs.finish?.closedRisers && <group name='closed-stair-risers'>
       {surfaces.slice(1).map((s,i) => <mesh key={i} position={[s.x + (s.z > width ? -1 : 1) * (s.width / 2 - .04), s.top - rise / stairs.steps / 2, s.z]} castShadow receiveShadow><boxGeometry args={[.08,rise/stairs.steps,s.depth]} /><meshStandardMaterial color={color} roughness={.8} /></mesh>)}
-      <mesh position={[landing-.04,rise/2-rise/stairs.steps/2,width/2]}><boxGeometry args={[.08,rise/stairs.steps,width]} /><meshStandardMaterial color={color} /></mesh>
-      <mesh position={[length-.04,rise-rise/stairs.steps/2,width*1.5+gap]}><boxGeometry args={[.08,rise/stairs.steps,width]} /><meshStandardMaterial color={color} /></mesh>
+      <mesh position={[landing-.04,landingHeight-rise/stairs.steps/2,width/2]}><boxGeometry args={[.08,rise/stairs.steps,width]} /><meshStandardMaterial color={color} /></mesh>
+      <mesh position={[upperLength-.04,rise-rise/stairs.steps/2,width*1.5+gap]}><boxGeometry args={[.08,rise/stairs.steps,width]} /><meshStandardMaterial color={color} /></mesh>
     </group>}
     {!plan && stairs.finish?.railing === 'glass' && <GlassStairRails stairs={stairs} rise={rise} />}
     {!plan && stairs.finish?.railing !== 'glass' && <>
@@ -39,13 +41,22 @@ export function Staircase({ stairs, rise, base, plan }: { stairs: StairModel; ri
         <Line points={points} color='#343b39' lineWidth={3} />
         {points.map(([x, y, z], j) => <mesh key={j} position={[x, y - .45, z]}><boxGeometry args={[.025, .9, .025]} /><meshStandardMaterial color='#343b39' /></mesh>)}
       </group>)}
-      <Line points={[[landing + tread / 2, rise / 2 - rise / stairs.steps + .9, 0], [0, rise / 2 + .9, 0], [0, rise / 2 + .9, depth], [landing + tread / 2, rise / 2 + rise / stairs.steps + .9, depth]]} color='#343b39' lineWidth={3} />
-      {[0, depth].map(z => <mesh key={z} position={[.02, rise / 2 + .45, z]}><boxGeometry args={[.025, .9, .025]} /><meshStandardMaterial color='#343b39' /></mesh>)}
+      <Line points={[[landing + tread / 2, landingHeight - rise / stairs.steps + .9, 0], [0, landingHeight + .9, 0], [0, landingHeight + .9, depth], [landing + tread / 2, landingHeight + rise / stairs.steps + .9, depth]]} color='#343b39' lineWidth={3} />
+      {[0, depth].map(z => <mesh key={z} position={[.02, landingHeight + .45, z]}><boxGeometry args={[.025, .9, .025]} /><meshStandardMaterial color='#343b39' /></mesh>)}
       {/* Upper-floor guard leaves only the return-flight exit open. */}
+      {!stairs.uTurn.lowerSteps && <>
       <Line points={[[length, rise + .9, width + gap], [length, rise + .9, 0], [0, rise + .9, 0], [0, rise + .9, depth], [length, rise + .9, depth]]} color='#343b39' lineWidth={3} />
       {[0, length / 2, length].flatMap(x => [0, depth].map(z => <mesh key={`${x}/${z}`} position={[x, rise + .45, z]}><boxGeometry args={[.025, .9, .025]} /><meshStandardMaterial color='#343b39' /></mesh>))}
+      </>}
     </>}
-    {plan && <Line points={[[length, .16, width / 2], [landing / 2, .16, width / 2], [landing / 2, .16, depth - width / 2], [length, .16, depth - width / 2], [length - .2, .16, depth - width / 2 - .14], [length, .16, depth - width / 2], [length - .2, .16, depth - width / 2 + .14]]} color='#675d4b' lineWidth={1.5} />}
+    {plan && <Line points={[[length, .16, width / 2], [landing / 2, .16, width / 2], [landing / 2, .16, depth - width / 2], [upperLength, .16, depth - width / 2], [upperLength - .2, .16, depth - width / 2 - .14], [upperLength, .16, depth - width / 2], [upperLength - .2, .16, depth - width / 2 + .14]]} color='#675d4b' lineWidth={1.5} />}
     </group>
+    {!plan && (stairs.finish?.railing === 'glass' || stairs.uTurn.lowerSteps) && <group name='upper-stair-opening-guards'>
+      {uStairExitGuards(stairs, opening).map(({ start, end }, i) => <mesh key={i}
+        position={[(start.x+end.x)/2,rise+.5,(start.z+end.z)/2]} rotation-y={-Math.atan2(end.z-start.z,end.x-start.x)}>
+        <boxGeometry args={[Math.hypot(end.x-start.x,end.z-start.z),1,.012]} />
+        {stairs.finish?.railing === 'glass' ? <meshPhysicalMaterial color='#D2E1DF' transparent opacity={.2} roughness={.08} depthWrite={false} /> : <meshStandardMaterial color='#343b39' />}
+      </mesh>)}
+    </group>}
   </group>
 }
