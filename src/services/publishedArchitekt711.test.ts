@@ -5,6 +5,7 @@ import { DoubleSide, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three'
 import data from '../../project-data/architekt-7-11/project.json'
 import previousInterior from '../../project-data/architekt-7-11/before-interior-r1.json'
 import previousDirection from '../../project-data/architekt-7-11/before-stair-direction-r2.json'
+import previousJoinery from '../../project-data/architekt-7-11/before-under-stair-r3.json'
 import source from '../../project-data/architekt/project.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
@@ -20,6 +21,7 @@ import { saveWorkspace, loadWorkspace, deleteWorkspace } from './persistence'
 import { uStairHeadroom, uStairSurfaces } from '../domain/stairs'
 import { interiorCorners } from '../domain/interior'
 import { mergeProjects } from '../domain/projectMerge'
+import { slopedCabinetGeometry } from '../interior/cabinetGeometry'
 
 beforeEach(()=>{globalThis.indexedDB=new IDBFactory()})
 
@@ -44,11 +46,11 @@ it('opens the stair to the hall, leaves only the pantry attachment and fits the 
     expect(s.start.z+surface.z+surface.depth/2).toBeLessThanOrEqual(hole.maxZ+.00001)
   }
   expect(uStairHeadroom(h,s)).toBeGreaterThan(2)
-  for(const ref of ['wall/architekt/ground/13','wall/architekt/ground/14','wall/architekt/ground/15']){
+  for(const ref of ['wall/architekt/ground/12','wall/architekt/ground/13','wall/architekt/ground/14','wall/architekt/ground/15']){
     const wall=h.walls.find(w=>w.ref===ref)!
     expect(wall.heightM).toBeLessThan(.02);expect(wall.openings).toEqual([])
   }
-  expect(h.walls.find(w=>w.ref==='wall/architekt/ground/12')!.heightM).toBe(2.92)
+  expect(h.walls.find(w=>w.ref==='wall/architekt/correction/0/kitchen-pantry/5')!.heightM).toBe(2.92)
   expect(h.walls.find(w=>w.ref==='wall/architekt/upper/16')).toEqual(parseProject(previousDirection).buildings[0].walls.find(w=>w.ref==='wall/architekt/upper/16'))
   expect(h.roof).toEqual(before.roof);expect(h.storeys).toEqual(before.storeys);expect(h.slabs).toEqual(before.slabs)
 })
@@ -56,10 +58,10 @@ it('opens the stair to the hall, leaves only the pantry attachment and fits the 
 it('fits ceiling-height black cabinetry, a clear pantry approach and one island hob',()=>{
   const h=parseProject(data).buildings[0], items=h.furniture!, ceiling=h.storeys[0].clearHeightM
   const tall=items.filter(f=>f.cabinetry==='tall'||f.cabinetry==='oven-tower')
-  expect(tall).toHaveLength(4)
+  expect(tall).toHaveLength(5)
   for(const item of tall){expect((item.elevationM??0)+item.heightM).toBeCloseTo(ceiling);expect(item.color).toBe('#202427')}
   const island=items.find(f=>f.catalogId==='kitchen-island')!, b=polygonBounds(interiorCorners(island))
-  expect(b.maxX-b.minX).toBeCloseTo(.9);expect(b.maxZ-b.minZ).toBeCloseTo(2)
+  expect(b.maxX-b.minX).toBeCloseTo(.9);expect(b.maxZ-b.minZ).toBeCloseTo(2.45)
   const cabinet=items.find(f=>f.ref==='interior/reference-cabinet-one')!, c=polygonBounds(interiorCorners(cabinet))
   expect(b.minX-c.maxX).toBeGreaterThan(1)
   expect(items.filter(f=>f.cabinetry==='hob')).toHaveLength(1)
@@ -84,6 +86,45 @@ it('fits ceiling-height black cabinetry, a clear pantry approach and one island 
     const bounds=polygonBounds(interiorCorners(item))
     expect(bounds.maxZ<=-3.715||bounds.minZ>=-2.915).toBe(true)
   }
+})
+
+it('fits the flush cabinet extension below the actual folded stair and leaves the lower flight open',()=>{
+  const h=parseProject(data).buildings[0], old=parseProject(previousJoinery).buildings[0]
+  const c=h.furniture!.find(f=>f.cabinetry==='under-stair')!, filler=h.furniture!.find(f=>f.ref.endsWith('/stair-junction-filler'))!, b=polygonBounds(interiorCorners(c))
+  const bank=polygonBounds(interiorCorners(h.furniture!.find(f=>f.ref==='interior/reference-cabinet-one')!)), joint=polygonBounds(interiorCorners(filler))
+  expect(b.maxX).toBeCloseTo(bank.maxX);expect(joint.maxX).toBeCloseTo(bank.maxX)
+  expect(joint.minZ).toBeCloseTo(bank.maxZ);expect(joint.maxZ).toBeCloseTo(b.minZ)
+  expect(b.maxZ-bank.maxZ).toBeCloseTo(1.2)
+  expect(h.walls.filter(w=>w.ref!=='wall/architekt/ground/12')).toEqual(old.walls.filter(w=>w.ref!=='wall/architekt/ground/12'))
+  const stairs=h.stairs![0], rise=h.storeys[1].elevationM-h.storeys[0].elevationM, upper=uStairSurfaces(stairs,rise).filter(s=>s.top>rise/2)
+  expect(b.maxZ).toBeCloseTo(stairs.start.z+stairs.widthM-.02)
+  const geometry=slopedCabinetGeometry(c.widthM,c.depthM,c.heightM,c.cabinetBackHeightM!,.09), material=new MeshBasicMaterial({side:DoubleSide}), mesh=new Mesh(geometry,material)
+  mesh.rotation.y=c.rotationDegrees*Math.PI/180;mesh.position.set(c.position.x,0,c.position.z);mesh.updateMatrixWorld(true)
+  for(let x=b.minX+.001;x<b.maxX;x+=.005){
+    const surface=upper.find(s=>x>=stairs.start.x+s.x-s.width/2&&x<=stairs.start.x+s.x+s.width/2)!
+    const left=stairs.start.x+surface.x-surface.width/2
+    const soffit=x<left+.08 ? surface.top-rise/stairs.steps : surface.top-.08
+    const hit=new Raycaster(new Vector3(x,4,c.position.z),new Vector3(0,-1,0)).intersectObject(mesh)[0]
+    expect(hit).toBeDefined();expect(soffit-hit.point.y).toBeGreaterThan(.02)
+  }
+  geometry.dispose();material.dispose()
+  const island=polygonBounds(interiorCorners(h.furniture!.find(f=>f.ref==='interior/reference-island')!))
+  expect(island.minZ).toBeCloseTo(polygonBounds(interiorCorners(old.furniture!.find(f=>f.ref==='interior/reference-island')!)).minZ)
+  const at240=upper.filter(s=>s.top-rise/stairs.steps<=2.4&&s.top>=2.4)
+  expect(at240.length).toBeGreaterThan(0)
+  for(const s of at240)expect(stairs.start.z+s.z-s.depth/2-island.maxZ).toBeCloseTo(.9)
+})
+
+it('migrates the wall removal and fitted extension from r3 while retaining independent saved deletions',async()=>{
+  const before=parseProject(previousJoinery), local=structuredClone(before)
+  local.landscape.plants.pop();local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/reference-coffee')
+  const result=mergeProjects(before,local,parseProject(data));expect(result.conflicts).toEqual([])
+  expect(result.project.landscape).toEqual(local.landscape)
+  expect(result.project.buildings[0].furniture!.some(f=>f.ref==='interior/reference-coffee')).toBe(false)
+  expect(result.project.buildings[0].furniture!.find(f=>f.cabinetry==='under-stair')?.cabinetBackHeightM).toBe(1.995)
+  expect(result.project.buildings[0].walls.find(w=>w.ref==='wall/architekt/ground/12')?.heightM).toBe(.01)
+  await saveWorkspace({version:1,project:result.project,proposals:[],draftChangeSets:[]})
+  expect((await loadWorkspace(ARCHITEKT_711_REF))!.project).toEqual(result.project)
 })
 
 it('merges the reversed flights and relocated sink into r2 without losing unrelated edits or resurrecting a deletion',()=>{

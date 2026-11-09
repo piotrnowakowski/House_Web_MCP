@@ -3,8 +3,8 @@
   "ref": "project/architekt-7-11",
   "name": "architekt 7.11",
   "units": "metric",
-  "revision": 3,
-  "updatedAt": "2026-11-09T19:47:37.873Z",
+  "revision": 4,
+  "updatedAt": "2026-11-09T20:06:26.000Z",
   "site": {
     "boundary": [
       {
@@ -1828,7 +1828,10 @@
           "User clarification: stair visually supported only from the pantry wall, with no hall enclosure, under-stair furniture or columns. A 0.03 m separation is left from the west exterior wall. Landing depth is 0.97 m and flight going remains 2.16 m, keeping the existing upper exit and slab aperture. Structural anchoring must be designed separately by the structural engineer.",
           "User clarification: pantry entrance is a concealed, handleless black door flush with the cabinet fronts. Closed leaf face is 0.66 m east of the pantry partition axis, aligned at x=-2.295 m with the cabinetry; leaf height 2.18 m and matching top panel to 2.92 m align the cabinet divisions. The original 0.799 m clear opening and passage remain.",
           "2026-11-09 r3 user correction: stair first tread is now on the hall/entrance (max-z) side; the upper flight and upper exit are beside the pantry/kitchen (min-z). Entire stair geometry, risers, plan arrow and upper guard are reflected consistently within the unchanged slab opening. The exposed lower-flight outer edge receives glass protection.",
-          "The existing sink ref moves to the 2.00 x 0.90 m island as a 0.56 x 0.44 m inset fixture, with tap facing the seating side. The 0.58 x 0.60 m hob is shifted towards the kitchen window; 0.52 m clear worktop separates the fixtures, with 0.165/0.175 m end margins. The former wall sink niche becomes full-height black cabinetry. Pantry concealed door, island envelope, garden, house/roof/storey/slab geometry and unrelated buildings are unchanged."
+          "The existing sink ref moves to the 2.00 x 0.90 m island as a 0.56 x 0.44 m inset fixture, with tap facing the seating side. The 0.58 x 0.60 m hob is shifted towards the kitchen window; 0.52 m clear worktop separates the fixtures, with 0.165/0.175 m end margins. The former wall sink niche becomes full-height black cabinetry. Pantry concealed door, island envelope, garden, house/roof/storey/slab geometry and unrelated buildings are unchanged.",
+          "2026-11-09 r4: the user-marked wall/architekt/ground/12 is the redundant 1.49 m extension beyond the pantry, not the pantry wall itself. Its physical wall is removed, retaining a 10 mm nonphysical room boundary for stable room references. Actual pantry wall kitchen-pantry/5 remains 2.92 m; the upper bedroom wall is unchanged.",
+          "The black kitchen face extends 1.20 m towards the stairs in the same x=-2.295 m plane: a 0.25 m full-height junction panel followed by 0.95 m under-stair cabinetry. Depth remains 0.60 m, front height is 2.40 m and back height 1.995 m; the sloping top clears the folded upper flight. The end is 20 mm inside the upper-flight edge, leaving the lower flight and approach open. The clipped upper volume is a nonstandard infill/storage proposal, not a full-height appliance cabinet. Pantry concealed door and island sink remain unchanged.",
+          "User confirmed that 240 cm means stair height, not island length. Island extends 450 mm towards the stairs to 2450 x 900 mm. Its window-side end stays z=-5.435 m; its stair-side end is z=-2.985 m, giving 900 mm in plan to the upper-flight edge z=-2.085 m at 2.40 m above the ground floor. The corner-to-corner distance is 937 mm because the island is east of the stair. Sink, hob and seating positions are unchanged."
         ]
       },
       "furniture": [
@@ -1901,12 +1904,12 @@
           "ref": "interior/reference-island",
           "catalogId": "kitchen-island",
           "storeyRef": "storey/reference-ground",
-          "name": "Czarna wyspa 200 × 90 cm",
+          "name": "Czarna wyspa 245 × 90 cm",
           "position": {
             "x": -0.745,
-            "z": -4.435
+            "z": -4.21
           },
-          "widthM": 2,
+          "widthM": 2.45,
           "depthM": 0.9,
           "heightM": 0.92,
           "rotationDegrees": 90,
@@ -2380,6 +2383,39 @@
           "rotationDegrees": 90,
           "color": "#202427",
           "cabinetry": "tall"
+        },
+        {
+          "catalogId": "kitchen-counter",
+          "storeyRef": "storey/reference-ground",
+          "depthM": 0.6,
+          "rotationDegrees": 90,
+          "color": "#202427",
+          "ref": "interior/architekt-711/stair-junction-filler",
+          "name": "Łącznik zabudowy przy schodach",
+          "position": {
+            "x": -2.595,
+            "z": -2.23
+          },
+          "widthM": 0.25,
+          "heightM": 2.92,
+          "cabinetry": "tall"
+        },
+        {
+          "catalogId": "kitchen-counter",
+          "storeyRef": "storey/reference-ground",
+          "depthM": 0.6,
+          "rotationDegrees": 90,
+          "color": "#202427",
+          "ref": "interior/architekt-711/under-stair-cabinet",
+          "name": "Zabudowa pod górnym biegiem schodów",
+          "position": {
+            "x": -2.595,
+            "z": -1.63
+          },
+          "widthM": 0.95,
+          "heightM": 2.4,
+          "cabinetry": "under-stair",
+          "cabinetBackHeightM": 1.995
         }
       ],
       "stairs": [
@@ -3125,7 +3161,7 @@
           },
           "thicknessM": 0.25,
           "baseElevationM": 0.45,
-          "heightM": 2.92,
+          "heightM": 0.01,
           "openings": [],
           "finish": {
             "material": "light-render",

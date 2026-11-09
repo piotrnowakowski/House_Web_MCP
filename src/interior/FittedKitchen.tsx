@@ -1,8 +1,25 @@
 import type { InteriorItem } from '../domain/types'
+import { useEffect, useMemo } from 'react'
+import { slopedCabinetGeometry } from './cabinetGeometry'
+
+function UnderStairCabinet({ item }: { item: InteriorItem }) {
+  const { widthM: w, depthM: d, heightM: h, color } = item
+  const back = item.cabinetBackHeightM ?? h
+  const geometry = useMemo(() => slopedCabinetGeometry(w - .012, d - .02, h - .006, back - .006, .09), [w, d, h, back])
+  useEffect(() => () => geometry.dispose(), [geometry])
+  const columns = Math.max(1, Math.round(w / .6)), cw = w / columns
+  const division = Math.min(2.18, h - .1)
+  return <group name={`under-stair-cabinet/${item.ref}`}>
+    <mesh geometry={geometry} castShadow receiveShadow><meshStandardMaterial color={color} roughness={.62} /></mesh>
+    <mesh position={[0,.045,-.02]}><boxGeometry args={[w-.04,.09,d-.08]} /><meshStandardMaterial color='#101213' /></mesh>
+    {Array.from({length:columns}, (_,c) => [[.09,division],[division,h-.002]].map(([bottom,top],r) => <mesh key={`${c}/${r}`} position={[-w/2+(c+.5)*cw,(bottom+top)/2,d/2-.01]} castShadow receiveShadow><boxGeometry args={[cw-.004,top-bottom-.004,.02]} /><meshStandardMaterial color={color} roughness={.62} /></mesh>))}
+  </group>
+}
 
 /** Dimensioned slab-front joinery; its envelope includes the top and ceiling filler. */
 export function FittedKitchen({ item }: { item: InteriorItem }) {
   const { widthM: w, heightM: h, depthM: d, cabinetry: kind } = item
+  if (kind === 'under-stair') return <UnderStairCabinet item={item} />
   const box = (key: string, size: [number, number, number], position: [number, number, number], color = item.color) => <mesh key={key} position={position} castShadow receiveShadow><boxGeometry args={size} /><meshStandardMaterial color={color} roughness={.62} /></mesh>
   if (kind === 'sink-insert') return <group name={`island-sink/${item.ref}`}>
     {box('rim', [w,.014,d], [0,.007,0], '#454E50')}

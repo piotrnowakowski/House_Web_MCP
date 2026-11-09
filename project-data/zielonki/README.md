@@ -664,3 +664,7 @@ Captured current Chrome Default/Profile 1 project workspaces under ignored `tmp/
 ### 9 November 2026 — architekt 7.11 r3 follow-up
 
 Captured current Chrome Default/Profile 1 workspaces under `tmp/interior-711-r3-20261109/` and compared the shared architekt 7.11 r2 against its canonical baseline. Only the independent architekt 7.11 project changes: lower stair flight towards the entrance, upper flight towards the kitchen, and sink on the island. Pantry wall remains 2.92 m; upper bedroom wall is explicitly retained. All Zielonki project data, garden and unrelated shared workspaces are preserved. See `../architekt-7-11/README.md`.
+
+### 9 November 2026 — architekt 7.11 r4 kitchen/stair connection
+
+Current Chrome Default/Profile 1 stores were captured under `tmp/interior-711-r4-20261110/`; shared target version 3 matches canonical r3. Only architekt 7.11 changes: removal of the user-marked projecting wall continuation, 1.20 m of flush kitchen joinery extending beneath the upper stair flight, and a 2.45 x 0.90 m island retaining 0.90 m plan clearance to the stair edge at the requested 2.40 m level. Pantry/upper bedroom walls, roof, site and garden stay unchanged. Previous r3 is retained in the target project's `before-under-stair-r3.json`; other projects are preserved independently. See `../architekt-7-11/README.md` for geometry, comparison and browser evidence.
