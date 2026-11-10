@@ -106,3 +106,16 @@ Final release evidence: tmp/sun-controls-20261110/.
 On phone-sized layouts (up to 900 px), the floating "Zapisano lokalnie" bar is
 hidden, as requested. Save/sync controls remain in the existing Więcej panel,
 with no changes to autosave or persistence. Desktop placement is unchanged.
+
+Published and verified on Mikrus: code 49646a46f0aa96c8546366d38ceda2e9d1600280,
+canonical 7.11 r17, shared v15. HTTP/HTTPS health and API passed, all 18 checked
+assets match their frozen bytes and all six shared workspaces are unchanged.
+The public July kitchen check passed for 10:56, midnight, full brightness at
+midnight, restored daylight and 110-degree framing. Mobile 360x640, 390x844,
+844x390 and saved-profile replay checks passed with no page errors or shared
+writes. Each verified the missing floating bar, synchronization via Więcej,
+point selection, playback, timeline seeking and unchanged data on reload.
+The four source browser tests and local two-tab recovery/export/import passed.
+The database backup was verified off host (4064352 bytes; SHA-256
+d250f0f6d3510407ee3b62ef72f2678aec747d5d09e9360691256a222cac254d).
+Rollback Compose: /root/house-web-mcp/furnished-zielonki/deploy/mikrus/compose.yaml.before-20261110T201805Z.
