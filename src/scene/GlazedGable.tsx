@@ -27,7 +27,7 @@ export function GlazedGable({ building, segment, side, value, finish, selected, 
     ...transoms,
     ...mullions.map((m) => [{ x: m.x, z: m.bottom }, { x: m.x, z: m.top }]),
   ])
-  return <group position={alongZ ? [0, 0, value] : [value, 0, 0]} rotation={[0, alongZ ? 0 : -Math.PI / 2, 0]}>
+  return <group userData={{ semanticRef: `gable-glazing/${segment.ref}/${side}` }} position={alongZ ? [0, 0, value] : [value, 0, 0]} rotation={[0, alongZ ? 0 : -Math.PI / 2, 0]}>
     <mesh geometry={geometry.wall} castShadow receiveShadow>
       {texture ? <TexturedMaterial asset={texture.id} rotation={texture.rotation} color={tintForTexturedFinish(color)} fallbackColor={color} side={DoubleSide} roughness={0.94} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} />
         : <meshStandardMaterial color={color} roughness={0.94} side={DoubleSide} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} />}

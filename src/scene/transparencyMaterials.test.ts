@@ -49,4 +49,19 @@ describe('temporary object transparency', () => {
     roof.visible = true; roof.userData.captureSource = 'ghost'
     expect(transparencyRef(mesh)).toBeNull()
   })
+
+  it('targets interior openings separately and ignores invisible picking surfaces', () => {
+    const wall = new Group(); wall.userData.dragTarget = { kind: 'wall', ref: 'wall/1' }
+    const opening = new Group(); opening.userData.dragTarget = { kind: 'opening', ref: 'window/1' }
+    const glass = new Mesh(); const body = new Mesh(); const hit = new Mesh()
+    wall.add(opening, body, hit); opening.add(glass)
+    hit.userData.editorOnly = true
+    expect(transparencyRef(glass)).toBe('window/1')
+    expect(transparencyRef(body)).toBe('wall/1')
+    expect(transparencyRef(hit)).toBeNull()
+    const zero = new Mesh(new BoxGeometry(), new MeshStandardMaterial({ opacity: 0, transparent: true }))
+    const fade = fadeMesh(zero); fade.update()
+    expect(zero.material.opacity).toBe(0)
+    fade.restore()
+  })
 })

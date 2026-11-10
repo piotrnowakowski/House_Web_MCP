@@ -774,3 +774,11 @@ Verified complete off-host database backup: C:\Users\WBW\Documents\ChatGPT\Web_M
 
 
 Four-winder release verified: code bfe5bab21e9e04b1828c4a2b8db89a633232bce7, Architekt 7.11 r15/shared v14, with the prior r14 oak finishes preserved. All 725 tests, four local/four public browser scenarios, exact assets/shared readback and unchanged archived projects passed. Complete off-host database backup and rollback are recorded in project-data/architekt-7-11/README.md.
+
+## Temporary transparency controls — 10 November 2026
+
+Both the plot and interior views expose **Przezroczystość**: enable it, then click/tap an obstruction to see through that individual element. Repeated picks reach objects behind faded surfaces. **Przywróć widoczność** restores all materials and shadows; Esc ends picking. The effect is temporary, shared between views and cleared on reload or project change. It does not modify project data or edit history. Interior walls, openings, furniture, stairs, floors, roof windows and ceilings have separate semantic targets; invisible editing hit areas are excluded. Mobile controls occupy their own row below the save bar.
+
+Source state: actual Chrome Default and Profile 1, captured separately for localhost/HTTP/HTTPS into ignored `tmp/transparency-release-20261110/`; 39 workspace records compared by their published baselines. One independent historical Paulina edit is preserved. All six shared workspaces captured read-only. Architekt 7.11 canonical r15 matches shared v14 exactly; this release changes no project geometry, finishes, deletions or migration baseline.
+
+Validation: 726 tests across 131 files; TypeScript/frontend/API builds; release secret scan; six browser scenarios covering exterior, desktop/touch interior, cathedral ceiling and view switching, material restoration, no project/history changes, and direct mouse/touch manipulation. Mobile screenshots verified that neither transparency button overlaps the save bar. Browser and recovery evidence: `tmp/transparency-release-20261110/`.

@@ -3,7 +3,9 @@ import { useRenderQuality } from '../scene/renderingPreferences'
 import { RenderingControls } from '../scene/RenderingControls'
 import { isEnvelopeWall } from '../domain/interiorLayout'
 import { randomId } from '../domain/randomId'
-import { Canvas } from '@react-three/fiber'
+import { Canvas, events } from '@react-three/fiber'
+import { TransparencyControls } from '../TransparencyControls'
+import { ObjectTransparency } from '../scene/ObjectTransparency'
 import { Suspense, useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import {
   ArrowLeft,
@@ -61,6 +63,8 @@ type Panel = 'catalog' | 'wall' | 'edit' | 'more' | 'review' | 'stairs' | null
 
 export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack: () => void; approval: ReactNode; initialStoreyRef?: string }) {
   const quality = useRenderQuality()
+  const transparencyMode = useStudioStore(s => s.transparencyMode)
+  useEffect(() => () => useStudioStore.getState().setTransparencyMode(false), [])
   const captureScene = useRef<(() => Promise<Blob | null>) | null>(null)
   const project = useStudioStore((s) => s.project)
   const toast = useStudioStore((s) => s.toast)
@@ -175,6 +179,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
   const base = { type: 'interior.update' as const, buildingRef: building?.ref, storeyRef: storey?.ref }
   const put = (value: InteriorItem): ProjectCommand => ({ ...base, action: 'put', item: value })
   const clearTool = () => {
+    useStudioStore.getState().setTransparencyMode(false)
     setMoveMode(false)
     setGhost(null)
     setReplacing(null)
@@ -487,6 +492,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
       >
         <section className={`interior-stage ${ghost ? 'is-placing' : ''}`} aria-label="Widok kondygnacji">
           <ViewportBoundary><Canvas
+            events={state => ({ ...events(state), filter: hits => useStudioStore.getState().transparencyMode ? [] : hits })}
             frameloop="demand"
             shadows={quality !== 'fast'}
             dpr={quality === 'detailed' ? [1, compact ? 1.5 : 2] : 1}
@@ -506,7 +512,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
               gl.domElement.tabIndex = 0
             }}
           >
-            <RendererLifecycle /><Suspense fallback={null}>
+            <RendererLifecycle /><ObjectTransparency /><Suspense fallback={null}>
               <InteriorScene
                 projectRef={project.ref}
                 key={`${building.ref}/${storey.ref}`}
@@ -536,7 +542,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                   return saved
                 }}
                 onNotice={tell}
-                interactionDisabled={!!confirmationRef}
+                interactionDisabled={!!confirmationRef || transparencyMode}
                 selectOnly={multi}
                 touchMoveEnabled={!compact || moveMode}
                 onHover={(point) => {
@@ -635,6 +641,10 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
               ))}
               {stairVariant && <button aria-pressed={panel === 'stairs'} onClick={() => { clearTool(); setPanel('stairs'); setExpanded(true) }}>Schody</button>}
             </nav>
+            <div className="interior-transparency">
+              <TransparencyControls disabled={!!confirmationRef} onActivate={() => { clearTool(); setSelectedRefs([]); setPanel(null) }} />
+              {transparencyMode && <span role="status">Wskaż element, aby przez niego zajrzeć.</span>}
+            </div>
             {compact && <nav className="interior-mobile-history" aria-label="Historia zmian">
               <button aria-label="Cofnij" title="Cofnij (Ctrl+Z)" disabled={!history.length || mode !== 'select' || !!ghost || !!confirmationRef} onClick={() => useStudioStore.getState().undo()}><Undo2 size={18} /><span>Cofnij</span></button>
               <button aria-label="Ponów" title="Ponów (Ctrl+Shift+Z)" disabled={!future.length || mode !== 'select' || !!ghost || !!confirmationRef} onClick={() => useStudioStore.getState().redo()}><Redo2 size={18} /></button>

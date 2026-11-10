@@ -6,7 +6,7 @@ import { WinderStaircase } from './WinderStaircase'
 
 export function Staircase({ stairs, rise, base, plan, opening, upperPlan = false }: { stairs: StairModel; rise: number; base: number; plan: boolean; opening?: Polygon2; upperPlan?: boolean }) {
   if (stairs.uTurn?.winders) return <WinderStaircase {...{stairs,rise,base,plan,opening,upperPlan}} />
-  if (!stairs.uTurn) return <group position={[stairs.start.x, plan ? .03 : base, stairs.start.z]}>
+  if (!stairs.uTurn) return <group userData={{ semanticRef: stairs.ref }} position={[stairs.start.x, plan ? .03 : base, stairs.start.z]}>
     {Array.from({ length: stairs.steps }, (_, i) => {
       const h = plan ? .035 : rise * (stairs.steps - i) / stairs.steps
       return <mesh key={i} position={[(i + .5) * stairs.runM / stairs.steps, h / 2, stairs.widthM / 2]} castShadow receiveShadow><boxGeometry args={[stairs.runM / stairs.steps - .012, h, stairs.widthM]} /><meshStandardMaterial color={i % 2 ? '#b99365' : '#c49c6b'} roughness={.8} /></mesh>
@@ -32,7 +32,7 @@ export function Staircase({ stairs, rise, base, plan, opening, upperPlan = false
     const returning = index >= 2
     return surfaces.slice(1).filter(surface => (surface.z > width) === returning).map(surface => [surface.x, surface.top + .9, z] as [number, number, number])
   })
-  return <group position={[stairs.start.x, plan && !belowSlabPlan ? .03 : base, stairs.start.z]}>
+  return <group userData={{ semanticRef: stairs.ref }} position={[stairs.start.x, plan && !belowSlabPlan ? .03 : base, stairs.start.z]}>
     <group position-z={mirrored ? depth : 0} scale-z={mirrored ? -1 : 1}>
     {surfaces.map((surface, i) => <mesh key={i} position={[surface.x, plan ? belowSlabPlan ? surface.top-.0175 : .02 : surface.top-.04, surface.z]} castShadow receiveShadow>
       <boxGeometry args={[surface.width - (i && !stairs.finish?.closedRisers ? .008 : 0), plan ? .035 : .08, surface.depth]} /><meshStandardMaterial color={color ?? (i ? '#bd9365' : '#c49c6b')} roughness={.8} />
