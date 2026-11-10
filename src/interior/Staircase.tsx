@@ -2,8 +2,10 @@ import { Line } from '@react-three/drei'
 import { uStairExitGuards, uStairLayout, uStairSurfaces } from '../domain/stairs'
 import type { Polygon2, StairModel } from '../domain/types'
 import { GlassStairRails } from './GlassStairRails'
+import { WinderStaircase } from './WinderStaircase'
 
 export function Staircase({ stairs, rise, base, plan, opening, upperPlan = false }: { stairs: StairModel; rise: number; base: number; plan: boolean; opening?: Polygon2; upperPlan?: boolean }) {
+  if (stairs.uTurn?.winders) return <WinderStaircase {...{stairs,rise,base,plan,opening,upperPlan}} />
   if (!stairs.uTurn) return <group position={[stairs.start.x, plan ? .03 : base, stairs.start.z]}>
     {Array.from({ length: stairs.steps }, (_, i) => {
       const h = plan ? .035 : rise * (stairs.steps - i) / stairs.steps

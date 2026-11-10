@@ -1,3 +1,9 @@
+# Four-winder release — 10 November 2026
+
+Architekt 7.11 r13 selects 19 × 17.1053 cm rises with four balanced winders, 28 cm straight goings and 397 × 200 cm footprint. The stair selector retains both existing 7.11 layouts and cabinet on/off. New-layout cabinet fronts reach 292 cm; the usable carcass is 240 cm high. See project-data/architekt-7-11/README.md for data provenance and geometry limitations.
+
+The sections below retain previous release history.
+
 # Current stair choices — 10 November 2026
 
 Only **7.11 9+9** and **7.11 12+6** are offered, with cabinet on/off. Classic 9+9 has been removed from the selector at the user's request. Canonical project r12 and shared v12 are unchanged. Details: project-data/architekt-7-11/README.md.

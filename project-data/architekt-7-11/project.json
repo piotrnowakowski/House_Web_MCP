@@ -3,8 +3,8 @@
   "ref": "project/architekt-7-11",
   "name": "architekt 7.11",
   "units": "metric",
-  "revision": 12,
-  "updatedAt": "2026-11-10T12:19:50.329Z",
+  "revision": 13,
+  "updatedAt": "2026-11-10T14:09:48.597Z",
   "site": {
     "boundary": [
       {
@@ -2279,8 +2279,8 @@
           "heightM": 0.32,
           "rotationDegrees": 270,
           "color": "#202427",
-          "cabinetry": "sink-insert",
-          "elevationM": 0.92
+          "elevationM": 0.92,
+          "cabinetry": "sink-insert"
         },
         {
           "ref": "interior/reference-counter",
@@ -2803,37 +2803,38 @@
           "cabinetry": "tall"
         },
         {
+          "ref": "interior/architekt-711/stair-junction-filler",
           "catalogId": "kitchen-counter",
           "storeyRef": "storey/reference-ground",
-          "depthM": 0.6,
-          "rotationDegrees": 90,
-          "color": "#202427",
-          "ref": "interior/architekt-711/stair-junction-filler",
           "name": "Łącznik zabudowy przy schodach",
           "position": {
             "x": -2.595,
             "z": -2.23
           },
           "widthM": 0.25,
+          "depthM": 0.6,
           "heightM": 2.92,
+          "rotationDegrees": 90,
+          "color": "#202427",
           "cabinetry": "tall"
         },
         {
+          "ref": "interior/architekt-711/under-stair-cabinet",
           "catalogId": "kitchen-counter",
           "storeyRef": "storey/reference-ground",
-          "depthM": 0.6,
-          "rotationDegrees": 90,
-          "color": "#202427",
-          "ref": "interior/architekt-711/under-stair-cabinet",
-          "name": "Zabudowa pod górnym biegiem schodów",
+          "name": "Schody ukryte za frontami do sufitu",
           "position": {
             "x": -2.595,
-            "z": -1.63
+            "z": -1.62
           },
-          "widthM": 0.95,
+          "widthM": 0.97,
+          "depthM": 0.6,
           "heightM": 2.4,
+          "rotationDegrees": 90,
+          "color": "#202427",
           "cabinetry": "under-stair",
-          "cabinetBackHeightM": 1.995
+          "cabinetBackHeightM": 2.4,
+          "cabinetFrontHeightM": 2.92
         },
         {
           "ref": "interior/architekt-711/fireplace",
@@ -2875,13 +2876,19 @@
             "x": -4.585,
             "z": -2.085
           },
-          "runM": 2.16,
+          "runM": 2.8,
           "widthM": 0.95,
-          "steps": 18,
+          "steps": 19,
           "uTurn": {
-            "landingDepthM": 0.97,
+            "landingDepthM": 1.17,
             "gapM": 0.1,
-            "entrySide": "max-z"
+            "lowerSteps": 11,
+            "entrySide": "max-z",
+            "winders": {
+              "count": 4,
+              "innerExtensionM": 0.16,
+              "walkingGoingM": 0.285
+            }
           },
           "finish": {
             "treadColor": "#F0EEE9",
@@ -3073,8 +3080,16 @@
                 "z": -2.085
               },
               {
-                "x": -1.455,
+                "x": -2.295,
                 "z": -2.085
+              },
+              {
+                "x": -2.295,
+                "z": -1.135
+              },
+              {
+                "x": -1.455,
+                "z": -1.135
               },
               {
                 "x": -1.455,
@@ -3478,6 +3493,20 @@
           "locked": false
         },
         {
+          "faceFinishes": {
+            "left": {
+              "presetId": "warm-white",
+              "color": "#202427",
+              "rotationDegrees": 0,
+              "tileM": 1
+            },
+            "right": {
+              "presetId": "warm-white",
+              "color": "#202427",
+              "rotationDegrees": 0,
+              "tileM": 1
+            }
+          },
           "ref": "wall/architekt/correction/0/kitchen-pantry/3",
           "start": {
             "x": -2.955,
@@ -3492,6 +3521,17 @@
           "heightM": 2.92,
           "openings": [
             {
+              "concealed": {
+                "faceOffsetM": -0.65,
+                "startFillerM": 0.0405,
+                "endFillerM": 0.0205
+              },
+              "finish": {
+                "presetId": "warm-white",
+                "color": "#202427",
+                "rotationDegrees": 0,
+                "tileM": 1
+              },
               "hinge": "left",
               "swing": "out",
               "ref": "opening/architekt-711/pantry",
@@ -3500,18 +3540,7 @@
               "offsetM": 0.3999999999999999,
               "widthM": 0.799,
               "heightM": 2.18,
-              "sillM": 0,
-              "finish": {
-                "presetId": "warm-white",
-                "color": "#202427",
-                "rotationDegrees": 0,
-                "tileM": 1
-              },
-              "concealed": {
-                "faceOffsetM": -0.65,
-                "startFillerM": 0.0405,
-                "endFillerM": 0.0205
-              }
+              "sillM": 0
             }
           ],
           "finish": {
@@ -3519,21 +3548,7 @@
             "colorHex": "#E9E5DC",
             "textureId": "none"
           },
-          "locked": false,
-          "faceFinishes": {
-            "left": {
-              "presetId": "warm-white",
-              "color": "#202427",
-              "rotationDegrees": 0,
-              "tileM": 1
-            },
-            "right": {
-              "presetId": "warm-white",
-              "color": "#202427",
-              "rotationDegrees": 0,
-              "tileM": 1
-            }
-          }
+          "locked": false
         },
         {
           "ref": "wall/architekt/correction/0/kitchen-pantry/4",
@@ -5759,6 +5774,43 @@
               "roof/reference/front-barn",
               "roof/reference/rear-barn"
             ]
+          }
+        ]
+      },
+      "stairCabinetVariants": {
+        "open-9-9": [
+          {
+            "ref": "interior/architekt-711/stair-junction-filler",
+            "catalogId": "kitchen-counter",
+            "storeyRef": "storey/reference-ground",
+            "name": "Łącznik zabudowy przy schodach",
+            "position": {
+              "x": -2.595,
+              "z": -2.23
+            },
+            "widthM": 0.25,
+            "depthM": 0.6,
+            "heightM": 2.92,
+            "rotationDegrees": 90,
+            "color": "#202427",
+            "cabinetry": "tall"
+          },
+          {
+            "ref": "interior/architekt-711/under-stair-cabinet",
+            "catalogId": "kitchen-counter",
+            "storeyRef": "storey/reference-ground",
+            "name": "Zabudowa pod górnym biegiem schodów",
+            "position": {
+              "x": -2.595,
+              "z": -1.63
+            },
+            "widthM": 0.95,
+            "depthM": 0.6,
+            "heightM": 2.4,
+            "rotationDegrees": 90,
+            "color": "#202427",
+            "cabinetry": "under-stair",
+            "cabinetBackHeightM": 1.995
           }
         ]
       }

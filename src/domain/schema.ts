@@ -127,11 +127,11 @@ const RoofJunctionSchema = z.object({
   segmentRefs: z.tuple([z.string().min(1), z.string().min(1)]),
 })
 const BuildingSchema = z.object({
-  stairCabinetVariants: z.object({ 'open-9-9': z.array(InteriorItemSchema).optional(), 'open-12-6': z.array(InteriorItemSchema).optional(), 'classic-9-9': z.array(InteriorItemSchema).optional() }).optional(),
+  stairCabinetVariants: z.object({ 'open-9-9': z.array(InteriorItemSchema).optional(), 'open-12-6': z.array(InteriorItemSchema).optional(), 'classic-9-9': z.array(InteriorItemSchema).optional(), 'winder-19-28': z.array(InteriorItemSchema).optional() }).optional(),
   designStatus: z.literal('concept').optional(),
   interiorSource: z.object({ id: z.string().min(1), notes: z.array(z.string()) }).optional(),
   furniture: z.array(InteriorItemSchema).optional(),
-  stairs: z.array(z.object({ ref: z.string().min(1), fromStoreyRef: z.string().min(1), toStoreyRef: z.string().min(1), start: Vec2Schema, runM: z.number().positive(), widthM: z.number().positive(), steps: z.number().int().min(2).max(40), uTurn: z.object({ landingDepthM: z.number().positive(), gapM: z.number().nonnegative(), lowerSteps: z.number().int().min(2).max(38).optional(), entrySide: z.enum(['min-z', 'max-z']).optional() }).optional(), finish: z.object({ treadColor: z.string().regex(/^#[0-9a-fA-F]{6}$/), closedRisers: z.boolean(), railing: z.enum(['metal', 'glass']) }).optional() })).optional(),
+  stairs: z.array(z.object({ ref: z.string().min(1), fromStoreyRef: z.string().min(1), toStoreyRef: z.string().min(1), start: Vec2Schema, runM: z.number().positive(), widthM: z.number().positive(), steps: z.number().int().min(2).max(40), uTurn: z.object({ landingDepthM: z.number().positive(), gapM: z.number().nonnegative(), lowerSteps: z.number().int().min(2).max(38).optional(), entrySide: z.enum(['min-z', 'max-z']).optional(), winders: z.object({ count: z.literal(4), innerExtensionM: z.number().positive(), walkingGoingM: z.number().min(.25).max(.4) }).optional() }).optional(), finish: z.object({ treadColor: z.string().regex(/^#[0-9a-fA-F]{6}$/), closedRisers: z.boolean(), railing: z.enum(['metal', 'glass']) }).optional() })).optional(),
   ref: z.string().min(1), name: z.string().min(1), kind: z.enum(['house', 'garage']), architecturalStyle: z.enum(['classic', 'futuristic', 'barn']),
   garageMode: z.enum(['integrated', 'attached']).optional(), position: Vec2Schema, rotationDegrees: z.number().finite(), storeys: z.array(StoreySchema).min(1),
   slabs: z.array(SlabSchema).min(1), walls: z.array(WallSchema), spaces: z.array(SpaceSchema),

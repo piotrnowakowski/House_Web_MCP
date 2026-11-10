@@ -105,12 +105,12 @@ export interface BuildingModel {
 export interface StairModel {
   ref: string; fromStoreyRef: string; toStoreyRef: string; start: Vec2; runM: number; widthM: number; steps: number
   /** runM is the lower flight's horizontal going; steps counts all risers. Omitted lowerSteps means equal flights. */
-  uTurn?: { landingDepthM: number; gapM: number; lowerSteps?: number; entrySide?: 'min-z' | 'max-z' }
+  uTurn?: { landingDepthM: number; gapM: number; lowerSteps?: number; entrySide?: 'min-z' | 'max-z'; winders?: { count: 4; innerExtensionM: number; walkingGoingM: number } }
   finish?: { treadColor: string; closedRisers: boolean; railing: 'metal' | 'glass' }
 }
-export type StairVariant = 'open-9-9' | 'open-12-6' | 'classic-9-9'
+export type StairVariant = 'open-9-9' | 'open-12-6' | 'classic-9-9' | 'winder-19-28'
 export type InteriorCatalogId = 'fireplace' | 'oak-platform-bed' | 'oak-nightstand' | 'wool-rug' | 'brass-sconce' | 'oak-side-table' | 'boucle-chair' | 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'thermal-buffer' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'compact-freestanding-bathtub' | 'bathroom-step-cabinet' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car' | 'camper'
-export interface InteriorItem { ref: string; catalogId: InteriorCatalogId; storeyRef: string; name: string; position: Vec2; widthM: number; depthM: number; heightM: number; rotationDegrees: number; color: string; productId?: string; variantId?: string; elevationM?: number; groupRef?: string; locked?: boolean; cabinetry?: 'tall' | 'oven-tower' | 'under-stair' | 'base' | 'sink' | 'sink-insert' | 'island' | 'hob'; cabinetBackHeightM?: number; seatingOverhangM?: number; seatingWidthM?: number; seatingOffsetM?: number; sofaModuleDepthM?: number }
+export interface InteriorItem { ref: string; catalogId: InteriorCatalogId; storeyRef: string; name: string; position: Vec2; widthM: number; depthM: number; heightM: number; rotationDegrees: number; color: string; productId?: string; variantId?: string; elevationM?: number; groupRef?: string; locked?: boolean; cabinetry?: 'tall' | 'oven-tower' | 'under-stair' | 'base' | 'sink' | 'sink-insert' | 'island' | 'hob'; cabinetBackHeightM?: number; cabinetFrontHeightM?: number; seatingOverhangM?: number; seatingWidthM?: number; seatingOffsetM?: number; sofaModuleDepthM?: number }
 export type InteriorCommand = { type: 'interior.update'; buildingRef: string; storeyRef: string } & (
   { action: 'stairs'; layout: StairVariant; cabinet: boolean } |
   { action: 'put'; item: InteriorItem } | { action: 'remove'; itemRef: string } |

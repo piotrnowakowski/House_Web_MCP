@@ -1,12 +1,14 @@
 import { atticClearanceAt } from './attic'
 import { pointInPolygon, pointOnPolygonBoundary } from './geometry'
 import type { BuildingModel, Polygon2, StairModel, Vec2 } from './types'
+import { winderLayout, winderSurfaces } from './winderStairs'
 
-export interface StairSurface { x: number; z: number; width: number; depth: number; top: number }
+export interface StairSurface { x: number; z: number; width: number; depth: number; top: number; polygon?: Polygon2 }
 
 /** Both flights share a going and riser; only their number of risers may differ. */
 export function uStairLayout(stairs: StairModel, rise: number) {
   if (!stairs.uTurn) return null
+  if (stairs.uTurn.winders) return winderLayout(stairs, rise)
   const lowerSteps = stairs.uTurn.lowerSteps ?? stairs.steps / 2
   const upperSteps = stairs.steps - lowerSteps
   if (![lowerSteps, upperSteps].every(n => Number.isInteger(n) && n >= 2)) return null
@@ -18,6 +20,7 @@ export function uStairLayout(stairs: StairModel, rise: number) {
 
 /** Walking surfaces relative to the lower floor and stair start; landings replace a tread. */
 export function uStairSurfaces(stairs: StairModel, rise: number): StairSurface[] {
+  if (stairs.uTurn?.winders) return winderSurfaces(stairs, rise)
   const layout = uStairLayout(stairs, rise)
   if (!stairs.uTurn || !layout) return []
   const { lowerSteps, upperSteps, tread, riser, landingHeight } = layout
@@ -95,14 +98,15 @@ export function uStairHeadroom(building: BuildingModel, stairs: StairModel) {
   const contains = (polygon: Polygon2, point: { x: number; z: number }) => pointInPolygon(point, polygon) || pointOnPolygonBoundary(point, polygon)
   const clearance = uStairSurfaces(stairs, upper.elevationM - lower.elevationM).flatMap(surface => {
     const floor = lower.elevationM + surface.top
-    return [-1, 0, 1].flatMap(dx => [-1, 0, 1].map(dz => {
-      const point = { x: stairs.start.x + surface.x + dx * surface.width / 2, z: stairs.start.z + surface.z + dz * surface.depth / 2 }
+    const points = surface.polygon ?? [-1, 0, 1].flatMap(dx => [-1, 0, 1].map(dz => ({x:surface.x+dx*surface.width/2,z:surface.z+dz*surface.depth/2})))
+    return points.map(p => {
+      const point = { x: stairs.start.x + p.x, z: stairs.start.z + p.z }
       let ceiling = upper.elevationM + atticClearanceAt(building, upper, point)
       for (const slab of building.slabs) {
         if (slab.topElevationM > floor && contains(slab.footprint, point) && !slab.holes?.some(hole => contains(hole, point))) ceiling = Math.min(ceiling, slab.topElevationM - slab.thicknessM)
       }
       return ceiling - floor
-    }))
+    })
   })
   return clearance.length ? Math.min(...clearance) : 0
 }

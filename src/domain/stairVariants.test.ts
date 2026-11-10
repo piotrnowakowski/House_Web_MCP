@@ -51,6 +51,7 @@ for (const { id } of stairVariants) for (const cabinet of [false, true]) it(`per
 
 it('restores edited cabinetry across toggles and layout switches, and undoes the complete change', async () => {
   const p = parseProject(data), house = p.buildings[0]
+  applyStairVariant(house, 'open-9-9', true)
   house.furniture!.find(f => f.ref === stairCabinetRef)!.color = '#334455'
   useStudioStore.setState({ project: p, history: [], future: [], proposals: [], variants: [], draftChangeSets: [], confirmationVariantRef: null })
   useStudioStore.getState().commitCommand(command('classic-9-9', true))
@@ -67,16 +68,16 @@ it('restores edited cabinetry across toggles and layout switches, and undoes the
   expect(loaded.buildings[0].furniture!.filter(f => owned(f.ref))).toHaveLength(2)
 })
 
-it('does not recreate a deleted cabinet or furniture during publication migration', async () => {
+it('preserves deletions and reports an edit-versus-delete conflict for the revised cabinet', async () => {
   const before = parseProject(prior), local = structuredClone(before)
   local.buildings[0].furniture = local.buildings[0].furniture!.filter(f => !owned(f.ref))
   local.landscape.plants.pop()
   await saveWorkspace({ version: 1, project: local, proposals: [], draftChangeSets: [] })
-  expect(await synchronizePublishedProject(parseProject(data), before)).toEqual([])
+  expect(await synchronizePublishedProject(parseProject(data), before)).toEqual(['/buildings/house/main/furniture/interior/architekt-711/under-stair-cabinet'])
   const migrated = (await loadWorkspace(local.ref))!.project
   expect(migrated.buildings[0].furniture).toEqual(local.buildings[0].furniture)
   expect(migrated.landscape).toEqual(local.landscape)
-  expect(await synchronizePublishedProject(parseProject(data), before)).toEqual([])
+  expect(await synchronizePublishedProject(parseProject(data), before)).toEqual(['/buildings/house/main/furniture/interior/architekt-711/under-stair-cabinet'])
   expect((await loadWorkspace(local.ref))!.project).toEqual(migrated)
 })
 

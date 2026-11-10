@@ -2,6 +2,7 @@ import { uStairOpening } from './stairs'
 import type { BuildingModel, InteriorItem, Polygon2, StairModel, StairVariant } from './types'
 
 const knownStairVariants: { id: StairVariant; name: string; description: string }[] = [
+  { id: 'winder-19-28', name: '7.11 · 4 zabiegowe', description: '19 × 17,11 cm · stopnice proste 28 cm · 397 × 200 cm.' },
   { id: 'open-9-9', name: '7.11 · 9 + 9', description: 'Równe biegi, białe stopnie i szklana balustrada.' },
   { id: 'open-12-6', name: '7.11 · 12 + 6', description: 'Dłuższy dolny bieg i więcej podłogi na piętrze.' },
   { id: 'classic-9-9', name: 'Klasyczne · 9 + 9', description: 'Drewno i metal. Wejście od strony kuchni.' },
@@ -16,6 +17,7 @@ export const hasStairCabinet = (building: BuildingModel) => !!building.furniture
 const rectangle: Polygon2 = [{ x: -4.615, z: -.085 }, { x: -4.615, z: -2.085 }, { x: -1.455, z: -2.085 }, { x: -1.455, z: -.085 }]
 const splitOpening: Polygon2 = [{ x: -4.615, z: -.085 }, { x: -4.615, z: -2.085 }, { x: -2.295, z: -2.085 }, { x: -2.295, z: -1.135 }, { x: -1.455, z: -1.135 }, { x: -1.455, z: -.085 }]
 function preset(layout: StairVariant): StairModel {
+  if (layout === 'winder-19-28') return { ref: 'stairs/reference-main', fromStoreyRef: 'storey/reference-ground', toStoreyRef: 'storey/reference-upper', start: { x: -4.585, z: -2.085 }, runM: 2.8, widthM: .95, steps: 19, uTurn: { landingDepthM: 1.17, gapM: .1, lowerSteps: 11, entrySide: 'max-z', winders: { count: 4, innerExtensionM: .16, walkingGoingM: .285 } }, finish: { treadColor: '#F0EEE9', closedRisers: true, railing: 'glass' } }
   const classic = layout === 'classic-9-9'
   return {
     ref: 'stairs/reference-main', fromStoreyRef: 'storey/reference-ground', toStoreyRef: 'storey/reference-upper',
@@ -34,6 +36,7 @@ export function currentStairVariant(building: BuildingModel): StairVariant | nul
     return stairs.fromStoreyRef === p.fromStoreyRef && stairs.toStoreyRef === p.toStoreyRef && stairs.steps === p.steps
       && ['x', 'z'].every(key => Math.abs(stairs.start[key as 'x' | 'z'] - p.start[key as 'x' | 'z']) < 1e-6)
       && Math.abs(stairs.runM - p.runM) < 1e-6 && Math.abs(stairs.widthM - p.widthM) < 1e-6
+      && JSON.stringify(stairs.uTurn?.winders) === JSON.stringify(p.uTurn?.winders)
       && stairs.uTurn?.landingDepthM === p.uTurn!.landingDepthM && stairs.uTurn?.gapM === p.uTurn!.gapM
       && (stairs.uTurn?.lowerSteps ?? 9) === (p.uTurn!.lowerSteps ?? 9)
       && (stairs.uTurn?.entrySide ?? 'min-z') === (p.uTurn!.entrySide ?? 'min-z')
@@ -44,6 +47,10 @@ function defaultCabinet(layout: StairVariant): InteriorItem[] {
   const cabinet: InteriorItem = { ref: stairCabinetRef, catalogId: 'kitchen-counter', storeyRef: 'storey/reference-ground',
     name: 'Zabudowa pod górnym biegiem schodów', position: { x: -2.595, z: layout === 'classic-9-9' ? -.56 : -1.63 },
     widthM: .95, depthM: .6, heightM: 2.4, rotationDegrees: 90, color: '#202427', cabinetry: 'under-stair', cabinetBackHeightM: 1.995 }
+  if (layout === 'winder-19-28') return [
+    { ...cabinet, ref: stairFillerRef, name: 'Łącznik zabudowy przy schodach', position: { x: -2.595, z: -2.23 }, widthM: .25, heightM: 2.92, cabinetry: 'tall', cabinetBackHeightM: undefined },
+    { ...cabinet, name: 'Schody ukryte za frontami do sufitu', position: { x: -2.595, z: -1.62 }, widthM: .97, heightM: 2.4, cabinetBackHeightM: 2.4, cabinetFrontHeightM: 2.92 },
+  ]
   // The reversed flight has no connection to the kitchen's tall units.
   return layout === 'classic-9-9' ? [cabinet] : [
     { ...cabinet, ref: stairFillerRef, name: 'Łącznik zabudowy przy schodach', position: { x: -2.595, z: -2.23 }, widthM: .25, heightM: 2.92, cabinetry: 'tall', cabinetBackHeightM: undefined }, cabinet,
@@ -69,7 +76,7 @@ export function applyStairVariant(building: BuildingModel, layout: StairVariant,
     const next = preset(layout)
     Object.assign(current, next)
     if (!next.finish) delete current.finish
-    slab.holes = slab.holes!.map(hole => hole === opening ? structuredClone(layout === 'open-12-6' ? splitOpening : rectangle) : hole)
+    slab.holes = slab.holes!.map(hole => hole === opening ? structuredClone((layout === 'open-12-6' || layout === 'winder-19-28') ? splitOpening : rectangle) : hole)
   }
   building.furniture = (building.furniture ?? []).filter(item => !owned(item))
   if (cabinet) {

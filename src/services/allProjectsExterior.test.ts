@@ -5,6 +5,7 @@ import { isDeepStrictEqual } from 'node:util'
 import architekt from '../../project-data/architekt/project.json'
 import architektBefore from '../../project-data/architekt/before-exterior-v2.json'
 import architect711 from '../../project-data/architekt-7-11/project.json'
+import architect711Exterior from '../../project-data/architekt-7-11/before-four-winders-r12.json'
 import architect711Before from '../../project-data/architekt-7-11/before-exterior-v2.json'
 import stairs from '../../project-data/architekt-7-11-stairs-12-6/project.json'
 import stairsBefore from '../../project-data/architekt-7-11-stairs-12-6/before-exterior-v2.json'
@@ -39,7 +40,8 @@ const source = parseProject(mpzpV2Before)
 beforeEach(() => { globalThis.indexedDB = new IDBFactory() })
 
 it.each(cases)('$name uses the selected v2 site while preserving its complete house geometry and interior', ({ data, before }) => {
-  const p = parseProject(data), old = parseProject(before), house = p.buildings[0], oldHouse = old.buildings[0]
+  // Isolate the historical exterior publication from the later approved stair update.
+  const p = parseProject(data.ref === architect711.ref ? architect711Exterior : data), old = parseProject(before), house = p.buildings[0], oldHouse = old.buildings[0]
   expect(p.site).toEqual(source.site)
   expect(p.landscape).toEqual(source.landscape)
   expect(house.position).toEqual(source.buildings[0].position)

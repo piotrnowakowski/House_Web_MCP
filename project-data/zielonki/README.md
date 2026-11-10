@@ -753,3 +753,8 @@ At the user's request the Schody selector now offers only 7.11 9+9 and 7.11 12+6
 Verified release: code **438337720a425d3a56989dde852e4fc539d43415**. Canonical **r12** and shared **v12** remain unchanged. All six active/archived shared workspaces match their pre-release snapshots exactly. HTTP/HTTPS health, API and 14 exact frontend asset comparisons passed. All 711 unit tests, TypeScript, frontend/API builds and secret scan passed. Desktop, mobile and a saved-classic compatibility replay each show exactly two choices, no classic button, a working cabinet switch and stable save/reload, locally and on the public release. Browser interactions use isolated local storage with shared writes blocked; API snapshots are checked separately. Actual Chrome Default/Profile 1 captures were compared against their own baselines (15 saved projects, no independent edits).
 
 Complete off-host database backup: 3828945 bytes, SHA256 b0f7abe86f42b43fdb9c7321615a52d958d6077749b87162e12f7e75b1c3df93. Rollback: /root/house-web-mcp/furnished-zielonki/deploy/mikrus/compose.yaml.before-20261110T132708Z. Evidence: tmp/remove-classic-stairs-20261110/; screenshots: output/remove-classic-stairs-20261110/.
+
+
+## 10 November 2026 — Architekt 7.11 four-winder update
+
+Canonical 7.11 r13 adds the selected four-winder option and ceiling-height concealing cabinet fronts. Its prior publication is retained in project-data/architekt-7-11/before-four-winders-r12.json. Source, profile captures, independent-edit decisions, geometry and release verification are documented in that project README. This publication does not edit Zielonki or archived house identities.

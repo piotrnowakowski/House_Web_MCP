@@ -786,6 +786,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                   onChange={event => { clearTool(); commit({ ...base, action: 'stairs', layout: stairVariant, cabinet: event.target.checked }) }} />
                   <span><strong>Szafka pod schodami</strong><small>{hasStairCabinet(building) ? 'Z zabudową pod górnym biegiem' : 'Otwarta przestrzeń pod schodami'}</small></span>
                 </label>
+                {stairVariant === 'winder-19-28' && <p className="interior-note">Cztery stopnie w nawrocie. Fronty do sufitu 292 cm; korpusy szaf 240 cm. Prześwit przy stropie około 224 cm przed wykończeniem. Kształt zabiegu i konstrukcja wymagają opracowania wykonawczego.</p>}
                 {stairVariant === 'classic-9-9' && <p className="interior-note">Przy wejściu od kuchni odstęp do wyspy jest wąski: około 46 cm po przekątnej. To miejsce wymaga uwagi przy wyborze tego układu.</p>}
                 <p className="interior-note">Wybór zapisuje się automatycznie. Przycisk „Cofnij” przywraca poprzednie ustawienie.</p>
               </section>}
