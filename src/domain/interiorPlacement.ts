@@ -25,27 +25,36 @@ export interface PlacementWarning {
   kind: 'overlap' | 'door' | 'circulation' | 'wall'
 }
 
+/** Convex occupied pieces; the editable bounding rectangle also includes the void inside an L. */
+function occupiedFootprints(item: InteriorItem, margin = 0): Polygon2[] {
+  const m = item.catalogId === 'corner-sofa' ? item.sofaModuleDepthM : undefined
+  if (!m) return [interiorCorners({ ...item, widthM: item.widthM + 2 * margin, depthM: item.depthM + 2 * margin })]
+  const a = item.rotationDegrees * Math.PI / 180, c = Math.cos(a), s = Math.sin(a)
+  return [
+    { x: 0, z: (item.depthM - m) / 2, widthM: item.widthM, depthM: m },
+    { x: -(item.widthM - m) / 2, z: -m / 2, widthM: m, depthM: item.depthM - m },
+  ].map(part => interiorCorners({ ...item, widthM: part.widthM + 2 * margin, depthM: part.depthM + 2 * margin,
+    position: { x: item.position.x + part.x * c + part.z * s, z: item.position.z - part.x * s + part.z * c } }))
+}
+
 export function placementWarnings(
   item: InteriorItem,
   building: BuildingModel,
   storey: StoreyModel,
 ): PlacementWarning[] {
   if (item.catalogId === 'wool-rug' || ikeaProduct(item.productId)?.category === 'Rugs') return []
-  const footprint = interiorCorners(item)
+  const footprints = occupiedFootprints(item)
   const warnings: PlacementWarning[] = []
   for (const other of building.furniture ?? []) {
     if (other.ref === item.ref || other.storeyRef !== storey.ref || other.catalogId === 'wool-rug' || ikeaProduct(other.productId)?.category === 'Rugs') continue
     const bottom = Math.max(item.elevationM ?? 0, other.elevationM ?? 0)
     const top = Math.min((item.elevationM ?? 0) + item.heightM, (other.elevationM ?? 0) + other.heightM)
     if (bottom >= top - 0.015) continue
-    const otherFootprint = interiorCorners(other)
-    if (footprintsOverlap(footprint, otherFootprint))
+    const otherFootprints = occupiedFootprints(other)
+    if (footprints.some(footprint => otherFootprints.some(otherFootprint => footprintsOverlap(footprint, otherFootprint))))
       warnings.push({ ref: other.ref, kind: 'overlap', message: `Overlaps ${other.name}.` })
     else if (
-      footprintsOverlap(
-        interiorCorners({ ...item, widthM: item.widthM + 0.6, depthM: item.depthM + 0.6 }),
-        otherFootprint,
-      )
+      occupiedFootprints(item, .3).some(footprint => otherFootprints.some(otherFootprint => footprintsOverlap(footprint, otherFootprint)))
     )
       warnings.push({ ref: other.ref, kind: 'circulation', message: `Less than 30 cm to ${other.name}; check access.` })
   }
@@ -61,7 +70,7 @@ export function placementWarnings(
         local(length, wall.thicknessM / 2),
         local(0, wall.thicknessM / 2),
       ]
-      if (footprintsOverlap(footprint, wallFootprint))
+      if (footprints.some(footprint => footprintsOverlap(footprint, wallFootprint)))
         warnings.push({ ref: wall.ref, kind: 'wall', message: 'Intersects a wall; move the furniture clear of it.' })
     }
     for (const door of wall.openings.filter((opening) => opening.kind === 'door' && !opening.glazed)) {
@@ -78,7 +87,7 @@ export function placementWarnings(
           ),
         ),
       ]
-      if (footprintsOverlap(footprint, sector))
+      if (footprints.some(footprint => footprintsOverlap(footprint, sector)))
         warnings.push({ ref: door.ref, kind: 'door', message: 'Blocks a door swing.' })
     }
   }

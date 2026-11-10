@@ -1,3 +1,7 @@
+## Current interior update — 10 November 2026
+
+Architekt 7.11 wersja 2 canonical r3 retains the requested 320 × 220 cm sofa with its west return, adjusts the dining/coffee tables and lounge chair for access, and enlarges the ground-floor shower to 208 × 90 cm with its opening facing the room. See `project-data/architekt-7-11-v2/README.md` for precise clearances, the narrow stool route and fireplace limitations, recovery captures and release verification.
+
 # Current house deployment
 
 10 November 2026: **architekt 7.11 wersja 2** canonical r2 widens the island to 280 × 110 cm with 38 cm knee space and 65 cm stools. The kitchen working aisle stays 110 cm; appliances, building geometry and other projects are unchanged. Publication verification is recorded in [the project README](../project-data/architekt-7-11-v2/README.md).

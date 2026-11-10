@@ -1,7 +1,7 @@
 # architekt 7.11 wersja 2
 
 Independent project `project/architekt-7-11-v2`, requested on 9 November 2026.
-Canonical revision: 2. The parent `project/architekt-7-11` remains revision 6.
+Canonical revision: 3. The parent `project/architekt-7-11` remains revision 6.
 
 Source: the canonical architekt 7.11 r6 and HTTPS Mikrus shared version 6 matched by content before this fork. The exact parent snapshot is retained as `source-architekt-711-r6.json`; `initial-r1.json` is this variant's immutable first-publication migration baseline.
 
@@ -37,3 +37,21 @@ Validation: 660 unit tests, TypeScript/frontend and API builds pass. Focused che
 Published on Mikrus on 10 November: code `bc6d32899ff5216ba0f1553be9797b9b8ea54c4e`, canonical r2, shared server version 2. HTTP/HTTPS health and API readiness, exact HTML/main/interior/project asset hashes, and fresh desktop/mobile plus captured-record replay with r1 migration/reload pass. All five other shared projects remain identical to their captured snapshots. Inspection of the actual renderer element geometry also confirms 18 empty knee-space probes below the top and the retained cabinet body. Live screenshots and publication records are retained in the primary checkout. Main/GitHub Pages are unchanged.
 
 The verified pre-activation database backup is primary `tmp/house-sync-20261110T004943Z.dump`, 2,243,397 bytes, SHA256 `b50f1a63da50ec96722451608f32663d01c17530d6aee68bc1847d06effb78b9`. Rollback configuration: `compose.yaml.before-20261110T004754Z`.
+
+
+## Sofa orientation and 90 cm shower, 10 November 2026 — canonical r3
+
+The user explicitly retained **320 × 220 cm** and requested the earlier L orientation: the return is on the island/west side, with the long back towards the dining table. The earlier glazing-side proposal was not adopted. The neutral concept is not a selected Vento or other product.
+
+- Sofa ref is retained, rotation 0°, centre x=2.625 / z=-3.630 m. The footprint runs x=1.025–4.225, z=-4.730–-2.530. An optional `sofaModuleDepthM=0.95` creates actual metre-based L geometry, 20 cm backs, approximately 75 cm useful seat depth and a 44 cm seat top. The sketch includes three approximately 70 cm places on the long run, a corner and a return place. Five-person comfort, especially corner knee space, must be assessed on the final manufacturer's configuration. Legacy sofas remain unchanged.
+- Sofa back and dining table move 22 cm towards the entrance relative to their prior positions; the **94.5 cm** nominal chair-envelope gap remains. Table centre z=-0.735. The round coffee table moves to x=2.900 / z=-4.180, leaving 35 cm to the long sofa front and 57.5 cm to its return. The previous lounge chair moves to the office, x=0.400 / z=3.150, rotation 90°, clearing its door swing and other furniture.
+- Access comes from the hall/dining area along the island and around the sofa return. Island edge to sofa is **112 cm**, but only **60 cm** remains behind the stools in their current positions; occupied or pulled-out stools further constrain this route. The **39 cm** gap at the east end is explicitly not a circulation route. This is the unavoidable compromise of the requested width and orientation, not a claim of two 90 cm side passages. The north terrace opening is approached from inside the L; the southern terrace doors are reached from the dining area.
+- Sofa return to fireplace nominal enclosure: **92.5 cm**, approximately **91.3 cm** allowing for the protruding grille. This is a geometry measurement, not a fire-clearance approval. Check the selected insert's manual and actual terrace-door opening system before execution. The existing 110 cm kitchen working aisle, wider island and 38 cm knee recess remain unchanged.
+- Placement checks use both occupied convex pieces for these explicit L modules, allowing the coffee table in the inner void while retaining collision checks with either run, walls and door sweeps. Other furniture retains its prior footprints.
+- Ground-floor shower becomes **208 × 90 cm**, retaining its rear edge z=4.270; centre moves from z=3.895 to 3.820. Rotation changes to 180° so the open side faces the bathroom instead of the rear wall. Front edge z=3.370 leaves **60.5 cm** to the WC envelope and **65.5 cm** to the vanity envelope. The entrance door swing remains clear. Final glazing, drainage and waterproofing require the bathroom detail; the concept has no outward-opening shower leaf.
+
+Source origin: https://natan203-20203.mikrus.cloud, shared server version 2, captured 10 November 2026. The shared project exactly matched canonical r2. Both actual Chrome profiles were captured independently under primary `tmp/sofa-shower-20261110/`; neither contains this project. Other Chrome profiles contain no relevant house origin, and the current Codex browser partition has no IndexedDB directory. Historical working copies in other projects remain untouched. All six shared projects have independent recovery snapshots. `before-shower-90-r2.json` retains the previous publication; immutable `initial-r1.json` is unchanged.
+
+Only five furniture entities change in this revision: sofa, dining table, coffee table, lounge chair and ground-floor shower. House, roof, stairs, slabs, openings, garden, appliances, island, stools and the five other shared projects are retained. No roof constraints are affected. Drawings and verification evidence: primary `output/sofa-shower-20261110/` and ignored `tmp/sofa-shower-20261110/`.
+
+Local verification: 665 tests across 123 files pass, including collision checks in four sofa rotations and r1/r2 migration. A local deletion of an unchanged item survives; edit-versus-delete on the relocated chair correctly retains the working copy and a separate published copy. TypeScript/frontend/API builds and the 48-file release secret scan pass. The actual sofa renderer contains five seat surfaces at 44 cm and a clear inner recess. Fresh desktop/mobile and captured-record replay seeded with r2 load the canonical r3 and preserve it across reload without page errors. Local sofa, shower and floor views were inspected.

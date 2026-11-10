@@ -4,7 +4,9 @@ import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/architekt-7-11-v2/project.json'
 import source from '../../project-data/architekt-7-11-v2/source-architekt-711-r6.json'
 import previous from '../../project-data/architekt-7-11-v2/before-island-seating-r1.json'
+import previousLayout from '../../project-data/architekt-7-11-v2/before-shower-90-r2.json'
 import { InteriorItemSchema, interiorCorners } from '../domain/interior'
+import { placementWarnings } from '../domain/interiorPlacement'
 import { polygonBounds } from '../domain/geometry'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
@@ -13,14 +15,14 @@ import { ARCHITEKT_711_V2_REF, synchronizePublishedArchitekt711V2 } from './publ
 
 beforeEach(() => { globalThis.indexedDB = new IDBFactory() })
 
-it('preserves the r6 house outside the removed cabinet extension and approved island seating', () => {
+it('preserves the r6 house outside the approved furniture and shower changes', () => {
   const p = parseProject(data), before = parseProject(source)
   expect(p.ref).toBe(ARCHITEKT_711_V2_REF)
   expect(p.name).toBe('architekt 7.11 wersja 2')
-  expect(p.revision).toBe(2)
+  expect(p.revision).toBe(3)
   expect(validateProject(p).filter(i => i.severity === 'error')).toEqual([])
   const removed = ['interior/architekt-711/under-stair-cabinet', 'interior/architekt-711/stair-junction-filler']
-  const revised = ['interior/reference-island', 'interior/reference-stool-one', 'interior/reference-stool-two']
+  const revised = ['interior/reference-island', 'interior/reference-stool-one', 'interior/reference-stool-two', 'interior/reference-sofa', 'interior/reference-dining', 'interior/reference-coffee', 'interior/architekt/lounge-chair', 'interior/carport-study/shower']
   expect(p.buildings[0].furniture!.filter(f => !revised.includes(f.ref))).toEqual(before.buildings[0].furniture!.filter(f => !removed.includes(f.ref) && !revised.includes(f.ref)))
   expect(p.buildings[0].furniture!.some(f => f.cabinetry === 'under-stair')).toBe(false)
   const actual = structuredClone(p)
@@ -78,7 +80,7 @@ it('migrates the published r1 seating, retaining independent furniture and tree 
   const old = parseProject(previous)
   await synchronizePublishedProject(old, old)
   const saved = (await loadWorkspace(old.ref))!
-  const deleted = saved.project.buildings[0].furniture!.find(f => f.catalogId === 'armchair')!.ref
+  const deleted = 'interior/office-c5/chair'
   saved.project.buildings[0].furniture = saved.project.buildings[0].furniture!.filter(f => f.ref !== deleted)
   saved.project.landscape.plants.pop()
   await saveWorkspace(saved)
@@ -96,4 +98,81 @@ it('does not recreate a deleted version 2 when the launcher initializes again', 
   await deleteWorkspace(ARCHITEKT_711_V2_REF)
   await synchronizePublishedArchitekt711V2()
   expect(await loadWorkspace(ARCHITEKT_711_V2_REF)).toBeNull()
+})
+
+it('keeps the enlarged shower clear of fittings and the entry door, with its rear edge fixed', () => {
+  const b = parseProject(data).buildings[0], old = parseProject(previousLayout).buildings[0]
+  const shower = b.furniture!.find(f => f.ref === 'interior/carport-study/shower')!
+  const before = old.furniture!.find(f => f.ref === shower.ref)!
+  const bounds = polygonBounds(interiorCorners(shower))
+  expect([shower.widthM, shower.depthM]).toEqual([2.08, .9])
+  expect(shower.rotationDegrees).toBe(180) // Open +z face of the generic fixture points into the room.
+  expect(bounds.maxZ).toBeCloseTo(polygonBounds(interiorCorners(before)).maxZ)
+  expect(placementWarnings(shower, b, b.storeys![0])).toEqual([])
+  const wc = b.furniture!.find(f => f.ref === 'interior/carport-study/wc')!
+  expect(bounds.minZ - polygonBounds(interiorCorners(wc)).maxZ).toBeCloseTo(.605)
+})
+
+it('retains the left return, requested sofa envelope and measured routes', () => {
+  const b = parseProject(data).buildings[0]
+  const item = (ref: string) => b.furniture!.find(f => f.ref === ref)!
+  const sofa = item('interior/reference-sofa'), bounds = polygonBounds(interiorCorners(sofa))
+  expect([sofa.widthM, sofa.depthM, sofa.rotationDegrees, sofa.sofaModuleDepthM]).toEqual([3.2, 2.2, 0, .95])
+  expect(bounds.minX - polygonBounds(interiorCorners(item('interior/reference-island'))).maxX).toBeCloseTo(1.12)
+  expect(polygonBounds(interiorCorners(item('interior/reference-dining'))).minZ - bounds.maxZ).toBeCloseTo(.945)
+  expect(bounds.minZ - polygonBounds(interiorCorners(item('interior/architekt-711/fireplace'))).maxZ).toBeCloseTo(.925)
+  // This gap is intentionally NOT claimed as a circulation route.
+  expect(4.615 - bounds.maxX).toBeCloseTo(.39)
+  expect(placementWarnings(sofa, b, b.storeys![0]).filter(w => w.kind !== 'circulation')).toEqual([])
+  expect(placementWarnings(item('interior/architekt/lounge-chair'), b, b.storeys![0]).filter(w => w.kind !== 'circulation')).toEqual([])
+  expect(InteriorItemSchema.safeParse({...sofa, widthM: 1.2}).success).toBe(false)
+  expect(InteriorItemSchema.safeParse({...sofa, catalogId: 'bed'}).success).toBe(false)
+})
+
+it('detects collisions with either sofa run, but leaves its inner void usable after rotation', () => {
+  for (const rotationDegrees of [0, 90, 180, 270]) {
+    const b = parseProject(data).buildings[0], storey = b.storeys![0]
+    const sofa = b.furniture!.find(f => f.ref === 'interior/reference-sofa')!
+    const table = b.furniture!.find(f => f.ref === 'interior/reference-coffee')!
+    Object.assign(sofa, { position: { x: 0, z: 0 }, rotationDegrees })
+    Object.assign(table, { widthM: .3, depthM: .3 })
+    b.furniture = [sofa, table]; b.walls = []
+    const a = rotationDegrees * Math.PI / 180
+    for (const [x, z, overlaps] of [[.5, -.5, false], [-1.2, -.5, true], [.5, .8, true]] as const) {
+      table.position = { x: x * Math.cos(a) + z * Math.sin(a), z: -x * Math.sin(a) + z * Math.cos(a) }
+      expect(placementWarnings(sofa, b, storey).some(w => w.kind === 'overlap')).toBe(overlaps)
+      expect(placementWarnings(table, b, storey).some(w => w.kind === 'overlap')).toBe(overlaps)
+    }
+  }
+})
+
+it('migrates r2 furniture and shower while preserving independent edits and deletions', async () => {
+  const old = parseProject(previousLayout)
+  await synchronizePublishedProject(old, old)
+  const saved = (await loadWorkspace(old.ref))!
+  saved.project.landscape.plants.pop()
+  saved.project.buildings[0].furniture = saved.project.buildings[0].furniture!.filter(f => f.ref !== 'interior/office-c5/chair')
+  saved.project.name += ' user name'
+  await saveWorkspace(saved)
+  expect(await synchronizePublishedArchitekt711V2()).toEqual([])
+  const result = (await loadWorkspace(old.ref))!
+  expect(result.project.landscape).toEqual(saved.project.landscape)
+  expect(result.project.name).toBe(saved.project.name)
+  expect(result.project.buildings[0].furniture!.some(f => f.ref === 'interior/office-c5/chair')).toBe(false)
+  expect(result.project.buildings[0].furniture!.find(f => f.ref === 'interior/reference-sofa')?.sofaModuleDepthM).toBe(.95)
+  expect(result.project.buildings[0].furniture!.find(f => f.ref === 'interior/carport-study/shower')?.depthM).toBe(.9)
+  await synchronizePublishedArchitekt711V2()
+  expect((await loadWorkspace(old.ref))!.project).toEqual(result.project)
+})
+
+it('preserves the working copy when a user deleted the chair that this publication relocates', async () => {
+  const old = parseProject(previousLayout)
+  await synchronizePublishedProject(old, old)
+  const saved = (await loadWorkspace(old.ref))!
+  saved.project.buildings[0].furniture = saved.project.buildings[0].furniture!.filter(f => f.ref !== 'interior/architekt/lounge-chair')
+  await saveWorkspace(saved)
+  expect(await synchronizePublishedArchitekt711V2()).toEqual(['/buildings/house/main/furniture/interior/architekt/lounge-chair'])
+  expect((await loadWorkspace(old.ref))!).toEqual(saved)
+  const publishedCopyRef = `${old.ref}/published-${data.revision}-${data.updatedAt.replace(/\D/g, '')}`
+  expect((await loadWorkspace(publishedCopyRef))!.project.buildings[0].furniture).toEqual(parseProject(data).buildings[0].furniture)
 })
