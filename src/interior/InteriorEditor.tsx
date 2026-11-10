@@ -61,7 +61,7 @@ import { currentStairVariant, hasStairCabinet, stairVariants } from '../domain/s
 
 type Panel = 'catalog' | 'wall' | 'edit' | 'more' | 'review' | 'stairs' | null
 
-export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack: () => void; approval: ReactNode; initialStoreyRef?: string }) {
+export function InteriorEditor({ onBack, approval, initialStoreyRef, onOpenSunStudy }: { onBack: () => void; approval: ReactNode; initialStoreyRef?: string; onOpenSunStudy?: (storeyRef: string) => void }) {
   const quality = useRenderQuality()
   const transparencyMode = useStudioStore(s => s.transparencyMode)
   useEffect(() => () => useStudioStore.getState().setTransparencyMode(false), [])
@@ -639,6 +639,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                   {floor.name}
                 </button>
               ))}
+              {onOpenSunStudy && <button onClick={() => onOpenSunStudy(storey.ref)}>☀ Światło 360°</button>}
               {stairVariant && <button aria-pressed={panel === 'stairs'} onClick={() => { clearTool(); setPanel('stairs'); setExpanded(true) }}>Schody</button>}
             </nav>
             <div className="interior-transparency">

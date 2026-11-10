@@ -979,9 +979,9 @@ function LivingVoidWall({ building, wall, wing, yOffset, ghost }: { building: Bu
   </mesh>
 }
 
-function Building({ project, building, ghost }: { project: ProjectV2; building: BuildingModel; ghost?: boolean }) {
-  const solids = useGeneratedSolids(project, building); const selectedRef = useStudioStore((state) => state.selectedRef); const transformMode = useStudioStore((state) => state.transformMode)
-  const viewerMode = useStudioStore((state) => state.viewerMode); const explode = useStudioStore((state) => state.explodeStoreys)
+function Building({ project, building, ghost, observation = false }: { project: ProjectV2; building: BuildingModel; ghost?: boolean; observation?: boolean }) {
+  const solids = useGeneratedSolids(project, building); const selectedRef = useStudioStore((state) => observation ? null : state.selectedRef); const transformMode = useStudioStore((state) => state.transformMode)
+  const viewerMode = useStudioStore((state) => state.viewerMode); const explode = useStudioStore((state) => !observation && state.explodeStoreys)
   const commitCommand = useStudioStore((state) => state.commitCommand); const setToast = useStudioStore((state) => state.setToast); const repositioningRef = useStudioStore((state) => state.repositioningRef); const endReposition = useStudioStore((state) => state.endReposition)
   const group = useRef<Group>(null); const invalid = useRef(false); const selected = selectedRef === building.ref
   const detailedBarn = isLShapedBarn(building) || building.architecturalStyle === 'barn' && Boolean(building.interiorSource)
@@ -1008,7 +1008,7 @@ function Building({ project, building, ghost }: { project: ProjectV2; building: 
       <Roof building={building} selected={selectedRef === building.roof.ref} yOffset={roofOffset} ghost={ghost} />
       {livingVoidPartitions(building).map(({ wall, wing }) => <LivingVoidWall key={wall.ref} building={building} wall={wall} wing={wing} yOffset={offsetFor(wall.ref)} ghost={ghost} />)}
       {!ghost && <InteriorFinishes building={building} explodeOffset={explodedOffset} roofOffset={roofOffset} />}
-      {!ghost && <><SpaceOverlays building={building} explodedOffset={explodedOffset} explode={explode} /><PlatformsAndFinishes building={building} explodeOffset={explodedOffset} /></>}
+      {!ghost && <>{!observation && <SpaceOverlays building={building} explodedOffset={explodedOffset} explode={explode} />}<PlatformsAndFinishes building={building} explodeOffset={explodedOffset} /></>}
     </group>
     {selected && repositioningRef === building.ref && !ghost && viewerMode === 'edit' && group.current && <TransformControls object={group.current} mode={transformMode === 'scale' ? 'translate' : transformMode} showY={false} userData={{ editorOnly: true }}
       onObjectChange={() => {
@@ -1059,7 +1059,7 @@ function RoadEntranceMarker({ entrance }: { entrance: SiteEntranceModel }) {
   </group>
 }
 
-function TerrainAndSite({ project }: { project: ProjectV2 }) {
+function TerrainAndSite({ project, observation = false }: { project: ProjectV2; observation?: boolean }) {
   const holes = useMemo(() => gardenExcavations(project), [project])
   const boundaryGeometry = useMemo(() => excavatedGroundGeometry(project.site.boundary, holes), [project.site.boundary, holes])
   const neighbouringGround = useMemo(() => {
@@ -1074,13 +1074,13 @@ function TerrainAndSite({ project }: { project: ProjectV2 }) {
   return <group userData={{ semanticRef: 'site' }}>
     {neighbouringGround && <mesh geometry={neighbouringGround} position={[0, TERRAIN_SURFACE_Y - 0.01, 0]} receiveShadow userData={{ contextOnly: true }}><TexturedMaterial asset={terrainTexture.asset} color="#727b60" fallbackColor="#727b60" roughness={1} side={DoubleSide} normalScale={0.4} /></mesh>}
     <mesh geometry={boundaryGeometry} position={[0, TERRAIN_SURFACE_Y, 0]} receiveShadow userData={{ semanticRef: 'site/terrain' }}><TexturedMaterial asset={terrainTexture.asset} color={terrainTexture.tint} fallbackColor={REAL.soil} roughness={1} side={DoubleSide} normalScale={0.4} /></mesh>
-    {landUseAreas(project).map((zone) => <ParcelSurface key={zone.ref} holes={holes} boundary={zone.boundary} landRole={zone.landRole} planning={Boolean(zone.code)} />)}
-    {(usesDraftPlan(project) || project.site.parcels.some((parcel) => parcel.landUseZones?.some((zone) => zone.sourceRef === 'source/mpzp-boundary-v2'))) && <group userData={{ semanticRef: 'site/zoning' }}>
+    {!observation && landUseAreas(project).map((zone) => <ParcelSurface key={zone.ref} holes={holes} boundary={zone.boundary} landRole={zone.landRole} planning={Boolean(zone.code)} />)}
+    {!observation && (usesDraftPlan(project) || project.site.parcels.some((parcel) => parcel.landUseZones?.some((zone) => zone.sourceRef === 'source/mpzp-boundary-v2'))) && <group userData={{ semanticRef: 'site/zoning' }}>
       <DreiLine points={(usesDraftPlan(project) ? draftZoningBoundary : zielonkiZoningBoundary).map((point) => [point.x, 0.12, point.z] as [number, number, number])} color="#ffc15a" lineWidth={3} dashed dashSize={0.65} gapSize={0.3} depthTest={false} renderOrder={12} />
     </group>}
     {project.site.fences?.map(fence => <SiteFence key={fence.ref} {...fence} semanticRef={fence.ref} />)}
     {project.site.entrances.map((entrance) => {
-      if (!entrance.gate) return <RoadEntranceMarker key={entrance.ref} entrance={entrance} />
+      if (!entrance.gate) return observation ? null : <RoadEntranceMarker key={entrance.ref} entrance={entrance} />
       const { start, end } = entrance, length = Math.hypot(end.x - start.x, end.z - start.z)
       const inward = pointInPolygon({ x: (start.x + end.x) / 2 - (end.z - start.z) / length * 0.1, z: (start.z + end.z) / 2 + (end.x - start.x) / length * 0.1 }, project.site.boundary)
       return <SiteFence key={entrance.ref} start={inward ? start : end} end={inward ? end : start} {...entrance.gate} material="gate" semanticRef={entrance.ref} />
@@ -1474,6 +1474,16 @@ function SceneBackground() {
   const sky = sunAltitude > 12 ? '#aebdb1' : sunAltitude > 0 ? `#${new Color('#aebdb1').lerp(new Color('#c9a98c'), 1 - sunAltitude / 12).getHexString()}` : '#4b5461'
   return <><color attach="background" args={[sky]} /><fog attach="fog" args={[sky, 450, 1100]} /></>
 }
+
+/** Full model and surroundings, with no editing, cutaways, transparency or orbit controller. */
+export const SunStudyScene = memo(function SunStudyScene({ focus }: { focus: [number, number, number] }) {
+  const project = useStudioStore(state => state.project)
+  return <>
+    <SceneBackground /><SunLight observationFocus={focus} /><TexturePreloader />
+    <NeighborBuildings /><TerrainAndSite project={project} observation /><Landscape project={project} /><GardenFixtures project={project} />
+    {project.buildings.map(building => <Building key={building.ref} project={project} building={building} observation />)}
+  </>
+})
 
 export const StudioScene = memo(function StudioScene() {
   const treesVisible = useStudioStore((state) => state.treesVisible)

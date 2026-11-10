@@ -5,7 +5,7 @@ import { SHADOW_MARGIN_M, SUN_DISTANCE_M, shadowFocusBounds, sunColorFor, sunSta
 import { useRenderQuality } from '../renderingPreferences'
 
 /** One directional light that always follows the real sun for the site and the viewer's date and time. */
-export function SunLight() {
+export function SunLight({ observationFocus }: { observationFocus?: [number, number, number] } = {}) {
   const quality = useRenderQuality()
   const project = useStudioStore((state) => state.project)
   const neighborsVisible = useStudioStore((state) => state.neighborsVisible)
@@ -14,8 +14,8 @@ export function SunLight() {
   const target = useMemo(() => new Object3D(), [])
   const sun = useMemo(() => sunStateFor(project, sunTime), [project, sunTime])
   const bounds = useMemo(() => shadowFocusBounds(project, neighborsVisible), [project, neighborsVisible])
-  const centre = useMemo(() => bounds.getCenter(new Vector3()), [bounds])
-  const radius = useMemo(() => bounds.getSize(new Vector3()).length() / 2 + SHADOW_MARGIN_M, [bounds])
+  const centre = useMemo(() => observationFocus ? new Vector3(...observationFocus) : bounds.getCenter(new Vector3()), [bounds, observationFocus?.[0], observationFocus?.[1], observationFocus?.[2]])
+  const radius = useMemo(() => observationFocus ? 22 : bounds.getSize(new Vector3()).length() / 2 + SHADOW_MARGIN_M, [bounds, !!observationFocus])
   const daylight = Math.max(0, Math.sin(sun.altitudeDeg * Math.PI / 180))
   const position: [number, number, number] = [centre.x + sun.direction.x * SUN_DISTANCE_M, centre.y + Math.max(0.02, sun.direction.y) * SUN_DISTANCE_M, centre.z + sun.direction.z * SUN_DISTANCE_M]
   const intensity = sun.altitudeDeg <= 0 ? 0 : 0.6 + 2.4 * Math.min(1, daylight * 1.5)
@@ -32,6 +32,6 @@ export function SunLight() {
     <ambientLight intensity={0.32 + 0.5 * daylight} color={sun.altitudeDeg <= 0 ? '#5d6c86' : '#dfe8ff'} />
     <hemisphereLight args={['#e1ebf2', '#8d8168', 0.65 * daylight]} />
     <primitive object={target} />
-    <directionalLight key={quality} ref={light} position={position} intensity={intensity} color={sunColorFor(sun.altitudeDeg)} castShadow={quality !== 'fast'} shadow-bias={-0.0002} shadow-normalBias={0.04} shadow-mapSize={quality === 'detailed' ? [4096, 4096] : [1024, 1024]} userData={{ sunLight: true }} />
+    <directionalLight key={`${quality}/${!!observationFocus}`} ref={light} position={position} intensity={intensity} color={sunColorFor(sun.altitudeDeg)} castShadow={!!observationFocus || quality !== 'fast'} shadow-bias={-0.0002} shadow-normalBias={observationFocus ? 0.015 : 0.04} shadow-mapSize={quality === 'detailed' ? [4096, 4096] : observationFocus ? [2048, 2048] : [1024, 1024]} userData={{ sunLight: true }} />
   </>
 }

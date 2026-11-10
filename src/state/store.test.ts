@@ -11,6 +11,15 @@ import { useStudioStore } from './store'
 beforeEach(() => useStudioStore.setState({ project: structuredClone(modernBarnProject), variants: [], history: [], month: 7, sunTime: { month: 7, day: 15, hour: 14 }, sunAnimation: 'none', sunOverlay: { enabled: false, targetRef: null, result: null } }))
 
 describe('sun time state', () => {
+  it('preserves the selected calendar year and leap day across time changes', () => {
+    useStudioStore.getState().setSunTime({ year: 2028, month: 2, day: 29, hour: 8 })
+    useStudioStore.getState().setSunTime({ hour: 15.5 })
+    expect(useStudioStore.getState().sunTime).toEqual({ year: 2028, month: 2, day: 29, hour: 15.5 })
+    useStudioStore.getState().setSunTime({ year: 2027 })
+    expect(useStudioStore.getState().sunTime.day).toBe(28)
+    useStudioStore.getState().setSunTime({ hour: Number.NaN })
+    expect(Number.isFinite(useStudioStore.getState().sunTime.hour)).toBe(true)
+  })
   it('clears a pending confirmation when a direct edit invalidates its preview', () => {
     useStudioStore.setState({ proposals: [], draftChangeSets: [], future: [], confirmationVariantRef: null })
     const proposal = useStudioStore.getState().createVariant('Move hydrangea', [{ type: 'plant.update', action: 'move', plantRef: 'plant/hydrangea', position: { x: -7.5, z: 9 } }])

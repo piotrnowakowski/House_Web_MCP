@@ -115,10 +115,13 @@ interface StudioState {
 
 let variantSequence = 0
 const revokeReport = (report: StructureReport | null) => report?.views.forEach((view) => URL.revokeObjectURL(view.imageUrl))
-const daysInMonth = (month: number) => new Date(Date.UTC(REFERENCE_YEAR, month, 0)).getUTCDate()
+const daysInMonth = (month: number, year = REFERENCE_YEAR) => new Date(Date.UTC(year, month, 0)).getUTCDate()
 const clampSunTime = (time: SunTime): SunTime => {
-  const month = Math.min(12, Math.max(1, Math.round(time.month)))
-  return { month, day: Math.min(daysInMonth(month), Math.max(1, Math.round(time.day))), hour: Math.min(24, Math.max(0, time.hour)) }
+  const year = Number.isFinite(time.year) ? Math.min(2100, Math.max(1900, Math.round(time.year!))) : REFERENCE_YEAR
+  const month = Number.isFinite(time.month) ? Math.min(12, Math.max(1, Math.round(time.month))) : 1
+  return { ...(time.year === undefined ? {} : { year }), month,
+    day: Number.isFinite(time.day) ? Math.min(daysInMonth(month, year), Math.max(1, Math.round(time.day))) : 1,
+    hour: Number.isFinite(time.hour) ? Math.min(24, Math.max(0, time.hour)) : 12 }
 }
 const commandFocusRef = (commands: ProjectCommand[]) => {
   for (const command of commands) {

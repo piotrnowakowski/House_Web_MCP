@@ -1,3 +1,4 @@
+import './scene/sun/sun-study.css'
 import { FloorToggle, TreePreferences, TreeToggle } from './PlotViewControls'
 import { staticAssetUrl } from './services/staticAssets'
 import { randomId } from './domain/randomId'
@@ -46,6 +47,7 @@ import { useStudioStore } from './state/store'
 import { buildingCrossesAgriculturalZone, landUseAreas } from './domain/zoning'
 
 const PlotCanvas = lazy(() => import('./scene/PlotCanvas'))
+const SunStudy = lazy(() => import('./scene/sun/SunStudy'))
 const SitePlan = lazy(() => import('./scene/SitePlan'))
 const InteriorEditor = lazy(() => import('./interior/InteriorEditor').then(module => ({ default: module.InteriorEditor })))
 
@@ -697,7 +699,7 @@ function VariantApproval() {
     </div>
 }
 
-const monthDays = (month: number) => new Date(Date.UTC(2026, month, 0)).getUTCDate()
+const monthDays = (month: number, year = 2026) => new Date(Date.UTC(year, month, 0)).getUTCDate()
 const clockLabel = (hour: number) => { const minutes = Math.round(hour * 60); return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}` }
 
 function SunWidget() {
@@ -717,8 +719,8 @@ function SunWidget() {
         const bounds = sunriseSunset({ latitude, longitude, timezone }, current); const low = bounds ? bounds.sunriseHour : 0; const high = bounds ? bounds.sunsetHour : 24
         const next = current.hour + (reduced ? 1 : 0.25); state.setSunTime({ hour: next > high ? low : next })
       } else {
-        const nextDay = current.day + (reduced ? 30 : 3); const days = monthDays(current.month)
-        if (nextDay > days) state.setSunTime({ month: current.month === 12 ? 1 : current.month + 1, day: nextDay - days }); else state.setSunTime({ day: nextDay })
+        const nextDay = current.day + (reduced ? 30 : 3); const days = monthDays(current.month, current.year)
+        if (nextDay > days) state.setSunTime({ month: current.month === 12 ? 1 : current.month + 1, day: nextDay - days, ...(current.year !== undefined && current.month === 12 ? { year: current.year + 1 } : {}) }); else state.setSunTime({ day: nextDay })
       }
     }, reduced ? 1000 : 120)
     return () => window.clearInterval(timer)
@@ -733,7 +735,7 @@ function SunWidget() {
     <header><span className="eyebrow">SUN / LOCAL TIME</span><strong>{formatSunMoment(sunTime.month, sunTime.day, sunTime.hour)}</strong></header>
     <div className="sun-fields">
       <label><span>Month</span><select aria-label="Sun month" value={sunTime.month} onChange={(event) => setSunTime({ month: Number(event.target.value) })}>{monthNames.map((name, index) => <option key={name} value={index + 1}>{name}</option>)}</select></label>
-      <label><span>Day</span><input type="number" aria-label="Sun day" min={1} max={monthDays(sunTime.month)} value={sunTime.day} onChange={(event) => setSunTime({ day: Number(event.target.value) })} /></label>
+      <label><span>Day</span><input type="number" aria-label="Sun day" min={1} max={monthDays(sunTime.month, sunTime.year)} value={sunTime.day} onChange={(event) => setSunTime({ day: Number(event.target.value) })} /></label>
     </div>
     {window.innerWidth <= 900 ? <PrecisionField label='Local time' min={min} max={max} step={0.25} value={Math.min(max, Math.max(min, sunTime.hour))} onChange={(hour) => { if (Number.isFinite(hour)) setSunTime({ hour }) }} /> : <label className="sun-slider"><span>Local time</span><input type="range" aria-label="Local time" min={min} max={max} step={0.25} value={Math.min(max, Math.max(min, sunTime.hour))} onChange={(event) => setSunTime({ hour: Number(event.target.value) })} /><small>{events ? `${clockLabel(events.sunriseHour)} sunrise · ${clockLabel(events.sunsetHour)} sunset` : 'No sunrise or sunset on this date'}</small></label>}
     <dl className="sun-readout"><div><dt>Altitude</dt><dd>{sun.altitudeDeg.toFixed(1)}°</dd></div><div><dt>Azimuth</dt><dd>{sun.azimuthDeg.toFixed(0)}°</dd></div><div><dt>Daylight</dt><dd>{events ? `${events.daylightHours.toFixed(1)} h` : '—'}</dd></div></dl>
@@ -755,6 +757,7 @@ export function App() {
   const compact = useCompactLayout(); const [controlsHidden, setControlsHidden] = useState(false); const [sheetExpanded, setSheetExpanded] = useState(false)
   const selectedRef = useStudioStore((state) => state.selectedRef); const confirmationRef = useStudioStore((state) => state.confirmationVariantRef)
   const [interiorOpen, setInteriorOpen] = useState(false)
+  const [sunStudy, setSunStudy] = useState<{ storeyRef?: string } | null>(null)
   const [sitePlanOpen, setSitePlanOpen] = useState(false)
   const [initialStoreyRef, setInitialStoreyRef] = useState<string | undefined>()
   const openFloor = (ref: string) => { setInitialStoreyRef(ref); setInteriorOpen(true); setDataPanel(null) }
@@ -770,23 +773,24 @@ export function App() {
   useEffect(() => { if (!toast) return; const timer = window.setTimeout(() => setToast(null), 4200); return () => window.clearTimeout(timer) }, [setToast, toast])
   useEffect(() => {
     const keyboard = (event: KeyboardEvent) => {
-      if (interiorOpen || sitePlanOpen) return
+      if (interiorOpen || sitePlanOpen || sunStudy) return
       if (event.target instanceof HTMLElement && (event.target.matches('input, textarea, select') || event.target.isContentEditable)) return
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') { event.preventDefault(); try { undo() } catch (error) { setToast(error instanceof Error ? error.message : 'Undo failed.') } }
       if (event.key === 'Escape') { if (useStudioStore.getState().launcherOpen) return; useStudioStore.getState().setViewerMode('edit'); useStudioStore.getState().setSelectedRef(null); useStudioStore.getState().endReposition(); setDataPanel(null) }
     }
     window.addEventListener('keydown', keyboard); return () => window.removeEventListener('keydown', keyboard)
-  }, [setToast, undo, interiorOpen, sitePlanOpen])
+  }, [setToast, undo, interiorOpen, sitePlanOpen, sunStudy])
   useEffect(() => () => useStudioStore.getState().setStructureReport(null), [])
+  if (sunStudy) return <Suspense fallback={<div className="editor-loading" role="status">Otwieranie światła 360°…</div>}><SunStudy initialStoreyRef={sunStudy.storeyRef} onBack={() => setSunStudy(null)} /></Suspense>
   if (sitePlanOpen) return <Suspense fallback={<div className="editor-loading" role="status">Otwieranie planu terenu…</div>}><SitePlan key={project.ref} onBack={() => setSitePlanOpen(false)} /></Suspense>
-  if (interiorOpen) return <Suspense fallback={<div className="editor-loading" role="status">Otwieranie wnętrza domu…</div>}><InteriorEditor initialStoreyRef={initialStoreyRef} onBack={() => { setInteriorOpen(false); setInitialStoreyRef(undefined) }} approval={<VariantApproval />} /></Suspense>
+  if (interiorOpen) return <Suspense fallback={<div className="editor-loading" role="status">Otwieranie wnętrza domu…</div>}><InteriorEditor onOpenSunStudy={storeyRef => { setInitialStoreyRef(storeyRef); setSunStudy({ storeyRef }) }} initialStoreyRef={initialStoreyRef} onBack={() => { setInteriorOpen(false); setInitialStoreyRef(undefined) }} approval={<VariantApproval />} /></Suspense>
   const toolbar = <Toolbar onOpenSitePlan={() => { setDataPanel(null); setSitePlanOpen(true) }} onOpenInterior={() => { setDataPanel(null); setInteriorOpen(true) }} onOpenClimate={() => setDataPanel('climate')} onOpenPlanting={() => setDataPanel('planting')} fixturesOpen={dataPanel === 'fixtures'} onOpenFixtures={() => { const opening = dataPanel !== 'fixtures'; setDataPanel(opening ? 'fixtures' : null); if (opening) focusGardenFixtures() }} onOpenMcpTools={() => setDataPanel('mcp-tools')} onOpenProposals={() => setDataPanel('proposals')} onOpenProjects={() => { setDataPanel(null); void openLauncher() }} />
   const dataContent = <>{dataPanel === 'climate' && <ClimatePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'planting' && <PlantingGuidePanel onClose={() => setDataPanel(null)} />}{dataPanel === 'fixtures' && <GardenFixturesPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'mcp-tools' && <McpToolsPanel onClose={() => setDataPanel(null)} />}{dataPanel === 'proposals' && <ProposalsPanel onClose={() => setDataPanel(null)} />}</>
   const movable = !!selectedRef && [...project.buildings, ...project.landscape.fixtures, ...project.landscape.plants, ...project.landscape.zones].some((value) => value.ref === selectedRef && !('locked' in value && value.locked))
   return <PrecisionControls><NeighborPreferences /><TreePreferences /><main className={`${compact ? 'compact-plot' : ''} ${controlsHidden ? 'plot-controls-hidden' : ''}`} aria-label="ProjectV2 spatial planning workspace">{!compact && <>{toolbar}<Inspector /></>}
     {compact && (controlsHidden ? <button className="plot-restore" onClick={() => setControlsHidden(false)}><Eye size={18} />Pokaż narzędzia</button> : <><header className="plot-compact-top"><strong>Spatial editor</strong><button aria-label="Plan 2D z wymiarami" onClick={() => { setDataPanel(null); setSitePlanOpen(true) }}>2D</button><TransparencyControls /><NeighborToggle iconOnly /><TreeToggle /><FloorToggle onSelect={openFloor} /><HouseStudyControl /><button className="plot-interior-button" aria-label="Wnętrze domu" disabled={!project.buildings.length} onClick={() => { setDataPanel(null); setInteriorOpen(true) }}><Box size={18} /><span>Wnętrze domu</span></button><button aria-label="Fit plot view" onClick={refocusCamera}><Focus size={20} /></button></header><nav className="plot-action-bar" aria-label="Plot actions">{viewerMode !== 'edit' ? <><button onClick={() => setDataPanel(dataPanel === 'measure' ? null : 'measure')}><Ruler size={19} />Measure options</button><button onClick={() => { window.dispatchEvent(new Event(CLEAR_MEASUREMENT_EVENT)); useStudioStore.getState().setViewerMode('edit'); setDataPanel(null) }}><Check size={19} />Zakończ</button></> : <><button onClick={() => setDataPanel(dataPanel === 'fixtures' ? null : 'fixtures')}><Plus size={20} />Dodaj</button><button onClick={() => setDataPanel(dataPanel === 'inspector' ? null : 'inspector')}><Settings2 size={19} />{selectedRef ? 'Edit selection' : "Edytuj"}</button>{selectedRef && movable ? <button onClick={() => { useStudioStore.getState().beginReposition(selectedRef); setDataPanel(null) }}><Move size={19} />Move</button> : <button onClick={() => { useStudioStore.getState().setViewerMode('measure-length'); setDataPanel(null) }}><Ruler size={19} />Zmierz</button>}<button onClick={() => setDataPanel(dataPanel === 'more' ? null : 'more')}><MoreHorizontal size={19} />Więcej</button></>}</nav><AdaptiveSheet open={!!dataPanel} title={dataPanel === 'inspector' ? "Zaznaczenie" : dataPanel === 'fixtures' ? 'Garden fixtures' : dataPanel === 'measure' ? "Zmierz" : dataPanel === 'more' ? "Widok i projekt" : 'Project tools'} expanded={sheetExpanded} onExpanded={setSheetExpanded} onClose={() => setDataPanel(null)}>{dataPanel === 'inspector' && <Inspector />}{dataPanel === 'more' && <><NeighborSettings onView={() => setDataPanel(null)} /><button onClick={() => { setControlsHidden(true); setDataPanel(null) }}><EyeOff size={18} />Ukryj narzędzia</button>{toolbar}<SunWidget /><div className="plot-history"><button disabled={!useStudioStore.getState().history.length} onClick={undo}>Cofnij</button><button disabled={!useStudioStore.getState().future.length} onClick={() => useStudioStore.getState().redo()}>Ponów</button></div></>}{dataPanel === 'measure' && <ExactMeasureTools />}{dataPanel === 'measure' && modes.filter(([value]) => value !== 'edit').map(([value, label]) => <button key={value} onClick={() => { useStudioStore.getState().setViewerMode(value); setDataPanel(null) }}>{label}</button>)}{dataContent}</AdaptiveSheet></>)}
 
-    <div className="viewport">{hydrated && <Suspense fallback={<div className="editor-loading" role="status">Opening plot...</div>}><PlotCanvas /></Suspense>}
+    <div className="viewport">{project.buildings.length > 0 && <button className="sun-study-launch" onClick={() => setSunStudy({})}>☀ Światło 360°</button>}{hydrated && <Suspense fallback={<div className="editor-loading" role="status">Opening plot...</div>}><PlotCanvas /></Suspense>}
       {!compact && <NeighborControls onSelectFloor={openFloor} />}
       <button className="refocus-button" onClick={refocusCamera} aria-label={project.buildings.length ? 'Refocus on Main house' : 'Refocus on the site'}>
         <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5" /><circle cx="12" cy="12" r="3.25" /></svg>
