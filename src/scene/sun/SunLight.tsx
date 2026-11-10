@@ -5,7 +5,7 @@ import { SHADOW_MARGIN_M, SUN_DISTANCE_M, shadowFocusBounds, sunColorFor, sunSta
 import { useRenderQuality } from '../renderingPreferences'
 
 /** One directional light that always follows the real sun for the site and the viewer's date and time. */
-export function SunLight({ observationFocus }: { observationFocus?: [number, number, number] } = {}) {
+export function SunLight({ observationFocus, fullBrightness = false }: { observationFocus?: [number, number, number]; fullBrightness?: boolean } = {}) {
   const quality = useRenderQuality()
   const project = useStudioStore((state) => state.project)
   const neighborsVisible = useStudioStore((state) => state.neighborsVisible)
@@ -30,8 +30,8 @@ export function SunLight({ observationFocus }: { observationFocus?: [number, num
     current.shadow.camera.updateProjectionMatrix()
   }, [centre, radius, target, quality])
   return <>
-    <ambientLight intensity={observationFocus ? .015 + .305 * twilight + .5 * daylight : .32 + .5 * daylight} color={sun.altitudeDeg <= 0 ? '#5d6c86' : '#dfe8ff'} />
-    <hemisphereLight args={['#e1ebf2', '#8d8168', 0.65 * daylight]} />
+    <ambientLight intensity={fullBrightness ? 1.8 : observationFocus ? .015 + .305 * twilight + .5 * daylight : .32 + .5 * daylight} color={!fullBrightness && sun.altitudeDeg <= 0 ? '#5d6c86' : '#dfe8ff'} />
+    <hemisphereLight args={['#e1ebf2', '#8d8168', fullBrightness ? 1.2 : .65 * daylight]} />
     <primitive object={target} />
     <directionalLight key={`${quality}/${!!observationFocus}`} ref={light} position={position} intensity={intensity} color={sunColorFor(sun.altitudeDeg)} castShadow={!!observationFocus || quality !== 'fast'} shadow-bias={-0.0002} shadow-normalBias={observationFocus ? 0.015 : 0.04} shadow-mapSize={quality === 'detailed' ? [4096, 4096] : observationFocus ? [2048, 2048] : [1024, 1024]} userData={{ sunLight: true }} />
   </>

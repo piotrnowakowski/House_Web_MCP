@@ -90,3 +90,19 @@ Default and Profile 1 stores were captured read-only and compared independently;
 39 historical workspace records are retained, including one independent edit.
 The active canonical model is r17/shared v15 and all six shared snapshots match.
 Evidence: tmp/sun-lighting-20261111/ and output/sun-lighting-20261111/.
+
+## Full brightness and wider view
+
+The footer now offers **Pełna jasność** as an explicit inspection mode. It keeps
+indirect illumination on at any time of day and identifies the mode in the image;
+turning it off restores the selected date's daylight/night rendering immediately.
+The neighbouring **Wężej — Szerzej** slider adjusts vertical field of view from
+55 to 110 degrees, starting at a more open 85 degrees. Camera position and the
+observer dot remain fixed. These are view settings, never project-data edits.
+Browser coverage verifies the projection changes without camera translation or
+rotation, both zoom limits, brightness on/off at midnight and project preservation.
+Final release evidence: tmp/sun-controls-20261110/.
+
+On phone-sized layouts (up to 900 px), the floating "Zapisano lokalnie" bar is
+hidden, as requested. Save/sync controls remain in the existing Więcej panel,
+with no changes to autosave or persistence. Desktop placement is unchanged.

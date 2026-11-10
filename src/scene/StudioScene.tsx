@@ -1479,10 +1479,10 @@ function SceneBackground() {
 }
 
 /** Full model and surroundings, with no editing, cutaways, transparency or orbit controller. */
-export const SunStudyScene = memo(function SunStudyScene({ focus }: { focus: [number, number, number] }) {
+export const SunStudyScene = memo(function SunStudyScene({ focus, fullBrightness = false }: { focus: [number, number, number]; fullBrightness?: boolean }) {
   const project = useStudioStore(state => state.project)
   return <>
-    <SceneBackground /><SunLight observationFocus={focus} /><StudyEnvironment /><TexturePreloader />
+    <SceneBackground /><SunLight observationFocus={focus} fullBrightness={fullBrightness} /><StudyEnvironment fullBrightness={fullBrightness} /><TexturePreloader />
     <NeighborBuildings /><TerrainAndSite project={project} observation /><Landscape project={project} /><GardenFixtures project={project} />
     {project.buildings.map(building => <Building key={building.ref} project={project} building={building} observation />)}
   </>

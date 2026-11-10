@@ -8,7 +8,7 @@ import { sunStateFor } from './sunState'
  * This approximates indirect light; it is not a room-specific GI or lux solver.
  * Build the small environment once, then vary only its strength during playback.
  */
-export function StudyEnvironment() {
+export function StudyEnvironment({ fullBrightness = false }: { fullBrightness?: boolean }) {
   const { gl, scene, invalidate } = useThree()
   const project = useStudioStore(state => state.project)
   const time = useStudioStore(state => state.sunTime)
@@ -42,9 +42,9 @@ export function StudyEnvironment() {
   }, [gl, scene, invalidate])
   useLayoutEffect(() => {
     const previous = scene.environmentIntensity
-    scene.environmentIntensity = .45 * daylight + .04 * twilight
+    scene.environmentIntensity = fullBrightness ? .8 : .45 * daylight + .04 * twilight
     invalidate()
     return () => { scene.environmentIntensity = previous }
-  }, [scene, daylight, twilight, invalidate])
+  }, [scene, daylight, twilight, fullBrightness, invalidate])
   return null
 }

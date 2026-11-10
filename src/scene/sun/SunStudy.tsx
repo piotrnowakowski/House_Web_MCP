@@ -88,6 +88,8 @@ function Study({ building, initialStoreyRef, onBack }: { building: BuildingModel
   const point = points[storey.ref] ?? defaultPoint
   const [yaw, setYaw] = useState(building.rotationDegrees)
   const [pitch, setPitch] = useState(0)
+  const [fieldOfView, setFieldOfView] = useState(85)
+  const [fullBrightness, setFullBrightness] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [speed, setSpeed] = useState(1)
   const [planOpen, setPlanOpen] = useState(() => !window.matchMedia('(max-width: 900px)').matches)
@@ -183,10 +185,10 @@ function Study({ building, initialStoreyRef, onBack }: { building: BuildingModel
         }}>
         {position && !pointIssue ? <ViewportBoundary><Canvas frameloop="demand" shadows dpr={[1, 1.5]} events={state => ({ ...events(state), enabled: false })}
           gl={{ antialias: true }} onCreated={({ gl }) => { gl.toneMapping = ACESFilmicToneMapping; gl.toneMappingExposure = 1.2; gl.shadowMap.type = PCFSoftShadowMap; gl.domElement.setAttribute('aria-label', 'Widok światła 360°') }}>
-          <RendererLifecycle /><ObserverCamera position={position} yaw={yaw} pitch={pitch} />
-          <Suspense fallback={null}><SunStudyScene focus={position} /></Suspense>
+          <RendererLifecycle /><ObserverCamera position={position} yaw={yaw} pitch={pitch} fieldOfView={fieldOfView} />
+          <Suspense fallback={null}><SunStudyScene focus={position} fullBrightness={fullBrightness} /></Suspense>
         </Canvas></ViewportBoundary> : <p className="sun-study-empty">Wskaż wolne miejsce na planie, aby zobaczyć wnętrze.</p>}
-        <div className="sun-study-view-label"><span>{studyClock(time.hour)}</span><small>{sun.altitudeDeg > 0 ? 'Słońce nad horyzontem' : 'Słońce pod horyzontem'} · kierunek {Math.round(compass)}°</small></div>
+        <div className="sun-study-view-label"><span>{studyClock(time.hour)}</span><small>{fullBrightness ? 'Pełna jasność · podgląd wnętrza' : sun.altitudeDeg > 0 ? 'Słońce nad horyzontem' : 'Słońce pod horyzontem'} · kierunek {Math.round(compass)}°</small></div>
         <div className="sun-study-look"><span>Przeciągnij, aby się rozejrzeć · 360°</span><div>
           <button aria-label="Spójrz w lewo" onClick={() => turn(30)}>←</button><button aria-label="Spójrz w górę" onClick={() => turn(0, 15)}>↑</button>
           <button aria-label="Wyprostuj widok" onClick={() => setPitch(0)}><RotateCcw size={16} /></button>
@@ -195,6 +197,10 @@ function Study({ building, initialStoreyRef, onBack }: { building: BuildingModel
       </section>
     </div>
     <footer className="sun-study-time" aria-label="Oś czasu wybranego dnia">
+      <div className="sun-study-display-controls">
+        <button className={fullBrightness ? 'active' : ''} aria-pressed={fullBrightness} onClick={() => setFullBrightness(value => !value)}><Sun size={17} />Pełna jasność</button>
+        <label><span>Wężej</span><input type="range" aria-label="Szerokość widoku" aria-valuetext={`${fieldOfView} stopni`} min="55" max="110" step="1" value={fieldOfView} onChange={event => setFieldOfView(Number(event.target.value))} /><span>Szerzej</span></label>
+      </div>
       <div className="sun-study-time-controls">
         <label>Data<input aria-label="Data obserwacji" type="date" min="1900-01-01" max="2100-12-31" value={dateValue} onChange={event => {
           if (!/^\d{4}-\d{2}-\d{2}$/.test(event.target.value) || !event.target.validity.valid) return

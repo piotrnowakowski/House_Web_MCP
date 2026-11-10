@@ -1,5 +1,5 @@
 import { _roots } from '@react-three/fiber'
-import { Mesh, type DirectionalLight } from 'three'
+import { Mesh, PerspectiveCamera, type DirectionalLight } from 'three'
 import { useStudioStore } from '../src/state/store'
 import { observerWorldPosition } from '../src/scene/sun/observer'
 
@@ -8,6 +8,11 @@ export function lighting() {
   const state = canvas && _roots.get(canvas)?.store.getState()
   const light = state?.scene.children.find(object => object.userData.sunLight) as DirectionalLight | undefined
   return light ? { position: light.position.toArray(), intensity: light.intensity, shadows: light.castShadow, mapSize: light.shadow.mapSize.x } : null
+}
+
+export function viewProjection() {
+  const camera = _roots.get(document.querySelector('canvas')!)!.store.getState().camera
+  return { fieldOfView: camera instanceof PerspectiveCamera ? camera.fov : null, horizontalScale: camera.projectionMatrix.elements[0] }
 }
 
 /** Render the user's July kitchen case and measure the displayed pixels, not light labels. */
