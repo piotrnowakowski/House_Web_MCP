@@ -19,6 +19,8 @@ import { TexturedMaterial } from '../scene/materials'
 import { ProductModel } from './ProductModel'
 import { FinishMaterial } from './FinishMaterial'
 import { RoomCeiling } from './RoomCeiling'
+import { voidCeilingFinish } from './voidCeilingFinish'
+import { wallFinishPieces, wallFinishProfiles, wallLiningDepthM } from './wallFinishPieces'
 import { RoofWindows } from '../scene/RoofWindows'
 import { GlazedGable } from '../scene/GlazedGable'
 import { polygonBounds } from '../domain/geometry'
@@ -66,15 +68,19 @@ function Floor({ points, holes, slab, onPick, tiled = false, plan = false, finis
   </mesh>
 }
 
-function WallFace({ width, height, finish, outline }: { width: number; height: number; finish: InteriorFinish; outline?: Vec2[] }) {
+function WallFace({ width, height, finish, outline, elevation = 0 }: { width: number; height: number; finish: InteriorFinish; outline?: Vec2[]; elevation?: number }) {
   const geometry = useMemo(() => {
-    if (outline) return new ShapeGeometry(new Shape(outline.map((p) => new Vector2(p.x, p.z))))
-    const result = new PlaneGeometry(width, height); const uv = result.attributes.uv
-    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * width, uv.getY(i) * height)
+    const result = outline ? new ShapeGeometry(new Shape(outline.map((p) => new Vector2(p.x, p.z)))) : new PlaneGeometry(width, height)
+    const uv = result.attributes.uv, position = result.attributes.position
+    if (finish.presetId === 'natural-oak') {
+      for (let i = 0; i < uv.count; i++) uv.setXY(i, position.getX(i), position.getY(i) + elevation)
+    } else if (!outline) {
+      for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * width, uv.getY(i) * height)
+    }
     return result
-  }, [width, height, outline])
+  }, [width, height, outline, elevation, finish.presetId])
   useEffect(() => () => geometry.dispose(), [geometry])
-  return <mesh geometry={geometry} receiveShadow><FinishMaterial finish={finish} /></mesh>
+  return <mesh geometry={geometry} receiveShadow><FinishMaterial finish={finish} keepTexture={finish.presetId === 'natural-oak'} /></mesh>
 }
 
 function WallBody({ width, height, thickness, outline, plan }: { width: number; height: number; thickness: number; outline?: Vec2[]; plan: boolean }) {
@@ -85,7 +91,7 @@ function WallBody({ width, height, thickness, outline, plan }: { width: number; 
   return <mesh geometry={geometry} castShadow receiveShadow><meshStandardMaterial color={plan ? '#283b36' : '#eceae2'} roughness={0.82} /></mesh>
 }
 
-function CutawayWall({ wall, profile, plan, fullHeight, selected, onSelect, onPick }: { wall: WallModel; profile?: Vec2[]; plan: boolean; fullHeight?: boolean; selected?: string | null; onSelect?: (ref: string) => void; onPick?: (point: Vec2) => void }) {
+function CutawayWall({ wall, profile, finishProfiles, plan, fullHeight, selected, onSelect, onPick }: { wall: WallModel; profile?: Vec2[]; finishProfiles?: Partial<Record<'left' | 'right', Vec2[]>>; plan: boolean; fullHeight?: boolean; selected?: string | null; onSelect?: (ref: string) => void; onPick?: (point: Vec2) => void }) {
   const length = wallLength(wall); const height = plan ? 0.14 : fullHeight ? wall.heightM : Math.min(1.15, wall.heightM)
   const openings = [...wall.openings].sort((a, b) => a.offsetM - b.offsetM)
   let cursor = 0
@@ -98,24 +104,34 @@ function CutawayWall({ wall, profile, plan, fullHeight, selected, onSelect, onPi
     cursor = end
   }
   if (cursor < length) pieces.push({ start: cursor, end: length, height })
-  const outlineFor = (piece: typeof pieces[number]) => {
-    if (!fullHeight || !profile) return undefined
+  const outlineFor = (piece: typeof pieces[number], cap = profile) => {
+    if (!fullHeight || !cap) return undefined
     const base = piece.base ?? 0, top = base + piece.height, middle = (piece.start + piece.end) / 2
-    const xs = new Set([piece.start, piece.end, ...profile.filter((p) => p.x > piece.start && p.x < piece.end).map((p) => p.x)])
-    for (let i = 1; i < profile.length; i++) {
-      const a = profile[i - 1], b = profile[i]
+    const xs = new Set([piece.start, piece.end, ...cap.filter((p) => p.x > piece.start && p.x < piece.end).map((p) => p.x)])
+    for (let i = 1; i < cap.length; i++) {
+      const a = cap[i - 1], b = cap[i]
       if ((a.z - top) * (b.z - top) < 0) { const x = a.x + (b.x - a.x) * (top - a.z) / (b.z - a.z); if (x > piece.start && x < piece.end) xs.add(x) }
     }
     return [{ x: piece.start - middle, z: -piece.height / 2 }, { x: piece.end - middle, z: -piece.height / 2 },
-      ...[...xs].sort((a, b) => b - a).map((x) => ({ x: x - middle, z: Math.max(base, Math.min(top, wallProfileHeightAt(profile, x))) - base - piece.height / 2 }))]
+      ...[...xs].sort((a, b) => b - a).map((x) => ({ x: x - middle, z: Math.max(base, Math.min(top, wallProfileHeightAt(cap, x))) - base - piece.height / 2 }))]
   }
   return <group userData={{ dragTarget: { kind: 'wall', ref: wall.ref } }} position={[wall.start.x, 0.025, wall.start.z]} rotation={[0, -Math.atan2(wall.end.z - wall.start.z, wall.end.x - wall.start.x), 0]} onClick={(event) => { if (event.delta >= 5) return; if (onPick) { event.stopPropagation(); onPick({ x: event.point.x, z: event.point.z }) } else if (onSelect) { event.stopPropagation(); onSelect(wall.ref) } }}>
     {openings.map(opening => <mesh key={`opening-hit-${opening.ref}`} userData={{ dragTarget: { kind: 'opening', ref: opening.ref } }} position={[opening.offsetM, plan ? .2 : Math.min(height, opening.sillM) + .12, 0]}><boxGeometry args={[opening.widthM, plan ? .35 : .25, Math.max(wall.thicknessM, .28)]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>)}
     {pieces.map((piece, index) => <mesh key={`hit-${index}`} position={[(piece.start + piece.end) / 2, height / 2, 0]}><boxGeometry args={[piece.end - piece.start, height, Math.max(wall.thicknessM, .28)]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>)}
-    {pieces.map((piece, index) => <group key={`finish-${index}`} position={[(piece.start + piece.end) / 2, (piece.base ?? 0) + piece.height / 2, 0]}>
-      {wall.faceFinishes?.left && <group position-z={wall.thicknessM / 2 + 0.001}><WallFace width={piece.end - piece.start} height={piece.height} outline={outlineFor(piece)} finish={wall.faceFinishes.left} /></group>}
-      {wall.faceFinishes?.right && <group position-z={-wall.thicknessM / 2 - 0.001} rotation-y={Math.PI}><WallFace width={piece.end - piece.start} height={piece.height} outline={outlineFor(piece)?.map((p) => ({ x: -p.x, z: p.z })).reverse()} finish={wall.faceFinishes.right} /></group>}
-    </group>)}
+    {(['left', 'right'] as const).flatMap(side => {
+      const finish = wall.faceFinishes?.[side]
+      if (!finish) return []
+      const cap = fullHeight ? finishProfiles?.[side] : undefined
+      const extraHeight = cap ? Math.max(0, ...cap.map(p => p.z - height)) : 0
+      const liningPieces = pieces.map(piece => Math.abs((piece.base ?? 0) + piece.height - height) < 1e-6 ? { ...piece, height: piece.height + extraHeight } : piece)
+      return wallFinishPieces(liningPieces, finish, Boolean(fullHeight)).map((piece, index) => {
+        const y = (piece.base ?? 0) + piece.height / 2
+        const outline = outlineFor(piece, cap ?? profile)
+        return <group key={`finish-${side}-${index}`} position={[(piece.start + piece.end) / 2, y, (side === 'left' ? 1 : -1) * (wall.thicknessM / 2 + (finish.presetId === 'natural-oak' ? wallLiningDepthM : .001))]} rotation-y={side === 'right' ? Math.PI : 0}>
+          <WallFace width={piece.end - piece.start} height={piece.height} outline={side === 'right' ? outline?.map(p => ({ x: -p.x, z: p.z })).reverse() : outline} finish={finish} elevation={wall.baseElevationM + y} />
+        </group>
+      })
+    })}
     {selected === wall.ref && <Line points={[[0, height + 0.03, 0], [length, height + 0.03, 0]]} color='#287466' lineWidth={5} />}
     {pieces.map((piece, index) => <group key={index}><group position={[(piece.start + piece.end) / 2, (piece.base ?? 0) + piece.height / 2, 0]}><WallBody width={piece.end - piece.start} height={piece.height} thickness={wall.thicknessM} outline={outlineFor(piece)} plan={plan} /></group><mesh position={[(piece.start + piece.end) / 2, 0.055, 0]}><boxGeometry args={[piece.end - piece.start, 0.09, wall.thicknessM + 0.022]} /><meshStandardMaterial color={plan ? '#283b36' : '#f7f3e9'} /></mesh></group>)}
     {openings.filter((o) => o.kind === 'window' || o.glazed).map((opening) => {
@@ -152,7 +168,7 @@ function UpperRoomContext({ building, storey }: { building: BuildingModel; store
       </mesh>
     }))}
     {building.walls.filter(wall => storey.wallRefs.includes(wall.ref)).map(wall =>
-      <CutawayWall key={wall.ref} wall={wall} profile={atticWallProfile(building, wall)} plan={false} fullHeight />)}
+      <CutawayWall key={wall.ref} wall={wall} profile={atticWallProfile(building, wall)} finishProfiles={wallFinishProfiles(building, wall)} plan={false} fullHeight />)}
     {rooms.map(room => room.ceilingFinish && <RoomCeiling key={room.ref} building={building} storey={storey} footprint={spaceFootprint(building, room)} finish={room.ceilingFinish} flatHeight={storey.clearHeightM} capHeight={Math.min(Infinity, ...building.ceilingFinishes.filter(c => c.spaceRef === room.ref).map(c => c.elevationM - storey.elevationM - c.thicknessM))} />)}
     <VoidCeilings building={building} storey={storey} />
   </group>
@@ -161,8 +177,7 @@ function UpperRoomContext({ building, storey }: { building: BuildingModel; store
 function VoidCeilings({ building, storey }: { building: BuildingModel; storey: StoreyModel }) {
   if (storey.kneeWallHeightM === undefined) return null
   const slab = building.slabs.find(s => s.ref === storey.baseSlabRef)
-  const finish: InteriorFinish = { presetId: 'warm-white', color: '#F5F1E8', rotationDegrees: 0, tileM: 1 }
-  return <>{slab?.holes?.map((hole, index) => <RoomCeiling key={index} building={building} storey={storey} footprint={hole} finish={finish} flatHeight={storey.clearHeightM} overVoid />)}</>
+  return <>{slab?.holes?.map((hole, index) => <RoomCeiling key={index} building={building} storey={storey} footprint={hole} finish={voidCeilingFinish(building, storey, hole)} flatHeight={storey.clearHeightM} overVoid />)}</>
 }
 
 function InteriorGableCaps({ building, storeyRefs }: { building: BuildingModel; storeyRefs: string[] }) {
@@ -319,7 +334,7 @@ export function InteriorScene(props: Props) {
       return <Staircase key={stairs.ref} stairs={stairs} rise={rise} base={base} plan={plan} opening={uStairOpening(building, stairs)} upperPlan={stairs.toStoreyRef === storey.ref} />
     })}
     {!plan && building.roof.segments.filter(s => s.storeyRef === storey.ref).map(s => <RoofWindows key={s.ref} segment={s} elevationOffset={-storey.elevationM} />)}
-    {building.walls.filter((wall) => wall.heightM >= .02 && storey.wallRefs.includes(wall.ref)).map((wall) => <CutawayWall key={wall.ref} wall={wall} profile={atticWallProfile(building, wall)} plan={plan} fullHeight={props.view === 'room'} selected={props.selectedRefs?.includes(wall.ref) ? wall.ref : selected} onPick={mode === 'partition' ? onPick : undefined} onSelect={mode === 'select' && !placing ? onSelect : undefined} />)}
+    {building.walls.filter((wall) => wall.heightM >= .02 && storey.wallRefs.includes(wall.ref)).map((wall) => <CutawayWall key={wall.ref} wall={wall} profile={atticWallProfile(building, wall)} finishProfiles={wallFinishProfiles(building, wall)} plan={plan} fullHeight={props.view === 'room'} selected={props.selectedRefs?.includes(wall.ref) ? wall.ref : selected} onPick={mode === 'partition' ? onPick : undefined} onSelect={mode === 'select' && !placing ? onSelect : undefined} />)}
     {building.spaces.filter((room) => storey.spaceRefs.includes(room.ref)).map((room) => {
       const footprint = spaceFootprint(building, room); const centre = polygonCentroid(footprint); const sizes = roomDimensions(building, room)
       // Merge collinear wall joins before dimensioning; dimensions follow real edges, including L-shaped rooms.

@@ -33,10 +33,10 @@ function MappedFinish({ finish, url, roughness }: { finish: InteriorFinish; url:
   return <meshStandardMaterial map={texture} color={finish.color} roughness={roughness} side={DoubleSide} />
 }
 
-export function FinishMaterial({ finish }: { finish?: InteriorFinish }) {
+export function FinishMaterial({ finish, keepTexture = false }: { finish?: InteriorFinish; keepTexture?: boolean }) {
   const quality = useRenderQuality()
   const preset = interiorFinishes.find((item) => item.id === finish?.presetId)
-  if (!finish || !preset?.texture || quality === 'fast')
+  if (!finish || !preset?.texture || quality === 'fast' && !keepTexture)
     return (
       <meshStandardMaterial
         color={finish?.color ?? '#eeeae3'}

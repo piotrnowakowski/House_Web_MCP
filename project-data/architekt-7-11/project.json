@@ -3,8 +3,8 @@
   "ref": "project/architekt-7-11",
   "name": "architekt 7.11",
   "units": "metric",
-  "revision": 13,
-  "updatedAt": "2026-11-10T14:09:48.597Z",
+  "revision": 15,
+  "updatedAt": "2026-11-10T14:24:18.784Z",
   "site": {
     "boundary": [
       {
@@ -2833,8 +2833,8 @@
           "rotationDegrees": 90,
           "color": "#202427",
           "cabinetry": "under-stair",
-          "cabinetBackHeightM": 2.4,
-          "cabinetFrontHeightM": 2.92
+          "cabinetFrontHeightM": 2.92,
+          "cabinetBackHeightM": 2.4
         },
         {
           "ref": "interior/architekt-711/fireplace",
@@ -3717,6 +3717,18 @@
           "locked": false
         },
         {
+          "faceFinishes": {
+            "left": {
+              "presetId": "natural-oak",
+              "color": "#FFFFFF",
+              "rotationDegrees": 90,
+              "tileM": 0.96,
+              "spanM": [
+                3.56,
+                7.795
+              ]
+            }
+          },
           "ref": "wall/architekt/ground/18",
           "start": {
             "x": -2.955,
@@ -3804,6 +3816,14 @@
           "locked": false
         },
         {
+          "faceFinishes": {
+            "left": {
+              "presetId": "natural-oak",
+              "color": "#FFFFFF",
+              "rotationDegrees": 90,
+              "tileM": 0.96
+            }
+          },
           "ref": "wall/architekt/ground/20",
           "start": {
             "x": 4.84,
@@ -4256,6 +4276,19 @@
           "locked": false
         },
         {
+          "faceFinishes": {
+            "right": {
+              "presetId": "natural-oak",
+              "color": "#FFFFFF",
+              "rotationDegrees": 90,
+              "tileM": 0.96,
+              "spanM": [
+                0.06,
+                1.915
+              ],
+              "followRoof": true
+            }
+          },
           "ref": "wall/architekt/correction/1/child-two/3",
           "start": {
             "x": 0.545,
@@ -4371,6 +4404,20 @@
           "locked": false
         },
         {
+          "faceFinishes": {
+            "left": {
+              "presetId": "natural-oak",
+              "color": "#FFFFFF",
+              "rotationDegrees": 90,
+              "tileM": 0.96,
+              "spanM": [
+                0.06,
+                4.295
+              ],
+              "baseExtensionM": 0.33,
+              "followRoof": true
+            }
+          },
           "ref": "wall/architekt/correction/1/living-void/1",
           "start": {
             "x": 0.545,
@@ -4442,6 +4489,16 @@
           "locked": false
         },
         {
+          "faceFinishes": {
+            "left": {
+              "presetId": "natural-oak",
+              "color": "#FFFFFF",
+              "rotationDegrees": 90,
+              "tileM": 0.96,
+              "baseExtensionM": 0.33,
+              "followRoof": true
+            }
+          },
           "ref": "wall/architekt/upper/26",
           "start": {
             "x": 4.84,
@@ -5231,6 +5288,12 @@
             "color": "#F5F1E8",
             "rotationDegrees": 0,
             "tileM": 1
+          },
+          "voidCeilingFinish": {
+            "presetId": "natural-oak",
+            "color": "#FFFFFF",
+            "rotationDegrees": 90,
+            "tileM": 0.731036
           },
           "ref": "space/reference-living",
           "name": "Salon · jadalnia · kuchnia · hol",

@@ -58,12 +58,13 @@ export interface SiteModel { boundary: Polygon2; northDegrees: number; terrain: 
 
 export interface OpeningModel { concealed?: { faceOffsetM: number; startFillerM?: number; endFillerM?: number }; finish?: InteriorFinish; ref: string; kind: 'door' | 'window'; glazed?: boolean; mullionFractions?: number[]; wallRef: string; offsetM: number; widthM: number; heightM: number; sillM: number; hinge?: 'left' | 'right'; swing?: 'in' | 'out' }
 export interface InteriorFinish { presetId: string; color: string; rotationDegrees: number; tileM: number }
+export interface WallFaceFinish extends InteriorFinish { spanM?: [number, number]; baseExtensionM?: number; followRoof?: boolean }
 export type WallMaterial = 'charred-timber' | 'natural-timber' | 'light-render' | 'brick' | 'metal-panel'
 /** `textureId` picks a scan from the texture library; omit for the material default, `none` for a flat colour. */
 export interface WallFinish { material: WallMaterial; colorHex: string; textureId?: string }
-export interface WallModel { groupRef?: string; ref: string; start: Vec2; end: Vec2; thicknessM: number; baseElevationM: number; heightM: number; openings: OpeningModel[]; finish?: WallFinish; faceFinishes?: { left?: InteriorFinish; right?: InteriorFinish }; locked: boolean }
+export interface WallModel { groupRef?: string; ref: string; start: Vec2; end: Vec2; thicknessM: number; baseElevationM: number; heightM: number; openings: OpeningModel[]; finish?: WallFinish; faceFinishes?: { left?: WallFaceFinish; right?: WallFaceFinish }; locked: boolean }
 export interface SpaceBoundaryUse { wallRef: string; direction: 1 | -1 }
-export interface SpaceModel { ref: string; name: string; usage: string; boundary: SpaceBoundaryUse[]; baseSlabRef: string; topBoundaryRef: string; floorFinish?: InteriorFinish; ceilingFinish?: InteriorFinish; locked: boolean }
+export interface SpaceModel { ref: string; name: string; usage: string; boundary: SpaceBoundaryUse[]; baseSlabRef: string; topBoundaryRef: string; floorFinish?: InteriorFinish; ceilingFinish?: InteriorFinish; voidCeilingFinish?: InteriorFinish; locked: boolean }
 export interface SlabModel { ref: string; footprint: Polygon2; holes?: Polygon2[]; topElevationM: number; thicknessM: number; edgeColorHex?: string; locked: boolean }
 export interface CeilingFinishModel { ref: string; spaceRef: string; hostBoundaryRef: string; elevationM: number; thicknessM: number }
 export interface PlatformModel { ref: string; spaceRef: string; footprint: Polygon2; elevationM: number; thicknessM: number }

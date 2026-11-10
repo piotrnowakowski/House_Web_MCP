@@ -2,7 +2,7 @@ import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
 import current from '../../project-data/architekt-7-11/project.json'
-import previous from '../../project-data/architekt-7-11/before-four-winders-r12.json'
+import previous from '../../project-data/architekt-7-11/before-four-winders-r14.json'
 import { parseProject } from './schema'
 import { polygonArea } from './geometry'
 import { winderGuardEdges, winderLayout, winderSurfaces } from './winderStairs'
@@ -53,7 +53,7 @@ it('matches the study when mirrored and does not leak winder geometry into landi
   expect(b.furniture!.find(f=>f.ref===stairCabinetRef)?.cabinetFrontHeightM).toBe(2.92)
 })
 
-it('migrates a saved r12 house, preserves unrelated deletions and stays stable after reload',async()=>{
+it('migrates a saved r14 house, preserves unrelated deletions and stays stable after reload',async()=>{
   globalThis.indexedDB=new IDBFactory()
   const base=parseProject(previous),local=structuredClone(base)
   local.landscape.plants.pop();local.name='Mój zapis'

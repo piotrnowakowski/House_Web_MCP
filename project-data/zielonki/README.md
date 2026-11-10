@@ -757,4 +757,17 @@ Complete off-host database backup: 3828945 bytes, SHA256 b0f7abe86f42b43fdb9c732
 
 ## 10 November 2026 — Architekt 7.11 four-winder update
 
-Canonical 7.11 r13 adds the selected four-winder option and ceiling-height concealing cabinet fronts. Its prior publication is retained in project-data/architekt-7-11/before-four-winders-r12.json. Source, profile captures, independent-edit decisions, geometry and release verification are documented in that project README. This publication does not edit Zielonki or archived house identities.
+Canonical 7.11 r15 adds the selected four-winder option and ceiling-height concealing cabinet fronts. Its prior publication is retained in project-data/architekt-7-11/before-four-winders-r12.json. Source, profile captures, independent-edit decisions, geometry and release verification are documented in that project README. This publication does not edit Zielonki or archived house identities.
+
+## 10 November 2026 — local Architekt 7.11 oak ceiling update
+
+Architekt 7.11 r13 adds horizontal natural-oak boards only above the living-room void. Source: tracked r12, code 8026a382b7ce04b3a55c1812be99f918b56e88a6; recovery snapshot: ../architekt-7-11/before-timber-ceiling-r12.json. All other project data and geometry remain unchanged. This change is local and has not been merged or deployed; original browser and shared workspaces were not modified. See ../architekt-7-11/README.md for material, persistence and verification details. A future deployment must first capture and compare the actual user workspace under the normal release procedure.
+
+Architekt 7.11 local r14 continues the same oak down both cathedral side walls, with horizontal 160 mm boards and preserved openings. Only five inward wall-face finishes change from local r13; before-oak-side-walls-r13.json is the recovery snapshot. Original browser/shared workspaces are untouched and this has not been published. See ../architekt-7-11/README.md for spans, renderer details and verification.
+
+
+## Published oak ceiling and side walls — 10 November 2026
+
+Published and verified on Mikrus HTTPS: code **463cc56c4ceb28ad50adcbdb419fcc31d03dba5c**, canonical Architekt 7.11 **r14**, shared server **v13**. The existing shared workspace was updated with expectedVersion=12 and exact readback, preserving its proposals/history. All five archived shared workspaces remain byte-for-byte equivalent to their captured JSON. HTTP/HTTPS health and API readiness pass; 15 frontend/texture assets match local build bytes. Public fresh desktop, mobile and captured-history/r12 migration replay all pass stable reload with no page errors; the replay preserves its deliberate furniture deletion and 24 archived workspace/baseline records. A separate browser using the actual public read API confirms r14 and the rendered oak ceiling/walls without issuing shared writes.
+
+Verified complete off-host database backup: C:\Users\WBW\Documents\ChatGPT\Web_MCP\tmp\house-sync-20261110T140831Z.dump, 3828945 bytes, SHA256 a07b40798cbdc2f6a94c2a07520b70867ee00de573225737b41cbeb5bace23da. Rollback Compose: /root/house-web-mcp/furnished-zielonki/deploy/mikrus/compose.yaml.before-20261110T140637Z. Evidence and raw actual-profile recovery: tmp/oak-release-20261110/; screenshots: output/oak-release-20261110/. Main/GitHub Pages were not changed. The earlier local-only r13/r14 notes are historical preparation records; r14 is now published. The pre-existing mobile furniture-size test limitation remains as recorded above.

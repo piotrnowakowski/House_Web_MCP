@@ -1,8 +1,12 @@
 # Four-winder release — 10 November 2026
 
-Architekt 7.11 r13 selects 19 × 17.1053 cm rises with four balanced winders, 28 cm straight goings and 397 × 200 cm footprint. The stair selector retains both existing 7.11 layouts and cabinet on/off. New-layout cabinet fronts reach 292 cm; the usable carcass is 240 cm high. See project-data/architekt-7-11/README.md for data provenance and geometry limitations.
+Architekt 7.11 r15 selects 19 × 17.1053 cm rises with four balanced winders, 28 cm straight goings and 397 × 200 cm footprint. The stair selector retains both existing 7.11 layouts and cabinet on/off. New-layout cabinet fronts reach 292 cm; the usable carcass is 240 cm high. See project-data/architekt-7-11/README.md for data provenance and geometry limitations.
 
 The sections below retain previous release history.
+
+# Current oak interior release — 10 November 2026
+
+Architekt 7.11 now has horizontal natural-oak boards on its cathedral ceiling and both side walls. Code **463cc56c4ceb28ad50adcbdb419fcc31d03dba5c**, canonical **r14**, shared **v13**. Public desktop/mobile and existing-data replay checks pass, along with exact shared readback and 15 asset comparisons. Both retained stair choices and all archived projects remain intact. Recovery, geometry preservation and the independently reproduced pre-existing mobile furniture test limitation are recorded in project-data/architekt-7-11/README.md. Evidence: tmp/oak-release-20261110/.
 
 # Current stair choices — 10 November 2026
 
