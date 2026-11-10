@@ -1,3 +1,7 @@
+# Current stair choices — 10 November 2026
+
+Only **7.11 9+9** and **7.11 12+6** are offered, with cabinet on/off. Classic 9+9 has been removed from the selector at the user's request. Canonical project r12 and shared v12 are unchanged. Details: project-data/architekt-7-11/README.md.
+
 # Active house release — 10 November 2026
 
 Only **architekt 7.11** is active. Interior → **Schody** selects three stair layouts and cabinet on/off. The other five former active identities are archived with all data preserved.

@@ -1,11 +1,13 @@
 import { uStairOpening } from './stairs'
 import type { BuildingModel, InteriorItem, Polygon2, StairModel, StairVariant } from './types'
 
-export const stairVariants: { id: StairVariant; name: string; description: string }[] = [
+const knownStairVariants: { id: StairVariant; name: string; description: string }[] = [
   { id: 'open-9-9', name: '7.11 · 9 + 9', description: 'Równe biegi, białe stopnie i szklana balustrada.' },
   { id: 'open-12-6', name: '7.11 · 12 + 6', description: 'Dłuższy dolny bieg i więcej podłogi na piętrze.' },
   { id: 'classic-9-9', name: 'Klasyczne · 9 + 9', description: 'Drewno i metal. Wejście od strony kuchni.' },
 ]
+// Retain recognition of older saved layouts and undo history, but offer only 7.11.
+export const stairVariants = knownStairVariants.filter(option => option.id !== 'classic-9-9')
 export const stairCabinetRef = 'interior/architekt-711/under-stair-cabinet'
 export const stairFillerRef = 'interior/architekt-711/stair-junction-filler'
 const owned = (item: InteriorItem) => [stairCabinetRef, stairFillerRef].includes(item.ref)
@@ -27,7 +29,7 @@ function preset(layout: StairVariant): StairModel {
 export function currentStairVariant(building: BuildingModel): StairVariant | null {
   const stairs = building.stairs?.find(s => s.ref === 'stairs/reference-main')
   if (!stairs) return null
-  return stairVariants.find(({ id }) => {
+  return knownStairVariants.find(({ id }) => {
     const p = preset(id)
     return stairs.fromStoreyRef === p.fromStoreyRef && stairs.toStoreyRef === p.toStoreyRef && stairs.steps === p.steps
       && ['x', 'z'].every(key => Math.abs(stairs.start[key as 'x' | 'z'] - p.start[key as 'x' | 'z']) < 1e-6)
