@@ -53,9 +53,13 @@ export const InteriorItemSchema = z.object({
   cabinetry: z.enum(['tall', 'oven-tower', 'under-stair', 'base', 'sink', 'sink-insert', 'island', 'hob']).optional(),
   cabinetBackHeightM: z.number().min(.1).max(5).optional(),
   seatingOverhangM: z.number().min(0).max(.6).optional(),
+  seatingWidthM: z.number().min(.1).max(20).optional(),
+  seatingOffsetM: z.number().finite().optional(),
   sofaModuleDepthM: z.number().min(.8).max(1.2).optional(),
 }).refine(item => item.cabinetry !== 'under-stair' || (item.cabinetBackHeightM !== undefined && item.cabinetBackHeightM <= item.heightM), { message: 'Under-stair cabinetry needs a back height no higher than its front.', path: ['cabinetBackHeightM'] })
   .refine(item => item.seatingOverhangM === undefined || (item.cabinetry === 'island' && item.depthM - item.seatingOverhangM >= .6), { message: 'Seating overhang requires an island with at least 60 cm of cabinet depth.', path: ['seatingOverhangM'] })
+  .refine(item => item.seatingWidthM === undefined || (item.cabinetry === 'island' && (item.seatingOverhangM ?? 0) > 0 && item.seatingWidthM + 2 * Math.abs(item.seatingOffsetM ?? 0) <= item.widthM + 1e-8), { message: 'The seating recess must fit within an island with an overhang.', path: ['seatingWidthM'] })
+  .refine(item => item.seatingOffsetM === undefined || item.seatingWidthM !== undefined, { message: 'A seating offset requires a recess width.', path: ['seatingOffsetM'] })
   .refine(item => item.sofaModuleDepthM === undefined || (item.catalogId === 'corner-sofa' && !item.cabinetry && item.widthM >= item.sofaModuleDepthM + 1.4 && item.depthM >= item.sofaModuleDepthM + .8 && item.heightM >= .6), { message: 'Sofa modules require a corner sofa with room for both seating runs.', path: ['sofaModuleDepthM'] })
 
 /** Catalogue dimensions remain the reference even when a placed object is enlarged. */

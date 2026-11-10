@@ -1,3 +1,7 @@
+## Current island layout — 10 November 2026
+
+All six online projects use a 280 cm island with the sink at the dining end, a hob centred along its length, a 120 cm recess for two stools and 160 cm of cabinet infill on the living-room side. Depths remain 90 cm (five variants) and 110 cm (architekt 7.11 v2); the older three 200 cm islands extend towards the dining room. Previous publications are preserved in each before-island-layout.json; see individual project READMEs for provenance and verification.
+
 ## Current update: all six online projects — 10 November 2026
 
 All six online project variants now specify a 320 x 220 cm main living-room L sofa and a 208 x 90 cm ground-floor shower. Five projects are updated independently; architekt 7.11 v2 already matches and remains r3/server v3. Each variant retains its house, garden, stairs and kitchen. See the individual project READMEs and before-family-dimensions.json snapshots for dimensions, provenance and validation.

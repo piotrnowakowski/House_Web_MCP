@@ -3,8 +3,8 @@
   "ref": "project/architekt",
   "name": "architekt",
   "units": "metric",
-  "revision": 11,
-  "updatedAt": "2026-11-10T06:47:17.335Z",
+  "revision": 12,
+  "updatedAt": "2026-11-10T07:07:10.034Z",
   "site": {
     "boundary": [
       {
@@ -1841,16 +1841,18 @@
           "ref": "interior/reference-sink",
           "catalogId": "sink",
           "storeyRef": "storey/reference-ground",
-          "name": "Zlew",
+          "name": "Zlew na zewnętrznym końcu wyspy · od jadalni",
           "position": {
-            "x": -2.595,
-            "z": -5.655
+            "x": -0.895,
+            "z": -3.015
           },
-          "widthM": 0.6,
-          "depthM": 0.8,
-          "heightM": 0.92,
-          "rotationDegrees": 0,
-          "color": "#B99A72"
+          "widthM": 0.56,
+          "depthM": 0.44,
+          "heightM": 0.32,
+          "rotationDegrees": 270,
+          "color": "#B99A72",
+          "cabinetry": "sink-insert",
+          "elevationM": 0.92
         },
         {
           "ref": "interior/reference-counter",
@@ -1886,32 +1888,37 @@
           "ref": "interior/reference-island",
           "catalogId": "kitchen-island",
           "storeyRef": "storey/reference-ground",
-          "name": "Wyspa 0,90 × 2,00",
+          "name": "Wyspa 280 × 90 cm · 2 hokery i szafki",
           "position": {
             "x": -0.745,
-            "z": -4.435
+            "z": -4.035
           },
-          "widthM": 0.9,
-          "depthM": 2,
+          "widthM": 2.8,
+          "depthM": 0.9,
           "heightM": 0.92,
-          "rotationDegrees": 0,
-          "color": "#B99A72"
+          "rotationDegrees": 90,
+          "color": "#B99A72",
+          "cabinetry": "island",
+          "seatingOverhangM": 0.3,
+          "seatingWidthM": 1.2,
+          "seatingOffsetM": 0.8
         },
         {
           "ref": "interior/architekt/cooker",
           "catalogId": "cooker",
           "storeyRef": "storey/reference-ground",
-          "name": "Płyta na wyspie",
+          "name": "Płyta pośrodku wyspy · 58 × 52 cm",
           "position": {
-            "x": -0.745,
-            "z": -4.435
+            "x": -0.895,
+            "z": -4.035
           },
           "widthM": 0.58,
-          "depthM": 0.6,
-          "heightM": 0.04,
-          "rotationDegrees": 0,
+          "depthM": 0.52,
+          "heightM": 0.015,
+          "rotationDegrees": 90,
           "color": "#B99A72",
-          "elevationM": 0.92
+          "elevationM": 0.92,
+          "cabinetry": "hob"
         },
         {
           "ref": "interior/reference-stool-one",
@@ -1920,11 +1927,11 @@
           "name": "Hoker 1",
           "position": {
             "x": 0.015,
-            "z": -4.775
+            "z": -5.135
           },
           "widthM": 0.42,
           "depthM": 0.42,
-          "heightM": 0.75,
+          "heightM": 0.65,
           "rotationDegrees": 0,
           "color": "#B99A72"
         },
@@ -1935,11 +1942,11 @@
           "name": "Hoker 2",
           "position": {
             "x": 0.015,
-            "z": -4.185
+            "z": -4.535
           },
           "widthM": 0.42,
           "depthM": 0.42,
-          "heightM": 0.75,
+          "heightM": 0.65,
           "rotationDegrees": 0,
           "color": "#B99A72"
         },
@@ -2332,6 +2339,21 @@
           "depthM": 0.45,
           "heightM": 0.85,
           "rotationDegrees": 0,
+          "color": "#B99A72"
+        },
+        {
+          "ref": "interior/kitchen/former-sink-base",
+          "catalogId": "kitchen-counter",
+          "storeyRef": "storey/reference-ground",
+          "name": "Szafka 80 cm w miejscu dawnego zlewu",
+          "position": {
+            "x": -2.595,
+            "z": -5.655
+          },
+          "widthM": 0.8,
+          "depthM": 0.6,
+          "heightM": 0.92,
+          "rotationDegrees": 90,
           "color": "#B99A72"
         }
       ],

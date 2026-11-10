@@ -3,8 +3,8 @@
   "ref": "project/architekt-7-11-v2",
   "name": "architekt 7.11 wersja 2",
   "units": "metric",
-  "revision": 3,
-  "updatedAt": "2026-11-10T06:11:55.955Z",
+  "revision": 4,
+  "updatedAt": "2026-11-10T07:07:10.042Z",
   "site": {
     "boundary": [
       {
@@ -1859,10 +1859,10 @@
           "ref": "interior/reference-sink",
           "catalogId": "sink",
           "storeyRef": "storey/reference-ground",
-          "name": "Zlew na wyspie",
+          "name": "Zlew na zewnętrznym końcu wyspy · od jadalni",
           "position": {
-            "x": -0.87,
-            "z": -3.89
+            "x": -0.895,
+            "z": -3.015
           },
           "widthM": 0.56,
           "depthM": 0.44,
@@ -1908,7 +1908,7 @@
           "ref": "interior/reference-island",
           "catalogId": "kitchen-island",
           "storeyRef": "storey/reference-ground",
-          "name": "Czarna wyspa 280 × 110 cm · miejsce na hokery",
+          "name": "Wyspa 280 × 110 cm · 2 hokery i szafki",
           "position": {
             "x": -0.645,
             "z": -4.035
@@ -1919,19 +1919,21 @@
           "rotationDegrees": 90,
           "color": "#202427",
           "cabinetry": "island",
-          "seatingOverhangM": 0.38
+          "seatingOverhangM": 0.38,
+          "seatingWidthM": 1.2,
+          "seatingOffsetM": 0.8
         },
         {
           "ref": "interior/architekt/cooker",
           "catalogId": "cooker",
           "storeyRef": "storey/reference-ground",
-          "name": "Płyta na wyspie",
+          "name": "Płyta pośrodku wyspy · 58 × 52 cm",
           "position": {
-            "x": -0.87,
-            "z": -4.98
+            "x": -0.895,
+            "z": -4.035
           },
           "widthM": 0.58,
-          "depthM": 0.6,
+          "depthM": 0.52,
           "heightM": 0.015,
           "rotationDegrees": 90,
           "color": "#202427",
@@ -1945,7 +1947,7 @@
           "name": "Hoker 1",
           "position": {
             "x": 0.215,
-            "z": -4.775
+            "z": -5.135
           },
           "widthM": 0.42,
           "depthM": 0.42,
@@ -1960,7 +1962,7 @@
           "name": "Hoker 2",
           "position": {
             "x": 0.215,
-            "z": -4.185
+            "z": -4.535
           },
           "widthM": 0.42,
           "depthM": 0.42,

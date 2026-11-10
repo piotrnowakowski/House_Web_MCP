@@ -1,6 +1,7 @@
 import type { InteriorItem } from '../domain/types'
 import { useEffect, useMemo } from 'react'
 import { slopedCabinetGeometry } from './cabinetGeometry'
+import { islandSeating } from './islandSeating'
 
 function UnderStairCabinet({ item }: { item: InteriorItem }) {
   const { widthM: w, depthM: d, heightM: h, color } = item
@@ -34,12 +35,21 @@ export function FittedKitchen({ item }: { item: InteriorItem }) {
   // Seating is on local +z; the working fronts stay at -z. Older islands retain their geometry.
   if (kind === 'island' && item.seatingOverhangM) {
     const overhang = item.seatingOverhangM, bodyDepth = d - overhang
+    const seating = islandSeating(item)
     const plinth = .09, top = .025, columns = Math.max(1, Math.round(w / .6)), cw = w / columns
     return <group name={`fitted-kitchen/${item.ref}`}>
       {box('plinth', [w - .04, plinth, bodyDepth - .08], [0, plinth / 2, -overhang / 2])}
       {box('carcass', [w - .012, h - plinth - top, bodyDepth - .02], [0, (h + plinth - top) / 2, -overhang / 2])}
       {box('top', [w, top, d], [0, h - top / 2, 0], '#171B1D')}
-      {box('seating-back', [w - .012, h - plinth - top, .02], [0, (h + plinth - top) / 2, d / 2 - overhang - .01])}
+      {box('seating-back', [seating.width - .012, h - plinth - top, .02], [seating.centre, (h + plinth - top) / 2, d / 2 - overhang - .01])}
+      {seating.cabinets.map((section, i) => <group key={`seating-cabinet-${i}`} name={`seating-cabinet-${i}`}>
+        {box('extension-plinth', [Math.max(.001, section.width - .04), plinth, overhang], [section.centre, plinth / 2, d / 2 - overhang / 2 - .04])}
+        {box('extension-carcass', [Math.max(.001, section.width - .012), h - plinth - top, Math.max(.001, overhang - .01)], [section.centre, (h + plinth - top) / 2, d / 2 - overhang / 2 - .005])}
+        {Array.from({ length: Math.max(1, Math.round(section.width / .6)) }, (_, c) => {
+          const sw = section.width / Math.max(1, Math.round(section.width / .6))
+          return box(`seating-front-${c}`, [Math.max(.001, sw - .004), h - plinth - top - .004, .02], [section.centre - section.width / 2 + (c + .5) * sw, (h + plinth - top) / 2, d / 2 - .01])
+        })}
+      </group>)}
       {Array.from({ length: columns }, (_, c) => [[plinth, h * .47], [h * .47, h - top]].map(([bottom, upper], r) => box(`front-${c}-${r}`, [cw - .004, upper - bottom - .004, .02], [-w / 2 + (c + .5) * cw, (bottom + upper) / 2, -d / 2 + .01])))}
     </group>
   }

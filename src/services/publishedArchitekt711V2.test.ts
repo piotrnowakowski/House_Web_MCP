@@ -1,7 +1,9 @@
+// Historical publication fixture; current kitchen preservation and migration are covered by islandLayouts.test.ts.
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
-import data from '../../project-data/architekt-7-11-v2/project.json'
+import data from '../../project-data/architekt-7-11-v2/before-island-layout.json'
+import currentData from '../../project-data/architekt-7-11-v2/project.json'
 import source from '../../project-data/architekt-7-11-v2/source-architekt-711-r6.json'
 import previous from '../../project-data/architekt-7-11-v2/before-island-seating-r1.json'
 import previousLayout from '../../project-data/architekt-7-11-v2/before-shower-90-r2.json'
@@ -41,10 +43,10 @@ it('saves the independent copy and preserves user deletions during a subsequent 
   saved.project.landscape.plants.pop()
   saved.project.buildings[0].furniture!.pop()
   await saveWorkspace(saved)
-  const next = parseProject(data)
-  next.revision = data.revision + 1; next.updatedAt = '2026-11-11T12:00:00.000Z'
+  const next = parseProject(currentData)
+  next.revision = currentData.revision + 1; next.updatedAt = '2026-11-11T12:00:00.000Z'
   next.name += ' test update'
-  expect(await synchronizePublishedProject(next, parseProject(data))).toEqual([])
+  expect(await synchronizePublishedProject(next, parseProject(currentData))).toEqual([])
   const reloaded = (await loadWorkspace(ARCHITEKT_711_V2_REF))!
   expect(reloaded.project.landscape).toEqual(saved.project.landscape)
   expect(reloaded.project.buildings[0].furniture).toEqual(saved.project.buildings[0].furniture)
@@ -173,6 +175,6 @@ it('preserves the working copy when a user deleted the chair that this publicati
   await saveWorkspace(saved)
   expect(await synchronizePublishedArchitekt711V2()).toEqual(['/buildings/house/main/furniture/interior/architekt/lounge-chair'])
   expect((await loadWorkspace(old.ref))!).toEqual(saved)
-  const publishedCopyRef = `${old.ref}/published-${data.revision}-${data.updatedAt.replace(/\D/g, '')}`
-  expect((await loadWorkspace(publishedCopyRef))!.project.buildings[0].furniture).toEqual(parseProject(data).buildings[0].furniture)
+  const publishedCopyRef = `${old.ref}/published-${currentData.revision}-${currentData.updatedAt.replace(/\D/g, '')}`
+  expect((await loadWorkspace(publishedCopyRef))!.project.buildings[0].furniture).toEqual(parseProject(currentData).buildings[0].furniture)
 })

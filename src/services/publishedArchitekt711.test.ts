@@ -1,8 +1,9 @@
+// Historical publication fixture; current kitchen preservation and migration are covered by islandLayouts.test.ts.
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import { DoubleSide, Mesh, MeshBasicMaterial, Raycaster, Vector3 } from 'three'
-import data from '../../project-data/architekt-7-11/project.json'
+import data from '../../project-data/architekt-7-11/before-island-layout.json'
 import previousInterior from '../../project-data/architekt-7-11/before-interior-r1.json'
 import previousDirection from '../../project-data/architekt-7-11/before-stair-direction-r2.json'
 import previousJoinery from '../../project-data/architekt-7-11/before-under-stair-r4.json'
@@ -55,7 +56,7 @@ it('widens the kitchen window towards the living room and leaves the new firepla
 it('migrates the fireplace and window from r3 while retaining deletions and exposing competing window edits',async()=>{
   const old=parseProject(previousWindow), local=structuredClone(old)
   local.landscape.plants.pop()
-  local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/reference-stool-two')
+  local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/office-c5/chair')
   await saveWorkspace({version:1,project:local,proposals:[],draftChangeSets:[]})
   // Recreate the already acknowledged published baseline, as an existing r3 browser has it.
   const db=await new Promise<IDBDatabase>((resolve,reject)=>{const request=indexedDB.open('house-web-mcp',2);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})
@@ -64,7 +65,7 @@ it('migrates the fireplace and window from r3 while retaining deletions and expo
   expect(await synchronizePublishedArchitekt711()).toEqual([])
   const saved=(await loadWorkspace(old.ref))!
   expect(saved.project.landscape).toEqual(local.landscape)
-  expect(saved.project.buildings[0].furniture!.some(f=>f.ref==='interior/reference-stool-two')).toBe(false)
+  expect(saved.project.buildings[0].furniture!.some(f=>f.ref==='interior/office-c5/chair')).toBe(false)
   expect(saved.project.buildings[0].furniture!.some(f=>f.catalogId==='fireplace')).toBe(true)
   expect(saved.project.buildings[0].walls).toEqual(parseProject(data).buildings[0].walls)
   await synchronizePublishedArchitekt711();expect(await loadWorkspace(old.ref)).toEqual(saved)
@@ -164,10 +165,10 @@ it('fits the flush cabinet extension below the actual folded stair and leaves th
 
 it('migrates the wall removal and fitted extension from r4 while retaining independent saved deletions',async()=>{
   const before=parseProject(previousJoinery), local=structuredClone(before)
-  local.landscape.plants.pop();local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/reference-stool-two')
+  local.landscape.plants.pop();local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/office-c5/chair')
   const result=mergeProjects(before,local,parseProject(data));expect(result.conflicts).toEqual([])
   expect(result.project.landscape).toEqual(local.landscape)
-  expect(result.project.buildings[0].furniture!.some(f=>f.ref==='interior/reference-stool-two')).toBe(false)
+  expect(result.project.buildings[0].furniture!.some(f=>f.ref==='interior/office-c5/chair')).toBe(false)
   expect(result.project.buildings[0].furniture!.find(f=>f.cabinetry==='under-stair')?.cabinetBackHeightM).toBe(1.995)
   expect(result.project.buildings[0].walls.find(w=>w.ref==='wall/architekt/ground/12')?.heightM).toBe(.01)
   await saveWorkspace({version:1,project:result.project,proposals:[],draftChangeSets:[]})
@@ -176,12 +177,12 @@ it('migrates the wall removal and fitted extension from r4 while retaining indep
 
 it('merges the reversed flights and relocated sink into r2 without losing unrelated edits or resurrecting a deletion',()=>{
   const before=parseProject(previousDirection), local=structuredClone(before)
-  local.landscape.plants.pop();local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/reference-stool-two')
+  local.landscape.plants.pop();local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/office-c5/chair')
   const merged=mergeProjects(before,local,parseProject(data))
   expect(merged.conflicts).toEqual([])
   expect(merged.project.buildings[0].stairs![0].uTurn?.entrySide).toBe('max-z')
   expect(merged.project.buildings[0].furniture!.find(f=>f.ref==='interior/reference-sink')?.cabinetry).toBe('sink-insert')
-  expect(merged.project.buildings[0].furniture!.some(f=>f.ref==='interior/reference-stool-two')).toBe(false)
+  expect(merged.project.buildings[0].furniture!.some(f=>f.ref==='interior/office-c5/chair')).toBe(false)
   expect(merged.project.landscape).toEqual(local.landscape)
 })
 
@@ -271,7 +272,7 @@ it('turns the lounge towards the low TV console while preserving dining circulat
   expect(items.filter(f=>!changed.includes(f.ref))).toEqual(old.furniture!.filter(f=>!changed.includes(f.ref)))
   for(const key of ['walls','stairs','storeys','slabs','roof','spaces'] as const)expect(h[key]).toEqual(old[key])
   expect(p.landscape).toEqual(before.landscape);expect(p.site).toEqual(before.site)
-  const local=structuredClone(before);local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/reference-stool-two')
+  const local=structuredClone(before);local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/office-c5/chair')
   expect(mergeProjects(before,local,p).conflicts).toEqual([])
   local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!==sofa.ref)
   expect(mergeProjects(before,local,p).conflicts.some(path=>path.endsWith(sofa.ref))).toBe(true)
