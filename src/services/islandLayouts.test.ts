@@ -2,17 +2,17 @@ import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import architekt from '../../project-data/architekt/project.json'
-import architektBefore from '../../project-data/architekt/before-island-layout.json'
+import architektBefore from '../../project-data/architekt/before-window-sink.json'
 import architect711 from '../../project-data/architekt-7-11/project.json'
-import architect711Before from '../../project-data/architekt-7-11/before-island-layout.json'
+import architect711Before from '../../project-data/architekt-7-11/before-window-sink.json'
 import stairs from '../../project-data/architekt-7-11-stairs-12-6/project.json'
-import stairsBefore from '../../project-data/architekt-7-11-stairs-12-6/before-island-layout.json'
+import stairsBefore from '../../project-data/architekt-7-11-stairs-12-6/before-window-sink.json'
 import version2 from '../../project-data/architekt-7-11-v2/project.json'
-import version2Before from '../../project-data/architekt-7-11-v2/before-island-layout.json'
+import version2Before from '../../project-data/architekt-7-11-v2/before-window-sink.json'
 import mpzp from '../../project-data/nowe-mpzp/project.json'
-import mpzpBefore from '../../project-data/nowe-mpzp/before-island-layout.json'
+import mpzpBefore from '../../project-data/nowe-mpzp/before-window-sink.json'
 import mpzpV2 from '../../project-data/nowe-mpzp-v2/project.json'
-import mpzpV2Before from '../../project-data/nowe-mpzp-v2/before-island-layout.json'
+import mpzpV2Before from '../../project-data/nowe-mpzp-v2/before-window-sink.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
 import { interiorCorners, itemFitsFloor } from '../domain/interior'
@@ -39,17 +39,17 @@ const cases = [
 const changed = ['interior/reference-island', 'interior/reference-sink', 'interior/architekt/cooker', 'interior/reference-stool-one', 'interior/reference-stool-two']
 beforeEach(() => { globalThis.indexedDB = new IDBFactory() })
 
-it.each(cases)('$name fits the centred hob, outside sink and two-seat recess without changing the house or other furniture', ({ data, before }) => {
+it.each(cases)('$name fits the centred hob, window-end sink and two-seat recess without changing the house or other furniture', ({ data, before }) => {
   const p = parseProject(data), old = parseProject(before), b = p.buildings[0], floor = b.storeys[0]
   const item = (ref: string) => b.furniture!.find(f => f.ref === ref)!
   const island = item(changed[0]), sink = item(changed[1]), hob = item(changed[2])
   const bounds = polygonBounds(interiorCorners(island)), prior = polygonBounds(interiorCorners(old.buildings[0].furniture!.find(f => f.ref === island.ref)!))
-  expect([island.widthM, island.seatingWidthM, island.seatingOffsetM]).toEqual([2.8, 1.2, .8])
-  expect(bounds.minX).toBeCloseTo(prior.minX); expect(bounds.maxX).toBeCloseTo(prior.maxX); expect(bounds.minZ).toBeCloseTo(prior.minZ)
+  expect([island.widthM, island.depthM, island.seatingWidthM, island.seatingOffsetM, island.seatingOverhangM]).toEqual([2.8, 1.1, 1.2, .8, .38])
+  expect(bounds.minX).toBeCloseTo(prior.minX); expect(bounds.minZ).toBeCloseTo(prior.minZ)
   expect(hob.position.z).toBe(island.position.z)
   const sb = polygonBounds(interiorCorners(sink)), hb = polygonBounds(interiorCorners(hob))
-  expect(sb.minZ - hb.maxZ).toBeCloseTo(.45)
-  expect(bounds.maxZ - sb.maxZ).toBeCloseTo(.1)
+  expect(hb.minZ - sb.maxZ).toBeCloseTo(.45)
+  expect(sb.minZ - bounds.minZ).toBeCloseTo(.1)
   for (const appliance of [sink, hob]) {
     const ab = polygonBounds(interiorCorners(appliance))
     expect(ab.minX).toBeGreaterThan(bounds.minX)
@@ -73,11 +73,11 @@ it.each(cases)('$name fits the centred hob, outside sink and two-seat recess wit
   expect(validateProject(p).filter(i => i.severity === 'error')).toEqual([])
   const restored = structuredClone(p)
   restored.revision = old.revision; restored.updatedAt = old.updatedAt
-  restored.buildings[0].furniture = restored.buildings[0].furniture!.filter(f => f.ref !== 'interior/kitchen/former-sink-base').map(f => changed.includes(f.ref) ? old.buildings[0].furniture!.find(o => o.ref === f.ref)! : f)
+  restored.buildings[0].furniture = restored.buildings[0].furniture!.map(f => changed.includes(f.ref) ? old.buildings[0].furniture!.find(o => o.ref === f.ref)! : f)
   expect(restored).toEqual(old)
 })
 
-it.each(cases)('$name migrates recess fields and preserves independent edits and deletions across reload', async ({ data, before, sync }) => {
+it.each(cases)('$name migrates the window-end sink and wider island and preserves independent edits and deletions across reload', async ({ data, before, sync }) => {
   const old = parseProject(before)
   await synchronizePublishedProject(old, old)
   const local = (await loadWorkspace(old.ref))!

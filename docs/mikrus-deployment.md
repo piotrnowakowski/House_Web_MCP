@@ -194,3 +194,10 @@ Published code `073cd7d0cc649175951ecaf9544fbaaab3f96176`; canonical r6/shared v
 `project/architekt-7-11-stairs-12-6` is an independent fork of original architekt 7.11 r6 with its cabinetry retained. It redistributes 18 equal risers as 12 lower / 6 upper and fills only the upper-flight end of the slab opening. Original architekt 7.11, version 2 and other projects remain independent. See [variant geometry and preservation evidence](../project-data/architekt-7-11-stairs-12-6/README.md).
 
 Published on Mikrus: code `73a9eef36d709832f936e11713c7a1a9c883ba2c`, new stair variant canonical r1/shared version 1. HTTP/HTTPS health, API, exact assets and fresh/mobile/captured-project replay with save/reload pass; all five prior shared projects are unchanged. A complete off-host database backup was verified by SHA256 before activation after a disconnected SFTP download was recovered through SSH chunks. Detailed recovery and final browser evidence are in the variant README. Main/Pages are unchanged.
+
+
+## 10 November 2026 — option A sink towards the window, all six projects
+
+User selected option A after confirming 280 x 110 cm islands in all six current online projects. Sink remains on each island and moves to its window end, x=-0.895 / z=-5.055; the hob stays centred, with 45 cm between the appliance envelopes. Two stools use a 120 cm recess with 38 cm knee depth; 160 cm is cabinet infill. Kitchen working aisle remains 110 cm and dining clearance approximately 94.5 cm. The secondary route behind stools is only 55–60 cm. Sofas, showers, all openings and building/roof geometry remain unchanged.
+
+Canonical revisions: architekt r13; architekt 7.11 r9; stairs 12+6 r4; architekt 7.11 v2 r5; nowe mpzp r22; nowe mpzp v2 r18. Each previous publication is retained in before-window-sink.json. Actual Chrome Default/Profile 1 captures and independent shared snapshots, source https://natan203-20203.mikrus.cloud, are retained in tmp/window-sink-all-projects-20261110. Original browser stores are not overwritten. See each project README for exact dimensions and provenance.

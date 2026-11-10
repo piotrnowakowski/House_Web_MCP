@@ -3,8 +3,8 @@
   "ref": "project/architekt-7-11-v2",
   "name": "architekt 7.11 wersja 2",
   "units": "metric",
-  "revision": 4,
-  "updatedAt": "2026-11-10T07:07:10.042Z",
+  "revision": 5,
+  "updatedAt": "2026-11-10T10:01:12.751Z",
   "site": {
     "boundary": [
       {
@@ -1859,10 +1859,10 @@
           "ref": "interior/reference-sink",
           "catalogId": "sink",
           "storeyRef": "storey/reference-ground",
-          "name": "Zlew na zewnętrznym końcu wyspy · od jadalni",
+          "name": "Zlew na wyspie od strony okna",
           "position": {
             "x": -0.895,
-            "z": -3.015
+            "z": -5.055
           },
           "widthM": 0.56,
           "depthM": 0.44,

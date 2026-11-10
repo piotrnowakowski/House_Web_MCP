@@ -3,8 +3,8 @@
   "ref": "project/architekt-7-11-stairs-12-6",
   "name": "architekt 7.11 — schody 12 + 6",
   "units": "metric",
-  "revision": 3,
-  "updatedAt": "2026-11-10T07:07:10.024Z",
+  "revision": 4,
+  "updatedAt": "2026-11-10T10:01:12.764Z",
   "site": {
     "boundary": [
       {
@@ -1859,10 +1859,10 @@
           "ref": "interior/reference-sink",
           "catalogId": "sink",
           "storeyRef": "storey/reference-ground",
-          "name": "Zlew na zewnętrznym końcu wyspy · od jadalni",
+          "name": "Zlew na wyspie od strony okna",
           "position": {
             "x": -0.895,
-            "z": -3.015
+            "z": -5.055
           },
           "widthM": 0.56,
           "depthM": 0.44,
@@ -1908,18 +1908,18 @@
           "ref": "interior/reference-island",
           "catalogId": "kitchen-island",
           "storeyRef": "storey/reference-ground",
-          "name": "Wyspa 280 × 90 cm · 2 hokery i szafki",
+          "name": "Wyspa 280 × 110 cm · 2 hokery i szafki",
           "position": {
-            "x": -0.745,
+            "x": -0.645,
             "z": -4.035
           },
           "widthM": 2.8,
-          "depthM": 0.9,
+          "depthM": 1.1,
           "heightM": 0.92,
           "rotationDegrees": 90,
           "color": "#202427",
           "cabinetry": "island",
-          "seatingOverhangM": 0.3,
+          "seatingOverhangM": 0.38,
           "seatingWidthM": 1.2,
           "seatingOffsetM": 0.8
         },
@@ -1946,7 +1946,7 @@
           "storeyRef": "storey/reference-ground",
           "name": "Hoker 1",
           "position": {
-            "x": 0.015,
+            "x": 0.215,
             "z": -5.135
           },
           "widthM": 0.42,
@@ -1961,7 +1961,7 @@
           "storeyRef": "storey/reference-ground",
           "name": "Hoker 2",
           "position": {
-            "x": 0.015,
+            "x": 0.215,
             "z": -4.535
           },
           "widthM": 0.42,
