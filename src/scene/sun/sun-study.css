@@ -121,3 +121,23 @@ body:has(.sun-study) .workspace-save-bar { display: none; }
   .daylight-panel select { min-height: 30px; padding: 2px 6px; }
   .daylight-panel .observer-plan { height: clamp(145px, 25dvh, 270px); min-height: 145px; }
 }
+
+.window-switch { display: flex; gap: 4px; }
+.sun-study .window-switch button { flex: 1; min-height: 34px; padding: 5px 7px; font-size: 12px; }
+.sun-study .window-switch button[aria-pressed=true] { color: white; background: #285744; border-color: #285744; }
+.window-results table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.window-results th, .window-results td { padding: 5px 4px; border-bottom: 1px solid #ccd7ca; }
+.window-results th { text-align: left; font-weight: 500; }
+.window-results thead th { font-weight: 700; }
+.window-results td, .window-results thead th:not(:first-child) { text-align: center; }
+.window-results td { font-weight: 650; }
+.window-results small { display: block; margin-top: 5px; font-size: 10px; color: #526358; }
+.window-preview { pointer-events: auto; display: grid; gap: 4px; margin-top: 4px; font-size: 12px; }
+.sun-study .window-preview > button { min-height: 28px; font-size: 12px; }
+@media (max-width: 500px) {
+  .sun-study-header:has([aria-label="Porównaj okna"]) { padding: 6px 8px; gap: 5px; }
+  .sun-study-header:has([aria-label="Porównaj okna"]) button { font-size: 12px; padding: 5px 7px; }
+  .sun-study-header:has([aria-label="Porównaj okna"]) strong { font-size: 14px; }
+}
+.window-gain { margin: 0 0 5px; font-size: 13px; line-height: 1.35; }
+.sun-study label.window-all { display: flex; flex-direction: row; align-items: center; gap: 6px; font-size: 12px; } .sun-study .window-all input[type=checkbox] { min-height: 17px; width: 17px; accent-color: #275b46; }

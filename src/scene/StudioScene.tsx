@@ -1482,12 +1482,17 @@ function SceneBackground() {
 }
 
 /** Full model and surroundings, with no editing, cutaways, transparency or orbit controller. */
-export const SunStudyScene = memo(function SunStudyScene({ focus, fullBrightness = false, studyBuildingRef, onGeometry }: { focus: [number, number, number]; fullBrightness?: boolean; studyBuildingRef: string; onGeometry: (root: Group, building: BuildingModel) => void }) {
+export const SunStudyScene = memo(function SunStudyScene({ focus, fullBrightness = false, studyBuildingRef, onGeometry, alternative, showAlternative }: { focus: [number, number, number]; fullBrightness?: boolean; studyBuildingRef: string; alternative?: { id: string; alternative: BuildingModel }; showAlternative: boolean; onGeometry: (root: Group, building: BuildingModel) => void }) {
   const project = useStudioStore(state => state.project)
   return <>
     <SceneBackground /><SunLight observationFocus={focus} fullBrightness={fullBrightness} /><StudyEnvironment fullBrightness={fullBrightness} /><TexturePreloader />
     <NeighborBuildings /><TerrainAndSite project={project} observation /><Landscape project={project} /><GardenFixtures project={project} />
-    {project.buildings.map(building => <Building key={building.ref} project={project} building={building} observation onGeometry={building.ref === studyBuildingRef ? onGeometry : undefined} />)}
+    {project.buildings.map(building => <group key={building.ref} visible={building.ref !== studyBuildingRef || !showAlternative}>
+      <Building project={project} building={building} observation onGeometry={building.ref === studyBuildingRef ? onGeometry : undefined} />
+    </group>)}
+    {alternative && <group visible={showAlternative}>
+      <Building key={alternative.id} project={project} building={alternative.alternative} observation onGeometry={onGeometry} />
+    </group>}
   </>
 })
 

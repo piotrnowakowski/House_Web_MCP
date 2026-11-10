@@ -1,5 +1,9 @@
 # Versioned Zielonki project
 
+## 2026-11-10 · 360° window comparison
+
+The Architekt 7.11 study compares the 1.78 × 2.40 m glazed terrace-side door and optional 0.78 × 1.18 m roof windows in all three bedrooms. Alternatives are in-memory previews of the opened model. Both actual Chrome profiles and six shared workspaces at https://natan203-20203.mikrus.cloud were captured in ignored `tmp/window-study-20261110/`. The active online r17/shared v15 matched tracked r17 and the active-project three-way comparison had no independent edits to merge. One independent historical browser edit remains in its original workspace.
+
 ## 2026-11-10 · Interior daylight zones
 
 The 0–10 daylight study uses the architecture already in the opened workspace. The pre-release capture of https://natan203-20203.mikrus.cloud matched the tracked Architekt 7.11 r17, shared version 15. Six shared snapshots and 39 workspace records from the actual Chrome Default and Profile 1 were backed up in ignored `tmp/daylight-zones-20261110/`. The active project comparison found no independent edits to incorporate. One independent historical browser edit stays in its original workspace. This view-only update requires no data migration.

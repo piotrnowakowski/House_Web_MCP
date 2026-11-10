@@ -3,7 +3,7 @@ import { Canvas, events } from '@react-three/fiber'
 import { ArrowLeft, MapPin, Pause, Play, RotateCcw, Sun } from 'lucide-react'
 import type { MeshBVH } from 'three-mesh-bvh'
 import { ACESFilmicToneMapping, PCFSoftShadowMap, type Group } from 'three'
-import { polygonBounds, polygonCentroid, spaceFootprint } from '../../domain/geometry'
+import { pointInPolygon, polygonBounds, polygonCentroid, spaceFootprint } from '../../domain/geometry'
 import { interiorCorners } from '../../domain/interior'
 import { REFERENCE_YEAR, solarPosition, sunDirectionModel, sunriseSunset } from '../../domain/solar'
 import type { BuildingModel, Polygon2, StoreyModel, Vec2 } from '../../domain/types'
@@ -14,14 +14,16 @@ import { ObserverCamera } from './ObserverCamera'
 import { firstObserverPoint, observerPointIssue, observerWorldPosition, studyClock } from './observer'
 import { architecturalShadowMesh, DAYLIGHT_USES, daylightAdvice, LIGHT_LEVELS } from './daylight'
 import { useDaylight } from './useDaylight'
+import { allBedroomWindows, studyObserver, windowStudies, type WindowStudy } from './windowStudy'
+import { WindowResults, WindowSwitch } from './WindowComparison'
 import './sun-study.css'
 
 const polygonPoints = (polygon: Polygon2) => polygon.map(p => `${p.x},${p.z}`).join(' ')
 const LAST_HOUR = 1439 / 60
 
-function ObserverPlan({ building, storey, point, yaw, onPick, zones, probe, paths, probeColor }: {
+function ObserverPlan({ building, storey, point, yaw, onPick, zones, probe, paths, probeColor, comparison }: {
   building: BuildingModel; storey: StoreyModel; point: Vec2 | null; yaw: number; onPick: (point: Vec2) => void
-  zones: boolean; probe: Vec2 | null; paths: string[] | null; probeColor?: string
+  zones: boolean; probe: Vec2 | null; paths: string[] | null; probeColor?: string; comparison?: WindowStudy
 }) {
   const clip = useId()
   const cursor = zones ? probe : point
@@ -72,6 +74,10 @@ function ObserverPlan({ building, storey, point, yaw, onPick, zones, probe, path
       const centre = polygonCentroid(spaceFootprint(building, room))
       return <text key={room.ref} x={centre.x} y={centre.z} fontSize=".32" textAnchor="middle" fill="#293b35" stroke="#fffdf6" strokeWidth=".06" paintOrder="stroke"><title>{room.name}</title>{room.name.split(' · ')[0].replace('Przestrzeń pod otwartymi schodami', 'Schody')}</text>
     })}
+    {comparison && <g pointerEvents="none" aria-label="Porównywane okno i obszar oceny">
+      <polygon points={polygonPoints(comparison.room)} fill="none" stroke="#1a6250" strokeWidth=".09" />
+      <polygon points={polygonPoints(comparison.window)} fill="#fff" fillOpacity=".35" stroke="#382858" strokeWidth=".13" strokeDasharray=".20 .08" />
+    </g>}
     {zones && probe && <g data-testid="daylight-probe" transform={`translate(${probe.x},${probe.z})`}>
       <circle r=".31" fill="white" stroke="#263b34" strokeWidth=".07" /><circle r=".19" fill={probeColor ?? '#263b34'} stroke="#263b34" strokeWidth=".04" />
     </g>}
@@ -98,6 +104,15 @@ function Study({ building, initialStoreyRef, onBack }: { building: BuildingModel
   const setTime = useStudioStore(state => state.setSunTime)
   const [floorRef, setFloorRef] = useState(initialStoreyRef ?? building.storeys[0].ref)
   const storey = building.storeys.find(s => s.ref === floorRef) ?? building.storeys[0]
+  const studies = useMemo(() => project.ref === 'project/architekt-7-11' ? windowStudies(building, project.site.northDegrees) : [], [project.ref, project.site.northDegrees, building])
+  const [studyId, setStudyId] = useState('')
+  const selectedStudy = studies.find(study => study.id === studyId)
+  const [allBedrooms, setAllBedrooms] = useState(false)
+  const comparison = useMemo(() => selectedStudy && !selectedStudy.originalHasWindow && allBedrooms
+    ? { ...selectedStudy, alternative: allBedroomWindows(building, studies) } : selectedStudy, [selectedStudy, allBedrooms, building, studies])
+  const [withWindow, setWithWindow] = useState(true)
+  const showAlternative = !!comparison && withWindow !== comparison.originalHasWindow
+  const shownBuilding = showAlternative ? comparison.alternative : building
   const [eyeHeight, setEyeHeight] = useState(1.6)
   const [points, setPoints] = useState<Record<string, Vec2>>({})
   const defaultPoint = useMemo(() => firstObserverPoint(building, storey, eyeHeight), [building, storey, eyeHeight])
@@ -112,8 +127,13 @@ function Study({ building, initialStoreyRef, onBack }: { building: BuildingModel
   const [zones, setZones] = useState(false)
   const [probes, setProbes] = useState<Record<string, Vec2>>({})
   const probe = probes[storey.ref] ?? point
-  const [envelope, setEnvelope] = useState<MeshBVH | null>(null)
-  const onGeometry = useCallback((root: Group, model: BuildingModel) => setEnvelope(architecturalShadowMesh(root, model)), [])
+  const [baseGeometry, setBaseGeometry] = useState<{ model: BuildingModel; mesh: MeshBVH | null } | null>(null)
+  const [trialGeometry, setTrialGeometry] = useState<typeof baseGeometry>(null)
+  const onGeometry = useCallback((root: Group, model: BuildingModel) => {
+    const capture = { model, mesh: architecturalShadowMesh(root, model) }
+    if (model === building) setBaseGeometry(capture)
+    else setTrialGeometry(capture)
+  }, [building])
   const [notice, setNotice] = useState('')
   const stage = useRef<HTMLElement>(null)
   const dragging = useRef<{ x: number; y: number; id: number } | null>(null)
@@ -122,9 +142,29 @@ function Study({ building, initialStoreyRef, onBack }: { building: BuildingModel
   const dateValue = `${year}-${String(time.month).padStart(2, '0')}-${String(time.day).padStart(2, '0')}`
   const sun = solarPosition(site, time)
   const sunDirection = useMemo(() => sunDirectionModel(sun.azimuthDeg, sun.altitudeDeg, project.site.northDegrees), [sun.azimuthDeg, sun.altitudeDeg, project.site.northDegrees])
-  const { grid, reading, paths } = useDaylight(envelope, project, building, storey, zones ? probe : point, zones && planOpen, sunDirection, treesVisible, neighborsVisible)
+  const sampledPoint = zones || comparison ? probe : point
+  const original = useDaylight(baseGeometry?.model === building ? baseGeometry.mesh : null, project, building, storey, sampledPoint,
+    !!comparison || (zones && planOpen), sunDirection, treesVisible, neighborsVisible, comparison?.room)
+  const trial = useDaylight(comparison && trialGeometry?.model === comparison.alternative ? trialGeometry.mesh : null, project,
+    comparison?.alternative ?? building, storey, sampledPoint, !!comparison, sunDirection, treesVisible, neighborsVisible, comparison?.room)
+  const { grid, reading, paths } = showAlternative ? trial : original
   const level = reading && LIGHT_LEVELS[reading.level]
-  const closePlan = () => { setZones(false); setPlanOpen(false); setNotice('') }
+  const closePlan = () => { setZones(!!comparison); setPlanOpen(false); setNotice('') }
+  const aimAtWindow = (study: WindowStudy, eye: Vec2) => {
+    setPoints(current => ({ ...current, [study.storey.ref]: eye }))
+    const dx = study.target.x - eye.x, dz = study.target.z - eye.z
+    setYaw(building.rotationDegrees + Math.atan2(-dx, -dz) * 180 / Math.PI)
+    setPitch(Math.min(78, Math.atan2(study.targetHeight - study.storey.elevationM - eyeHeight, Math.hypot(dx, dz)) * 180 / Math.PI))
+  }
+  const chooseStudy = (id: string) => {
+    const study = studies.find(s => s.id === id)
+    setStudyId(id); setNotice(''); setPlaying(false)
+    if (!study) { setPlanOpen(false); setZones(false); return }
+    setFloorRef(study.storey.ref); setWithWindow(study.originalHasWindow); setZones(true); setPlanOpen(true)
+    setProbes(current => ({ ...current, [study.storey.ref]: study.probe }))
+    const eye = studyObserver(building, study, eyeHeight)
+    if (eye) aimAtWindow(study, eye)
+  }
   const daylight = useMemo(() => sunriseSunset(site, { year, month: time.month, day: time.day, hour: 12 }), [site, year, time.month, time.day])
   const position = useMemo(() => point ? observerWorldPosition(building, storey, point, eyeHeight) : null, [building, storey, point, eyeHeight])
   const pointIssue = point ? observerPointIssue(building, storey, point, eyeHeight) : 'Wybierz miejsce na planie.'
@@ -154,8 +194,13 @@ function Study({ building, initialStoreyRef, onBack }: { building: BuildingModel
   const seek = (hour: number) => { setPlaying(false); setTime({ hour: Math.max(0, Math.min(LAST_HOUR, hour)) }) }
   const pick = (next: Vec2) => {
     if (zones) {
+      if (comparison && !pointInPolygon(next, comparison.room)) { setNotice('Wybierz punkt w obrysie porównywanego pomieszczenia.'); return }
       if (!grid.contains(next)) { setNotice('Wskaż punkt na podłodze lub blacie, poza ścianą i otworem w stropie.'); return }
       setProbes(current => ({ ...current, [storey.ref]: next })); setNotice('')
+      if (comparison) {
+        if (observerPointIssue(building, storey, next, eyeHeight)) setNotice('Wynik dotyczy kropki. Wybierz wolne miejsce, aby również tam stanąć.')
+        else aimAtWindow(comparison, next)
+      }
       return
     }
     const issue = observerPointIssue(building, storey, next, eyeHeight)
@@ -178,15 +223,28 @@ function Study({ building, initialStoreyRef, onBack }: { building: BuildingModel
     <header className="sun-study-header">
       <button onClick={onBack}><ArrowLeft size={18} /><span>Wróć</span></button>
       <div><strong><Sun size={19} /> Światło 360°</strong><small>{project.name} · {storey.name}</small></div>
-      <button className={planOpen ? 'active' : ''} aria-expanded={planOpen} aria-controls="observer-plan-panel" onClick={() => { setPlanOpen(!planOpen || zones); setZones(false); setNotice('') }}><MapPin size={17} /> Miejsce</button>
+      {!!studies.length && <button className={comparison ? 'active' : ''} aria-label="Porównaj okna" onClick={() => {
+        if (comparison) { setZones(true); setPlanOpen(true) } else chooseStudy(studies[0].id)
+      }}>Porównaj okna</button>}
+      <button className={planOpen ? 'active' : ''} aria-expanded={planOpen} aria-controls="observer-plan-panel" onClick={() => { setStudyId(''); setPlanOpen(!planOpen || zones); setZones(false); setNotice('') }}><MapPin size={17} /> Miejsce</button>
     </header>
     <div className={`sun-study-workspace ${planOpen ? 'with-plan' : ''}`}>
       {planOpen && <aside id="observer-plan-panel" className={`sun-study-plan-panel ${zones ? 'daylight-panel' : ''}`} aria-label="Miejsce obserwacji">
-        <div className="sun-study-plan-heading"><strong>{zones ? 'Strefy światła · ' + studyClock(time.hour) : 'Zaznacz, gdzie stoisz'}</strong><p>{zones ? 'Dotknij miejsca na planie i przesuń godzinę poniżej.' : 'Kliknij wolne miejsce. Kropka to Ty, wachlarz pokazuje kierunek patrzenia.'}</p></div>
+        <div className="sun-study-plan-heading"><strong>{comparison ? 'Porównanie okien · ' + studyClock(time.hour) : zones ? 'Strefy światła · ' + studyClock(time.hour) : 'Zaznacz, gdzie stoisz'}</strong><p>{zones ? 'Dotknij miejsca na planie i przesuń godzinę poniżej.' : 'Kliknij wolne miejsce. Kropka to Ty, wachlarz pokazuje kierunek patrzenia.'}</p></div>
         <button className="sun-study-show-preview" onClick={closePlan}>Pokaż symulację</button>
-        <label>Kondygnacja<select aria-label="Kondygnacja obserwacji" value={storey.ref} onChange={event => { setFloorRef(event.target.value); setNotice(''); setPlaying(false) }}>{building.storeys.map(floor => <option key={floor.ref} value={floor.ref}>{floor.name}</option>)}</select></label>
-        <ObserverPlan building={building} storey={storey} point={point} yaw={yaw} onPick={pick} zones={zones} probe={probe} paths={paths} probeColor={level?.color} />
-        {zones && <>
+        {comparison && <>
+          <label>Pomieszczenie<select aria-label="Porównywane okno" value={comparison.id} onChange={e => chooseStudy(e.target.value)}>
+            {studies.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}<option value="">Zakończ porównanie</option>
+          </select></label>
+          <small className="daylight-method">{comparison.description}</small>
+          {!comparison.originalHasWindow && studies.filter(s => !s.originalHasWindow).length > 1 && <label className="window-all"><input type="checkbox" checked={allBedrooms}
+            onChange={event => { setAllBedrooms(event.target.checked); setWithWindow(true) }} />Po jednym oknie we wszystkich sypialniach</label>}
+          <WindowSwitch study={comparison} withWindow={withWindow} onChange={setWithWindow} />
+        </>}
+        {!comparison && <label>Kondygnacja<select aria-label="Kondygnacja obserwacji" value={storey.ref} onChange={event => { setFloorRef(event.target.value); setNotice(''); setPlaying(false) }}>{building.storeys.map(floor => <option key={floor.ref} value={floor.ref}>{floor.name}</option>)}</select></label>}
+        <ObserverPlan comparison={comparison} building={shownBuilding} storey={storey} point={point} yaw={yaw} onPick={pick} zones={zones} probe={probe} paths={paths} probeColor={level?.color} />
+        {comparison && <WindowResults study={comparison} without={comparison.originalHasWindow ? trial : original} withGlass={comparison.originalHasWindow ? original : trial} />}
+        {zones && !comparison && <>
           <div className="daylight-result" data-testid="zone-reading">
             {reading && level ? <>
               <strong><i style={{ background: level.color }} />{reading.level}/10 · {level.name}</strong>
@@ -231,9 +289,14 @@ function Study({ building, initialStoreyRef, onBack }: { building: BuildingModel
         {position && !pointIssue ? <ViewportBoundary><Canvas frameloop="demand" shadows dpr={[1, 1.5]} events={state => ({ ...events(state), enabled: false })}
           gl={{ antialias: true }} onCreated={({ gl }) => { gl.toneMapping = ACESFilmicToneMapping; gl.toneMappingExposure = 1.2; gl.shadowMap.type = PCFSoftShadowMap; gl.domElement.setAttribute('aria-label', 'Widok światła 360°') }}>
           <RendererLifecycle /><ObserverCamera position={position} yaw={yaw} pitch={pitch} fieldOfView={fieldOfView} />
-          <Suspense fallback={null}><SunStudyScene focus={position} fullBrightness={fullBrightness} studyBuildingRef={building.ref} onGeometry={onGeometry} /></Suspense>
+          <Suspense fallback={null}><SunStudyScene focus={position} fullBrightness={fullBrightness} studyBuildingRef={building.ref} onGeometry={onGeometry} alternative={comparison} showAlternative={showAlternative} /></Suspense>
         </Canvas></ViewportBoundary> : <p className="sun-study-empty">Wskaż wolne miejsce na planie, aby zobaczyć wnętrze.</p>}
         <div className="sun-study-view-label"><span>{studyClock(time.hour)}</span><small>{fullBrightness ? 'Pełna jasność · podgląd wnętrza' : sun.altitudeDeg > 0 ? 'Słońce nad horyzontem' : 'Słońce pod horyzontem'} · kierunek {Math.round(compass)}°</small>
+          {comparison && !planOpen && <div className="window-preview">
+            <strong>{comparison.name}</strong>
+            <WindowSwitch study={comparison} withWindow={withWindow} onChange={setWithWindow} />
+            <button onClick={() => setPlanOpen(true)}>Mapa i wyniki</button>
+          </div>}
           {!zones && <button className="daylight-open" aria-controls="observer-plan-panel" onClick={() => { setPlanOpen(true); setZones(true); setNotice('') }}>
             <i style={{ background: level?.color }} /><strong>{reading && level ? `${reading.level}/10 · ${level.name}` : 'Światło dzienne'}</strong><span>Strefy światła ›</span>
           </button>}

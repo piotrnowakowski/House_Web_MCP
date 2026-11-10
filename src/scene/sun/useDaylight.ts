@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { MeshBVH } from 'three-mesh-bvh'
-import type { BuildingModel, ProjectV2, StoreyModel, Vec2, Vec3 } from '../../domain/types'
+import { pointInPolygon } from '../../domain/geometry'
+import type { BuildingModel, Polygon2, ProjectV2, StoreyModel, Vec2, Vec3 } from '../../domain/types'
 import { assessDaylight, daylightFloor, daylightObstacles, daylightSample, LIGHT_LEVELS, type DaylightSample } from './daylight'
 
 export function useDaylight(mesh: MeshBVH | null, project: ProjectV2, building: BuildingModel, floor: StoreyModel,
-  point: Vec2 | null, showZones: boolean, sun: Vec3, trees: boolean, neighbors: boolean) {
+  point: Vec2 | null, showZones: boolean, sun: Vec3, trees: boolean, neighbors: boolean, room?: Polygon2) {
   const rays = useMemo(() => mesh && daylightObstacles(mesh, project, building, trees, neighbors), [mesh, project, building, trees, neighbors])
-  const grid = useMemo(() => daylightFloor(building, floor), [building, floor])
+  const grid = useMemo(() => {
+    const floorGrid = daylightFloor(building, floor)
+    return room ? { ...floorGrid, cells: floorGrid.cells.filter(p => pointInPolygon(p, room)) } : floorGrid
+  }, [building, floor, room])
   const sample = useMemo(() => rays && point && daylightSample(building, floor, point, rays), [building, floor, rays, point])
   const reading = useMemo(() => sample && rays && assessDaylight(sample, sun, rays.blocked), [sample, sun, rays])
 
@@ -28,16 +32,21 @@ export function useDaylight(mesh: MeshBVH | null, project: ProjectV2, building: 
     }
     return () => window.clearTimeout(timer)
   }, [showZones, rays, ready, grid, building, floor])
-  const paths = useMemo(() => {
+  const map = useMemo(() => {
     if (!ready || !rays || !showZones) return null
     const segments = LIGHT_LEVELS.map(() => [] as string[])
     const size = Number(grid.cell.toFixed(4))
+    const bands = room ? new Uint8Array(ready.length) : null
+    let bright = 0, direct = 0
     ready.forEach((sample, i) => {
-      const { level } = assessDaylight(sample, sun, rays.blocked)
+      const { level, direct: inSun } = assessDaylight(sample, sun, rays.blocked)
+      if (bands) bands[i] = level
+      if (level >= 6) bright++
+      if (inSun) direct++
       const { x, z } = grid.cells[i]
       segments[level].push(`M${(x - size / 2).toFixed(4)} ${(z - size / 2).toFixed(4)}h${size}v${size}h-${size}Z`)
     })
-    return segments.map(segment => segment.join(''))
-  }, [ready, rays, showZones, sun, grid])
-  return { grid, reading, paths }
+    return { paths: segments.map(segment => segment.join('')), bands, coverage: ready.length ? { bright: Math.round(100 * bright / ready.length), direct: Math.round(100 * direct / ready.length) } : null }
+  }, [ready, rays, showZones, sun, grid, room])
+  return { grid, reading, paths: map?.paths ?? null, coverage: map?.coverage ?? null, bands: map?.bands ?? null }
 }
