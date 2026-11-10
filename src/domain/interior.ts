@@ -52,7 +52,9 @@ export const InteriorItemSchema = z.object({
   groupRef: z.string().min(1).optional(), locked: z.boolean().optional(),
   cabinetry: z.enum(['tall', 'oven-tower', 'under-stair', 'base', 'sink', 'sink-insert', 'island', 'hob']).optional(),
   cabinetBackHeightM: z.number().min(.1).max(5).optional(),
+  seatingOverhangM: z.number().min(0).max(.6).optional(),
 }).refine(item => item.cabinetry !== 'under-stair' || (item.cabinetBackHeightM !== undefined && item.cabinetBackHeightM <= item.heightM), { message: 'Under-stair cabinetry needs a back height no higher than its front.', path: ['cabinetBackHeightM'] })
+  .refine(item => item.seatingOverhangM === undefined || (item.cabinetry === 'island' && item.depthM - item.seatingOverhangM >= .6), { message: 'Seating overhang requires an island with at least 60 cm of cabinet depth.', path: ['seatingOverhangM'] })
 
 /** Catalogue dimensions remain the reference even when a placed object is enlarged. */
 export function interiorOriginalSize(item: Pick<InteriorItem, 'productId' | 'catalogId'>): [number, number, number] {

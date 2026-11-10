@@ -1,5 +1,7 @@
 # Current house deployment
 
+10 November 2026: **architekt 7.11 wersja 2** canonical r2 widens the island to 280 × 110 cm with 38 cm knee space and 65 cm stools. The kitchen working aisle stays 110 cm; appliances, building geometry and other projects are unchanged. Publication verification is recorded in [the project README](../project-data/architekt-7-11-v2/README.md).
+
 The separate **architekt 7.11 wersja 2** (`project/architekt-7-11-v2`, canonical r1/shared version 1) is forked from architekt 7.11 r6 and removes the under-stair cabinet plus its connector. Published code: `26b6f6f06d8b584ae74c997cef21eb93c64e3f20`. It has an independent launcher entry and migration baseline; the parent remains unchanged. Fresh/mobile and captured-existing replay checks confirm live save/reload. See [variant provenance](../project-data/architekt-7-11-v2/README.md).
 
 The active launcher contains **architekt**, **architekt 7.11**, **architekt 7.11 wersja 2**, **nowe mpzp** and **nowe mpzp — wariant 2**. The independent architekt 7.11 r1 follows the architect's 6 November revisions while preserving the original architekt garden and other buildings; see [project provenance and roof checks](../project-data/architekt-7-11/README.md). The five older designs named below are retired from those lists with recovery data preserved; see [project archive](../project-data/ARCHIVE.md). Their historical release descriptions are not the active project catalogue.

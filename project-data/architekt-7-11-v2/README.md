@@ -1,7 +1,7 @@
 # architekt 7.11 wersja 2
 
 Independent project `project/architekt-7-11-v2`, requested on 9 November 2026.
-Canonical revision: 1. The parent `project/architekt-7-11` remains revision 6.
+Canonical revision: 2. The parent `project/architekt-7-11` remains revision 6.
 
 Source: the canonical architekt 7.11 r6 and HTTPS Mikrus shared version 6 matched by content before this fork. The exact parent snapshot is retained as `source-architekt-711-r6.json`; `initial-r1.json` is this variant's immutable first-publication migration baseline.
 
@@ -21,3 +21,15 @@ Local verification: all 652 unit tests pass; TypeScript/frontend and API builds 
 Published on 9 November 2026: code `26b6f6f06d8b584ae74c997cef21eb93c64e3f20`, project r1, shared server version 1. HTTP/HTTPS health and API readiness passed; published HTML, main bundle, interior bundle and project bundle match the validated build byte-for-byte. The live launcher opens the new variant in fresh desktop/mobile contexts and an isolated replay of the captured Chrome HTTPS records. Save/reload retains the exact canonical project, without the removed cabinet/filler, and without page errors. All four prior shared workspaces remain byte-for-byte equivalent to their pre-publication snapshots, including parent architekt 7.11 r6/server version 6.
 
 Pre-activation database recovery: `tmp/house-sync-20261109T214807Z.dump`, 2,142,347 bytes, verified SHA256 `717f693566e3cdb1788e31052238fa2167697a49ff4b7069c004baa13a3ef88e`. Rollback configuration: `compose.yaml.before-20261109T214617Z`. Recovery/evidence copies and final live screenshots are retained in the primary workspace. Main/GitHub Pages are unchanged.
+
+## Island seating, 10 November 2026 — canonical r2
+
+The user requested a wider island with knee space for stools. The worktop is now **280 × 110 cm**, widening only towards the living room. Its centre is x=-0.645, z=-4.035 m; the working edge remains x=-1.195 m, retaining the **110 cm** aisle to the tall kitchen fronts. Both island ends, the sink and the hob remain fixed.
+
+The new optional `seatingOverhangM=0.38` makes a physical **38 cm** recess beneath the local +z seating edge, with a **72 cm** cabinet body. The working drawer fronts are on local -z. This is explicit per-item geometry; older islands and other projects retain their existing appearance. Both stools move 20 cm towards the living room and are lowered to 65 cm, leaving 27 cm to the nominal 92 cm worktop. The nominal clear height below the 25 mm top is 89.5 cm. Countertop material and concealed support require joinery detailing; no structural capacity is claimed.
+
+The supplied Vento photo was clarified as a style example, not a product selection. No sofa replacement is included in this publication. The initial 320 × 220 cm rectangular reservation would be 104.5 cm from the widened island edge; the refined circulation proposal places the short sofa return by the glazing, moves the coffee table and relocates the armchair, so the recess inside the L is available behind the stools. That proposal remains an analysis artifact, separate from the actual published furniture.
+
+`before-island-seating-r1.json` preserves the previous publication; immutable `initial-r1.json` is unchanged. Actual Chrome Default and Profile 1 house databases were copied and read separately under primary `tmp/island-seating-20261110/`; neither contains this project. The Codex browser partition has no IndexedDB directory. All six shared projects were captured independently. Shared v2 server version 1 exactly matched the r1 baseline before editing, with no local v2 changes to merge. All other projects, house/roof/stair/storey/slab geometry and garden are retained.
+
+Validation: 660 unit tests, TypeScript/frontend and API builds pass. Focused checks verify fixed appliance positions, the retained working aisle, supported appliance footprints within the shortened cabinet body, stool height/placement, invalid overhang rejection, and r1 migration retaining independent furniture/tree deletions across reload. Fresh desktop/mobile and replay of actual captured records seeded with the prior r1 preserve canonical r2 on reload without page errors. Local kitchen views were inspected; evidence is under `tmp/island-seating-20261110/` and `output/island-seating-20261110/`. Release text assets pass the secret scan.

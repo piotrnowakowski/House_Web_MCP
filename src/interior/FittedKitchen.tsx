@@ -31,6 +31,18 @@ export function FittedKitchen({ item }: { item: InteriorItem }) {
     {box('glass', [w, h, d], [0, h / 2, 0], '#111516')}
     {[-1, 1].flatMap(x => [-1, 1].map(z => <mesh key={`${x}/${z}`} position={[x * w * .25, h + .001, z * d * .25]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[.075, .078, 32]} /><meshStandardMaterial color='#667074' /></mesh>))}
   </group>
+  // Seating is on local +z; the working fronts stay at -z. Older islands retain their geometry.
+  if (kind === 'island' && item.seatingOverhangM) {
+    const overhang = item.seatingOverhangM, bodyDepth = d - overhang
+    const plinth = .09, top = .025, columns = Math.max(1, Math.round(w / .6)), cw = w / columns
+    return <group name={`fitted-kitchen/${item.ref}`}>
+      {box('plinth', [w - .04, plinth, bodyDepth - .08], [0, plinth / 2, -overhang / 2])}
+      {box('carcass', [w - .012, h - plinth - top, bodyDepth - .02], [0, (h + plinth - top) / 2, -overhang / 2])}
+      {box('top', [w, top, d], [0, h - top / 2, 0], '#171B1D')}
+      {box('seating-back', [w - .012, h - plinth - top, .02], [0, (h + plinth - top) / 2, d / 2 - overhang - .01])}
+      {Array.from({ length: columns }, (_, c) => [[plinth, h * .47], [h * .47, h - top]].map(([bottom, upper], r) => box(`front-${c}-${r}`, [cw - .004, upper - bottom - .004, .02], [-w / 2 + (c + .5) * cw, (bottom + upper) / 2, -d / 2 + .01])))}
+    </group>
+  }
   const tall = kind === 'tall' || kind === 'oven-tower'
   const plinth = Math.min(.09, h * .08), top = tall ? .02 : .025
   const columns = Math.max(1, Math.round(w / .6)), cw = w / columns

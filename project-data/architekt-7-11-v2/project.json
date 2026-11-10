@@ -3,8 +3,8 @@
   "ref": "project/architekt-7-11-v2",
   "name": "architekt 7.11 wersja 2",
   "units": "metric",
-  "revision": 1,
-  "updatedAt": "2026-11-09T21:42:35.114Z",
+  "revision": 2,
+  "updatedAt": "2026-11-10T00:42:04.786Z",
   "site": {
     "boundary": [
       {
@@ -1834,7 +1834,8 @@
           "2026-11-09: separate architekt 7.11 wersja 2 copied from architekt 7.11 r6 at the user request. Removed the 0.95 m under-stair cabinet and 0.25 m junction filler, leaving the space below the upper stair flight empty. Existing pantry wall, concealed pantry door, main kitchen bank, stairs, island, house geometry and garden are unchanged.",
           "User confirmed that 240 cm means stair height, not island length. Island extends 450 mm towards the stairs to 2450 x 900 mm. Its window-side end stays z=-5.435 m; its stair-side end is z=-2.985 m, giving 900 mm in plan to the upper-flight edge z=-2.085 m at 2.40 m above the ground floor. The corner-to-corner distance is 937 mm because the island is east of the stair. Sink, hob and seating positions are unchanged.",
           "2026-11-09 r6: corrected the living area against the supplied architect-plan crop. The L sofa now opens towards the north TV wall and east armchair, with its long back separating dining from lounge. Stable sofa/table/chair refs retained. Added a TV on a 1.80 x 0.40 m low console on the solid north wall east of the fireplace; rendered console top is approximately 0.46 m and the total TV envelope is 1.35 m. The coffee table is round, 0.70 m; armchair angles towards it. Dining remains in its existing position with 0.945 m to the sofa envelope.",
-          "User explicitly approved a 2.80 m island after the clearance assessment. The window-side end stays z=-5.435 m; the new stair-side end is z=-2.635 m. Work aisle to cabinet fronts remains 1.10 m, and the gap to the lower stair flight is 1.60 m. The 0.55 m gap to the projected upper flight is an overhead projection, not a floor-level obstruction: the lowest tread underside protruding east of the cabinet face x=-2.295 m is 2.44778 m above the lower-floor datum. Following tread undersides are 2.62833, 2.80889 and 2.98944 m. This assessment uses modeled 80 mm tread thickness and includes vertical risers when finding the lowest exposed point. Sink, hob, cabinetry and stairs remain unchanged."
+          "User explicitly approved a 2.80 m island after the clearance assessment. The window-side end stays z=-5.435 m; the new stair-side end is z=-2.635 m. Work aisle to cabinet fronts remains 1.10 m, and the gap to the lower stair flight is 1.60 m. The 0.55 m gap to the projected upper flight is an overhead projection, not a floor-level obstruction: the lowest tread underside protruding east of the cabinet face x=-2.295 m is 2.44778 m above the lower-floor datum. Following tread undersides are 2.62833, 2.80889 and 2.98944 m. This assessment uses modeled 80 mm tread thickness and includes vertical risers when finding the lowest exposed point. Sink, hob, cabinetry and stairs remain unchanged.",
+          "2026-11-10 user request: widen the island and create knee space for stools. The worktop is now 2.80 x 1.10 m, widened 0.20 m towards the living room; the working edge remains x=-1.195 m and the 1.10 m kitchen work aisle is unchanged. A 0.38 m local +z seating overhang leaves a 0.72 m cabinet body with working fronts on local -z. Sink, hob and stair-side/window-side ends remain fixed. Both stools move 0.20 m towards the living room and are 0.65 m high below the 0.92 m top. The countertop material and concealed support are joinery design assumptions, not a structural specification. The selected Vento 3.20 x 2.20 m sofa has only been assessed, not substituted for the existing sofa; its proposed envelope would be 1.045 m from the widened island edge, limiting passage behind occupied stools."
         ]
       },
       "furniture": [
@@ -1907,17 +1908,18 @@
           "ref": "interior/reference-island",
           "catalogId": "kitchen-island",
           "storeyRef": "storey/reference-ground",
-          "name": "Czarna wyspa 280 × 90 cm",
+          "name": "Czarna wyspa 280 × 110 cm · miejsce na hokery",
           "position": {
-            "x": -0.745,
+            "x": -0.645,
             "z": -4.035
           },
           "widthM": 2.8,
-          "depthM": 0.9,
+          "depthM": 1.1,
           "heightM": 0.92,
           "rotationDegrees": 90,
           "color": "#202427",
-          "cabinetry": "island"
+          "cabinetry": "island",
+          "seatingOverhangM": 0.38
         },
         {
           "ref": "interior/architekt/cooker",
@@ -1942,12 +1944,12 @@
           "storeyRef": "storey/reference-ground",
           "name": "Hoker 1",
           "position": {
-            "x": 0.015,
+            "x": 0.215,
             "z": -4.775
           },
           "widthM": 0.42,
           "depthM": 0.42,
-          "heightM": 0.75,
+          "heightM": 0.65,
           "rotationDegrees": 0,
           "color": "#202427"
         },
@@ -1957,12 +1959,12 @@
           "storeyRef": "storey/reference-ground",
           "name": "Hoker 2",
           "position": {
-            "x": 0.015,
+            "x": 0.215,
             "z": -4.185
           },
           "widthM": 0.42,
           "depthM": 0.42,
-          "heightM": 0.75,
+          "heightM": 0.65,
           "rotationDegrees": 0,
           "color": "#202427"
         },
