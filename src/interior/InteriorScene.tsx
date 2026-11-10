@@ -5,8 +5,8 @@ import { floorGeometry } from './floorGeometry'
 import { Grid, Html, Line } from '@react-three/drei'
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { BoxGeometry, DoubleSide, ExtrudeGeometry, Line3, Object3D, OrthographicCamera, Plane, PlaneGeometry, Raycaster, Shape, ShapeGeometry, Vector2, Vector3 } from 'three'
-import { atticWallProfile, wallProfileHeightAt } from '../domain/attic'
+import { BoxGeometry, DoubleSide, ExtrudeGeometry, Line3, Object3D, OrthographicCamera, Plane, Raycaster, Shape, Vector2, Vector3 } from 'three'
+import { atticWallProfile } from '../domain/attic'
 import { useDirectManipulation } from './useDirectManipulation'
 import { pointInPolygon, polygonArea, polygonCentroid, spaceFootprint, wallLength } from '../domain/geometry'
 import { roomDimensions } from '../domain/roomDimensions'
@@ -20,7 +20,8 @@ import { ProductModel } from './ProductModel'
 import { FinishMaterial } from './FinishMaterial'
 import { RoomCeiling } from './RoomCeiling'
 import { voidCeilingFinish } from './voidCeilingFinish'
-import { wallFinishPieces, wallFinishProfiles, wallLiningDepthM } from './wallFinishPieces'
+import { wallFinishProfiles, wallSurfacePieces, wallPieceOutline, type WallPiece } from './wallFinishPieces'
+import { WallFace, WallFinishFaces } from './WallFinishFaces'
 import { RoofWindows } from '../scene/RoofWindows'
 import { GlazedGable } from '../scene/GlazedGable'
 import { polygonBounds } from '../domain/geometry'
@@ -69,21 +70,6 @@ function Floor({ semanticRef, points, holes, slab, onPick, tiled = false, plan =
   </mesh>
 }
 
-function WallFace({ width, height, finish, outline, elevation = 0 }: { width: number; height: number; finish: InteriorFinish; outline?: Vec2[]; elevation?: number }) {
-  const geometry = useMemo(() => {
-    const result = outline ? new ShapeGeometry(new Shape(outline.map((p) => new Vector2(p.x, p.z)))) : new PlaneGeometry(width, height)
-    const uv = result.attributes.uv, position = result.attributes.position
-    if (finish.presetId === 'natural-oak') {
-      for (let i = 0; i < uv.count; i++) uv.setXY(i, position.getX(i), position.getY(i) + elevation)
-    } else if (!outline) {
-      for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * width, uv.getY(i) * height)
-    }
-    return result
-  }, [width, height, outline, elevation, finish.presetId])
-  useEffect(() => () => geometry.dispose(), [geometry])
-  return <mesh geometry={geometry} receiveShadow><FinishMaterial finish={finish} keepTexture={finish.presetId === 'natural-oak'} /></mesh>
-}
-
 function WallBody({ width, height, thickness, outline, plan }: { width: number; height: number; thickness: number; outline?: Vec2[]; plan: boolean }) {
   const geometry = useMemo(() => outline
     ? new ExtrudeGeometry(new Shape(outline.map((p) => new Vector2(p.x, p.z))), { depth: thickness, bevelEnabled: false }).translate(0, 0, -thickness / 2)
@@ -93,46 +79,14 @@ function WallBody({ width, height, thickness, outline, plan }: { width: number; 
 }
 
 function CutawayWall({ wall, profile, finishProfiles, plan, fullHeight, selected, onSelect, onPick }: { wall: WallModel; profile?: Vec2[]; finishProfiles?: Partial<Record<'left' | 'right', Vec2[]>>; plan: boolean; fullHeight?: boolean; selected?: string | null; onSelect?: (ref: string) => void; onPick?: (point: Vec2) => void }) {
-  const length = wallLength(wall); const height = plan ? 0.14 : fullHeight ? wall.heightM : Math.min(1.15, wall.heightM)
+  const height = plan ? 0.14 : fullHeight ? wall.heightM : Math.min(1.15, wall.heightM)
   const openings = [...wall.openings].sort((a, b) => a.offsetM - b.offsetM)
-  let cursor = 0
-  const pieces: { start: number; end: number; height: number; base?: number }[] = []
-  for (const opening of openings) {
-    const start = Math.max(cursor, opening.offsetM - opening.widthM / 2); const end = Math.min(length, opening.offsetM + opening.widthM / 2)
-    if (start > cursor) pieces.push({ start: cursor, end: start, height })
-    if (opening.kind === 'window' && opening.sillM > 0) pieces.push({ start, end, height: Math.min(height, opening.sillM) })
-    if (fullHeight && opening.sillM + opening.heightM < height) pieces.push({ start, end, height: height - opening.sillM - opening.heightM, base: opening.sillM + opening.heightM })
-    cursor = end
-  }
-  if (cursor < length) pieces.push({ start: cursor, end: length, height })
-  const outlineFor = (piece: typeof pieces[number], cap = profile) => {
-    if (!fullHeight || !cap) return undefined
-    const base = piece.base ?? 0, top = base + piece.height, middle = (piece.start + piece.end) / 2
-    const xs = new Set([piece.start, piece.end, ...cap.filter((p) => p.x > piece.start && p.x < piece.end).map((p) => p.x)])
-    for (let i = 1; i < cap.length; i++) {
-      const a = cap[i - 1], b = cap[i]
-      if ((a.z - top) * (b.z - top) < 0) { const x = a.x + (b.x - a.x) * (top - a.z) / (b.z - a.z); if (x > piece.start && x < piece.end) xs.add(x) }
-    }
-    return [{ x: piece.start - middle, z: -piece.height / 2 }, { x: piece.end - middle, z: -piece.height / 2 },
-      ...[...xs].sort((a, b) => b - a).map((x) => ({ x: x - middle, z: Math.max(base, Math.min(top, wallProfileHeightAt(cap, x))) - base - piece.height / 2 }))]
-  }
+  const pieces = wallSurfacePieces(wall, height, Boolean(fullHeight))
+  const outlineFor = (piece: WallPiece, cap = profile) => wallPieceOutline(piece, cap, Boolean(fullHeight))
   return <group userData={{ dragTarget: { kind: 'wall', ref: wall.ref } }} position={[wall.start.x, 0.025, wall.start.z]} rotation={[0, -Math.atan2(wall.end.z - wall.start.z, wall.end.x - wall.start.x), 0]} onClick={(event) => { if (event.delta >= 5) return; if (onPick) { event.stopPropagation(); onPick({ x: event.point.x, z: event.point.z }) } else if (onSelect) { event.stopPropagation(); onSelect(wall.ref) } }}>
     {openings.map(opening => <mesh key={`opening-hit-${opening.ref}`} userData={{ editorOnly: true, dragTarget: { kind: 'opening', ref: opening.ref } }} position={[opening.offsetM, plan ? .2 : Math.min(height, opening.sillM) + .12, 0]}><boxGeometry args={[opening.widthM, plan ? .35 : .25, Math.max(wall.thicknessM, .28)]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>)}
     {pieces.map((piece, index) => <mesh key={`hit-${index}`} userData={{ editorOnly: true }} position={[(piece.start + piece.end) / 2, height / 2, 0]}><boxGeometry args={[piece.end - piece.start, height, Math.max(wall.thicknessM, .28)]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>)}
-    {(['left', 'right'] as const).flatMap(side => {
-      const finish = wall.faceFinishes?.[side]
-      if (!finish) return []
-      const cap = fullHeight ? finishProfiles?.[side] : undefined
-      const extraHeight = cap ? Math.max(0, ...cap.map(p => p.z - height)) : 0
-      const liningPieces = pieces.map(piece => Math.abs((piece.base ?? 0) + piece.height - height) < 1e-6 ? { ...piece, height: piece.height + extraHeight } : piece)
-      return wallFinishPieces(liningPieces, finish, Boolean(fullHeight)).map((piece, index) => {
-        const y = (piece.base ?? 0) + piece.height / 2
-        const outline = outlineFor(piece, cap ?? profile)
-        return <group key={`finish-${side}-${index}`} position={[(piece.start + piece.end) / 2, y, (side === 'left' ? 1 : -1) * (wall.thicknessM / 2 + (finish.presetId === 'natural-oak' ? wallLiningDepthM : .001))]} rotation-y={side === 'right' ? Math.PI : 0}>
-          <WallFace width={piece.end - piece.start} height={piece.height} outline={side === 'right' ? outline?.map(p => ({ x: -p.x, z: p.z })).reverse() : outline} finish={finish} elevation={wall.baseElevationM + y} />
-        </group>
-      })
-    })}
+    <WallFinishFaces wall={wall} height={height} pieces={pieces} profile={profile} finishProfiles={finishProfiles} fullHeight={fullHeight} />
     {selected === wall.ref && <Line points={[[0, height + 0.03, 0], [length, height + 0.03, 0]]} color='#287466' lineWidth={5} />}
     {pieces.map((piece, index) => <group key={index}><group position={[(piece.start + piece.end) / 2, (piece.base ?? 0) + piece.height / 2, 0]}><WallBody width={piece.end - piece.start} height={piece.height} thickness={wall.thicknessM} outline={outlineFor(piece)} plan={plan} /></group><mesh position={[(piece.start + piece.end) / 2, 0.055, 0]}><boxGeometry args={[piece.end - piece.start, 0.09, wall.thicknessM + 0.022]} /><meshStandardMaterial color={plan ? '#283b36' : '#f7f3e9'} /></mesh></group>)}
     {openings.filter((o) => o.kind === 'window' || o.glazed).map((opening) => {

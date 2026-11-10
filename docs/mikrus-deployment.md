@@ -1,3 +1,7 @@
+# Oak lining visible through exterior glazing — 10 November 2026
+
+The exterior renderer now shows the saved horizontal oak side-wall and cathedral-ceiling finishes, including Fast/mobile mode. Project data remains r17/shared v15. See the Architekt 7.11 record for validation and publication evidence.
+
 # Full temporary hiding — 10 November 2026
 
 The transparency tool now hides picked elements entirely. Restore brings them back; project data stays r17/shared v15. See the Architekt 7.11 release record for validation and capture provenance.

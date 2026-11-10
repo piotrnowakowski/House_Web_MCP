@@ -32,6 +32,8 @@ import { ProductModel } from '../interior/ProductModel'
 import { Staircase } from '../interior/Staircase'
 import { ConcealedDoor } from '../interior/ConcealedDoor'
 import { FinishMaterial } from '../interior/FinishMaterial'
+import { InteriorFinishes } from './InteriorFinishes'
+import { roofPanelThicknessM } from './roofPanels'
 import { ceilingGeometry } from '../interior/ceilingGeometry'
 import { fitVisiblePlot } from './fitVisiblePlot'
 import { resolveGableWallFinish, resolveWallFinish } from '../domain/wallFinishes'
@@ -745,11 +747,11 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
   return <group>
     <RoofWindows segment={segment} />
     {alongZ ? <>
-      <RoofPanel position={[cx - half / 2, midY, cz]} rotation={[0, 0, pitch]} size={[slope, 0.2, depth + over * 2]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
-      <RoofPanel position={[cx + half / 2, midY, cz]} rotation={[0, 0, -pitch]} size={[slope, 0.2, depth + over * 2]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
+      <RoofPanel position={[cx - half / 2, midY, cz]} rotation={[0, 0, pitch]} size={[slope, roofPanelThicknessM, depth + over * 2]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
+      <RoofPanel position={[cx + half / 2, midY, cz]} rotation={[0, 0, -pitch]} size={[slope, roofPanelThicknessM, depth + over * 2]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
     </> : <>
-      <RoofPanel position={[cx, midY, cz - half / 2]} rotation={[-pitch, 0, 0]} size={[width + over * 2, 0.2, slope]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
-      <RoofPanel position={[cx, midY, cz + half / 2]} rotation={[pitch, 0, 0]} size={[width + over * 2, 0.2, slope]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
+      <RoofPanel position={[cx, midY, cz - half / 2]} rotation={[-pitch, 0, 0]} size={[width + over * 2, roofPanelThicknessM, slope]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
+      <RoofPanel position={[cx, midY, cz + half / 2]} rotation={[pitch, 0, 0]} size={[width + over * 2, roofPanelThicknessM, slope]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
     </>}
     {ends.map((value, index) => {
       if (junction?.side === (index === 0 ? 'min' : 'max')) return null
@@ -1005,6 +1007,7 @@ function Building({ project, building, ghost }: { project: ProjectV2; building: 
       {!ghost && building.furniture?.map((item) => <group key={item.ref} userData={{ semanticRef: item.ref, buildingRef: building.ref }} onClick={event => { if (event.delta < 5 && viewerMode === 'edit') { event.stopPropagation(); useStudioStore.getState().setSelectedRef(item.ref) } }} position={[item.position.x, (item.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.elevationM ?? 0) + (building.storeys.find((s) => s.ref === item.storeyRef)?.level ?? 0) * explodedOffset, item.position.z]} rotation={[0, item.rotationDegrees * Math.PI / 180, 0]}><ProductModel item={item} mobile={window.innerWidth <= 900} />{selectedRef === item.ref && <mesh position-y={item.heightM / 2}><boxGeometry args={[item.widthM + 0.025, item.heightM + 0.025, item.depthM + 0.025]} /><meshBasicMaterial color='#b9e84d' wireframe depthTest={false} /></mesh>}</group>)}
       <Roof building={building} selected={selectedRef === building.roof.ref} yOffset={roofOffset} ghost={ghost} />
       {livingVoidPartitions(building).map(({ wall, wing }) => <LivingVoidWall key={wall.ref} building={building} wall={wall} wing={wing} yOffset={offsetFor(wall.ref)} ghost={ghost} />)}
+      {!ghost && <InteriorFinishes building={building} explodeOffset={explodedOffset} roofOffset={roofOffset} />}
       {!ghost && <><SpaceOverlays building={building} explodedOffset={explodedOffset} explode={explode} /><PlatformsAndFinishes building={building} explodeOffset={explodedOffset} /></>}
     </group>
     {selected && repositioningRef === building.ref && !ghost && viewerMode === 'edit' && group.current && <TransformControls object={group.current} mode={transformMode === 'scale' ? 'translate' : transformMode} showY={false} userData={{ editorOnly: true }}
