@@ -1,6 +1,6 @@
 # Aktualna lista — 10.11.2026
 
-Na polecenie użytkownika aktywny pozostaje jeden projekt **architekt 7.11** (project/architekt-7-11). W edytorze wnętrza przycisk **Schody** udostępnia trzy układy i osobny przełącznik szafki: sześć kombinacji w tym samym domu.
+Na polecenie użytkownika aktywny pozostaje jeden projekt **architekt 7.11** (project/architekt-7-11). W edytorze wnętrza przycisk **Schody** udostępnia dwa układy 7.11 (9+9 i 12+6) oraz osobny przełącznik szafki: cztery kombinacje w tym samym domu.
 
 Wycofane z aktywnej listy: architekt, architekt 7.11 wersja 2, architekt 7.11 schody 12+6, nowe mpzp oraz nowe mpzp — wariant 2. Ich pełne projekty i historie pozostają zachowane w Git, bazie serwera i lokalnych zapisach. Nie usuwa się ich danych. Starsze architekt/MPZP miały też inne dachy i wysokość piętra; te geometrie pozostają w archiwum. Obecny dom i wspólny ogród nie są nimi nadpisywane.
 
