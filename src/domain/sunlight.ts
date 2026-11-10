@@ -171,7 +171,7 @@ const rayHitsSphere = (origin: Vec3, direction: Vec3, occluder: Extract<Occluder
   return b * b - c >= 0
 }
 
-const rayIsBlocked = (origin: Vec3, direction: Vec3, occluders: Occluder[]) => {
+export const rayIsBlocked = (origin: Vec3, direction: Vec3, occluders: Occluder[]) => {
   const horizontal = Math.hypot(direction.x, direction.z)
   for (const occluder of occluders) {
     if (occluder.kind === 'sphere') { if (rayHitsSphere(origin, direction, occluder)) return true; continue }

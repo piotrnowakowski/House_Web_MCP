@@ -94,3 +94,30 @@ body:has(.sun-study) .workspace-save-bar { display: none; }
 }
 
 .compact-plot .sun-study-launch { top: calc(66px + env(safe-area-inset-top, 0px)); left: 12px; transform: none; }
+
+.sun-study-view-label .daylight-open { display: flex; gap: 7px; min-height: 34px; padding: 4px 0 0; margin-top: 3px; border: 0; border-top: 1px solid #bdc9bd; border-radius: 0; background: transparent; pointer-events: auto; width: 100%; font-size: 12px; }
+.sun-study-view-label .daylight-open span { margin-left: auto; font-weight: 500; font-size: 12px; text-decoration: underline; text-underline-offset: 2px; }
+.daylight-open i, .daylight-result i { display: inline-block; width: 14px; height: 14px; border-radius: 50%; border: 1px solid #24382b66; }
+.daylight-result { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 2px 8px; font-size: 11px; line-height: 1.4; }
+.daylight-result strong { display: inline-flex; align-items: center; gap: 5px; font-size: 16px; }
+.daylight-bands { display: grid; grid-template-columns: repeat(11, minmax(0, 1fr)); gap: 2px; }
+.daylight-bands span { padding: 3px 0; border-radius: 3px; font-size: 11px; text-align: center; font-variant-numeric: tabular-nums; }
+.daylight-bands [aria-current=true] { outline: 2px solid #233a30; outline-offset: -2px; font-weight: bold; }
+.daylight-band-labels { display: flex; justify-content: space-between; margin-top: 3px; color: #526358; font-size: 10px; }
+.daylight-uses { margin: 0; padding: 4px 8px; background: #e9eee7; border-radius: 7px; font-size: 12px; }
+.daylight-uses div { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; }
+.daylight-uses dd { margin: 0; font-weight: 600; }
+.daylight-method { font-size: 11px; color: #526358; line-height: 1.4; }
+.sun-study .daylight-panel .sun-study-show-preview { display: inline-flex; }
+.daylight-panel .sun-study-notice:empty { display: none; }
+@media (max-width: 900px) {
+  .sun-study .daylight-panel { position: absolute; inset: 0; width: 100%; z-index: 4; background: #f5f6f1; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-content: start; align-items: start; gap: 6px 8px; padding: 8px 12px; }
+  .sun-study-workspace:has(.daylight-panel) { position: relative; }
+  .daylight-panel > * { grid-column: 1 / -1; }
+  .daylight-panel .sun-study-plan-heading { grid-column: 1; }
+  .daylight-panel .sun-study-plan-heading p { margin: 2px 0 0; }
+  .sun-study .daylight-panel .sun-study-show-preview { display: inline-flex; grid-column: 2; font-size: 12px; min-height: 34px; padding: 4px 8px; }
+  .daylight-panel > label { flex-direction: row; align-items: center; gap: 8px; }
+  .daylight-panel select { min-height: 30px; padding: 2px 6px; }
+  .daylight-panel .observer-plan { height: clamp(145px, 25dvh, 270px); min-height: 145px; }
+}

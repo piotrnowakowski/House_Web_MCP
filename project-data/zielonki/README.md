@@ -1,5 +1,9 @@
 # Versioned Zielonki project
 
+## 2026-11-10 · Interior daylight zones
+
+The 0–10 daylight study uses the architecture already in the opened workspace. The pre-release capture of https://natan203-20203.mikrus.cloud matched the tracked Architekt 7.11 r17, shared version 15. Six shared snapshots and 39 workspace records from the actual Chrome Default and Profile 1 were backed up in ignored `tmp/daylight-zones-20261110/`. The active project comparison found no independent edits to incorporate. One independent historical browser edit stays in its original workspace. This view-only update requires no data migration.
+
 2026-11-09: the user requested a separate `architekt 7.11 wersja 2` without the under-stair cabinet. Source: `project/architekt-7-11`, canonical r6 matching HTTPS Mikrus shared version 6. Both actual Chrome profiles were backed up and compared; neither contained this source workspace, and the current Codex browser partition had no IndexedDB. The new `project/architekt-7-11-v2` r1 preserves the source and its own immutable first-publication baseline, removes the cabinet/connector by stable refs, and changes no other project. Full provenance and checks: [version 2 README](../architekt-7-11-v2/README.md).
 
 2026-09-28: at the user's explicit request, the independent GLOWNY r82 garden changes are packaged on `codex/zielonki-v3-garden`, based on `zielonki_v3` commit `4908633`. Source, project data, preserved r80/r81 snapshots and validation evidence are included together. This is a separate Git branch; no branch merge, browser-workspace transfer or deployment is performed. See [the GLOWNY README](../zielonki-rear-bath-room/README.md).

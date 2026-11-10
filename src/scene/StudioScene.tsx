@@ -982,13 +982,16 @@ function LivingVoidWall({ building, wall, wing, yOffset, ghost }: { building: Bu
   </mesh>
 }
 
-function Building({ project, building, ghost, observation = false }: { project: ProjectV2; building: BuildingModel; ghost?: boolean; observation?: boolean }) {
+function Building({ project, building, ghost, observation = false, onGeometry }: { project: ProjectV2; building: BuildingModel; ghost?: boolean; observation?: boolean; onGeometry?: (root: Group, building: BuildingModel) => void }) {
   const solids = useGeneratedSolids(project, building); const selectedRef = useStudioStore((state) => observation ? null : state.selectedRef); const transformMode = useStudioStore((state) => state.transformMode)
   const viewerMode = useStudioStore((state) => state.viewerMode); const explode = useStudioStore((state) => !observation && state.explodeStoreys)
   const commitCommand = useStudioStore((state) => state.commitCommand); const setToast = useStudioStore((state) => state.setToast); const repositioningRef = useStudioStore((state) => state.repositioningRef); const endReposition = useStudioStore((state) => state.endReposition)
   const group = useRef<Group>(null); const invalid = useRef(false); const selected = selectedRef === building.ref
   const detailedBarn = isLShapedBarn(building) || building.architecturalStyle === 'barn' && Boolean(building.interiorSource)
   const explodedOffset = explode ? STOREY_EXPLODE_GAP_M : 0
+  useEffect(() => {
+    if (group.current && solids.length) onGeometry?.(group.current, building)
+  }, [solids, building, onGeometry])
   const terrainOffset = buildingGroundOffset(building, TERRAIN_SURFACE_Y)
   const offsetFor = (ref: string) => {
     const storey = building.storeys.find((item) => item.wallRefs.includes(ref) || item.baseSlabRef === ref)
@@ -1479,12 +1482,12 @@ function SceneBackground() {
 }
 
 /** Full model and surroundings, with no editing, cutaways, transparency or orbit controller. */
-export const SunStudyScene = memo(function SunStudyScene({ focus, fullBrightness = false }: { focus: [number, number, number]; fullBrightness?: boolean }) {
+export const SunStudyScene = memo(function SunStudyScene({ focus, fullBrightness = false, studyBuildingRef, onGeometry }: { focus: [number, number, number]; fullBrightness?: boolean; studyBuildingRef: string; onGeometry: (root: Group, building: BuildingModel) => void }) {
   const project = useStudioStore(state => state.project)
   return <>
     <SceneBackground /><SunLight observationFocus={focus} fullBrightness={fullBrightness} /><StudyEnvironment fullBrightness={fullBrightness} /><TexturePreloader />
     <NeighborBuildings /><TerrainAndSite project={project} observation /><Landscape project={project} /><GardenFixtures project={project} />
-    {project.buildings.map(building => <Building key={building.ref} project={project} building={building} observation />)}
+    {project.buildings.map(building => <Building key={building.ref} project={project} building={building} observation onGeometry={building.ref === studyBuildingRef ? onGeometry : undefined} />)}
   </>
 })
 
