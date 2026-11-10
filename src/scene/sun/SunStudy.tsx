@@ -182,7 +182,7 @@ function Study({ building, initialStoreyRef, onBack }: { building: BuildingModel
           }
         }}>
         {position && !pointIssue ? <ViewportBoundary><Canvas frameloop="demand" shadows dpr={[1, 1.5]} events={state => ({ ...events(state), enabled: false })}
-          gl={{ antialias: true }} onCreated={({ gl }) => { gl.toneMapping = ACESFilmicToneMapping; gl.toneMappingExposure = 1; gl.shadowMap.type = PCFSoftShadowMap; gl.domElement.setAttribute('aria-label', 'Widok światła 360°') }}>
+          gl={{ antialias: true }} onCreated={({ gl }) => { gl.toneMapping = ACESFilmicToneMapping; gl.toneMappingExposure = 1.2; gl.shadowMap.type = PCFSoftShadowMap; gl.domElement.setAttribute('aria-label', 'Widok światła 360°') }}>
           <RendererLifecycle /><ObserverCamera position={position} yaw={yaw} pitch={pitch} />
           <Suspense fallback={null}><SunStudyScene focus={position} /></Suspense>
         </Canvas></ViewportBoundary> : <p className="sun-study-empty">Wskaż wolne miejsce na planie, aby zobaczyć wnętrze.</p>}

@@ -44,6 +44,7 @@ import { registerStructureViewCapture, type ExpandedStructureView } from '../ser
 import { gableEndWall, gableRoofJunction, gableWallsForBuilding, roofWings, type RoofWing } from '../domain/roofWings'
 import { clippedRoofBox, gableVolumePlanes, roofJunctionCutouts, roofJunctionPlanes } from '../geometry/roofJunction'
 import { CompassRose, SUN_DISTANCE_M, SunHoursOverlay, SunLight, SunPath, sunStateFor } from './sun'
+import { StudyEnvironment } from './sun/StudyEnvironment'
 import { CucumberTrellisVisual, FruitTreeVisual, hasFruitTreeVisual, PotatoRowVisual, SurveyTreeVisual, TomatoRowVisual } from './gardenVisuals'
 import { RealisticGrass } from './grassVisuals'
 import { interiorFloorTexture, raisedBedSoilTexture, raisedBedTexture, resolveWallTexture, resolveZoneTexture, terrainTexture, tintForTexturedFinish, zoneTintFor } from './materialCatalog'
@@ -633,18 +634,20 @@ function BarnGlazing({ building, ghost }: { building: BuildingModel; ghost?: boo
     const beamStart = Math.min(...joinedOpenings.map(o => o.offsetM - o.widthM / 2))
     const beamEnd = Math.max(...joinedOpenings.map(o => o.offsetM + o.widthM / 2))
     const frame = selectedRef === opening.ref ? '#b9e84d' : '#121817'
+    const opaqueDoor = Boolean(building.interiorSource && opening.kind === 'door' && !opening.glazed)
     return <group key={opening.ref} position={[x, y, z]} rotation={[0, rotation, 0]} userData={{ semanticRef: opening.ref, buildingRef: building.ref }} onPointerDown={(event) => { event.stopPropagation(); if (!ghost) setSelectedRef(opening.ref) }}>
-      <mesh position={[0, connected ? 0.02 : 0, 0]} castShadow receiveShadow><boxGeometry args={[Math.max(0.08, opening.widthM - 0.08), Math.max(0.08, opening.heightM - (connected ? 0.04 : 0.08)), 0.045]} />
+      {/* Alpha-blended glass otherwise writes an opaque depth shadow over the entire opening. */}
+      <mesh position={[0, connected ? 0.02 : 0, 0]} castShadow={opaqueDoor} receiveShadow userData={{ openingPane: opening.ref, clearGlazing: !opaqueDoor }}><boxGeometry args={[Math.max(0.08, opening.widthM - 0.08), Math.max(0.08, opening.heightM - (connected ? 0.04 : 0.08)), 0.045]} />
         {building.interiorSource && opening.kind === 'door' && !opening.glazed
           ? opening.finish ? <FinishMaterial finish={opening.finish} /> : <meshStandardMaterial color="#303736" roughness={0.62} metalness={0.3} transparent={Boolean(ghost)} opacity={ghost ? 0.2 : 1} />
           : <meshStandardMaterial color="#78959a" transparent opacity={ghost ? 0.2 : 0.42} roughness={0.08} metalness={0.08} depthWrite={false} />}
       </mesh>
       {beamHeight > 0 && joinedOpenings[0].ref === opening.ref && <mesh position={[(beamStart + beamEnd) / 2 - opening.offsetM, -opening.heightM / 2 - beamHeight / 2, 0]} castShadow receiveShadow><boxGeometry args={[beamEnd - beamStart + 0.08, beamHeight, wall.thicknessM + 0.02]} /><meshStandardMaterial color='#121817' roughness={0.8} /></mesh>}
-      {!connected && <mesh position={[0, opening.heightM / 2, 0]}><boxGeometry args={[opening.widthM + 0.08, 0.075, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>}
-      <mesh position={[0, -opening.heightM / 2, 0]}><boxGeometry args={[opening.widthM + 0.08, 0.075, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
-      <mesh position={[opening.widthM / 2, 0, 0]}><boxGeometry args={[0.075, opening.heightM, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
-      <mesh position={[-opening.widthM / 2, 0, 0]}><boxGeometry args={[0.075, opening.heightM, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
-      {mullions.map((offset) => <mesh key={offset} position={[offset, 0, 0]}><boxGeometry args={[0.065, opening.heightM, 0.105]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>)}
+      {!connected && <mesh position={[0, opening.heightM / 2, 0]} castShadow><boxGeometry args={[opening.widthM + 0.08, 0.075, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>}
+      <mesh position={[0, -opening.heightM / 2, 0]} castShadow><boxGeometry args={[opening.widthM + 0.08, 0.075, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
+      <mesh position={[opening.widthM / 2, 0, 0]} castShadow><boxGeometry args={[0.075, opening.heightM, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
+      <mesh position={[-opening.widthM / 2, 0, 0]} castShadow><boxGeometry args={[0.075, opening.heightM, 0.11]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>
+      {mullions.map((offset) => <mesh key={offset} position={[offset, 0, 0]} castShadow><boxGeometry args={[0.065, opening.heightM, 0.105]} /><meshStandardMaterial color={frame} roughness={0.5} /></mesh>)}
       {opening.kind === 'door' && !opening.glazed && opening.widthM > 3 && Array.from({ length: Math.floor(opening.heightM / .45) }, (_, index) => <mesh key={`panel-${index}`} position={[0, -opening.heightM / 2 + (index + 1) * .45, .028]}><boxGeometry args={[opening.widthM - .1, .014, .012]} /><meshStandardMaterial color='#1c2526' /></mesh>)}
       {opening.kind === 'door' && opening.glazed && [-0.09, 0.09].map((depth) =>
         <mesh key={depth} position={[0.12, 1.05 - opening.heightM / 2, depth]}><boxGeometry args={[0.025, 0.24, 0.045]} /><meshStandardMaterial color={frame} metalness={0.5} roughness={0.35} /></mesh>)}
@@ -1479,7 +1482,7 @@ function SceneBackground() {
 export const SunStudyScene = memo(function SunStudyScene({ focus }: { focus: [number, number, number] }) {
   const project = useStudioStore(state => state.project)
   return <>
-    <SceneBackground /><SunLight observationFocus={focus} /><TexturePreloader />
+    <SceneBackground /><SunLight observationFocus={focus} /><StudyEnvironment /><TexturePreloader />
     <NeighborBuildings /><TerrainAndSite project={project} observation /><Landscape project={project} /><GardenFixtures project={project} />
     {project.buildings.map(building => <Building key={building.ref} project={project} building={building} observation />)}
   </>

@@ -65,3 +65,28 @@ A complete 4064352-byte off-host database backup was verified with SHA-256
 e030fdfbe4149c5acaf3d9c608df3673b40c265769431217d8d06d4d67fc2169.
 Rollback Compose: /root/house-web-mcp/furnished-zielonki/deploy/mikrus/compose.yaml.before-20261110T193607Z.
 Canonical house r17 and shared v15 remain unchanged; main/Pages were not deployed.
+
+## Daylight rendering correction, 10 November 2026
+
+The user's 15 July, 10:56 kitchen screenshot exposed two rendering problems:
+alpha-blended lower window panes cast opaque depth shadows, and the PBR materials
+had no radiance environment. Clear panes now transmit direct sun; opaque doors,
+frames and mullions retain their shadows. A small generated sky/ground environment
+supplies approximate diffuse fill and material reflections only in the 360 viewer.
+It is generated once and scaled by solar altitude; it fades through civil twilight
+and contributes zero at night. Fixed exposure is 1.2, with no night auto-brightening.
+
+This remains a qualitative model: the environment is not a spatially occluded
+indirect-light calculation and does not establish real indoor illuminance. No
+material colours, house geometry, solar-position calculations or project data were
+changed. Engine reference: https://threejs.org/docs/pages/MeshStandardMaterial.html
+and https://threejs.org/docs/pages/Scene.html#environment.
+
+Regression coverage renders the actual July kitchen, checks visible dark-material
+pixels with/without environment illumination, verifies sunlit pixels lost when
+panes are intentionally made opaque in the test, keeps opaque-door shadows and
+checks day -> midnight -> day. The main unit suite passes 737 tests. Actual Chrome
+Default and Profile 1 stores were captured read-only and compared independently;
+39 historical workspace records are retained, including one independent edit.
+The active canonical model is r17/shared v15 and all six shared snapshots match.
+Evidence: tmp/sun-lighting-20261111/ and output/sun-lighting-20261111/.
