@@ -2,17 +2,17 @@ import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import architekt from '../../project-data/architekt/project.json'
-import architektBefore from '../../project-data/architekt/before-window-sink.json'
+import architektBefore from '../../project-data/architekt/before-island-window-gap-90.json'
 import architect711 from '../../project-data/architekt-7-11/project.json'
-import architect711Before from '../../project-data/architekt-7-11/before-window-sink.json'
+import architect711Before from '../../project-data/architekt-7-11/before-island-window-gap-90.json'
 import stairs from '../../project-data/architekt-7-11-stairs-12-6/project.json'
-import stairsBefore from '../../project-data/architekt-7-11-stairs-12-6/before-window-sink.json'
+import stairsBefore from '../../project-data/architekt-7-11-stairs-12-6/before-island-window-gap-90.json'
 import version2 from '../../project-data/architekt-7-11-v2/project.json'
-import version2Before from '../../project-data/architekt-7-11-v2/before-window-sink.json'
+import version2Before from '../../project-data/architekt-7-11-v2/before-island-window-gap-90.json'
 import mpzp from '../../project-data/nowe-mpzp/project.json'
-import mpzpBefore from '../../project-data/nowe-mpzp/before-window-sink.json'
+import mpzpBefore from '../../project-data/nowe-mpzp/before-island-window-gap-90.json'
 import mpzpV2 from '../../project-data/nowe-mpzp-v2/project.json'
-import mpzpV2Before from '../../project-data/nowe-mpzp-v2/before-window-sink.json'
+import mpzpV2Before from '../../project-data/nowe-mpzp-v2/before-island-window-gap-90.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
 import { interiorCorners, itemFitsFloor } from '../domain/interior'
@@ -39,13 +39,22 @@ const cases = [
 const changed = ['interior/reference-island', 'interior/reference-sink', 'interior/architekt/cooker', 'interior/reference-stool-one', 'interior/reference-stool-two']
 beforeEach(() => { globalThis.indexedDB = new IDBFactory() })
 
-it.each(cases)('$name fits the centred hob, window-end sink and two-seat recess without changing the house or other furniture', ({ data, before }) => {
+it.each(cases)('$name keeps 90 cm by the window with the centred hob and two-seat recess without changing the house or other furniture', ({ data, before }) => {
   const p = parseProject(data), old = parseProject(before), b = p.buildings[0], floor = b.storeys[0]
   const item = (ref: string) => b.furniture!.find(f => f.ref === ref)!
   const island = item(changed[0]), sink = item(changed[1]), hob = item(changed[2])
   const bounds = polygonBounds(interiorCorners(island)), prior = polygonBounds(interiorCorners(old.buildings[0].furniture!.find(f => f.ref === island.ref)!))
   expect([island.widthM, island.depthM, island.seatingWidthM, island.seatingOffsetM, island.seatingOverhangM]).toEqual([2.8, 1.1, 1.2, .8, .38])
-  expect(bounds.minX).toBeCloseTo(prior.minX); expect(bounds.minZ).toBeCloseTo(prior.minZ)
+  expect(bounds.minX).toBeCloseTo(prior.minX); expect(bounds.minZ - prior.minZ).toBeCloseTo(.18)
+  const windowWall = b.walls.find(w => w.openings.some(o => o.ref === 'opening/reference-kitchen'))!
+  expect(windowWall.start.z).toBe(windowWall.end.z)
+  expect(bounds.minZ - (windowWall.start.z + windowWall.thicknessM / 2)).toBeCloseTo(.9)
+  for (const ref of changed) {
+    const current = item(ref), previous = old.buildings[0].furniture!.find(f => f.ref === ref)!
+    expect({ ...current, position: previous.position }).toEqual(previous)
+    expect(current.position.x).toBe(previous.position.x)
+    expect(current.position.z - previous.position.z).toBeCloseTo(.18)
+  }
   expect(hob.position.z).toBe(island.position.z)
   const sb = polygonBounds(interiorCorners(sink)), hb = polygonBounds(interiorCorners(hob))
   expect(hb.minZ - sb.maxZ).toBeCloseTo(.45)
@@ -77,7 +86,7 @@ it.each(cases)('$name fits the centred hob, window-end sink and two-seat recess 
   expect(restored).toEqual(old)
 })
 
-it.each(cases)('$name migrates the window-end sink and wider island and preserves independent edits and deletions across reload', async ({ data, before, sync }) => {
+it.each(cases)('$name migrates the 90 cm window clearance and preserves independent edits and deletions across reload', async ({ data, before, sync }) => {
   const old = parseProject(before)
   await synchronizePublishedProject(old, old)
   const local = (await loadWorkspace(old.ref))!

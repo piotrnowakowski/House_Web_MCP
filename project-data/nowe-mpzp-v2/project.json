@@ -3,8 +3,8 @@
   "ref": "project/nowe-mpzp-v2",
   "name": "nowe mpzp — wariant 2",
   "units": "metric",
-  "revision": 18,
-  "updatedAt": "2026-11-10T10:01:12.779Z",
+  "revision": 19,
+  "updatedAt": "2026-11-10T10:35:26.169Z",
   "site": {
     "boundary": [
       {
@@ -2258,7 +2258,7 @@
           "name": "Zlew na wyspie od strony okna",
           "position": {
             "x": -0.895,
-            "z": -5.055
+            "z": -4.875
           },
           "widthM": 0.56,
           "depthM": 0.44,
@@ -2305,7 +2305,7 @@
           "name": "Wyspa 280 × 110 cm · 2 hokery i szafki",
           "position": {
             "x": -0.645,
-            "z": -4.035
+            "z": -3.855
           },
           "widthM": 2.8,
           "depthM": 1.1,
@@ -2324,7 +2324,7 @@
           "name": "Płyta pośrodku wyspy · 58 × 52 cm",
           "position": {
             "x": -0.895,
-            "z": -4.035
+            "z": -3.855
           },
           "widthM": 0.58,
           "depthM": 0.52,
@@ -2341,7 +2341,7 @@
           "name": "Hoker 1",
           "position": {
             "x": 0.215,
-            "z": -5.135
+            "z": -4.955
           },
           "widthM": 0.42,
           "depthM": 0.42,
@@ -2356,7 +2356,7 @@
           "name": "Hoker 2",
           "position": {
             "x": 0.215,
-            "z": -4.535
+            "z": -4.355
           },
           "widthM": 0.42,
           "depthM": 0.42,
