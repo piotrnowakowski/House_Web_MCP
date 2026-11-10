@@ -1,3 +1,7 @@
+# Current oak interior release — 10 November 2026
+
+Architekt 7.11 now has horizontal natural-oak boards on its cathedral ceiling and both side walls. Code **463cc56c4ceb28ad50adcbdb419fcc31d03dba5c**, canonical **r14**, shared **v13**. Public desktop/mobile and existing-data replay checks pass, along with exact shared readback and 15 asset comparisons. Both retained stair choices and all archived projects remain intact. Recovery, geometry preservation and the independently reproduced pre-existing mobile furniture test limitation are recorded in project-data/architekt-7-11/README.md. Evidence: tmp/oak-release-20261110/.
+
 # Current stair choices — 10 November 2026
 
 Only **7.11 9+9** and **7.11 12+6** are offered, with cabinet on/off. Classic 9+9 has been removed from the selector at the user's request. Canonical project r12 and shared v12 are unchanged. Details: project-data/architekt-7-11/README.md.
