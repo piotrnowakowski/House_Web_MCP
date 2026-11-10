@@ -1,3 +1,7 @@
+# Full temporary hiding — 10 November 2026
+
+The transparency tool now hides picked elements entirely. Restore brings them back; project data stays r17/shared v15. See the Architekt 7.11 release record for validation and capture provenance.
+
 # Temporary transparency controls — 10 November 2026
 
 Both exterior and interior views now support temporary per-element transparency, with Polish controls and a mobile layout clear of the save bar. Project data remains canonical r15/shared v14. Validation and capture provenance are recorded in project-data/architekt-7-11/README.md.

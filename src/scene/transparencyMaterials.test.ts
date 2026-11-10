@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { BoxGeometry, Group, Mesh, MeshStandardMaterial } from 'three'
-import { fadeMesh, transparencyRef } from './transparencyMaterials'
+import { BoxGeometry, Group, Line, LineBasicMaterial, Mesh, MeshStandardMaterial } from 'three'
+import { fadeMesh, isTransparencyObject, transparencyRef } from './transparencyMaterials'
 
 describe('temporary object transparency', () => {
   it('isolates shared materials and restores their current finish and shadows', () => {
@@ -10,8 +10,9 @@ describe('temporary object transparency', () => {
     mesh.castShadow = true
     const fade = fadeMesh(mesh)
     fade.update()
-    expect(mesh.material.opacity).toBe(0.12)
+    expect(mesh.material.opacity).toBe(0)
     expect(mesh.material.depthWrite).toBe(false)
+    expect(mesh.material.visible).toBe(false)
     expect(mesh.castShadow).toBe(false)
     expect(neighbor.material.opacity).toBe(1)
     source.color.set('blue')
@@ -22,6 +23,7 @@ describe('temporary object transparency', () => {
     expect(mesh.material.opacity).toBe(1)
     expect(mesh.material.transparent).toBe(false)
     expect(mesh.material.depthWrite).toBe(true)
+    expect(mesh.material.visible).toBe(true)
     expect(mesh.castShadow).toBe(true)
   })
 
@@ -30,12 +32,24 @@ describe('temporary object transparency', () => {
     const mesh = new Mesh(new BoxGeometry(), [glass, new MeshStandardMaterial()])
     const fade = fadeMesh(mesh)
     fade.update()
-    expect(mesh.material.map(material => material.opacity)).toEqual([0.05, 0.12])
+    expect(mesh.material.map(material => material.opacity)).toEqual([0, 0])
     const replacement = [new MeshStandardMaterial()]
     mesh.material = replacement
     fade.restore()
     expect(mesh.material).toBe(replacement)
     expect(glass.opacity).toBe(0.05)
+  })
+
+  it('hides object outlines and restores their original material', () => {
+    const source = new LineBasicMaterial()
+    const line = new Line(undefined, source)
+    expect(isTransparencyObject(line)).toBe(true)
+    const fade = fadeMesh(line); fade.update()
+    expect(line.material.visible).toBe(false)
+    expect(source.visible).toBe(true)
+    fade.restore()
+    expect(line.material).toBe(source)
+    expect(line.material.visible).toBe(true)
   })
 
   it('targets nested walls independently from roofs and excludes hidden or preview geometry', () => {

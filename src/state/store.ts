@@ -141,7 +141,7 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
   return ({
   transparencyMode: false, transparentRefs: [],
   setTransparencyMode: (transparencyMode) => set(transparencyMode
-    ? { transparencyMode, viewerMode: 'edit', activePlanStoreyRef: null, repositioningRef: null, selectedRef: null, toast: 'Wskaż element, aby przez niego zajrzeć. Przeciągnij, aby obrócić widok. „Przywróć” cofa przezroczystość; Esc kończy wybieranie.' }
+    ? { transparencyMode, viewerMode: 'edit', activePlanStoreyRef: null, repositioningRef: null, selectedRef: null, toast: 'Wskaż element, aby go całkowicie ukryć. Przeciągnij, aby obrócić widok. „Przywróć” cofa przezroczystość; Esc kończy wybieranie.' }
     : { transparencyMode }),
   makeTransparent: (ref) => set((state) => ({ transparentRefs: state.transparentRefs.includes(ref) ? state.transparentRefs : [...state.transparentRefs, ref] })),
   resetTransparency: () => set({ transparentRefs: [], transparencyMode: false }),

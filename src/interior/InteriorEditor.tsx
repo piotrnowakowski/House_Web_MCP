@@ -643,7 +643,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
             </nav>
             <div className="interior-transparency">
               <TransparencyControls disabled={!!confirmationRef} onActivate={() => { clearTool(); setSelectedRefs([]); setPanel(null) }} />
-              {transparencyMode && <span role="status">Wskaż element, aby przez niego zajrzeć.</span>}
+              {transparencyMode && <span role="status">Wskaż element, aby go całkowicie ukryć.</span>}
             </div>
             {compact && <nav className="interior-mobile-history" aria-label="Historia zmian">
               <button aria-label="Cofnij" title="Cofnij (Ctrl+Z)" disabled={!history.length || mode !== 'select' || !!ghost || !!confirmationRef} onClick={() => useStudioStore.getState().undo()}><Undo2 size={18} /><span>Cofnij</span></button>

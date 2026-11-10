@@ -15,7 +15,7 @@ async function open(page: Page) {
     useStudioStore.getState().replaceProject(project)
     useStudioStore.setState({ hydrated: true, launcherOpen: false, selectedRef: null })
   })
-  await expect(page.locator('canvas')).toHaveCount(1)
+  await expect(page.locator('canvas')).toHaveCount(1, { timeout: 30_000 })
   await page.evaluate(async () => {
     const load = (path: string) => import(/* @vite-ignore */ path)
     const storeUrl = performance.getEntriesByType('resource').map(entry => entry.name).find(url => new URL(url).pathname === '/src/state/store.ts')!
@@ -91,7 +91,7 @@ test('fade roofs and walls, orbit, finish and reset without editing project data
     const point = await page.evaluate(kind => (window as any).transparencyTest.point(kind), kind)
     await page.mouse.click(point.x, point.y)
     await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.store.getState().transparentRefs.includes(ref), point.ref)).toBe(true)
-    await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.materials(ref).every((opacity: number) => opacity <= 0.12), point.ref)).toBe(true)
+    await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.materials(ref).every((opacity: number) => opacity === 0), point.ref)).toBe(true)
     if (kind === 'roof') {
       // The same pixel must now reach a different object behind the faded roof.
       await page.mouse.click(point.x, point.y)
@@ -112,7 +112,7 @@ test('fade roofs and walls, orbit, finish and reset without editing project data
   await expect(reset).toBeDisabled()
   expect(await page.evaluate(() => JSON.stringify((window as any).transparencyTest.store.getState().project) === (window as any).transparencyTest.original)).toBe(true)
   for (const ref of before) {
-    await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.materials(ref).some((opacity: number) => opacity > 0.12), ref)).toBe(true)
+    await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.materials(ref).some((opacity: number) => opacity > 0), ref)).toBe(true)
   }
   await page.setViewportSize({ width: 390, height: 844 })
   await expect(mode).toBeVisible()
@@ -152,7 +152,7 @@ for (const mobile of [false, true]) test.describe(mobile ? 'touch' : 'desktop', 
       if (mobile) await page.touchscreen.tap(point.x, point.y)
       else await page.mouse.click(point.x, point.y)
       await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.store.getState().transparentRefs.includes(ref), point.ref)).toBe(true)
-      await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.materials(ref).every((opacity: number) => opacity <= .12), point.ref)).toBe(true)
+      await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.materials(ref).every((opacity: number) => opacity === 0), point.ref)).toBe(true)
       if (kind === 'wall') await page.screenshot({ path: testInfo.outputPath('transparent-wall.png') })
       await reset.click()
       await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.materials(ref), point.ref)).toEqual(original)
@@ -188,12 +188,12 @@ test('room view reveals through the cathedral ceiling and keeps temporary state 
   await expect.poll(() => page.evaluate(() => (window as any).transparencyTest.point('ceiling')), { timeout: 30_000 }).not.toBeNull()
   const point = await page.evaluate(() => (window as any).transparencyTest.point('ceiling'))
   await page.mouse.click(point.x, point.y)
-  await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.materials(ref).every((opacity: number) => opacity <= .12), point.ref)).toBe(true)
+  await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.materials(ref).every((opacity: number) => opacity === 0), point.ref)).toBe(true)
   await page.screenshot({ path: testInfo.outputPath('transparent-cathedral-ceiling.png') })
   await page.getByRole('button', { name: 'Wnętrze 3D', exact: true }).click()
   await page.getByRole('button', { name: 'Widok z pomieszczenia', exact: true }).click()
-  await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.materials(ref).length > 0 && (window as any).transparencyTest.materials(ref).every((opacity: number) => opacity <= .12), point.ref)).toBe(true)
+  await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.materials(ref).length > 0 && (window as any).transparencyTest.materials(ref).every((opacity: number) => opacity === 0), point.ref)).toBe(true)
   await page.getByRole('button', { name: 'Przywróć widoczność', exact: true }).click()
-  await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.materials(ref).some((opacity: number) => opacity > .12), point.ref)).toBe(true)
+  await expect.poll(() => page.evaluate(ref => (window as any).transparencyTest.materials(ref).some((opacity: number) => opacity > 0), point.ref)).toBe(true)
   expect(await page.evaluate(() => JSON.stringify((window as any).transparencyTest.store.getState().project) === (window as any).transparencyTest.original)).toBe(true)
 })

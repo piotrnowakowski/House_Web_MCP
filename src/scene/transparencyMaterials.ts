@@ -1,4 +1,8 @@
-import { Material, Mesh, Object3D } from 'three'
+import { Line, Material, Mesh, Object3D, Points } from 'three'
+
+export type TransparencyObject = Mesh | Line | Points
+export const isTransparencyObject = (object: Object3D): object is TransparencyObject =>
+  object instanceof Mesh || object instanceof Line || object instanceof Points
 
 /** Nearest semantic object, excluding overlays, hidden objects and proposal previews. */
 export function transparencyRef(object: Object3D): string | null {
@@ -12,7 +16,7 @@ export function transparencyRef(object: Object3D): string | null {
 }
 
 /** Clone per mesh so shared finishes and React's original material instances stay intact. */
-export function fadeMesh(mesh: Mesh) {
+export function fadeMesh(mesh: TransparencyObject) {
   const original = mesh.material
   const sources = Array.isArray(original) ? original : [original]
   const copies = sources.map(material => material.clone())
@@ -27,7 +31,9 @@ export function fadeMesh(mesh: Mesh) {
         // React may update the original finish while this temporary copy is attached.
         copy.copy(sources[index])
         copy.transparent = true
-        copy.opacity = Math.min(sources[index].opacity, 0.12)
+        copy.opacity = 0
+        // Skip the draw entirely, including reflective glass and object outlines.
+        copy.visible = false
         copy.depthWrite = false
       })
     },

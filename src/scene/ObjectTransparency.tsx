@@ -2,13 +2,13 @@ import { useFrame, useThree } from '@react-three/fiber'
 import { useEffect, useRef } from 'react'
 import { Mesh, Raycaster, Vector2 } from 'three'
 import { useStudioStore } from '../state/store'
-import { fadeMesh, transparencyRef } from './transparencyMaterials'
+import { fadeMesh, isTransparencyObject, transparencyRef, type TransparencyObject } from './transparencyMaterials'
 
 export function ObjectTransparency() {
   const { gl, scene, camera, invalidate } = useThree()
   const active = useStudioStore(state => state.transparencyMode)
   const refs = useStudioStore(state => state.transparentRefs)
-  const faded = useRef(new Map<Mesh, ReturnType<typeof fadeMesh>>())
+  const faded = useRef(new Map<TransparencyObject, ReturnType<typeof fadeMesh>>())
 
   useEffect(() => { invalidate() }, [refs, invalidate])
   useEffect(() => {
@@ -19,9 +19,9 @@ export function ObjectTransparency() {
   useFrame(() => {
     if (!refs.length && !faded.current.size) return
     const targets = new Set(refs)
-    const visible = new Set<Mesh>()
+    const visible = new Set<TransparencyObject>()
     scene.traverseVisible(object => {
-      if (object instanceof Mesh && targets.has(transparencyRef(object) ?? '')) visible.add(object)
+      if (isTransparencyObject(object) && targets.has(transparencyRef(object) ?? '')) visible.add(object)
     })
     faded.current.forEach((entry, mesh) => {
       if (!visible.has(mesh) || mesh.material !== entry.material) {
