@@ -6,6 +6,7 @@ import architekt from '../../project-data/architekt/project.json'
 import architektBefore from '../../project-data/architekt/before-exterior-v2.json'
 import architect711 from '../../project-data/architekt-7-11/project.json'
 import architect711Before from '../../project-data/architekt-7-11/before-exterior-v2.json'
+import architect711Exterior from '../../project-data/architekt-7-11/before-stair-consolidation.json'
 import stairs from '../../project-data/architekt-7-11-stairs-12-6/project.json'
 import stairsBefore from '../../project-data/architekt-7-11-stairs-12-6/before-exterior-v2.json'
 import version2 from '../../project-data/architekt-7-11-v2/project.json'
@@ -39,7 +40,8 @@ const source = parseProject(mpzpV2Before)
 beforeEach(() => { globalThis.indexedDB = new IDBFactory() })
 
 it.each(cases)('$name uses the selected v2 site while preserving its complete house geometry and interior', ({ data, before }) => {
-  const p = parseProject(data), old = parseProject(before), house = p.buildings[0], oldHouse = old.buildings[0]
+  // Preserve the exterior publication's fixture; later interior edits have their own preservation checks.
+  const p = parseProject(data === architect711 ? architect711Exterior : data), old = parseProject(before), house = p.buildings[0], oldHouse = old.buildings[0]
   expect(p.site).toEqual(source.site)
   expect(p.landscape).toEqual(source.landscape)
   expect(house.position).toEqual(source.buildings[0].position)

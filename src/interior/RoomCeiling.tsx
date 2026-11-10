@@ -7,5 +7,5 @@ import { FinishMaterial } from './FinishMaterial'
 export function RoomCeiling({ building, storey, footprint, finish, flatHeight, overVoid = false, capHeight }: { building: BuildingModel; storey: StoreyModel; footprint: Polygon2; finish: InteriorFinish; flatHeight: number; overVoid?: boolean; capHeight?: number }) {
   const geometry = useMemo(() => ceilingGeometry(building, storey, footprint, flatHeight, overVoid, capHeight), [building, storey, footprint, flatHeight, overVoid, capHeight])
   useEffect(()=>()=>geometry.dispose(),[geometry])
-  return <mesh geometry={geometry} receiveShadow><FinishMaterial finish={finish}/></mesh>
+  return <mesh geometry={geometry} receiveShadow><FinishMaterial finish={finish} keepTexture={overVoid}/></mesh>
 }

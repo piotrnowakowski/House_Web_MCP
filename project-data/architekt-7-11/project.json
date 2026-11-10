@@ -3,8 +3,8 @@
   "ref": "project/architekt-7-11",
   "name": "architekt 7.11",
   "units": "metric",
-  "revision": 12,
-  "updatedAt": "2026-11-10T12:19:50.329Z",
+  "revision": 14,
+  "updatedAt": "2026-11-10T13:43:43.284Z",
   "site": {
     "boundary": [
       {
@@ -3735,7 +3735,19 @@
             "material": "charred-timber",
             "colorHex": "#242927"
           },
-          "locked": false
+          "locked": false,
+          "faceFinishes": {
+            "left": {
+              "presetId": "natural-oak",
+              "color": "#FFFFFF",
+              "rotationDegrees": 90,
+              "tileM": 0.96,
+              "spanM": [
+                3.56,
+                7.795
+              ]
+            }
+          }
         },
         {
           "ref": "wall/architekt/ground/19",
@@ -3819,7 +3831,15 @@
             "material": "natural-timber",
             "colorHex": "#BD9C73"
           },
-          "locked": false
+          "locked": false,
+          "faceFinishes": {
+            "left": {
+              "presetId": "natural-oak",
+              "color": "#FFFFFF",
+              "rotationDegrees": 90,
+              "tileM": 0.96
+            }
+          }
         },
         {
           "ref": "wall/architekt/ground/21",
@@ -4259,7 +4279,20 @@
             "colorHex": "#E9E5DC",
             "textureId": "none"
           },
-          "locked": false
+          "locked": false,
+          "faceFinishes": {
+            "right": {
+              "presetId": "natural-oak",
+              "color": "#FFFFFF",
+              "rotationDegrees": 90,
+              "tileM": 0.96,
+              "spanM": [
+                0.06,
+                1.915
+              ],
+              "followRoof": true
+            }
+          }
         },
         {
           "ref": "wall/architekt/upper/11",
@@ -4373,7 +4406,21 @@
             "material": "charred-timber",
             "colorHex": "#242927"
           },
-          "locked": false
+          "locked": false,
+          "faceFinishes": {
+            "left": {
+              "presetId": "natural-oak",
+              "color": "#FFFFFF",
+              "rotationDegrees": 90,
+              "tileM": 0.96,
+              "spanM": [
+                0.06,
+                4.295
+              ],
+              "baseExtensionM": 0.33,
+              "followRoof": true
+            }
+          }
         },
         {
           "ref": "wall/architekt/upper/25",
@@ -4444,7 +4491,17 @@
             "material": "charred-timber",
             "colorHex": "#242927"
           },
-          "locked": false
+          "locked": false,
+          "faceFinishes": {
+            "left": {
+              "presetId": "natural-oak",
+              "color": "#FFFFFF",
+              "rotationDegrees": 90,
+              "tileM": 0.96,
+              "baseExtensionM": 0.33,
+              "followRoof": true
+            }
+          }
         },
         {
           "groupRef": "group/architekt-711/eaves/1",
@@ -5284,7 +5341,13 @@
           ],
           "baseSlabRef": "slab/reference-ground",
           "topBoundaryRef": "slab/reference-upper",
-          "locked": false
+          "locked": false,
+          "voidCeilingFinish": {
+            "presetId": "natural-oak",
+            "color": "#FFFFFF",
+            "rotationDegrees": 90,
+            "tileM": 0.731036
+          }
         },
         {
           "floorFinish": {
