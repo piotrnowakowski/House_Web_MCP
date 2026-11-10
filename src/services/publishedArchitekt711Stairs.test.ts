@@ -2,6 +2,7 @@ import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/architekt-7-11-stairs-12-6/project.json'
+import historical from '../../project-data/architekt-7-11-stairs-12-6/before-exterior-v2.json'
 import source from '../../project-data/architekt-7-11-stairs-12-6/source-architekt-711-r6.json'
 import parent from '../../project-data/architekt-7-11/before-family-dimensions.json'
 import { parseProject } from '../domain/schema'
@@ -15,7 +16,7 @@ beforeEach(() => { globalThis.indexedDB = new IDBFactory() })
 
 it('preserves the original r6 cabinetry, house and garden outside the stair, local slab infill and approved furniture dimensions', () => {
   expect(source).toEqual(parent)
-  const p = parseProject(data), before = parseProject(source), actual = structuredClone(p)
+  const p = parseProject(historical), before = parseProject(source), actual = structuredClone(p)
   expect(p.ref).toBe(ARCHITEKT_711_STAIRS_REF)
   expect(p.buildings[0].furniture!.some(f => f.cabinetry === 'under-stair')).toBe(true)
   actual.ref = before.ref; actual.name = before.name; actual.revision = before.revision; actual.updatedAt = before.updatedAt

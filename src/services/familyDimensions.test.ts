@@ -1,4 +1,4 @@
-// Historical publication fixture; current kitchen preservation and migration are covered by islandLayouts.test.ts.
+// Historical publication fixture; latest canonical preservation and migration are covered by allProjectsExterior.test.ts.
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
@@ -19,18 +19,13 @@ import { polygonBounds } from '../domain/geometry'
 import { placementWarnings } from '../domain/interiorPlacement'
 import { mergeProjects } from '../domain/projectMerge'
 import { loadWorkspace, saveWorkspace, synchronizePublishedProject } from './persistence'
-import { synchronizePublishedArchitekt } from './publishedArchitekt'
-import { synchronizePublishedArchitekt711 } from './publishedArchitekt711'
-import { synchronizePublishedArchitekt711Stairs } from './publishedArchitekt711Stairs'
-import { synchronizePublishedNoweMpzp } from './publishedNoweMpzp'
-import { synchronizePublishedNoweMpzpV2 } from './publishedNoweMpzpV2'
 
 const cases = [
-  { name: 'architekt', data: architekt, before: architektBefore, sync: synchronizePublishedArchitekt },
-  { name: 'architekt 7.11', data: architect711, before: architect711Before, sync: synchronizePublishedArchitekt711 },
-  { name: 'stairs 12+6', data: stairs, before: stairsBefore, sync: synchronizePublishedArchitekt711Stairs },
-  { name: 'nowe mpzp', data: mpzp, before: mpzpBefore, sync: synchronizePublishedNoweMpzp },
-  { name: 'nowe mpzp v2', data: mpzpV2, before: mpzpV2Before, sync: synchronizePublishedNoweMpzpV2 },
+  { name: 'architekt', data: architekt, before: architektBefore },
+  { name: 'architekt 7.11', data: architect711, before: architect711Before },
+  { name: 'stairs 12+6', data: stairs, before: stairsBefore },
+  { name: 'nowe mpzp', data: mpzp, before: mpzpBefore },
+  { name: 'nowe mpzp v2', data: mpzpV2, before: mpzpV2Before },
 ]
 beforeEach(() => { globalThis.indexedDB = new IDBFactory() })
 
@@ -57,8 +52,9 @@ it.each(cases)('$name enlarges the two fixtures and retains its own building, ga
   expect(restored).toEqual(old)
 })
 
-it.each(cases)('$name migrates independently and preserves unrelated edits and deletions on reload', async ({ data, before, sync }) => {
+it.each(cases)('$name migrates independently and preserves unrelated edits and deletions on reload', async ({ data, before }) => {
   const old = parseProject(before)
+  const sync = () => synchronizePublishedProject(parseProject(data), old)
   await synchronizePublishedProject(old, old)
   const local = (await loadWorkspace(old.ref))!
   local.project.name += ' user edit'

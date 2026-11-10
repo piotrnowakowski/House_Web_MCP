@@ -1,17 +1,18 @@
+// Historical island release; latest six-project migration is covered by allProjectsExterior.test.ts.
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
-import architekt from '../../project-data/architekt/project.json'
+import architekt from '../../project-data/architekt/before-exterior-v2.json'
 import architektBefore from '../../project-data/architekt/before-island-window-gap-90.json'
-import architect711 from '../../project-data/architekt-7-11/project.json'
+import architect711 from '../../project-data/architekt-7-11/before-exterior-v2.json'
 import architect711Before from '../../project-data/architekt-7-11/before-island-window-gap-90.json'
-import stairs from '../../project-data/architekt-7-11-stairs-12-6/project.json'
+import stairs from '../../project-data/architekt-7-11-stairs-12-6/before-exterior-v2.json'
 import stairsBefore from '../../project-data/architekt-7-11-stairs-12-6/before-island-window-gap-90.json'
-import version2 from '../../project-data/architekt-7-11-v2/project.json'
+import version2 from '../../project-data/architekt-7-11-v2/before-exterior-v2.json'
 import version2Before from '../../project-data/architekt-7-11-v2/before-island-window-gap-90.json'
-import mpzp from '../../project-data/nowe-mpzp/project.json'
+import mpzp from '../../project-data/nowe-mpzp/before-exterior-v2.json'
 import mpzpBefore from '../../project-data/nowe-mpzp/before-island-window-gap-90.json'
-import mpzpV2 from '../../project-data/nowe-mpzp-v2/project.json'
+import mpzpV2 from '../../project-data/nowe-mpzp-v2/before-exterior-v2.json'
 import mpzpV2Before from '../../project-data/nowe-mpzp-v2/before-island-window-gap-90.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
@@ -21,20 +22,14 @@ import { placementWarnings } from '../domain/interiorPlacement'
 import { mergeProjects } from '../domain/projectMerge'
 import { islandSeating } from '../interior/islandSeating'
 import { loadWorkspace, saveWorkspace, synchronizePublishedProject } from './persistence'
-import { synchronizePublishedArchitekt } from './publishedArchitekt'
-import { synchronizePublishedArchitekt711 } from './publishedArchitekt711'
-import { synchronizePublishedArchitekt711Stairs } from './publishedArchitekt711Stairs'
-import { synchronizePublishedArchitekt711V2 } from './publishedArchitekt711V2'
-import { synchronizePublishedNoweMpzp } from './publishedNoweMpzp'
-import { synchronizePublishedNoweMpzpV2 } from './publishedNoweMpzpV2'
 
 const cases = [
-  { name: 'architekt', data: architekt, before: architektBefore, sync: synchronizePublishedArchitekt },
-  { name: 'architekt 7.11', data: architect711, before: architect711Before, sync: synchronizePublishedArchitekt711 },
-  { name: 'stairs 12+6', data: stairs, before: stairsBefore, sync: synchronizePublishedArchitekt711Stairs },
-  { name: 'version 2', data: version2, before: version2Before, sync: synchronizePublishedArchitekt711V2 },
-  { name: 'nowe mpzp', data: mpzp, before: mpzpBefore, sync: synchronizePublishedNoweMpzp },
-  { name: 'nowe mpzp v2', data: mpzpV2, before: mpzpV2Before, sync: synchronizePublishedNoweMpzpV2 },
+  { name: 'architekt', data: architekt, before: architektBefore },
+  { name: 'architekt 7.11', data: architect711, before: architect711Before },
+  { name: 'stairs 12+6', data: stairs, before: stairsBefore },
+  { name: 'version 2', data: version2, before: version2Before },
+  { name: 'nowe mpzp', data: mpzp, before: mpzpBefore },
+  { name: 'nowe mpzp v2', data: mpzpV2, before: mpzpV2Before },
 ]
 const changed = ['interior/reference-island', 'interior/reference-sink', 'interior/architekt/cooker', 'interior/reference-stool-one', 'interior/reference-stool-two']
 beforeEach(() => { globalThis.indexedDB = new IDBFactory() })
@@ -86,8 +81,9 @@ it.each(cases)('$name keeps 90 cm by the window with the centred hob and two-sea
   expect(restored).toEqual(old)
 })
 
-it.each(cases)('$name migrates the 90 cm window clearance and preserves independent edits and deletions across reload', async ({ data, before, sync }) => {
+it.each(cases)('$name migrates the 90 cm window clearance and preserves independent edits and deletions across reload', async ({ data, before }) => {
   const old = parseProject(before)
+  const sync = () => synchronizePublishedProject(parseProject(data), old)
   await synchronizePublishedProject(old, old)
   const local = (await loadWorkspace(old.ref))!
   local.project.name += ' user edit'

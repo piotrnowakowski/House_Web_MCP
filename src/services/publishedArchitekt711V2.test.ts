@@ -1,4 +1,4 @@
-// Historical publication fixture; current kitchen preservation and migration are covered by islandLayouts.test.ts.
+// Historical publication geometry and migration; current six-project exterior is covered by allProjectsExterior.test.ts.
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
@@ -86,12 +86,12 @@ it('migrates the published r1 seating, retaining independent furniture and tree 
   saved.project.buildings[0].furniture = saved.project.buildings[0].furniture!.filter(f => f.ref !== deleted)
   saved.project.landscape.plants.pop()
   await saveWorkspace(saved)
-  expect(await synchronizePublishedArchitekt711V2()).toEqual([])
+  expect(await synchronizePublishedProject(parseProject(data), old)).toEqual([])
   const result = (await loadWorkspace(old.ref))!
   expect(result.project.buildings[0].furniture!.some(f => f.ref === deleted)).toBe(false)
   expect(result.project.landscape).toEqual(saved.project.landscape)
   expect(result.project.buildings[0].furniture!.find(f => f.catalogId === 'kitchen-island')?.seatingOverhangM).toBe(.38)
-  await synchronizePublishedArchitekt711V2()
+  await synchronizePublishedProject(parseProject(data), old)
   expect((await loadWorkspace(old.ref))!.project).toEqual(result.project)
 })
 
@@ -156,14 +156,14 @@ it('migrates r2 furniture and shower while preserving independent edits and dele
   saved.project.buildings[0].furniture = saved.project.buildings[0].furniture!.filter(f => f.ref !== 'interior/office-c5/chair')
   saved.project.name += ' user name'
   await saveWorkspace(saved)
-  expect(await synchronizePublishedArchitekt711V2()).toEqual([])
+  expect(await synchronizePublishedProject(parseProject(data), old)).toEqual([])
   const result = (await loadWorkspace(old.ref))!
   expect(result.project.landscape).toEqual(saved.project.landscape)
   expect(result.project.name).toBe(saved.project.name)
   expect(result.project.buildings[0].furniture!.some(f => f.ref === 'interior/office-c5/chair')).toBe(false)
   expect(result.project.buildings[0].furniture!.find(f => f.ref === 'interior/reference-sofa')?.sofaModuleDepthM).toBe(.95)
   expect(result.project.buildings[0].furniture!.find(f => f.ref === 'interior/carport-study/shower')?.depthM).toBe(.9)
-  await synchronizePublishedArchitekt711V2()
+  await synchronizePublishedProject(parseProject(data), old)
   expect((await loadWorkspace(old.ref))!.project).toEqual(result.project)
 })
 

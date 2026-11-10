@@ -1,4 +1,4 @@
-// Historical publication fixture; current kitchen preservation and migration are covered by islandLayouts.test.ts.
+// Historical publication geometry and migration; current six-project exterior is covered by allProjectsExterior.test.ts.
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
@@ -9,7 +9,7 @@ import previousDirection from '../../project-data/architekt-7-11/before-stair-di
 import previousJoinery from '../../project-data/architekt-7-11/before-under-stair-r4.json'
 import previousLiving from '../../project-data/architekt-7-11/before-living-r5.json'
 import previousWindow from '../../project-data/architekt-7-11/before-fireplace-window-r3.json'
-import source from '../../project-data/architekt/project.json'
+import source from '../../project-data/architekt/before-exterior-v2.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
 import { polygonBounds, spaceFootprint } from '../domain/geometry'
@@ -20,7 +20,7 @@ import { ceilingGeometry } from '../interior/ceilingGeometry'
 import { clippedRoofBox } from '../geometry/roofJunction'
 import { roofWindowCutouts } from '../scene/RoofWindows'
 import { ARCHITEKT_711_REF, synchronizePublishedArchitekt711 } from './publishedArchitekt711'
-import { saveWorkspace, loadWorkspace, deleteWorkspace } from './persistence'
+import { saveWorkspace, loadWorkspace, deleteWorkspace, synchronizePublishedProject } from './persistence'
 import { uStairHeadroom, uStairSurfaces } from '../domain/stairs'
 import { interiorCorners } from '../domain/interior'
 import { mergeProjects } from '../domain/projectMerge'
@@ -62,13 +62,13 @@ it('migrates the fireplace and window from r3 while retaining deletions and expo
   const db=await new Promise<IDBDatabase>((resolve,reject)=>{const request=indexedDB.open('house-web-mcp',2);request.onsuccess=()=>resolve(request.result);request.onerror=()=>reject(request.error)})
   await new Promise<void>((resolve,reject)=>{const tx=db.transaction('projects','readwrite');tx.objectStore('projects').put(old,'published-base/'+old.ref);tx.oncomplete=()=>resolve();tx.onerror=()=>reject(tx.error)})
   db.close()
-  expect(await synchronizePublishedArchitekt711()).toEqual([])
+  expect(await synchronizePublishedProject(parseProject(data), old)).toEqual([])
   const saved=(await loadWorkspace(old.ref))!
   expect(saved.project.landscape).toEqual(local.landscape)
   expect(saved.project.buildings[0].furniture!.some(f=>f.ref==='interior/office-c5/chair')).toBe(false)
   expect(saved.project.buildings[0].furniture!.some(f=>f.catalogId==='fireplace')).toBe(true)
   expect(saved.project.buildings[0].walls).toEqual(parseProject(data).buildings[0].walls)
-  await synchronizePublishedArchitekt711();expect(await loadWorkspace(old.ref)).toEqual(saved)
+  await synchronizePublishedProject(parseProject(data), old);expect(await loadWorkspace(old.ref)).toEqual(saved)
   local.buildings[0].walls.flatMap(w=>w.openings).find(o=>o.ref==='opening/reference-kitchen')!.widthM=2.7
   expect(mergeProjects(old,local,parseProject(data)).conflicts.some(p=>p.endsWith('/widthM'))).toBe(true)
 })
@@ -190,12 +190,12 @@ it('migrates saved r1 while preserving independent edits and deletions, and repo
   const old=parseProject(previousInterior), local=structuredClone(old)
   local.landscape.plants.pop();local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/office-c5/chair')
   await saveWorkspace({version:1,project:local,proposals:[],draftChangeSets:[]})
-  expect(await synchronizePublishedArchitekt711()).toEqual([])
+  expect(await synchronizePublishedProject(parseProject(data), parseProject(previousInterior))).toEqual([])
   const saved=(await loadWorkspace(ARCHITEKT_711_REF))!
   expect(saved.project.landscape).toEqual(local.landscape)
   expect(saved.project.buildings[0].furniture!.some(f=>f.ref==='interior/office-c5/chair')).toBe(false)
   expect(saved.project.buildings[0].stairs).toEqual(data.buildings[0].stairs)
-  await synchronizePublishedArchitekt711();expect(await loadWorkspace(ARCHITEKT_711_REF)).toEqual(saved)
+  await synchronizePublishedProject(parseProject(data), parseProject(previousInterior));expect(await loadWorkspace(ARCHITEKT_711_REF)).toEqual(saved)
   local.buildings[0].stairs![0].runM=2.3
   expect(mergeProjects(old,local,parseProject(data)).conflicts.some(p=>p.endsWith('/runM'))).toBe(true)
 })

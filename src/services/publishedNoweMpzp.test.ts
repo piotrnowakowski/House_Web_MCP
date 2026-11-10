@@ -1,4 +1,4 @@
-// Historical publication fixture; current furniture preservation and migration are covered by familyDimensions.test.ts.
+// Historical publication geometry and migration; current six-project exterior is covered by allProjectsExterior.test.ts.
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
@@ -178,7 +178,8 @@ it('keeps draft zoning and user deletions through list, reload and a later publi
   original.project.name='Mój architekt'; original.project.landscape.plants.pop()
   await saveWorkspace(original)
   expect(await synchronizePublishedProject(parseProject(beforeSide),parseProject(initial))).toEqual([])
-  const w=(await loadWorkspace(NOWE_MPZP_REF))!, removed=w.project.landscape.plants.pop()!.ref
+  const w=(await loadWorkspace(NOWE_MPZP_REF))!, removed='plant/orchard-plum'
+  w.project.landscape.plants=w.project.landscape.plants.filter(p=>p.ref!==removed)
   w.project.name='Moje nowe mpzp'; await saveWorkspace(w); await listWorkspaces()
   expect(await synchronizePublishedNoweMpzp()).toEqual([])
   expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[2].position).toEqual(currentData.buildings[2].position)

@@ -1,4 +1,4 @@
-// Historical publication fixture; current furniture preservation and migration are covered by familyDimensions.test.ts.
+// Historical publication geometry and migration; current six-project exterior is covered by allProjectsExterior.test.ts.
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
@@ -119,7 +119,7 @@ it.each([beforeCorrection,beforeFrameRemoval,beforeFacadeFix,beforeTwoCars,befor
   const windowWall=local.project.buildings[1].walls.find(w=>w.openings.some(o=>o.ref==='opening/outbuilding/workshop-window'))!
   windowWall.openings=windowWall.openings.filter(o=>o.ref!=='opening/outbuilding/workshop-window')
   await saveWorkspace(local)
-  expect(await synchronizePublishedArchitekt()).toEqual([])
+  expect(await synchronizePublishedProject(parseProject(data), before)).toEqual([])
   const migrated=(await loadWorkspace(ARCHITEKT_REF))!
   expect(migrated.project.buildings[0].spaces.some(s=>s.ref==='space/reference-wardrobe')).toBe(false)
   expect(migrated.project.buildings[0].walls.some(w=>w.ref.includes('/eaves-frame/'))).toBe(false)
@@ -129,7 +129,7 @@ it.each([beforeCorrection,beforeFrameRemoval,beforeFacadeFix,beforeTwoCars,befor
   const carport=migrated.project.buildings.find(b=>b.ref==='building/south-carport')!
   expect(carport.furniture!.map(f=>f.catalogId)).toEqual(['car','car'])
   await saveWorkspace(migrated)
-  expect(await synchronizePublishedArchitekt()).toEqual([])
+  expect(await synchronizePublishedProject(parseProject(data), before)).toEqual([])
   expect((await loadWorkspace(ARCHITEKT_REF))!.project).toEqual(migrated.project)
   expect((await listWorkspaces()).some(w=>w.ref.includes('/before-published-'))).toBe(true)
 })
