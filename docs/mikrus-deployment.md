@@ -1,3 +1,13 @@
+# Active house release — 10 November 2026
+
+Only **architekt 7.11** is active. Interior → **Schody** selects three stair layouts and cabinet on/off. The other five former active identities are archived with all data preserved.
+
+Published and verified: code **927a7e8673c949c8fdce821edf583c8d8e19578e**, canonical 7.11 **r12**, shared **v12**. HTTP/HTTPS health and API passed; 14 live frontend files match exact local bytes. Public connected browser shows one project and the preferred 9+9/cabinet selection. All 18 local and 18 live combinations (fresh, captured-existing and mobile; three layouts x cabinet on/off) passed save/reload, undo/redo and archive-preservation checks with no page errors. Interaction tests used isolated local browser storage and blocked shared writes; separate live API readbacks verified canonical publication and exact preservation of all five archived shared workspaces. Unit suite: 712 passed; after the final partial-cabinet restore guard, all 25 affected tests passed, including its new regression. Frontend/API builds, TypeScript and secret scan passed.
+
+A complete 3752974-byte off-host database backup was verified, SHA256 b3fff6aa2aef1e10ee72f10dc9bab6f10cf42b38bb3305c8004847fc00b5b2bc. Rollback: /root/house-web-mcp/furnished-zielonki/deploy/mikrus/compose.yaml.before-20261110T122743Z. Recovery snapshots and evidence: tmp/unified-stairs-20261110/; screenshots: output/unified-stairs-20261110/. Main/Pages are unchanged.
+
+The sections below retain earlier release history.
+
 ## Current island layout — 10 November 2026
 
 All six online projects use a 280 x 110 cm island with the sink at the window end (user-selected option A), a hob centred along its length, a 120 cm recess for two stools with 38 cm knee depth, and 160 cm of cabinet infill on the living-room side. The window-end gap is now 90 cm after an 18 cm shift towards the dining room. The working edge is preserved, retaining the 110 cm kitchen aisle; the secondary gap behind stools is 55–60 cm. Previous publications are preserved in each before-island-window-gap-90.json, alongside the earlier before-window-sink.json and before-island-layout.json; see individual project READMEs for provenance and verification.
