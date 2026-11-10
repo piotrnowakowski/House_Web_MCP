@@ -1,3 +1,7 @@
+# Temporary transparency controls — 10 November 2026
+
+Both exterior and interior views now support temporary per-element transparency, with Polish controls and a mobile layout clear of the save bar. Project data remains canonical r15/shared v14. Validation and capture provenance are recorded in project-data/architekt-7-11/README.md.
+
 # Four-winder release — 10 November 2026
 
 Architekt 7.11 r15 selects 19 × 17.1053 cm rises with four balanced winders, 28 cm straight goings and 397 × 200 cm footprint. The stair selector retains both existing 7.11 layouts and cabinet on/off. New-layout cabinet fronts reach 292 cm; the usable carcass is 240 cm high. See project-data/architekt-7-11/README.md for data provenance and geometry limitations.

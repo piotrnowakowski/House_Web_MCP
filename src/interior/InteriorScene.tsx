@@ -32,6 +32,7 @@ import { itemFitsFloor } from '../domain/interior'
 import { interiorMeasurementEdges, measurementScreenPoint, snapMeasurementPoint } from '../scene/measurementSnapping'
 import { MeasurementPoint } from '../scene/MeasurementPoint'
 import { PlanLabelLayout } from './PlanLabelLayout'
+import { useStudioStore } from '../state/store'
 
 function RoomLabel({ centre, name, area, width, depth, plan, selected }: {
   centre: Vec2; name: string; area: number; width: number; depth: number; plan: boolean; selected: boolean
@@ -60,10 +61,10 @@ function RoomLabel({ centre, name, area, width, depth, plan, selected }: {
   </Html>
 }
 
-function Floor({ points, holes, slab, onPick, tiled = false, plan = false, finish, elevation = 0, onHover }: { points: Polygon2; holes?: Polygon2[]; slab?: Polygon2; onPick: (event: ThreeEvent<MouseEvent>) => void; onHover?: (point: Vec2) => void; tiled?: boolean; plan?: boolean; finish?: InteriorFinish; elevation?: number }) {
+function Floor({ semanticRef, points, holes, slab, onPick, tiled = false, plan = false, finish, elevation = 0, onHover }: { semanticRef?: string; points: Polygon2; holes?: Polygon2[]; slab?: Polygon2; onPick: (event: ThreeEvent<MouseEvent>) => void; onHover?: (point: Vec2) => void; tiled?: boolean; plan?: boolean; finish?: InteriorFinish; elevation?: number }) {
   const geometry = useMemo(() => floorGeometry(points, holes, slab), [points, holes, slab])
   useEffect(() => () => geometry.dispose(), [geometry])
-  return <mesh geometry={geometry} position-y={elevation} receiveShadow onClick={onPick} onPointerMove={onHover ? (event) => onHover({ x: event.point.x, z: event.point.z }) : undefined}>
+  return <mesh userData={{ semanticRef }} geometry={geometry} position-y={elevation} receiveShadow onClick={onPick} onPointerMove={onHover ? (event) => onHover({ x: event.point.x, z: event.point.z }) : undefined}>
     {finish ? <FinishMaterial finish={finish} /> : plan ? <meshBasicMaterial color='#fafaf7' side={DoubleSide} toneMapped={false} /> : tiled ? <meshStandardMaterial color='#b5b5ab' roughness={0.88} side={DoubleSide} /> : <TexturedMaterial asset={interiorFloorTexture.asset} color='#fff3df' roughness={0.8} side={DoubleSide} />}
   </mesh>
 }
@@ -116,8 +117,8 @@ function CutawayWall({ wall, profile, finishProfiles, plan, fullHeight, selected
       ...[...xs].sort((a, b) => b - a).map((x) => ({ x: x - middle, z: Math.max(base, Math.min(top, wallProfileHeightAt(cap, x))) - base - piece.height / 2 }))]
   }
   return <group userData={{ dragTarget: { kind: 'wall', ref: wall.ref } }} position={[wall.start.x, 0.025, wall.start.z]} rotation={[0, -Math.atan2(wall.end.z - wall.start.z, wall.end.x - wall.start.x), 0]} onClick={(event) => { if (event.delta >= 5) return; if (onPick) { event.stopPropagation(); onPick({ x: event.point.x, z: event.point.z }) } else if (onSelect) { event.stopPropagation(); onSelect(wall.ref) } }}>
-    {openings.map(opening => <mesh key={`opening-hit-${opening.ref}`} userData={{ dragTarget: { kind: 'opening', ref: opening.ref } }} position={[opening.offsetM, plan ? .2 : Math.min(height, opening.sillM) + .12, 0]}><boxGeometry args={[opening.widthM, plan ? .35 : .25, Math.max(wall.thicknessM, .28)]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>)}
-    {pieces.map((piece, index) => <mesh key={`hit-${index}`} position={[(piece.start + piece.end) / 2, height / 2, 0]}><boxGeometry args={[piece.end - piece.start, height, Math.max(wall.thicknessM, .28)]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>)}
+    {openings.map(opening => <mesh key={`opening-hit-${opening.ref}`} userData={{ editorOnly: true, dragTarget: { kind: 'opening', ref: opening.ref } }} position={[opening.offsetM, plan ? .2 : Math.min(height, opening.sillM) + .12, 0]}><boxGeometry args={[opening.widthM, plan ? .35 : .25, Math.max(wall.thicknessM, .28)]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>)}
+    {pieces.map((piece, index) => <mesh key={`hit-${index}`} userData={{ editorOnly: true }} position={[(piece.start + piece.end) / 2, height / 2, 0]}><boxGeometry args={[piece.end - piece.start, height, Math.max(wall.thicknessM, .28)]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>)}
     {(['left', 'right'] as const).flatMap(side => {
       const finish = wall.faceFinishes?.[side]
       if (!finish) return []
@@ -158,18 +159,24 @@ function UpperRoomContext({ building, storey }: { building: BuildingModel; store
   const slab = building.slabs.find(s => s.ref === storey.baseSlabRef)!
   const rooms = building.spaces.filter(room => storey.spaceRefs.includes(room.ref))
   const root = useRef<Object3D>(null)
-  useEffect(() => { root.current?.traverse(object => { object.raycast = () => {} }) }, [building, storey])
+  const transparencyMode = useStudioStore(s => s.transparencyMode)
+  useEffect(() => {
+    if (transparencyMode) return
+    const original = new Map<Object3D, Object3D['raycast']>()
+    root.current?.traverse(object => { original.set(object, object.raycast); object.raycast = () => {} })
+    return () => original.forEach((raycast, object) => { object.raycast = raycast })
+  }, [building, storey, transparencyMode])
   return <group ref={root}>
-    <Floor points={slab.footprint} holes={slab.holes} onPick={() => {}} />
+    <Floor semanticRef={slab.ref} points={slab.footprint} holes={slab.holes} onPick={() => {}} />
     {[slab.footprint, ...(slab.holes ?? [])].flatMap((ring, ringIndex) => ring.map((a, i) => {
       const b = ring[(i + 1) % ring.length]
-      return <mesh key={`${ringIndex}/${i}`} position={[(a.x + b.x) / 2, -slab.thicknessM / 2, (a.z + b.z) / 2]} rotation-y={-Math.atan2(b.z - a.z, b.x - a.x)}>
+      return <mesh key={`${ringIndex}/${i}`} userData={{ semanticRef: slab.ref }} position={[(a.x + b.x) / 2, -slab.thicknessM / 2, (a.z + b.z) / 2]} rotation-y={-Math.atan2(b.z - a.z, b.x - a.x)}>
         <boxGeometry args={[Math.hypot(b.x - a.x, b.z - a.z), slab.thicknessM, .01]} /><meshStandardMaterial color='#E9E5DC' />
       </mesh>
     }))}
     {building.walls.filter(wall => storey.wallRefs.includes(wall.ref)).map(wall =>
       <CutawayWall key={wall.ref} wall={wall} profile={atticWallProfile(building, wall)} finishProfiles={wallFinishProfiles(building, wall)} plan={false} fullHeight />)}
-    {rooms.map(room => room.ceilingFinish && <RoomCeiling key={room.ref} building={building} storey={storey} footprint={spaceFootprint(building, room)} finish={room.ceilingFinish} flatHeight={storey.clearHeightM} capHeight={Math.min(Infinity, ...building.ceilingFinishes.filter(c => c.spaceRef === room.ref).map(c => c.elevationM - storey.elevationM - c.thicknessM))} />)}
+    {rooms.map(room => room.ceilingFinish && <RoomCeiling semanticRef={`ceiling/${room.ref}`} key={room.ref} building={building} storey={storey} footprint={spaceFootprint(building, room)} finish={room.ceilingFinish} flatHeight={storey.clearHeightM} capHeight={Math.min(Infinity, ...building.ceilingFinishes.filter(c => c.spaceRef === room.ref).map(c => c.elevationM - storey.elevationM - c.thicknessM))} />)}
     <VoidCeilings building={building} storey={storey} />
   </group>
 }
@@ -177,7 +184,7 @@ function UpperRoomContext({ building, storey }: { building: BuildingModel; store
 function VoidCeilings({ building, storey }: { building: BuildingModel; storey: StoreyModel }) {
   if (storey.kneeWallHeightM === undefined) return null
   const slab = building.slabs.find(s => s.ref === storey.baseSlabRef)
-  return <>{slab?.holes?.map((hole, index) => <RoomCeiling key={index} building={building} storey={storey} footprint={hole} finish={voidCeilingFinish(building, storey, hole)} flatHeight={storey.clearHeightM} overVoid />)}</>
+  return <>{slab?.holes?.map((hole, index) => <RoomCeiling semanticRef={`ceiling/${slab.ref}/void/${index}`} key={index} building={building} storey={storey} footprint={hole} finish={voidCeilingFinish(building, storey, hole)} flatHeight={storey.clearHeightM} overVoid />)}</>
 }
 
 function InteriorGableCaps({ building, storeyRefs }: { building: BuildingModel; storeyRefs: string[] }) {
@@ -193,7 +200,7 @@ function InteriorGableCaps({ building, storeyRefs }: { building: BuildingModel; 
     const half = rise / Math.tan(segment.pitchDegrees * Math.PI / 180)
     const center = gable.axis === 'z' ? (bounds.minX + bounds.maxX) / 2 : (bounds.minZ + bounds.maxZ) / 2
     const edge = gable.value + (gable.side === 'min' ? .1 : -.1)
-    return <group key={gable.ref} position={gable.axis === 'z' ? [center, base, edge] : [edge, base, center]} rotation-y={gable.axis === 'z' ? 0 : Math.PI / 2}>
+    return <group key={gable.ref} userData={{ semanticRef: gable.ref }} position={gable.axis === 'z' ? [center, base, edge] : [edge, base, center]} rotation-y={gable.axis === 'z' ? 0 : Math.PI / 2}>
       <WallFace width={2 * half} height={rise} outline={[{ x: -half, z: 0 }, { x: half, z: 0 }, { x: 0, z: rise }]} finish={{ presetId: 'warm-white', color: '#E9E5DC', rotationDegrees: 0, tileM: 1 }} />
     </group>
   })}</>
@@ -323,7 +330,7 @@ export function InteriorScene(props: Props) {
     <directionalLight key={quality} position={[-12, 20, -8]} intensity={3.1} castShadow={quality !== 'fast'} shadow-mapSize={quality === 'detailed' ? [2048, 2048] : [1024, 1024]} shadow-camera-left={-30} shadow-camera-right={30} shadow-camera-top={30} shadow-camera-bottom={-30} shadow-normalBias={0.025} shadow-bias={-0.0002} />
     <InteriorCamera view={props.view ?? (plan ? 'plan' : 'cutaway')} footprint={props.focusFootprint ?? slab.footprint} reset={props.reset} enabled={!manipulation.dragging && mode === 'select' && !placing} cameraKey={`${props.projectRef}/${building.ref}/${storey.ref}`} bottomInset={props.bottomInset} rightInset={props.rightInset} topInset={props.topInset} framingKey={props.framingKey} />
     <Grid position={[0, -storey.elevationM - 0.06, 0]} infiniteGrid cellSize={1} cellThickness={0.5} cellColor='#d1d4cd' sectionSize={5} sectionThickness={0.65} sectionColor='#c3c8bf' fadeDistance={95} />
-    <Floor points={slab.footprint} holes={slab.holes} onPick={onFloor} onHover={props.onHover} tiled={building.kind === 'garage'} plan={plan} />
+    <Floor semanticRef={slab.ref} points={slab.footprint} holes={slab.holes} onPick={onFloor} onHover={props.onHover} tiled={building.kind === 'garage'} plan={plan} />
     {props.view === 'room' && <>
       <VoidCeilings building={building} storey={storey} />
       {upper && <group position-y={upper.elevationM - storey.elevationM}><UpperRoomContext building={building} storey={upper} /></group>}
@@ -346,8 +353,8 @@ export function InteriorScene(props: Props) {
       const horizontal = edges.filter(({ p, q }) => Math.abs(q.z - p.z) < 0.01).sort((a, b) => Math.abs(b.q.x - b.p.x) - Math.abs(a.q.x - a.p.x))[0]
       const vertical = edges.find(({ p, q }) => Math.abs(q.x - p.x) < 0.03 && Math.abs(q.z - p.z) > 1)
       return <group key={room.ref}>
-        {room.floorFinish && <Floor points={footprint} holes={slab.holes} slab={slab.footprint} elevation={0.008} finish={room.floorFinish} onPick={onFloor} onHover={props.onHover} />}
-        {room.ceilingFinish && props.view === 'room' && <RoomCeiling building={building} storey={storey} footprint={footprint} finish={room.ceilingFinish} flatHeight={storey.clearHeightM} capHeight={Math.min(Infinity, ...building.ceilingFinishes.filter(c => c.spaceRef === room.ref).map(c => c.elevationM - storey.elevationM - c.thicknessM))} />}
+        {room.floorFinish && <Floor semanticRef={slab.ref} points={footprint} holes={slab.holes} slab={slab.footprint} elevation={0.008} finish={room.floorFinish} onPick={onFloor} onHover={props.onHover} />}
+        {room.ceilingFinish && props.view === 'room' && <RoomCeiling semanticRef={`ceiling/${room.ref}`} building={building} storey={storey} footprint={footprint} finish={room.ceilingFinish} flatHeight={storey.clearHeightM} capHeight={Math.min(Infinity, ...building.ceilingFinishes.filter(c => c.spaceRef === room.ref).map(c => c.elevationM - storey.elevationM - c.thicknessM))} />}
         {selected === room.ref && <Line points={[...footprint, footprint[0]].map((p) => [p.x, 0.06, p.z] as [number, number, number])} color='#287466' lineWidth={2.5} />}
         {labels && <RoomLabel centre={centre} name={room.name} area={sizes.area} width={sizes.width} depth={sizes.depth} plan={plan} selected={selected === room.ref} />}
         {plan && props.dimensions && [horizontal, vertical].map((edge, i) => {

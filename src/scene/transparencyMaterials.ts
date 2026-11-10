@@ -5,7 +5,8 @@ export function transparencyRef(object: Object3D): string | null {
   let ref: string | null = null
   for (let current: Object3D | null = object; current; current = current.parent) {
     if (!current.visible || current.userData.editorOnly || current.userData.captureSource === 'ghost') return null
-    if (!ref && typeof current.userData.semanticRef === 'string') ref = current.userData.semanticRef
+    const candidate = current.userData.semanticRef ?? current.userData.dragTarget?.ref
+    if (!ref && typeof candidate === 'string') ref = candidate
   }
   return ref
 }
