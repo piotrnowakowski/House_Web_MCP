@@ -3,8 +3,8 @@
   "ref": "project/architekt-7-11",
   "name": "architekt 7.11",
   "units": "metric",
-  "revision": 16,
-  "updatedAt": "2026-11-10T15:20:02.498Z",
+  "revision": 17,
+  "updatedAt": "2026-11-10T15:33:59.527Z",
   "site": {
     "boundary": [
       {
@@ -32332,8 +32332,8 @@
         "catalogId": "outdoor-dining-set",
         "name": "Stół tarasowy z sześcioma krzesłami · 3,4 × 2,5 m",
         "position": {
-          "x": -10.5,
-          "z": 5
+          "x": -9.25,
+          "z": 6.6
         },
         "rotationDegrees": 0,
         "locked": false

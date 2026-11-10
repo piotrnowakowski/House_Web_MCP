@@ -3,9 +3,11 @@ import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
 import data from '../../project-data/architekt-7-11/project.json'
 import previous from '../../project-data/architekt-7-11/before-retained-trees-r15.json'
+import openingOnly from '../../project-data/architekt-7-11/before-terrace-dining-r16.json'
 import { surveyTreePosition } from '../../knowledge-bank/zielonki/trees'
 import { parseProject } from './schema'
-import { pointInPolygon, polygonArea } from './geometry'
+import { pointInPolygon, polygonArea, distanceToSegment } from './geometry'
+import { sitePlanElements } from './sitePlan'
 import { mergeProjects } from './projectMerge'
 import { excavatedGroundGeometry } from '../scene/gardenGround'
 import { loadWorkspace, saveWorkspace, synchronizePublishedProject } from '../services/persistence'
@@ -19,7 +21,8 @@ const tree = current.landscape.plants.find(p=>p.surveyHandle==='5015')!
 it('retains only the seven selected site trees at survey coordinates and preserves the house, context and planting',()=>{
   expect(current.buildings).toEqual(before.buildings)
   expect(current.site).toEqual(before.site)
-  expect(current.landscape.fixtures).toEqual(before.landscape.fixtures)
+  const dining='fixture/nowe-mpzp-v2/terrace-dining'
+  expect(current.landscape.fixtures.filter(f=>f.ref!==dining)).toEqual(before.landscape.fixtures.filter(f=>f.ref!==dining))
   expect(current.landscape.plants.filter(p=>p.surveyHandle&&p.placementRole!=='context').map(p=>p.surveyHandle).sort()).toEqual(retained)
   for(const p of current.landscape.plants.filter(p=>p.surveyHandle)) expect(p.position).toEqual(surveyTreePosition(p.surveyHandle!))
   expect(current.landscape.plants.filter(p=>p.surveyHandle!=='5015')).toEqual(before.landscape.plants.filter(p=>!removed.includes(p.surveyHandle??'')))
@@ -42,20 +45,33 @@ it('cuts the deck mesh itself: a 2 m opening around the 1 m trunk, open to the g
   geometry.dispose()
 })
 
-it('migrates the tree inventory and notch through save/reload, preserving independent deletions',async()=>{
+it.each([previous,openingOnly])('migrates the tree inventory and notch through save/reload from r$revision, preserving independent deletions',async(source)=>{
   globalThis.indexedDB=new IDBFactory()
-  const local=structuredClone(before),deleted=local.landscape.plants.find(p=>!p.surveyHandle)!.ref
+  const base=parseProject(source),local=structuredClone(base),deleted=local.landscape.plants.find(p=>!p.surveyHandle)!.ref
   local.landscape.plants=local.landscape.plants.filter(p=>p.ref!==deleted);local.name='Mój ogród'
   await saveWorkspace({version:1,project:local,proposals:[],draftChangeSets:[]})
-  expect(await synchronizePublishedProject(current,before)).toEqual([])
+  expect(await synchronizePublishedProject(current,base)).toEqual([])
   const saved=(await loadWorkspace(before.ref))!.project
   expect(saved.name).toBe(local.name)
   expect(saved.landscape.plants.some(p=>p.ref===deleted)).toBe(false)
   expect(saved.landscape.plants.filter(p=>p.surveyHandle&&p.placementRole!=='context').map(p=>p.surveyHandle).sort()).toEqual(retained)
   expect(saved.landscape.plants.find(p=>p.surveyHandle==='5015')?.trunkDiameterM).toBe(1)
   expect(saved.landscape.zones.find(z=>z.ref===terrace.ref)).toEqual(terrace)
-  expect(await synchronizePublishedProject(current,before)).toEqual([])
+  expect(saved.landscape.fixtures).toEqual(current.landscape.fixtures)
+  expect(await synchronizePublishedProject(current,base)).toEqual([])
   expect((await loadWorkspace(before.ref))!.project).toEqual(saved)
+})
+
+it('keeps the complete dining set on decking with over 1 m beside the tree opening and lounge',()=>{
+  const elements=sitePlanElements(current),dining=elements.find(e=>e.ref==='fixture/nowe-mpzp-v2/terrace-dining')!.points
+  const lounge=elements.find(e=>e.ref==='fixture/nowe-mpzp-v2/terrace-lounge')!.points
+  for(let i=0;i<dining.length;i++)for(let t=0;t<=1;t+=.02){
+    const a=dining[i],b=dining[(i+1)%dining.length],point={x:a.x+t*(b.x-a.x),z:a.z+t*(b.z-a.z)}
+    expect(pointInPolygon(point,terrace.footprint)).toBe(true)
+  }
+  const openingGap=Math.min(...dining.map((a,i)=>distanceToSegment(tree.position,a,dining[(i+1)%dining.length])))-1
+  expect(openingGap).toBeGreaterThan(1)
+  expect(Math.min(...lounge.map(p=>p.x))-Math.max(...dining.map(p=>p.x))).toBeCloseTo(1.05)
 })
 
 it('preserves and reports independently moved trees or edited decking instead of replacing them',()=>{
