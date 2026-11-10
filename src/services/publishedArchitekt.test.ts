@@ -1,7 +1,9 @@
+// Historical publication fixture; current furniture preservation and migration are covered by familyDimensions.test.ts.
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
-import data from '../../project-data/architekt/project.json'
+import data from '../../project-data/architekt/before-family-dimensions.json'
+import currentData from '../../project-data/architekt/project.json'
 import beforeCorrection from '../../project-data/architekt/before-correction-r5.json'
 import beforeFrameRemoval from '../../project-data/architekt/before-remove-eaves-frames-r6.json'
 import beforeFacadeFix from '../../project-data/architekt/before-facade-carport-r7.json'
@@ -141,7 +143,7 @@ it('preserves a locally deleted office window and both complete versions when pu
   await saveWorkspace(local)
   expect(await synchronizePublishedArchitekt()).toEqual(['/buildings/house/main/walls/wall/architekt/ground/9/openings/opening/reference-office-window'])
   expect((await loadWorkspace(ARCHITEKT_REF))!.project).toEqual(local.project)
-  expect((await listWorkspaces()).some(w=>w.ref.includes(`/published-${data.revision}-`))).toBe(true)
+  expect((await listWorkspaces()).some(w=>w.ref.includes(`/published-${currentData.revision}-`))).toBe(true)
 })
 
 it('repairs the photographed facade, continuous gable and corner opening without changing the rooms or roof',()=>{

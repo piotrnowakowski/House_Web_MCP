@@ -3,8 +3,8 @@
   "ref": "project/architekt",
   "name": "architekt",
   "units": "metric",
-  "revision": 10,
-  "updatedAt": "2026-10-19T22:07:19.976Z",
+  "revision": 11,
+  "updatedAt": "2026-11-10T06:47:17.335Z",
   "site": {
     "boundary": [
       {
@@ -1947,16 +1947,17 @@
           "ref": "interior/reference-sofa",
           "catalogId": "corner-sofa",
           "storeyRef": "storey/reference-ground",
-          "name": "Narożnik",
+          "name": "Narożnik L 320 × 220 cm",
           "position": {
             "x": 2.075,
-            "z": -3.705
+            "z": -4.35
           },
-          "widthM": 2.5,
-          "depthM": 1.8,
+          "widthM": 3.2,
+          "depthM": 2.2,
           "heightM": 0.86,
           "rotationDegrees": 90,
-          "color": "#C8BCAE"
+          "color": "#C8BCAE",
+          "sofaModuleDepthM": 0.95
         },
         {
           "ref": "interior/reference-coffee",
@@ -1964,8 +1965,8 @@
           "storeyRef": "storey/reference-ground",
           "name": "Stolik kawowy",
           "position": {
-            "x": 3.485,
-            "z": -3.755
+            "x": 1.55,
+            "z": -4.45
           },
           "widthM": 0.75,
           "depthM": 0.75,
@@ -2022,15 +2023,15 @@
           "ref": "interior/carport-study/shower",
           "catalogId": "shower",
           "storeyRef": "storey/reference-ground",
-          "name": "Prysznic",
+          "name": "Prysznic 208 × 90 cm",
           "position": {
             "x": -1.385,
-            "z": 3.895
+            "z": 3.82
           },
           "widthM": 2.08,
-          "depthM": 0.75,
+          "depthM": 0.9,
           "heightM": 2.1,
-          "rotationDegrees": 0,
+          "rotationDegrees": 180,
           "color": "#B99A72"
         },
         {

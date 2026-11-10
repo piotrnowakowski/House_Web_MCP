@@ -1,7 +1,8 @@
+// Historical publication fixture; current furniture preservation and migration are covered by familyDimensions.test.ts.
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
-import data from '../../project-data/nowe-mpzp/project.json'
+import data from '../../project-data/nowe-mpzp/before-family-dimensions.json'
 import before from '../../project-data/nowe-mpzp/before-garden-r13.json'
 import beforeFireRow from '../../project-data/nowe-mpzp/before-fire-row-r15.json'
 import { parseProject } from '../domain/schema'

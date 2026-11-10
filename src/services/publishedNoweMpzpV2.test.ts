@@ -1,7 +1,8 @@
+// Historical publication fixture; current furniture preservation and migration are covered by familyDimensions.test.ts.
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
-import data from '../../project-data/nowe-mpzp-v2/project.json'
+import data from '../../project-data/nowe-mpzp-v2/before-family-dimensions.json'
 import beforeThuja from '../../project-data/nowe-mpzp-v2/before-thuja-r2.json'
 import beforeTerrace from '../../project-data/nowe-mpzp-v2/before-terrace-canopy-r3.json'
 import beforeAllPlants from '../../project-data/nowe-mpzp-v2/before-all-thuja-grass-r4.json'
@@ -14,7 +15,7 @@ import beforePvRight from '../../project-data/nowe-mpzp-v2/before-pv-right-r11.j
 import beforeTreeSpecies from '../../project-data/nowe-mpzp-v2/before-tree-species-r12.json'
 import beforePvBoundary from '../../project-data/nowe-mpzp-v2/before-pv-boundary-r13.json'
 import beforePvTwoRows from '../../project-data/nowe-mpzp-v2/before-pv-two-rows-r14.json'
-import parent from '../../project-data/nowe-mpzp/project.json'
+import parent from '../../project-data/nowe-mpzp/before-family-dimensions.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
 import { gardenFixtureById, solarTable, solarTableWidthM, solarTableDepthM } from '../domain/gardenFixtures'

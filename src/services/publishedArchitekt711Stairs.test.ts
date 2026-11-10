@@ -3,7 +3,7 @@ import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
 import data from '../../project-data/architekt-7-11-stairs-12-6/project.json'
 import source from '../../project-data/architekt-7-11-stairs-12-6/source-architekt-711-r6.json'
-import parent from '../../project-data/architekt-7-11/project.json'
+import parent from '../../project-data/architekt-7-11/before-family-dimensions.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
 import { pointInPolygon, polygonArea } from '../domain/geometry'
@@ -13,7 +13,7 @@ import { ARCHITEKT_711_STAIRS_REF, synchronizePublishedArchitekt711Stairs } from
 
 beforeEach(() => { globalThis.indexedDB = new IDBFactory() })
 
-it('preserves the original r6 cabinetry, house and garden outside the stair and local slab infill', () => {
+it('preserves the original r6 cabinetry, house and garden outside the stair, local slab infill and approved furniture dimensions', () => {
   expect(source).toEqual(parent)
   const p = parseProject(data), before = parseProject(source), actual = structuredClone(p)
   expect(p.ref).toBe(ARCHITEKT_711_STAIRS_REF)
@@ -22,6 +22,8 @@ it('preserves the original r6 cabinetry, house and garden outside the stair and 
   actual.buildings[0].stairs = before.buildings[0].stairs
   actual.buildings[0].slabs[1].holes![0] = before.buildings[0].slabs[1].holes![0]
   actual.buildings[0].interiorSource = before.buildings[0].interiorSource
+  // The separately checked family-dimensions update changes only the approved furniture.
+  actual.buildings[0].furniture = before.buildings[0].furniture
   expect(actual).toEqual(before)
 })
 
@@ -83,7 +85,7 @@ it('persists the independent variant and preserves deletions and the parent duri
   saved.project.landscape.plants.pop(); saved.project.buildings[0].furniture!.pop()
   await saveWorkspace(saved)
   expect(await loadWorkspace(ARCHITEKT_711_STAIRS_REF)).toEqual(saved)
-  const next = parseProject(data); next.revision=2; next.name+=' updated'; next.updatedAt='2026-11-10T12:00:00.000Z'
+  const next = parseProject(data); next.revision=data.revision+1; next.name+=' updated'; next.updatedAt='2026-11-10T12:00:00.000Z'
   expect(await synchronizePublishedProject(next,parseProject(data))).toEqual([])
   const loaded = (await loadWorkspace(ARCHITEKT_711_STAIRS_REF))!
   expect(loaded.project.landscape).toEqual(saved.project.landscape)

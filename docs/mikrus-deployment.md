@@ -1,3 +1,7 @@
+## Current update: all six online projects — 10 November 2026
+
+All six online project variants now specify a 320 x 220 cm main living-room L sofa and a 208 x 90 cm ground-floor shower. Five projects are updated independently; architekt 7.11 v2 already matches and remains r3/server v3. Each variant retains its house, garden, stairs and kitchen. See the individual project READMEs and before-family-dimensions.json snapshots for dimensions, provenance and validation.
+
 ## Current interior update — 10 November 2026
 
 Architekt 7.11 wersja 2 canonical r3 retains the requested 320 × 220 cm sofa with its west return, adjusts the dining/coffee tables and lounge chair for access, and enlarges the ground-floor shower to 208 × 90 cm with its opening facing the room. See `project-data/architekt-7-11-v2/README.md` for precise clearances, the narrow stool route and fireplace limitations, recovery captures and release verification.

@@ -1,14 +1,16 @@
+// Historical publication fixture; current furniture preservation and migration are covered by familyDimensions.test.ts.
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { beforeEach, expect, it } from 'vitest'
-import data from '../../project-data/nowe-mpzp/project.json'
+import data from '../../project-data/nowe-mpzp/before-family-dimensions.json'
+import currentData from '../../project-data/nowe-mpzp/project.json'
 import initial from '../../project-data/nowe-mpzp/initial-r1.json'
 import previous from '../../project-data/nowe-mpzp/before-front-frame-r10.json'
 import beforeSide from '../../project-data/nowe-mpzp/before-black-side-r12.json'
 import beforeGarden from '../../project-data/nowe-mpzp/before-garden-r13.json'
 import beforeWindows from '../../project-data/nowe-mpzp/before-full-height-windows-r11.json'
 import beforeTrees from '../../project-data/nowe-mpzp/before-tree-review-r9.json'
-import architect from '../../project-data/architekt/project.json'
+import architect from '../../project-data/architekt/before-family-dimensions.json'
 import source from '../../project-data/nowe-mpzp/source-architekt-r7.json'
 import { parseProject } from '../domain/schema'
 import { validateProject } from '../domain/commands'
@@ -179,17 +181,17 @@ it('keeps draft zoning and user deletions through list, reload and a later publi
   const w=(await loadWorkspace(NOWE_MPZP_REF))!, removed=w.project.landscape.plants.pop()!.ref
   w.project.name='Moje nowe mpzp'; await saveWorkspace(w); await listWorkspaces()
   expect(await synchronizePublishedNoweMpzp()).toEqual([])
-  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[2].position).toEqual(data.buildings[2].position)
-  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[2].rotationDegrees).toBe(data.buildings[2].rotationDegrees)
-  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[1].position).toEqual(data.buildings[1].position)
-  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.landscape.zones).toEqual(data.landscape.zones)
-  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.site.entrances).toEqual(data.site.entrances)
-  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[0]).toEqual(data.buildings[0])
-  const next=parseProject(data); next.revision++; next.buildings[2].name='Garaż i warsztat — opis'
-  expect(await synchronizePublishedProject(next,parseProject(data))).toEqual([])
+  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[2].position).toEqual(currentData.buildings[2].position)
+  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[2].rotationDegrees).toBe(currentData.buildings[2].rotationDegrees)
+  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[1].position).toEqual(currentData.buildings[1].position)
+  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.landscape.zones).toEqual(currentData.landscape.zones)
+  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.site.entrances).toEqual(currentData.site.entrances)
+  expect((await loadWorkspace(NOWE_MPZP_REF))!.project.buildings[0]).toEqual(currentData.buildings[0])
+  const next=parseProject(currentData); next.revision++; next.buildings[2].name='Garaż i warsztat — opis'
+  expect(await synchronizePublishedProject(next,parseProject(currentData))).toEqual([])
   const saved=(await loadWorkspace(NOWE_MPZP_REF))!
   expect(saved.project.site.knowledgeBase.datasetVersion).toBe(DRAFT_PLAN_VERSION)
-  expect(saved.project.site.parcels).toEqual(data.site.parcels)
+  expect(saved.project.site.parcels).toEqual(currentData.site.parcels)
   expect(saved.project.landscape.plants.some(p=>p.ref===removed)).toBe(false)
   expect(saved.project.name).toBe('Moje nowe mpzp')
   expect(await loadWorkspace(original.project.ref)).toEqual(original)

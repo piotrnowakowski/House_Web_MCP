@@ -3,8 +3,8 @@
   "ref": "project/architekt-7-11",
   "name": "architekt 7.11",
   "units": "metric",
-  "revision": 6,
-  "updatedAt": "2026-11-09T20:34:21.493Z",
+  "revision": 7,
+  "updatedAt": "2026-11-10T06:47:17.343Z",
   "site": {
     "boundary": [
       {
@@ -1970,16 +1970,17 @@
           "ref": "interior/reference-sofa",
           "catalogId": "corner-sofa",
           "storeyRef": "storey/reference-ground",
-          "name": "Narożnik",
+          "name": "Narożnik L 320 × 220 cm",
           "position": {
-            "x": 2.9,
-            "z": -3.65
+            "x": 2.625,
+            "z": -3.63
           },
-          "widthM": 2.5,
-          "depthM": 1.8,
+          "widthM": 3.2,
+          "depthM": 2.2,
           "heightM": 0.86,
           "rotationDegrees": 0,
-          "color": "#C8BCAE"
+          "color": "#C8BCAE",
+          "sofaModuleDepthM": 0.95
         },
         {
           "ref": "interior/reference-coffee",
@@ -1987,8 +1988,8 @@
           "storeyRef": "storey/reference-ground",
           "name": "Okrągły stolik kawowy",
           "position": {
-            "x": 3.2,
-            "z": -4.35
+            "x": 2.9,
+            "z": -4.18
           },
           "widthM": 0.7,
           "depthM": 0.7,
@@ -2000,15 +2001,15 @@
           "ref": "interior/architekt/lounge-chair",
           "catalogId": "armchair",
           "storeyRef": "storey/reference-ground",
-          "name": "Fotel",
+          "name": "Fotel przeniesiony z salonu",
           "position": {
-            "x": 4.015,
-            "z": -4.97
+            "x": 0.4,
+            "z": 3.15
           },
           "widthM": 0.75,
           "depthM": 0.75,
           "heightM": 0.85,
-          "rotationDegrees": 315,
+          "rotationDegrees": 90,
           "color": "#C8BCAE"
         },
         {
@@ -2018,7 +2019,7 @@
           "name": "Stół i krzesła",
           "position": {
             "x": 2.385,
-            "z": -0.955
+            "z": -0.735
           },
           "widthM": 2.4,
           "depthM": 1.7,
@@ -2045,15 +2046,15 @@
           "ref": "interior/carport-study/shower",
           "catalogId": "shower",
           "storeyRef": "storey/reference-ground",
-          "name": "Prysznic",
+          "name": "Prysznic 208 × 90 cm",
           "position": {
             "x": -1.385,
-            "z": 3.895
+            "z": 3.82
           },
           "widthM": 2.08,
-          "depthM": 0.75,
+          "depthM": 0.9,
           "heightM": 2.1,
-          "rotationDegrees": 0,
+          "rotationDegrees": 180,
           "color": "#B99A72"
         },
         {

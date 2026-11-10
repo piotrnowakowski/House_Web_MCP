@@ -682,3 +682,8 @@ The user requested an independent 12 + 6 stair version and explicitly selected o
 ## Independent architekt 7.11 v2 interior update — 2026-11-10
 
 Source HTTPS Mikrus project/architekt-7-11-v2 server v2 matched its canonical r2. Both actual Chrome profiles and all six shared projects were captured independently before the r3 sofa/shower update; no v2 browser edits required merging. Recovery snapshots and precise decisions are documented in ../architekt-7-11-v2/README.md. Zielonki canonical data and immutable baselines are unchanged.
+
+
+## All online projects: family furniture dimensions — 2026-11-10
+
+Applied 320 x 220 cm living-room sofas and 208 x 90 cm ground-floor showers to the five remaining online projects, independently by stable furniture reference. Architekt 7.11 v2 r3 already matches and stays unchanged. The pre-update HTTPS shared snapshot and actual Chrome Default/Profile 1 captures match each canonical project by content (metadata differences only); no competing project edits require merging. Each updated project retains before-family-dimensions.json and its immutable original migration baseline. Full layout/clearance decisions are in each project README. Archived Zielonki projects are not reactivated or edited. Recovery evidence is primary tmp/all-projects-seating-20261110/.

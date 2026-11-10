@@ -43,7 +43,7 @@ it('widens the kitchen window towards the living room and leaves the new firepla
     expect(other.maxX<=bounds.minX||other.minX>=bounds.maxX||other.maxZ<=bounds.minZ||other.minZ>=bounds.maxZ).toBe(true)
   }
   // The approved change must not roll back r3's stairs, island sink, roof or landscape.
-  const revisedRefs=['interior/reference-sofa','interior/reference-coffee','interior/architekt/lounge-chair','interior/architekt-711/living-tv','interior/reference-island','interior/architekt-711/stair-junction-filler','interior/architekt-711/under-stair-cabinet',fireplace.ref]
+  const revisedRefs=['interior/carport-study/shower','interior/reference-dining','interior/reference-sofa','interior/reference-coffee','interior/architekt/lounge-chair','interior/architekt-711/living-tv','interior/reference-island','interior/architekt-711/stair-junction-filler','interior/architekt-711/under-stair-cabinet',fireplace.ref]
   expect(h.furniture!.filter(f=>!revisedRefs.includes(f.ref))).toEqual(old.furniture!.filter(f=>!revisedRefs.includes(f.ref)))
   expect(h.walls.filter(w=>w.ref!==wall.ref&&w.ref!=='wall/architekt/ground/12')).toEqual(old.walls.filter(w=>w.ref!==wall.ref&&w.ref!=='wall/architekt/ground/12'))
   expect({...wall,openings:[]}).toEqual({...old.walls.find(w=>w.ref===wall.ref),openings:[]})
@@ -187,12 +187,12 @@ it('merges the reversed flights and relocated sink into r2 without losing unrela
 
 it('migrates saved r1 while preserving independent edits and deletions, and reports conflicting stair edits',async()=>{
   const old=parseProject(previousInterior), local=structuredClone(old)
-  local.landscape.plants.pop();local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/reference-dining')
+  local.landscape.plants.pop();local.buildings[0].furniture=local.buildings[0].furniture!.filter(f=>f.ref!=='interior/office-c5/chair')
   await saveWorkspace({version:1,project:local,proposals:[],draftChangeSets:[]})
   expect(await synchronizePublishedArchitekt711()).toEqual([])
   const saved=(await loadWorkspace(ARCHITEKT_711_REF))!
   expect(saved.project.landscape).toEqual(local.landscape)
-  expect(saved.project.buildings[0].furniture!.some(f=>f.ref==='interior/reference-dining')).toBe(false)
+  expect(saved.project.buildings[0].furniture!.some(f=>f.ref==='interior/office-c5/chair')).toBe(false)
   expect(saved.project.buildings[0].stairs).toEqual(data.buildings[0].stairs)
   await synchronizePublishedArchitekt711();expect(await loadWorkspace(ARCHITEKT_711_REF)).toEqual(saved)
   local.buildings[0].stairs![0].runM=2.3
@@ -267,7 +267,7 @@ it('turns the lounge towards the low TV console while preserving dining circulat
   expect(db.minZ-sb.maxZ).toBeCloseTo(.945)
   expect(tv.position.z).toBeLessThan(sofa.position.z);expect(tv.heightM*.34).toBeCloseTo(.459)
   expect(tb.minZ).toBeGreaterThan(-6.155);expect(tb.maxX).toBeLessThan(4.615)
-  const changed=['interior/reference-island','interior/reference-sofa','interior/reference-coffee','interior/architekt/lounge-chair',tv.ref]
+  const changed=['interior/carport-study/shower','interior/reference-dining','interior/reference-island','interior/reference-sofa','interior/reference-coffee','interior/architekt/lounge-chair',tv.ref]
   expect(items.filter(f=>!changed.includes(f.ref))).toEqual(old.furniture!.filter(f=>!changed.includes(f.ref)))
   for(const key of ['walls','stairs','storeys','slabs','roof','spaces'] as const)expect(h[key]).toEqual(old[key])
   expect(p.landscape).toEqual(before.landscape);expect(p.site).toEqual(before.site)
