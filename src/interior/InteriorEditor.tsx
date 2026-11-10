@@ -55,8 +55,9 @@ import { downloadInteriorFile, furnitureCsv, furnitureList, printInteriorPlan } 
 import './interior.css'
 import { stableJson } from '../domain/workspaceSync'
 import { interiorMessage, interiorText } from './interiorLocale'
+import { currentStairVariant, hasStairCabinet, stairVariants } from '../domain/stairVariants'
 
-type Panel = 'catalog' | 'wall' | 'edit' | 'more' | 'review' | null
+type Panel = 'catalog' | 'wall' | 'edit' | 'more' | 'review' | 'stairs' | null
 
 export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack: () => void; approval: ReactNode; initialStoreyRef?: string }) {
   const quality = useRenderQuality()
@@ -77,6 +78,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
   const importInput = useRef<HTMLInputElement>(null)
   const [buildingRef, setBuildingRef] = useState(project.buildings.find((b) => b.kind === 'house')?.ref)
   const building = project.buildings.find((b) => b.ref === buildingRef) ?? project.buildings[0]
+  const stairVariant = building && currentStairVariant(building)
   const [storeyRef, setStoreyRef] = useState(initialStoreyRef ?? building?.storeys[0]?.ref)
   const storey = building?.storeys.find((s) => s.ref === storeyRef) ?? building?.storeys[0]
   const [view, setView] = useState<InteriorView>('cutaway')
@@ -631,6 +633,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                   {floor.name}
                 </button>
               ))}
+              {stairVariant && <button aria-pressed={panel === 'stairs'} onClick={() => { clearTool(); setPanel('stairs'); setExpanded(true) }}>Schody</button>}
             </nav>
             {compact && <nav className="interior-mobile-history" aria-label="Historia zmian">
               <button aria-label="Cofnij" title="Cofnij (Ctrl+Z)" disabled={!history.length || mode !== 'select' || !!ghost || !!confirmationRef} onClick={() => useStudioStore.getState().undo()}><Undo2 size={18} /><span>Cofnij</span></button>
@@ -749,7 +752,7 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
                 <button type="submit" form={formId} className="interior-primary" disabled={saveDisabled}>{saveLabel}</button>
               </> : undefined}
               title={
-                panel === 'review'
+                panel === 'stairs' ? 'Schody i zabudowa' : panel === 'review'
                   ? "Sprawdź proponowane zmiany"
                   : panel === 'wall'
                     ? 'Dodaj ścianę'
@@ -771,6 +774,21 @@ export function InteriorEditor({ onBack, approval, initialStoreyRef }: { onBack:
               }}
             >
               {panel === 'review' && approval}
+              {panel === 'stairs' && stairVariant && <section className="stair-variants" aria-label="Warianty schodów">
+                <p className="interior-note">Wybierz układ w tym samym domu. Zmianę zobaczysz od razu na obu kondygnacjach.</p>
+                <div className="stair-choices" role="group" aria-label="Układ schodów">
+                  {stairVariants.map(option => <button key={option.id} aria-pressed={stairVariant === option.id} disabled={!!confirmationRef}
+                    onClick={() => { if (stairVariant !== option.id) { clearTool(); commit({ ...base, action: 'stairs', layout: option.id, cabinet: hasStairCabinet(building) }) } }}>
+                    <span><strong>{option.name}</strong><small>{option.description}</small></span>{stairVariant === option.id && <Check size={20} aria-hidden="true" />}
+                  </button>)}
+                </div>
+                <label className="stair-cabinet-toggle"><input type="checkbox" checked={hasStairCabinet(building)} disabled={!!confirmationRef}
+                  onChange={event => { clearTool(); commit({ ...base, action: 'stairs', layout: stairVariant, cabinet: event.target.checked }) }} />
+                  <span><strong>Szafka pod schodami</strong><small>{hasStairCabinet(building) ? 'Z zabudową pod górnym biegiem' : 'Otwarta przestrzeń pod schodami'}</small></span>
+                </label>
+                {stairVariant === 'classic-9-9' && <p className="interior-note">Przy wejściu od kuchni odstęp do wyspy jest wąski: około 46 cm po przekątnej. To miejsce wymaga uwagi przy wyborze tego układu.</p>}
+                <p className="interior-note">Wybór zapisuje się automatycznie. Przycisk „Cofnij” przywraca poprzednie ustawienie.</p>
+              </section>}
               {panel === 'wall' && <section className="interior-room-list" aria-label="Wybierz pomieszczenie do podziału">
                 <p className="interior-note">Wybierz pomieszczenie. Następnie wskaż na rzucie początek i koniec nowej ściany na dwóch ścianach pomieszczenia.</p>
                 {rooms.map(r => <button key={r.ref} disabled={r.locked} onClick={() => startPartition(r.ref)}>{r.name}{r.locked && <LockKeyhole size={15} />}</button>)}

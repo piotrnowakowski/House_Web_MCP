@@ -1,7 +1,52 @@
 [
-  { "ref": "project/zielonki-spatial-v2", "name": "Dom duży taras", "archivedAt": "2026-10-20" },
-  { "ref": "project/zielonki-v2", "name": "Garaz przód", "archivedAt": "2026-10-20" },
-  { "ref": "project/zielonki-rear-carport", "name": "Z garażem za domem przy sąsiadach", "archivedAt": "2026-10-20" },
-  { "ref": "project/zielonki-rear-bath-room", "name": "Główny", "archivedAt": "2026-10-20" },
-  { "ref": "project/paulina-poprawki", "name": "paulinka poprawki", "archivedAt": "2026-10-20" }
+  {
+    "ref": "project/zielonki-spatial-v2",
+    "name": "Dom duży taras",
+    "archivedAt": "2026-10-20"
+  },
+  {
+    "ref": "project/zielonki-v2",
+    "name": "Garaz przód",
+    "archivedAt": "2026-10-20"
+  },
+  {
+    "ref": "project/zielonki-rear-carport",
+    "name": "Z garażem za domem przy sąsiadach",
+    "archivedAt": "2026-10-20"
+  },
+  {
+    "ref": "project/zielonki-rear-bath-room",
+    "name": "Główny",
+    "archivedAt": "2026-10-20"
+  },
+  {
+    "ref": "project/paulina-poprawki",
+    "name": "paulinka poprawki",
+    "archivedAt": "2026-10-20"
+  },
+  {
+    "ref": "project/architekt",
+    "name": "architekt",
+    "archivedAt": "2026-11-10"
+  },
+  {
+    "ref": "project/architekt-7-11-v2",
+    "name": "architekt 7.11 wersja 2",
+    "archivedAt": "2026-11-10"
+  },
+  {
+    "ref": "project/architekt-7-11-stairs-12-6",
+    "name": "architekt 7.11 — schody 12 + 6",
+    "archivedAt": "2026-11-10"
+  },
+  {
+    "ref": "project/nowe-mpzp",
+    "name": "nowe mpzp",
+    "archivedAt": "2026-11-10"
+  },
+  {
+    "ref": "project/nowe-mpzp-v2",
+    "name": "nowe mpzp — wariant 2",
+    "archivedAt": "2026-11-10"
+  }
 ]

@@ -1,4 +1,10 @@
 /* The canvas owns the viewport; controls float within safe areas. */
+.stair-variants, .stair-choices { display:grid; gap:12px; }
+.interior-editor .stair-choices button { justify-content:space-between; text-align:left; padding:14px; }
+.stair-choices button > span, .stair-cabinet-toggle > span { display:grid; gap:5px; }
+.stair-variants small { font-size:12px; line-height:1.5; font-weight:400; }
+.stair-cabinet-toggle { display:flex; align-items:center; gap:12px; padding:16px 0; border-block:1px solid #d9ded6; cursor:pointer; }
+.interior-editor .stair-cabinet-toggle input { width:24px; height:24px; min-height:24px; flex:none; accent-color:#2b6551; }
 .interior-editor { --sheet-bg:#fcfbf7; --sheet-border:#d9ded6; --sheet-fg:#283d35; position:fixed; inset:0; width:100%; height:100dvh; display:block; overflow:hidden; background:#eeeee8; color:#283d35; font-family:Inter,Arial,sans-serif; }
 .interior-editor *, .interior-editor *::before, .interior-editor *::after { box-sizing:border-box; }
 .interior-editor button, .interior-editor input, .interior-editor select { font:inherit; color:inherit; }

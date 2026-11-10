@@ -127,6 +127,7 @@ const RoofJunctionSchema = z.object({
   segmentRefs: z.tuple([z.string().min(1), z.string().min(1)]),
 })
 const BuildingSchema = z.object({
+  stairCabinetVariants: z.object({ 'open-9-9': z.array(InteriorItemSchema).optional(), 'open-12-6': z.array(InteriorItemSchema).optional(), 'classic-9-9': z.array(InteriorItemSchema).optional() }).optional(),
   designStatus: z.literal('concept').optional(),
   interiorSource: z.object({ id: z.string().min(1), notes: z.array(z.string()) }).optional(),
   furniture: z.array(InteriorItemSchema).optional(),

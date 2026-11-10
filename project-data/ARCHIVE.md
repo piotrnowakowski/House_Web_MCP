@@ -1,3 +1,11 @@
+# Aktualna lista — 10.11.2026
+
+Na polecenie użytkownika aktywny pozostaje jeden projekt **architekt 7.11** (project/architekt-7-11). W edytorze wnętrza przycisk **Schody** udostępnia trzy układy i osobny przełącznik szafki: sześć kombinacji w tym samym domu.
+
+Wycofane z aktywnej listy: architekt, architekt 7.11 wersja 2, architekt 7.11 schody 12+6, nowe mpzp oraz nowe mpzp — wariant 2. Ich pełne projekty i historie pozostają zachowane w Git, bazie serwera i lokalnych zapisach. Nie usuwa się ich danych. Starsze architekt/MPZP miały też inne dachy i wysokość piętra; te geometrie pozostają w archiwum. Obecny dom i wspólny ogród nie są nimi nadpisywane.
+
+Kopie i porównania rzeczywistych profili: tmp/unified-stairs-20261110/. Szczegóły: [architekt 7.11](architekt-7-11/README.md). Poniżej historia wcześniejszego porządkowania.
+
 # Porządkowanie projektów — 20.10.2026
 
 Na polecenie użytkownika „Usuń niepotrzebne projekty poza Arhitekt mpzp 1 i 2” aktywna lista zachowuje:

@@ -91,6 +91,7 @@ export interface RoofModel {
   finish: RoofFinish; segments: RoofSegmentModel[]; junctions: RoofJunctionModel[]
 }
 export interface BuildingModel {
+  stairCabinetVariants?: Partial<Record<StairVariant, InteriorItem[]>>
   /** A visual study may be saved outside construction land; planning issues remain visible. */
   designStatus?: 'concept'
   interiorSource?: { id: string; notes: string[] }
@@ -107,9 +108,11 @@ export interface StairModel {
   uTurn?: { landingDepthM: number; gapM: number; lowerSteps?: number; entrySide?: 'min-z' | 'max-z' }
   finish?: { treadColor: string; closedRisers: boolean; railing: 'metal' | 'glass' }
 }
+export type StairVariant = 'open-9-9' | 'open-12-6' | 'classic-9-9'
 export type InteriorCatalogId = 'fireplace' | 'oak-platform-bed' | 'oak-nightstand' | 'wool-rug' | 'brass-sconce' | 'oak-side-table' | 'boucle-chair' | 'corner-sofa' | 'tv-unit' | 'bar-stool' | 'sofa' | 'armchair' | 'coffee-table' | 'dining-table' | 'bed' | 'wardrobe' | 'thermal-buffer' | 'desk' | 'kitchen-counter' | 'kitchen-island' | 'fridge' | 'cooker' | 'sink' | 'bathtub' | 'compact-freestanding-bathtub' | 'bathroom-step-cabinet' | 'shower' | 'toilet' | 'vanity' | 'washer' | 'car' | 'camper'
 export interface InteriorItem { ref: string; catalogId: InteriorCatalogId; storeyRef: string; name: string; position: Vec2; widthM: number; depthM: number; heightM: number; rotationDegrees: number; color: string; productId?: string; variantId?: string; elevationM?: number; groupRef?: string; locked?: boolean; cabinetry?: 'tall' | 'oven-tower' | 'under-stair' | 'base' | 'sink' | 'sink-insert' | 'island' | 'hob'; cabinetBackHeightM?: number; seatingOverhangM?: number; seatingWidthM?: number; seatingOffsetM?: number; sofaModuleDepthM?: number }
 export type InteriorCommand = { type: 'interior.update'; buildingRef: string; storeyRef: string } & (
+  { action: 'stairs'; layout: StairVariant; cabinet: boolean } |
   { action: 'put'; item: InteriorItem } | { action: 'remove'; itemRef: string } |
   { action: 'room'; spaceRef: string; name: string; usage?: string; widthM?: number; depthM?: number } |
   { action: 'lock'; itemRefs: string[]; locked: boolean } |

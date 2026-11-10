@@ -114,6 +114,7 @@ export function availableInteriorHeight(item: InteriorItem, building: BuildingMo
 export function applyInterior(building: BuildingModel, command: InteriorCommand) {
   const storey = building.storeys.find((item) => item.ref === command.storeyRef)
   if (!storey) throw new Error('This floor no longer exists.')
+  if (command.action === 'stairs') { applyStairVariant(building, command.layout, command.cabinet); return }
   const slab = building.slabs.find((item) => item.ref === storey.baseSlabRef)!
   if (command.action === 'split') { splitRoom(building, storey, command); return }
   if (command.action === 'merge') { mergeRooms(building, storey, command.wallRef); return }
@@ -191,3 +192,4 @@ export function applyInterior(building: BuildingModel, command: InteriorCommand)
     resizeInteriorRoom(building, storey, room, command.widthM, command.depthM)
   }
 }
+import { applyStairVariant } from './stairVariants'
