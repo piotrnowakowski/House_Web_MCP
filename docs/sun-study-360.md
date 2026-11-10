@@ -48,3 +48,20 @@ All six shared workspaces were captured and compared; this code-only change
 requires no project-data merge and preserves the active model and archived
 identities. Other in-progress house edits remain in the original working copy.
 Recovery and verification: tmp/sun-study-release-20261110/.
+
+Published code: 52e3afd1f7259dc9a53199c5072616b7779464bc on Mikrus HTTP and
+HTTPS. Public health/API checks passed; all 18 release assets match their frozen
+SHA-256 manifest. All six shared workspaces match their pre-release snapshots.
+The public production build passed four mobile flows: 360 x 640, 390 x 844,
+844 x 390 and a replay of saved workspace data. Each verifies playback, seeking,
+point selection, visible timeline, reload preservation and no shared writes or
+page errors. These are touch-enabled browser checks, not a physical-device test.
+The full unit suite passed 737 tests, the source browser suite passed 3 tests,
+and lint plus frontend/API builds passed. Local production passed the same four
+mobile flows. Evidence: live-mobile-report.json, release-verification.json and
+logs in the recovery directory; images: output/sun-study-release-20261110/.
+
+A complete 4064352-byte off-host database backup was verified with SHA-256
+e030fdfbe4149c5acaf3d9c608df3673b40c265769431217d8d06d4d67fc2169.
+Rollback Compose: /root/house-web-mcp/furnished-zielonki/deploy/mikrus/compose.yaml.before-20261110T193607Z.
+Canonical house r17 and shared v15 remain unchanged; main/Pages were not deployed.
