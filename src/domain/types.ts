@@ -130,7 +130,7 @@ export type InteriorCommand = { type: 'interior.update'; buildingRef: string; st
 /** `textureId` picks a ground scan from the texture library; omit for the kind default, `none` for a flat colour. */
 export interface LandscapeZone { ref: string; name: string; kind: GardenZoneKind; footprint: Polygon2; locked: boolean; textureId?: string; colorHex?: string }
 export interface SurfaceAttachment { hostRef: string; hostFace: 'top' | 'bottom' | 'inside' | 'outside' | 'terrain'; localPosition: Vec3; rotationDegrees: number }
-export interface PlantModel { ref: string; name: string; species: string; kind: PlantKind; position: Vec2; matureHeightM: number; canopyM: number; sunNeed: 'shade' | 'partial' | 'sun'; waterNeed: number; hardinessMinC: number; leafMonths: number[]; bloomMonths: number[]; locked: boolean; attachment?: SurfaceAttachment; crownShape?: 'rounded' | 'conical'; placementRole?: 'site' | 'context'; surveyHandle?: string }
+export interface PlantModel { ref: string; name: string; species: string; kind: PlantKind; position: Vec2; matureHeightM: number; canopyM: number; sunNeed: 'shade' | 'partial' | 'sun'; waterNeed: number; hardinessMinC: number; leafMonths: number[]; bloomMonths: number[]; locked: boolean; attachment?: SurfaceAttachment; crownShape?: 'rounded' | 'conical'; placementRole?: 'site' | 'context'; surveyHandle?: string; trunkDiameterM?: number }
 export interface GardenFixtureModel { ref: string; catalogId: GardenFixtureCatalogId; name: string; position: Vec2; rotationDegrees: number; locked: boolean }
 export interface LandscapeModel { zones: LandscapeZone[]; plants: PlantModel[]; fixtures: GardenFixtureModel[]; fixtureCatalogVersion: number; orchardCatalogVersion: number }
 

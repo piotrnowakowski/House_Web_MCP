@@ -12,7 +12,7 @@ export const sitePlanCategories = ['Działka', 'Budynki', 'Dachy', 'Nawierzchnie
 export type SitePlanCategory = typeof sitePlanCategories[number]
 export interface SitePlanElement {
   ref: string; name: string; category: SitePlanCategory; points: Polygon2
-  summary: string; note?: string; heightM?: number; diameterM?: number
+  summary: string; note?: string; heightM?: number; diameterM?: number; trunkDiameterM?: number
   color: string; priority: number; developed: boolean
 }
 export const planNumber = (value: number) => value.toLocaleString('pl-PL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -74,7 +74,7 @@ export function sitePlanElements(project: ProjectV2): SitePlanElement[] {
   for (const entrance of project.site.entrances) elements.push({ ref: entrance.ref, name: entrance.name, category: 'Bramy i furtki', points: [entrance.start, entrance.end], summary: planMetres(Math.hypot(entrance.end.x - entrance.start.x, entrance.end.z - entrance.start.z)), heightM: entrance.gate?.heightM, color: '#b67430', priority: 9, developed: false })
   for (const plant of project.landscape.plants) {
     const r = plant.canopyM / 2
-    elements.push({ ref: plant.ref, name: plant.name, category: 'Rośliny', points: [{ x: plant.position.x - r, z: plant.position.z }, { x: plant.position.x + r, z: plant.position.z }], diameterM: plant.canopyM, summary: `Ø ${planMetres(plant.canopyM)}`, heightM: plant.matureHeightM, note: `${plant.species} · korona i wysokość z modelu, nie pomiar terenowy.`, color: plant.kind === 'tree' ? '#95b58c' : '#b8cba5', priority: plant.kind === 'tree' ? 5 : 0, developed: plant.placementRole !== 'context' })
+    elements.push({ ref: plant.ref, name: plant.name, category: 'Rośliny', points: [{ x: plant.position.x - r, z: plant.position.z }, { x: plant.position.x + r, z: plant.position.z }], diameterM: plant.canopyM, trunkDiameterM: plant.trunkDiameterM, summary: `Korona Ø ${planMetres(plant.canopyM)}${plant.trunkDiameterM ? ` · pień ok. Ø ${planMetres(plant.trunkDiameterM)}` : ''}`, heightM: plant.matureHeightM, note: `${plant.species} · korona i wysokość z modelu, nie pomiar terenowy.${plant.trunkDiameterM ? ' Średnica pnia podana przez właścicielkę; do potwierdzenia na miejscu.' : ''}`, color: plant.kind === 'tree' ? '#95b58c' : '#b8cba5', priority: plant.kind === 'tree' ? 5 : 0, developed: plant.placementRole !== 'context' })
   }
   return elements
 }

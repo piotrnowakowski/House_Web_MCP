@@ -774,3 +774,9 @@ Verified complete off-host database backup: C:\Users\WBW\Documents\ChatGPT\Web_M
 
 
 Four-winder release verified: code bfe5bab21e9e04b1828c4a2b8db89a633232bce7, Architekt 7.11 r15/shared v14, with the prior r14 oak finishes preserved. All 725 tests, four local/four public browser scenarios, exact assets/shared readback and unchanged archived projects passed. Complete off-host database backup and rollback are recorded in project-data/architekt-7-11/README.md.
+
+## 10 November 2026 — Architekt 7.11 retained trees / terrace, r16
+
+The active project keeps seven orange-selected survey trees, including restored 5015, with only conifer 5027 retained from the close 5027/503A pair as clarified by the owner. Remove unselected 5033/50D1 and declined 503A from this project; neighbouring trees and planned planting remain. The 100 cm approximate trunk diameter is owner-supplied. A provisional Ø200 cm opening actually cuts the existing terrace outline and opens to the garden; its native-grade soil area does not establish a root-protection zone. Buildings, roofs and all other projects are unchanged. See project-data/architekt-7-11/README.md for source handles, geometry, limitations and publication evidence.
+
+The exact shared r15/v14 baseline is retained in before-retained-trees-r15.json. Each of the six shared workspaces was captured separately. Actual Chrome Default/Profile 1 and Codex browser-partition backups and entity-reference comparisons are under the isolated retained-trees worktree's tmp/tree-terrace-review-20261110/. Their historical independent edits remain untouched; no current 7.11 record exists in those accessible profiles. Publication uses the verified shared baseline with version checking; saved-r15 browser migration is tested in isolation. Original IndexedDB stores are not reset or overwritten.

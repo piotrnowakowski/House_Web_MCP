@@ -1,7 +1,7 @@
 import 'fake-indexeddb/auto'
 import { IDBFactory } from 'fake-indexeddb'
 import { expect, it } from 'vitest'
-import current from '../../project-data/architekt-7-11/project.json'
+import current from '../../project-data/architekt-7-11/before-retained-trees-r15.json'
 import previous from '../../project-data/architekt-7-11/before-four-winders-r14.json'
 import { parseProject } from './schema'
 import { polygonArea } from './geometry'

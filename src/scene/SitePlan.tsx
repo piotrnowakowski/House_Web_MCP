@@ -63,7 +63,7 @@ export default function SitePlan({ onBack }: { onBack: () => void }) {
   const drawShape = (e: SitePlanElement, highlight = false) => {
     const points = e.points.map(screen), center = screen(polygonCentroid(e.points))
     const props = { fill: highlight ? 'none' : e.color, stroke: highlight ? '#bd4c29' : e.category === 'Rośliny' ? '#64885b' : '#64746f', strokeWidth: highlight ? 3 : e.points.length === 2 && !e.diameterM ? 3 : 1, 'data-ref': e.ref }
-    if (e.diameterM) return <circle {...props} cx={center.x} cy={center.y} r={e.diameterM * view.scale / 2} fillOpacity={highlight ? 0 : .55} />
+    if (e.diameterM) return <g><circle {...props} cx={center.x} cy={center.y} r={e.diameterM * view.scale / 2} fillOpacity={highlight ? 0 : .55} />{e.trunkDiameterM && !highlight && <circle data-ref={e.ref} data-trunk-diameter={e.trunkDiameterM} cx={center.x} cy={center.y} r={e.trunkDiameterM * view.scale / 2} fill="#68503b" stroke="#433426" strokeWidth={1} />}</g>
     if (e.points.length === 2) return <line {...props} stroke={highlight ? '#bd4c29' : e.color} x1={points[0].x} y1={points[0].y} x2={points[1].x} y2={points[1].y} />
     return <polygon {...props} points={points.map(p => `${p.x},${p.y}`).join(' ')} strokeDasharray={e.category === 'Dachy' || e.category === 'Działka' ? '5 4' : undefined} fillOpacity={e.category === 'Dachy' ? .4 : 1} />
   }

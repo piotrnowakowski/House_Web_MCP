@@ -152,7 +152,7 @@ const PlantSchema = z.object({
   position: Vec2Schema, matureHeightM: z.number().positive(), canopyM: z.number().positive(), sunNeed: z.enum(['shade', 'partial', 'sun']), waterNeed: z.number().min(0),
   hardinessMinC: z.number(), leafMonths: z.array(z.number().int().min(1).max(12)), bloomMonths: z.array(z.number().int().min(1).max(12)), locked: z.boolean(),
   crownShape: z.enum(['rounded', 'conical']).optional(), placementRole: z.enum(['site', 'context']).optional(),
-  surveyHandle: z.string().optional(),
+  surveyHandle: z.string().optional(), trunkDiameterM: z.number().positive().optional(),
   attachment: z.object({ hostRef: z.string().min(1), hostFace: z.enum(['top', 'bottom', 'inside', 'outside', 'terrain']), localPosition: Vec3Schema, rotationDegrees: z.number().finite() }).optional(),
 })
 const GardenFixtureSchema = z.object({
