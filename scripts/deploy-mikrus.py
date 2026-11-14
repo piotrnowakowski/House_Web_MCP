@@ -8,6 +8,7 @@ Uses tracked deploy/mikrus Nginx/Docker templates, precompresses text assets, an
 retains the immediately preceding release's hashed chunks for open browser tabs.
 Requires Paramiko. Output: release archive, remote image, Compose backup and
 deployment record. A failed service health check restores the previous Compose.
+After a healthy switch, release folders other than the live and previous one are deleted.
 Usage: python scripts/deploy-mikrus.py --revision <sha> --deploy
 """
 import argparse
@@ -90,6 +91,11 @@ def prune_unused_images(client, project):
     run(client, "docker builder prune -f --filter until=24h")
     LOG.info("Removed %d unused %s images; free disk: %s", removed, project,
              run(client, "df -h / | tail -1 | awk '{print $4}'").strip())
+
+
+def stale_releases(names, keep):
+    """Release folders to delete: everything except the kept revisions (live and the one it replaced)."""
+    return sorted(name for name in names if name not in keep and re.fullmatch(r"[a-f0-9]{7,40}", name))
 
 
 def write_remote(sftp, path, text):
@@ -304,6 +310,12 @@ def main() -> None:
                      "app=House_Web_MCP\nbranch=codex/deploy-furnished-zielonki\n"
                      + "\n".join(f"{key}={value}" for key, value in record.items()) + "\n")
         Path("tmp/deployment-result.json").write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
+        # Each release folder (~100-175 MB) is only build input; keep the live one and the one it replaced
+        # (rollback compose and chunks for open tabs), otherwise they fill the shared Mikrus disk.
+        keep = {args.revision, PurePosixPath(prior_path).name if prior_path else ""}
+        for name in stale_releases(sftp.listdir(remote_dir + "/releases"), keep):
+            run(client, "rm -rf -- " + shlex.quote(remote_dir + "/releases/" + name))
+            LOG.info("Removed old release folder %s", name)
         LOG.info("Published %s at %s", args.revision, config["HOUSE_DEPLOY_URL"])
 
 
