@@ -37,7 +37,7 @@ import { roofPanelThicknessM } from './roofPanels'
 import { ceilingGeometry } from '../interior/ceilingGeometry'
 import { fitVisiblePlot } from './fitVisiblePlot'
 import { resolveGableWallFinish, resolveWallFinish } from '../domain/wallFinishes'
-import { recessSideBattenOffsets, recessSideFaceColors, recessSideLayout } from '../domain/gableRecess'
+import { gableWallInset, recessSideBattenOffsets, recessSideFaceColors, recessSideLayout } from '../domain/gableRecess'
 import { geometryService, solidInputsForBuilding } from '../geometry/geometryService'
 import type { GeneratedSolid } from '../geometry/types'
 import { registerStructureViewCapture, type ExpandedStructureView } from '../services/structureViews'
@@ -711,8 +711,8 @@ function roofSurfaceMaterial(segment: RoofSegmentModel, selected: boolean, ghost
   return <meshStandardMaterial color={selected ? '#b9e84d' : segment.finish.colorHex} roughness={metallic ? 0.42 : 0.78} metalness={metallic ? 0.58 : 0.04} transparent={Boolean(ghost)} opacity={ghost ? 0.35 : 1} depthWrite={!ghost} />
 }
 
-function RoofPanel({ size, position, rotation, planes, cutouts, children, castShadow = false }: { size: [number, number, number]; position: [number, number, number]; rotation: [number, number, number]; planes: Plane[]; cutouts?: Plane[][]; children: ReactNode; castShadow?: boolean }) {
-  const geometry = useMemo(() => clippedRoofBox(size, position, rotation, planes, cutouts), [...size, ...position, ...rotation, planes, cutouts])
+function RoofPanel({ size, position, rotation, planes, cutouts, plumbEnds, children, castShadow = false }: { size: [number, number, number]; position: [number, number, number]; rotation: [number, number, number]; planes: Plane[]; cutouts?: Plane[][]; plumbEnds?: boolean; children: ReactNode; castShadow?: boolean }) {
+  const geometry = useMemo(() => clippedRoofBox(size, position, rotation, planes, cutouts, plumbEnds), [...size, ...position, ...rotation, planes, cutouts, plumbEnds])
   useEffect(() => () => geometry.dispose(), [geometry])
   return <mesh geometry={geometry} castShadow={castShadow}>{children}</mesh>
 }
@@ -730,6 +730,7 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
   const junction = useMemo(() => gableRoofJunction(building, wing), [building, wing])
   const junctionPlanes = useMemo(() => roofJunctionPlanes(junction), [junction])
   const junctionCutouts = useMemo(() => [...roofJunctionCutouts(building, wing), ...roofWindowCutouts(segment)], [building, wing, segment])
+  const panelEdges = { planes: junctionPlanes, cutouts: junctionCutouts, plumbEnds: segment.flushGableWallInsetM !== undefined }
   const gables = useMemo(() => {
     const value = new BufferGeometry()
     const positions = alongZ ? [bounds.minX, base, 0, bounds.maxX, base, 0, cx, ridge, 0] : [0, base, bounds.minZ, 0, base, bounds.maxZ, 0, ridge, cz]
@@ -750,16 +751,16 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
   return <group>
     <RoofWindows segment={segment} />
     {alongZ ? <>
-      <RoofPanel position={[cx - half / 2, midY, cz]} rotation={[0, 0, pitch]} size={[slope, roofPanelThicknessM, depth + over * 2]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
-      <RoofPanel position={[cx + half / 2, midY, cz]} rotation={[0, 0, -pitch]} size={[slope, roofPanelThicknessM, depth + over * 2]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
+      <RoofPanel position={[cx - half / 2, midY, cz]} rotation={[0, 0, pitch]} size={[slope, roofPanelThicknessM, depth + over * 2]} {...panelEdges} castShadow>{roofMaterial}</RoofPanel>
+      <RoofPanel position={[cx + half / 2, midY, cz]} rotation={[0, 0, -pitch]} size={[slope, roofPanelThicknessM, depth + over * 2]} {...panelEdges} castShadow>{roofMaterial}</RoofPanel>
     </> : <>
-      <RoofPanel position={[cx, midY, cz - half / 2]} rotation={[-pitch, 0, 0]} size={[width + over * 2, roofPanelThicknessM, slope]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
-      <RoofPanel position={[cx, midY, cz + half / 2]} rotation={[pitch, 0, 0]} size={[width + over * 2, roofPanelThicknessM, slope]} planes={junctionPlanes} cutouts={junctionCutouts} castShadow>{roofMaterial}</RoofPanel>
+      <RoofPanel position={[cx, midY, cz - half / 2]} rotation={[-pitch, 0, 0]} size={[width + over * 2, roofPanelThicknessM, slope]} {...panelEdges} castShadow>{roofMaterial}</RoofPanel>
+      <RoofPanel position={[cx, midY, cz + half / 2]} rotation={[pitch, 0, 0]} size={[width + over * 2, roofPanelThicknessM, slope]} {...panelEdges} castShadow>{roofMaterial}</RoofPanel>
     </>}
     {ends.map((value, index) => {
       if (junction?.side === (index === 0 ? 'min' : 'max')) return null
       const outward = index === 0 ? -1 : 1
-      value -= outward * (segment.gableRecess?.[index === 0 ? 'min' : 'max']?.depthM ?? 0)
+      value -= outward * gableWallInset(segment, index === 0 ? 'min' : 'max')
       const offset = value + outward * 0.02; const frameOffset = value + outward * 0.06
       const wall = gableEndWall(building, wing, alongZ ? 'z' : 'x', value)
       const gableWall = gableWallsForBuilding(building).find((gable) => gable.segmentRef === wing.ref && gable.side === (index === 0 ? 'min' : 'max'))!
@@ -767,7 +768,7 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
       const glass = building.architecturalStyle === 'barn' && Boolean(wall) && inferWallOpeningLayout(wall!) === 'full-glass'
       const wallSelected = gableWall.ref === selectedRef
       if (segment.gableGlazing?.[gableWall.side]) return <group key={index} userData={{ semanticRef: gableWall.ref, buildingRef: building.ref }} onPointerDown={(event) => { if (ghost) return; event.stopPropagation(); setSelectedRef(gableWall.ref) }}>
-        <GlazedGable building={building} segment={segment} side={gableWall.side} value={offset} finish={finish} selected={wallSelected} ghost={ghost} />
+        <GlazedGable building={building} segment={segment} side={gableWall.side} value={offset} claddingDepth={segment.flushGableWallInsetM === undefined ? 0 : ends[index] - offset} finish={finish} selected={wallSelected} ghost={ghost} />
       </group>
       const at = (across: number, y: number, along: number): [number, number, number] => alongZ ? [across, y, along] : [along, y, across]
       const cladding = !glass && !texture && ['charred-timber', 'metal-panel'].includes(finish.material)
@@ -836,11 +837,11 @@ function GableWing({ building, wing, segment, ghost, selected }: { building: Bui
     {segment.gableFrame && (['min', 'max'] as const).filter((side) => side !== junction?.side).map((side) =>
       <GableFrame key={`portal-${side}`} building={building} segment={segment} side={side} selected={selected} ghost={ghost} />)}
     {seams.flatMap((along) => alongZ ? [
-      <RoofPanel key={`a-${along}`} position={[cx - half / 2, midY + 0.12, along]} rotation={[0, 0, pitch]} size={[slope, 0.025, 0.032]} planes={junctionPlanes} cutouts={junctionCutouts}>{seamMaterial}</RoofPanel>,
-      <RoofPanel key={`b-${along}`} position={[cx + half / 2, midY + 0.12, along]} rotation={[0, 0, -pitch]} size={[slope, 0.025, 0.032]} planes={junctionPlanes} cutouts={junctionCutouts}>{seamMaterial}</RoofPanel>,
+      <RoofPanel key={`a-${along}`} position={[cx - half / 2, midY + 0.12, along]} rotation={[0, 0, pitch]} size={[slope, 0.025, 0.032]} {...panelEdges}>{seamMaterial}</RoofPanel>,
+      <RoofPanel key={`b-${along}`} position={[cx + half / 2, midY + 0.12, along]} rotation={[0, 0, -pitch]} size={[slope, 0.025, 0.032]} {...panelEdges}>{seamMaterial}</RoofPanel>,
     ] : [
-      <RoofPanel key={`a-${along}`} position={[along, midY + 0.12, cz - half / 2]} rotation={[-pitch, 0, 0]} size={[0.032, 0.025, slope]} planes={junctionPlanes} cutouts={junctionCutouts}>{seamMaterial}</RoofPanel>,
-      <RoofPanel key={`b-${along}`} position={[along, midY + 0.12, cz + half / 2]} rotation={[pitch, 0, 0]} size={[0.032, 0.025, slope]} planes={junctionPlanes} cutouts={junctionCutouts}>{seamMaterial}</RoofPanel>,
+      <RoofPanel key={`a-${along}`} position={[along, midY + 0.12, cz - half / 2]} rotation={[-pitch, 0, 0]} size={[0.032, 0.025, slope]} {...panelEdges}>{seamMaterial}</RoofPanel>,
+      <RoofPanel key={`b-${along}`} position={[along, midY + 0.12, cz + half / 2]} rotation={[pitch, 0, 0]} size={[0.032, 0.025, slope]} {...panelEdges}>{seamMaterial}</RoofPanel>,
     ])}
   </group>
 }

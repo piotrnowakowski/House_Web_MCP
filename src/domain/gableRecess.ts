@@ -1,6 +1,10 @@
 import { polygonBounds } from './geometry'
 import type { BuildingModel, RoofSegmentModel } from './types'
 
+/** Offset from the roof footprint end to the wall axis supporting its glazing. */
+export const gableWallInset = (segment: RoofSegmentModel, side: 'min' | 'max') =>
+  segment.gableRecess?.[side]?.depthM ?? segment.flushGableWallInsetM ?? 0
+
 /** A single lining edge across storeys, including slightly staggered facade walls. */
 export function recessSideLayout(building: BuildingModel, segment: RoofSegmentModel, side: 'min' | 'max') {
   const recess = segment.gableRecess![side]!

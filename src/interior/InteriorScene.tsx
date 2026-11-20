@@ -1,3 +1,4 @@
+import { gableWallInset } from '../domain/gableRecess'
 import { uStairOpening } from '../domain/stairs'
 import { interiorMessage } from './interiorLocale'
 import { useRenderQuality } from '../scene/renderingPreferences'
@@ -357,7 +358,7 @@ export function InteriorScene(props: Props) {
     {props.view === 'room' && <group position-y={-storey.elevationM}><InteriorGableCaps building={building} storeyRefs={[storey.ref, ...(upper ? [upper.ref] : [])]} />{building.roof.segments.filter(s => s.storeyRef === storey.ref || s.storeyRef === upper?.ref).flatMap(segment => (['min','max'] as const).flatMap(side => {
       if (!segment.gableGlazing?.[side]) return []
       const bounds=polygonBounds(segment.footprint)
-      const value=(segment.ridgeDirection === 'z' ? (side==='min'?bounds.minZ:bounds.maxZ) : (side==='min'?bounds.minX:bounds.maxX)) + (side==='min'?1:-1)*(segment.gableRecess?.[side]?.depthM ?? 0)
+      const value=(segment.ridgeDirection === 'z' ? (side==='min'?bounds.minZ:bounds.maxZ) : (side==='min'?bounds.minX:bounds.maxX)) + (side==='min'?1:-1)*gableWallInset(segment, side)
       return [<GlazedGable key={segment.ref+side} building={building} segment={segment} side={side} value={value} finish={{material:'light-render',colorHex:'#E5DDCE'}} selected={false}/>]
     }))}</group>}
     {items.map((item) => <group key={item.ref} position={[item.position.x, 0.025 + (item.elevationM ?? 0), item.position.z]} rotation={[0, item.rotationDegrees * Math.PI / 180, 0]} userData={{ measurementFootprint: interiorCorners(item), dragTarget: { kind: 'item', ref: item.ref } }}

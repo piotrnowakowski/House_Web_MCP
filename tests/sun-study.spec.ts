@@ -102,7 +102,7 @@ test('actual house: shadows follow time, night disables the sun, floor changes m
   page.on('pageerror', error => errors.push(error.message))
   await page.goto(process.env.APP_URL ?? 'http://127.0.0.1:5191')
   await page.getByRole('dialog', { name: 'Który projekt chcesz otworzyć?' }).waitFor()
-  await page.getByRole('dialog').getByRole('button', { name: /^Otwórz projekt/ }).click()
+  await page.getByRole('dialog').getByRole('button', { name: 'Otwórz projekt: architekt 7.11', exact: true }).click()
   await expect(page.getByRole('dialog', { name: 'Który projekt chcesz otworzyć?' })).toBeHidden()
   await expect.poll(async () => (await read(page)).project.ref).toBe('project/architekt-7-11')
   const project = (await read(page)).project

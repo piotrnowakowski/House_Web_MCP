@@ -7,6 +7,7 @@ import { pointInPolygon, polygonBounds, polygonCentroid, spaceFootprint } from '
 import { interiorCorners } from '../../domain/interior'
 import { REFERENCE_YEAR, solarPosition, sunDirectionModel, sunriseSunset } from '../../domain/solar'
 import type { BuildingModel, Polygon2, StoreyModel, Vec2 } from '../../domain/types'
+import { ARCHITEKT_711_REF, ARCHITEKT_711_FLUSH_REF } from '../../services/publishedArchitekt711'
 import { useStudioStore } from '../../state/store'
 import { SunStudyScene } from '../StudioScene'
 import { RendererLifecycle, ViewportBoundary } from '../ViewportBoundary'
@@ -104,7 +105,7 @@ function Study({ building, initialStoreyRef, onBack }: { building: BuildingModel
   const setTime = useStudioStore(state => state.setSunTime)
   const [floorRef, setFloorRef] = useState(initialStoreyRef ?? building.storeys[0].ref)
   const storey = building.storeys.find(s => s.ref === floorRef) ?? building.storeys[0]
-  const studies = useMemo(() => project.ref === 'project/architekt-7-11' ? windowStudies(building, project.site.northDegrees) : [], [project.ref, project.site.northDegrees, building])
+  const studies = useMemo(() => [ARCHITEKT_711_REF, ARCHITEKT_711_FLUSH_REF].includes(project.ref) ? windowStudies(building, project.site.northDegrees) : [], [project.ref, project.site.northDegrees, building])
   const [studyId, setStudyId] = useState('')
   const selectedStudy = studies.find(study => study.id === studyId)
   const [allBedrooms, setAllBedrooms] = useState(false)

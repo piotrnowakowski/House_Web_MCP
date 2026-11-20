@@ -35,7 +35,7 @@ import { flushAutosave } from './services/autosave'
 import { runWorkspaceActivity } from './services/workspaceLock'
 import { groupWorkspaces, workspaceVersionKind } from './services/workspaceGroups'
 import { ARCHITEKT_REF } from './services/publishedArchitekt'
-import { ARCHITEKT_711_REF } from './services/publishedArchitekt711'
+import { ARCHITEKT_711_REF, ARCHITEKT_711_FLUSH_REF } from './services/publishedArchitekt711'
 import { ARCHITEKT_711_V2_REF } from './services/publishedArchitekt711V2'
 import { ARCHITEKT_711_STAIRS_REF } from './services/publishedArchitekt711Stairs'
 import { NOWE_MPZP_REF } from './services/publishedNoweMpzp'
@@ -440,7 +440,7 @@ function StartScreen() {
   }
   const [showOtherVersions, setShowOtherVersions] = useState(false)
   const projectGroups = groupWorkspaces(saved, favoriteRef).filter((item) => item.ref !== REFERENCE_HOUSE_REF)
-  const featuredRefs = [ARCHITEKT_REF, ARCHITEKT_711_REF, ARCHITEKT_711_V2_REF, ARCHITEKT_711_STAIRS_REF, NOWE_MPZP_REF, NOWE_MPZP_V2_REF]
+  const featuredRefs = [ARCHITEKT_REF, ARCHITEKT_711_REF, ARCHITEKT_711_FLUSH_REF, ARCHITEKT_711_V2_REF, ARCHITEKT_711_STAIRS_REF, NOWE_MPZP_REF, NOWE_MPZP_V2_REF]
   const hasMainProject = projectGroups.some((item) => featuredRefs.includes(item.ref))
   const showHistory = showOtherVersions || !hasMainProject
   const visibleProjects = showHistory

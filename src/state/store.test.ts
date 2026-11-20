@@ -160,7 +160,7 @@ describe('start screen and project switching', () => {
     useStudioStore.setState({ launcherOpen: false, hydrated: true, project: structuredClone(modernBarnProject) })
     await useStudioStore.getState().openLauncher()
     expect(useStudioStore.getState().launcherOpen).toBe(true)
-    expect(useStudioStore.getState().savedWorkspaces.map((item) => item.ref).sort()).toEqual([terrain.ref, 'project/architekt-7-11'].sort())
+    expect(useStudioStore.getState().savedWorkspaces.map((item) => item.ref).sort()).toEqual([terrain.ref, 'project/architekt-7-11', 'project/architekt-7-11-bez-okapow'].sort())
     await useStudioStore.getState().openWorkspace(terrain.ref)
     expect(useStudioStore.getState().project.name).toBe('Saved plot')
     expect(useStudioStore.getState().launcherOpen).toBe(false)
@@ -169,14 +169,14 @@ describe('start screen and project switching', () => {
     expect(useStudioStore.getState().toast).toMatch(/not found/i)
   })
 
-  it('shows one consolidated house while preserving archived workspaces byte-for-byte', async () => {
+  it('shows both house designs while preserving archived workspaces byte-for-byte', async () => {
     globalThis.indexedDB = new IDBFactory()
     const snapshots = archivedProjects.flatMap(({ ref, name }) => [ref, `${ref}/before-published-1`].map(versionRef => ({
       version: 1 as const, project: { ...createTerrainProject({ name, widthM: 20, depthM: 20, northDegrees: 0, latitude: 50, longitude: 20, timezone: 'Europe/Warsaw' }), ref: versionRef }, proposals: [], draftChangeSets: [],
     })))
     for (const snapshot of snapshots) await saveWorkspace(snapshot)
     useStudioStore.setState({ hydrated: false })
-    const kept = ['project/architekt-7-11']
+    const kept = ['project/architekt-7-11', 'project/architekt-7-11-bez-okapow']
     await useStudioStore.getState().openLauncher()
     expect(useStudioStore.getState().savedWorkspaces.map(item => item.ref).sort()).toEqual(kept)
     const before = await Promise.all(kept.map(ref => loadWorkspace(ref)))

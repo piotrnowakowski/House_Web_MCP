@@ -49,8 +49,17 @@ export function roofJunctionPlanes(junction: ReturnType<typeof gableRoofJunction
 }
 
 /** Trim a roof panel or seam in building coordinates, so rotation, shadows and exploded views share the same cut. */
-export function clippedRoofBox(size: [number, number, number], position: [number, number, number], rotation: [number, number, number], planes: Plane[], cutouts: Plane[][] = []): BufferGeometry {
+export function clippedRoofBox(size: [number, number, number], position: [number, number, number], rotation: [number, number, number], planes: Plane[], cutouts: Plane[][] = [], plumbEnds = false): BufferGeometry {
   const box = new BoxGeometry(...size)
+  if (plumbEnds) {
+    // Shear through the thickness before pitching. Both faces end at the same plan coordinate.
+    const vertices = box.getAttribute('position')
+    for (let i = 0; i < vertices.count; i++) {
+      const y = vertices.getY(i)
+      vertices.setXYZ(i, vertices.getX(i) + y * Math.tan(rotation[2]), y, vertices.getZ(i) - y * Math.tan(rotation[0]))
+    }
+    box.computeVertexNormals()
+  }
   box.applyMatrix4(new Matrix4().compose(new Vector3(...position), new Quaternion().setFromEuler(new Euler(...rotation)), new Vector3(1, 1, 1)))
   if (!planes.length && !cutouts.length) return box
   const vertices = box.getAttribute('position'); const indices = box.index!

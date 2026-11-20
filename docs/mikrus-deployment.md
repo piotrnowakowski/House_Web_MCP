@@ -1,3 +1,7 @@
+## Wybór projektu od 20 listopada 2026
+
+Na ekranie projektów dostępne są **architekt 7.11** oraz **architekt 7.11 — bez okapów**. Oryginał ma r17, a osobna kopia r1. [Źródło i geometria wariantu](../project-data/architekt-7-11-bez-okapow/README.md).
+
 # Oak lining visible through exterior glazing — 10 November 2026
 
 The exterior renderer now shows the saved horizontal oak side-wall and cathedral-ceiling finishes, including Fast/mobile mode. Project data remains r17/shared v15. See the Architekt 7.11 record for validation and publication evidence.

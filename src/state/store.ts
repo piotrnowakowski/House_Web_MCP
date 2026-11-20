@@ -15,7 +15,7 @@ import type { SunlightAnalysis } from '../domain/sunlight'
 import { createTerrainProject, isZielonkiProject, type TerrainInput } from '../domain/terrain'
 import { listWorkspaces, loadWorkspace, loadEditHistory, normalizeWorkspaceName, renameWorkspace, saveWorkspace, type WorkspaceSummary, type LocalEditHistory } from '../services/persistence'
 import { stableJson } from '../domain/workspaceSync'
-import { ARCHITEKT_711_REF, synchronizePublishedArchitekt711 } from '../services/publishedArchitekt711'
+import { ARCHITEKT_711_REF, ARCHITEKT_711_FLUSH_REF, synchronizePublishedArchitekt711, synchronizePublishedArchitekt711Flush } from '../services/publishedArchitekt711'
 import type { DraftChangeSetModel, HeightMeasureKind, PersistedWorkspace, ProjectCommand, ProjectV2, ProposalRecord, StructureReport, TransformMode, VariantModel, ViewerMode } from '../domain/types'
 
 interface StudioState {
@@ -229,10 +229,9 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
     await flushAutosave()
     set({ launcherOpen: true, loadingWorkspaces: true })
     try {
-      set({ projectSyncConflicts: [] })
-      const architekt711Conflicts = await synchronizePublishedArchitekt711()
-      if (architekt711Conflicts.length) set((state) => ({ projectSyncConflicts: [...state.projectSyncConflicts, ...architekt711Conflicts] }))
-      set({ savedWorkspaces: await listWorkspaces({ includeArchived: false }) })
+      const parentConflicts = await synchronizePublishedArchitekt711()
+      const flushConflicts = await synchronizePublishedArchitekt711Flush()
+      set({ projectSyncConflicts: [...parentConflicts, ...flushConflicts], savedWorkspaces: await listWorkspaces({ includeArchived: false }) })
     }
     catch (error) { set({ savedWorkspaces: [], toast: `Saved projects could not be read: ${error instanceof Error ? error.message : 'storage unavailable'}.` }) }
     finally { set({ loadingWorkspaces: false }) }
@@ -306,6 +305,7 @@ export const useStudioStore = create<StudioState>((rawSet, get) => {
     await flushAutosave()
     try {
       if (ref === ARCHITEKT_711_REF) set({ projectSyncConflicts: await synchronizePublishedArchitekt711() })
+      if (ref === ARCHITEKT_711_FLUSH_REF) set({ projectSyncConflicts: await synchronizePublishedArchitekt711Flush() })
       const saved = await loadWorkspace(ref)
       if (!saved) { set({ toast: `Saved project not found: ${ref}.` }); return }
       const project = isZielonkiProject(saved.project) ? ensureStarterOrchard(ensureStarterGarden(applyModernBarnPreset(saved.project))) : saved.project

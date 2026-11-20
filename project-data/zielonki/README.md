@@ -1,3 +1,7 @@
+## Mikrus · 20 listopada 2026
+
+Dodano [osobny wariant architekt 7.11 bez okapów](../architekt-7-11-bez-okapow/README.md) skopiowany z publicznego r17, wersja serwera 15. Bazy migracji poszczególnych projektów pozostają przypisane do ich własnych identyfikatorów. Źródła, kopie profili i pomiary kosza podano w dokumentacji wariantu.
+
 # Versioned Zielonki project
 
 ## 2026-11-10 · 360° window comparison

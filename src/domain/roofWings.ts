@@ -1,3 +1,4 @@
+import { gableWallInset } from './gableRecess'
 import { roofSegmentRidgeElevation } from './roofs'
 import { polygonBounds } from './geometry'
 import type { BuildingModel, RoofType, WallModel } from './types'
@@ -62,8 +63,9 @@ export const gableWallsForBuilding = (building: BuildingModel): GableWallSurface
   const axis = wing.ridgeAxis === 'z' ? 'z' : 'x'
   const values = wing.footprint.map((point) => point[axis])
   const junction = gableRoofJunction(building, wing)
+  const segment = building.roof.segments.find(s => s.ref === wing.ref)!
   return ([['min', Math.min(...values)], ['max', Math.max(...values)]] as const).filter(([side]) => side !== junction?.side).map(([side, edge]) => {
-    const value = edge + (side === 'min' ? 1 : -1) * (building.roof.segments.find(s => s.ref === wing.ref)?.gableRecess?.[side]?.depthM ?? 0)
+    const value = edge + (side === 'min' ? 1 : -1) * gableWallInset(segment, side)
     return {
       ref: `${wing.ref}/gable-wall/${side}`,
       segmentRef: wing.ref,

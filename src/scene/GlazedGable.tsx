@@ -1,13 +1,13 @@
 import { useEffect, useMemo } from 'react'
-import { DoubleSide, Path, Shape, ShapeGeometry, Vector2 } from 'three'
+import { DoubleSide, ExtrudeGeometry, Path, Shape, ShapeGeometry, Vector2 } from 'three'
 import { gableGlazingProfile } from '../domain/gableGlazing'
 import type { BuildingModel, RoofSegmentModel, Vec2, WallFinish } from '../domain/types'
 import { resolveWallTexture, tintForTexturedFinish } from './materialCatalog'
 import { TexturedMaterial } from './materials'
 
 /** Cut the glass out of the gable cladding and frame its sloping outline. */
-export function GlazedGable({ building, segment, side, value, finish, selected, ghost }: {
-  building: BuildingModel; segment: RoofSegmentModel; side: 'min' | 'max'; value: number; finish: WallFinish; selected: boolean; ghost?: boolean
+export function GlazedGable({ building, segment, side, value, claddingDepth = 0, finish, selected, ghost }: {
+  building: BuildingModel; segment: RoofSegmentModel; side: 'min' | 'max'; value: number; claddingDepth?: number; finish: WallFinish; selected: boolean; ghost?: boolean
 }) {
   const profile = useMemo(() => gableGlazingProfile(segment, side, building), [segment, side, building])
   const geometry = useMemo(() => {
@@ -15,8 +15,12 @@ export function GlazedGable({ building, segment, side, value, finish, selected, 
     const points = (polygon: Vec2[]) => polygon.map((p) => new Vector2(p.x, p.z))
     const wall = new Shape(points(profile.outline))
     for (const panel of profile.panels) wall.holes.push(new Path(points([...panel.opening].reverse())))
-    return { wall: new ShapeGeometry(wall), glass: profile.panels.map((panel) => new ShapeGeometry(new Shape(points(panel.opening)))) }
-  }, [profile])
+    // Extrude the solid cladding and window reveals out to the facade, keeping the glass on its host axis.
+    const depth = segment.ridgeDirection === 'z' ? claddingDepth : -claddingDepth
+    const face = depth === 0 ? new ShapeGeometry(wall) : new ExtrudeGeometry(wall, { depth: Math.abs(depth), bevelEnabled: false })
+    if (depth < 0) face.translate(0, 0, depth)
+    return { wall: face, glass: profile.panels.map((panel) => new ShapeGeometry(new Shape(points(panel.opening)))) }
+  }, [profile, claddingDepth, segment.ridgeDirection])
   useEffect(() => () => { geometry?.wall.dispose(); geometry?.glass.forEach((glass) => glass.dispose()) }, [geometry])
   if (!profile || !geometry) return null
   const alongZ = segment.ridgeDirection === 'z'
